@@ -58,11 +58,11 @@ export default function Home() {
                   <span>NEW!</span>
                 </div>
                 <Image
-                  src="/images/products/mint/mint-6mg.png"
+                  src="/images/hero.jpeg"
                   alt="Hockey Pouches - Premium Nicotine Pouches"
                   fill
-                  style={{ objectFit: 'contain' }}
-                  className="p-4 drop-shadow-lg"
+                  style={{ objectFit: 'cover' }}
+                  className="rounded-lg"
                 />
                 <div className="absolute bottom-4 left-4 right-4 bg-gradient-to-r from-primary-600 to-accent-500 text-white py-2 px-4 rounded text-center font-medium">
                   Perfect for the Rink
