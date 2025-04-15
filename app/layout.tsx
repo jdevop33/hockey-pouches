@@ -1,9 +1,7 @@
-'use client';
-
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { CartProvider } from './context/CartContext';
+import CartWrapper from './components/CartWrapper';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -20,9 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans`}>
-        <CartProvider>
+        <CartWrapper>
           {children}
-        </CartProvider>
+        </CartWrapper>
       </body>
     </html>
   );

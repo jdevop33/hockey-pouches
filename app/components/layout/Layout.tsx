@@ -4,7 +4,7 @@ import React, { ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { CartProvider, useCart } from '../../context/CartContext';
+import { useCart } from '../../context/CartContext';
 
 interface NavItem {
   href: string;
@@ -223,13 +223,11 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <CartProvider>
-      <div className="flex flex-col min-h-screen">
-        <Navigation />
-        <main className="flex-grow">{children}</main>
-        <Footer />
-      </div>
-    </CartProvider>
+    <div className="flex flex-col min-h-screen">
+      <Navigation />
+      <main className="flex-grow">{children}</main>
+      <Footer />
+    </div>
   );
 };
 
