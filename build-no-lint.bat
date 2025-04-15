@@ -1,0 +1,3 @@
+@echo off
+echo Skipping lint and running build directly...
+npx next build --no-lint

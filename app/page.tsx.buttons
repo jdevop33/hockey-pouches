@@ -1,0 +1,23 @@
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link
+                  href="/wholesale"
+                  className="inline-block bg-white text-primary-600 px-6 py-3 rounded-md font-medium text-lg shadow-md hover:bg-gray-100 relative overflow-hidden group"
+                >
+                  <span className="absolute -top-1 -right-1 bg-yellow-400 text-primary-800 text-xs font-bold px-2 py-1 rounded-bl-md transform rotate-3 group-hover:rotate-6 transition-transform">
+                    NEW
+                  </span>
+                  Wholesale Calculator
+                </Link>
+                <Link
+                  href="/products"
+                  className="inline-block bg-primary-700 text-white px-6 py-3 rounded-md font-medium text-lg shadow-md hover:bg-primary-800"
+                >
+                  View Products
+                </Link>
+                <Link
+                  href="/request-samples"
+                  className="inline-block bg-transparent border-2 border-white text-white px-6 py-3 rounded-md font-medium text-lg hover:bg-white hover:text-primary-600"
+                >
+                  Request Samples
+                </Link>
+              </div>
