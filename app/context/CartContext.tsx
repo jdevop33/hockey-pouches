@@ -39,23 +39,29 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   // Load cart from localStorage on initial render
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      try {
-        const parsedCart = JSON.parse(savedCart);
-        setItems(parsedCart);
-      } catch (error) {
-        console.error('Failed to parse cart from localStorage:', error);
+    // Check if window is defined (client-side)
+    if (typeof window !== 'undefined') {
+      const savedCart = localStorage.getItem('cart');
+      if (savedCart) {
+        try {
+          const parsedCart = JSON.parse(savedCart);
+          setItems(parsedCart);
+        } catch (error) {
+          console.error('Failed to parse cart from localStorage:', error);
+        }
       }
     }
   }, []);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    if (items.length > 0) {
-      localStorage.setItem('cart', JSON.stringify(items));
-    } else {
-      localStorage.removeItem('cart');
+    // Check if window is defined (client-side)
+    if (typeof window !== 'undefined') {
+      if (items.length > 0) {
+        localStorage.setItem('cart', JSON.stringify(items));
+      } else {
+        localStorage.removeItem('cart');
+      }
     }
 
     // Calculate item count and subtotal
@@ -115,7 +121,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const clearCart = () => {
     setItems([]);
-    localStorage.removeItem('cart');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('cart');
+    }
   };
 
   return (
