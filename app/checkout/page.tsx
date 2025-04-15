@@ -73,7 +73,7 @@ export default function CheckoutPage() {
       };
 
       // Send order to the form endpoint
-      const response = await fetch('https://public.herotofu.com/v1/f129c2a0-180e-11f0-8883-29a3f54ace99', {
+      const response = await fetch('https://public.herotofu.com/v1/3e028000-1998-11f0-ab37-9d304c3aa51c', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -112,7 +112,10 @@ export default function CheckoutPage() {
               </div>
               <h1 className="text-3xl font-extrabold text-gray-900 mb-4">Order Received!</h1>
               <p className="text-lg text-gray-600 mb-8">
-                Thank you for your order. We've received your request and will contact you shortly to confirm the details.
+                Thank you for your order. We've received your request and will contact you shortly to confirm the details and provide payment options.
+              </p>
+              <p className="text-md text-gray-500 mb-4">
+                We manually process all orders to ensure the best service. You'll receive an email with payment instructions and shipping details.
               </p>
               <p className="text-md text-gray-500 mb-6">
                 A confirmation email has been sent to {formData.email}
@@ -408,7 +411,7 @@ export default function CheckoutPage() {
             <div className="mt-8 bg-gray-50 rounded-lg p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Information</h3>
               <p className="text-gray-600 mb-4">
-                This is a demo checkout. No payment will be processed. After submitting your order, you'll receive a confirmation and our team will contact you to arrange payment and delivery.
+                After submitting your order, our team will contact you with available payment options (e-transfer, credit card, etc.). We manually process all orders to provide personalized service and ensure you get the right products for your needs.
               </p>
               <div className="flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
