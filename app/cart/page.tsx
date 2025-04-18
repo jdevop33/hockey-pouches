@@ -46,8 +46,24 @@ export default function CartPage() {
 
           <div className="divide-y divide-gray-200">
             {items.map((item) => {
-              // For B2C, we use a fixed retail price (2x the wholesale price)
-              const retailPrice = item.product.wholesalePrices[0].price * 2;
+              // Get the retail price from the product
+              let retailPrice = item.product.price;
+              let discountApplied = false;
+
+              // Apply bulk discounts if applicable
+              if (item.product.bulkDiscounts) {
+                // Find the highest applicable discount
+                const applicableDiscount = item.product.bulkDiscounts
+                  .filter(discount => item.quantity >= discount.quantity)
+                  .sort((a, b) => b.discountPercentage - a.discountPercentage)[0];
+
+                if (applicableDiscount) {
+                  const discountMultiplier = 1 - (applicableDiscount.discountPercentage / 100);
+                  retailPrice = retailPrice * discountMultiplier;
+                  discountApplied = true;
+                }
+              }
+
               const itemTotal = item.quantity * retailPrice;
 
               return (
@@ -66,7 +82,11 @@ export default function CartPage() {
                       <h3 className="text-lg font-medium text-gray-900">{item.product.name}</h3>
                       <p className="mt-1 text-sm text-gray-500">{item.product.description}</p>
                       <p className="mt-1 text-sm font-medium text-primary-600">
-                        ${retailPrice.toFixed(2)} each
+                        ${item.product.price.toFixed(2)} each {discountApplied && (
+                          <span className="text-xs text-green-600">
+                            (${retailPrice.toFixed(2)} after discount)
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -99,9 +119,11 @@ export default function CartPage() {
                         <span className="text-lg font-medium text-gray-900 sm:mr-6 sm:text-right sm:w-24">
                           ${itemTotal.toFixed(2)}
                         </span>
-                        {item.quantity >= 3 && (
+                        {discountApplied && (
                           <span className="text-xs text-green-600 font-medium">
-                            Bulk discount applied
+                            {item.product.bulkDiscounts
+                              .filter(discount => item.quantity >= discount.quantity)
+                              .sort((a, b) => b.discountPercentage - a.discountPercentage)[0].discountPercentage}% discount applied
                           </span>
                         )}
                       </div>

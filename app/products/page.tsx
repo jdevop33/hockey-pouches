@@ -124,8 +124,20 @@ export default function ProductsPage() {
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="text-lg font-medium text-gray-900">${(product.wholesalePrices[0].price * 2).toFixed(2)}</p>
+                        {product.compareAtPrice ? (
+                          <div className="flex items-center">
+                            <p className="text-lg font-medium text-gray-900">${product.price.toFixed(2)}</p>
+                            <p className="ml-2 text-sm line-through text-gray-500">${product.compareAtPrice.toFixed(2)}</p>
+                          </div>
+                        ) : (
+                          <p className="text-lg font-medium text-gray-900">${product.price.toFixed(2)}</p>
+                        )}
                         <p className="text-xs text-gray-500">Free shipping on orders over $50</p>
+                        {product.bulkDiscounts && (
+                          <div className="mt-1">
+                            <p className="text-xs font-medium text-green-600">Bulk discounts available</p>
+                          </div>
+                        )}
                       </div>
                       <button
                         onClick={() => handleAddToCart(product)}

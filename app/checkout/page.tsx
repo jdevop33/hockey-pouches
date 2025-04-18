@@ -345,8 +345,24 @@ export default function CheckoutPage() {
                 <div className="flow-root">
                   <ul className="-my-6 divide-y divide-gray-200">
                     {items.map((item) => {
-                      // For B2C, we use a fixed retail price (2x the wholesale price)
-                      const retailPrice = item.product.wholesalePrices[0].price * 2;
+                      // Get the retail price from the product
+                      let retailPrice = item.product.price;
+                      let discountApplied = false;
+
+                      // Apply bulk discounts if applicable
+                      if (item.product.bulkDiscounts) {
+                        // Find the highest applicable discount
+                        const applicableDiscount = item.product.bulkDiscounts
+                          .filter(discount => item.quantity >= discount.quantity)
+                          .sort((a, b) => b.discountPercentage - a.discountPercentage)[0];
+
+                        if (applicableDiscount) {
+                          const discountMultiplier = 1 - (applicableDiscount.discountPercentage / 100);
+                          retailPrice = retailPrice * discountMultiplier;
+                          discountApplied = true;
+                        }
+                      }
+
                       const itemTotal = item.quantity * retailPrice;
 
                       return (
@@ -373,9 +389,11 @@ export default function CheckoutPage() {
                             <div className="flex-1 flex items-end justify-between text-sm">
                               <p className="text-gray-500">
                                 Qty {item.quantity} × ${retailPrice.toFixed(2)}
-                                {item.quantity >= 3 && (
+                                {discountApplied && (
                                   <span className="ml-1 text-xs text-green-600 font-medium">
-                                    (Bulk discount applied)
+                                    ({item.product.bulkDiscounts
+                                      .filter(discount => item.quantity >= discount.quantity)
+                                      .sort((a, b) => b.discountPercentage - a.discountPercentage)[0].discountPercentage}% off)
                                   </span>
                                 )}
                               </p>

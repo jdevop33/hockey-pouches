@@ -71,8 +71,21 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     items.forEach(item => {
       count += item.quantity;
 
-      // For B2C, we use a fixed retail price (2x the wholesale price)
-      let retailPrice = item.product.wholesalePrices[0].price * 2;
+      // Use the retail price from the product data
+      let retailPrice = item.product.price;
+
+      // Apply bulk discounts if applicable
+      if (item.product.bulkDiscounts) {
+        // Find the highest applicable discount
+        const applicableDiscount = item.product.bulkDiscounts
+          .filter(discount => item.quantity >= discount.quantity)
+          .sort((a, b) => b.discountPercentage - a.discountPercentage)[0];
+
+        if (applicableDiscount) {
+          const discountMultiplier = 1 - (applicableDiscount.discountPercentage / 100);
+          retailPrice = retailPrice * discountMultiplier;
+        }
+      }
 
       total += item.quantity * retailPrice;
     });
