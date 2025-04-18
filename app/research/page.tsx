@@ -35,8 +35,8 @@ interface Study {
 // Sample data for videos
 // Function to get YouTube thumbnail URL from video ID
 const getYoutubeThumbnail = (videoId: string) => {
-  // Use the direct YouTube image API for highest quality available thumbnails
-  return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+  // Use the standard quality thumbnail which is more reliable
+  return `https://i.ytimg.com/vi/${videoId}/sddefault.jpg`;
 };
 
 // Default fallback image for videos
@@ -786,23 +786,20 @@ export default function ResearchPage() {
                           style={{ objectFit: 'cover' }}
                           className="z-10 transition-transform duration-500 group-hover:scale-105"
                           onError={e => {
-                            // Fallback to different thumbnail qualities if the maxresdefault fails
+                            // Fallback to different thumbnail qualities if the sddefault fails
                             const target = e.target as HTMLImageElement;
                             const videoId = getYoutubeId(video.youtubeUrl);
 
                             // Try different thumbnail qualities in order
-                            if (target.src.includes('maxresdefault')) {
+                            if (target.src.includes('sddefault')) {
                               // Try high quality
-                              target.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                              target.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
                             } else if (target.src.includes('hqdefault')) {
                               // Try medium quality
-                              target.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+                              target.src = `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
                             } else if (target.src.includes('mqdefault')) {
-                              // Try standard quality
-                              target.src = `https://img.youtube.com/vi/${videoId}/sddefault.jpg`;
-                            } else if (target.src.includes('sddefault')) {
                               // Try default quality
-                              target.src = `https://img.youtube.com/vi/${videoId}/default.jpg`;
+                              target.src = `https://i.ytimg.com/vi/${videoId}/default.jpg`;
                             } else {
                               // Last resort: use our default image
                               target.src = DEFAULT_VIDEO_IMAGE;

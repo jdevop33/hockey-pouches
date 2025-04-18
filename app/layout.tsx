@@ -33,6 +33,7 @@ export const metadata: Metadata = {
     locale: 'en_CA',
     type: 'website',
   },
+  // Updated from Twitter to X
   twitter: {
     card: 'summary_large_image',
     title: 'Hockey Pouches - Premium Nicotine Pouches for Hockey Players',
@@ -60,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta property="og:site_name" content="Hockey Pouches" />
         <meta property="og:type" content="website" />
         <meta property="og:locale" content="en_CA" />
+        {/* X (formerly Twitter) meta tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:creator" content="@hockeypouches" />
 
