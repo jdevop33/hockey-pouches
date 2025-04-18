@@ -25,7 +25,7 @@ const Navigation: React.FC = () => {
   ];
 
   return (
-    <nav className="bg-primary-600 shadow-md">
+    <nav className="border-b border-gray-200 bg-white shadow-sm">
       {/* Desktop navigation */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
@@ -52,8 +52,8 @@ const Navigation: React.FC = () => {
                   href={item.href}
                   className={`rounded-md px-3 py-2 text-sm font-medium ${
                     pathname === item.href
-                      ? 'bg-primary-700 text-white'
-                      : 'text-white hover:bg-primary-500'
+                      ? 'text-primary-600 font-semibold'
+                      : 'hover:text-primary-600 text-gray-700'
                   }`}
                 >
                   {item.label}
@@ -64,7 +64,7 @@ const Navigation: React.FC = () => {
                 <CartIcon />
                 <Link
                   href="/account"
-                  className="flex items-center rounded-md bg-white px-3 py-2 text-sm font-medium text-primary-600 hover:bg-gray-100"
+                  className="bg-primary-600 hover:bg-primary-700 flex items-center rounded-md px-3 py-2 text-sm font-medium text-white"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -88,7 +88,7 @@ const Navigation: React.FC = () => {
           <div className="flex md:hidden">
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-md bg-primary-700 p-2 text-white hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-white"
+              className="focus:ring-primary-500 inline-flex items-center justify-center rounded-md bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 focus:ring-2 focus:outline-none"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               <span className="sr-only">{mobileMenuOpen ? 'Close menu' : 'Open menu'}</span>
@@ -133,26 +133,26 @@ const Navigation: React.FC = () => {
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden">
-          <div className="space-y-1 border-t border-primary-800 bg-primary-700 px-2 pb-3 pt-2 shadow-lg">
+          <div className="space-y-1 border-t border-gray-200 bg-white px-2 pt-2 pb-3 shadow-lg">
             {navItems.map(item => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`block rounded-md px-3 py-2 text-base font-medium ${
                   pathname === item.href
-                    ? 'bg-primary-800 text-white'
-                    : 'text-white hover:bg-primary-600'
+                    ? 'text-primary-600 bg-gray-100 font-semibold'
+                    : 'hover:text-primary-600 text-gray-700 hover:bg-gray-100'
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.label}
               </Link>
             ))}
-            <div className="mt-4 flex items-center justify-between border-t border-primary-800 px-3 pt-4">
+            <div className="mt-4 flex items-center justify-between border-t border-gray-200 px-3 pt-4">
               <CartIcon />
               <Link
                 href="/account"
-                className="flex items-center justify-center rounded-md bg-white px-4 py-2 text-base font-medium text-primary-600 hover:bg-gray-100"
+                className="bg-primary-600 hover:bg-primary-700 flex items-center justify-center rounded-md px-4 py-2 text-base font-medium text-white"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <svg
