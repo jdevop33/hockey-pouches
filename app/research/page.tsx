@@ -304,12 +304,12 @@ const VideoPlayer = ({ videoId, onClose }: { videoId: string; onClose: () => voi
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4"
+      className="bg-opacity-90 fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
     >
       <div className="relative w-full max-w-4xl overflow-hidden rounded-lg bg-black shadow-2xl">
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 rounded-full bg-black bg-opacity-50 p-2 text-white transition-colors hover:bg-opacity-70"
+          className="bg-opacity-50 hover:bg-opacity-70 absolute top-4 right-4 z-10 rounded-full bg-black p-2 text-white transition-colors"
           aria-label="Close video"
         >
           <svg
@@ -330,11 +330,11 @@ const VideoPlayer = ({ videoId, onClose }: { videoId: string; onClose: () => voi
 
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black">
-            <div className="h-16 w-16 animate-spin rounded-full border-b-4 border-t-4 border-primary-600"></div>
+            <div className="border-primary-600 h-16 w-16 animate-spin rounded-full border-t-4 border-b-4"></div>
           </div>
         )}
 
-        <div className="aspect-h-9 aspect-w-16">
+        <div className="aspect-video">
           <iframe
             src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -377,12 +377,12 @@ const StudyDetail = ({ study, onClose }: { study: Study; onClose: () => void }) 
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
+      className="bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
     >
       <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white shadow-2xl">
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 rounded-full bg-gray-200 p-2 text-gray-800 shadow-md transition-colors hover:bg-gray-300"
+          className="absolute top-4 right-4 z-10 rounded-full bg-gray-200 p-2 text-gray-800 shadow-md transition-colors hover:bg-gray-300"
           aria-label="Close study details"
         >
           <svg
@@ -402,22 +402,22 @@ const StudyDetail = ({ study, onClose }: { study: Study; onClose: () => void }) 
         </button>
 
         {/* Study Header with Category Badge */}
-        <div className="bg-gradient-to-r from-primary-700 to-primary-500 p-6 text-white sm:p-8">
+        <div className="from-primary-700 to-primary-500 bg-gradient-to-r p-6 text-white sm:p-8">
           <div className="flex items-start justify-between">
             <div>
-              <span className="mb-3 inline-block rounded-full bg-white px-3 py-1 text-xs font-bold text-primary-700 shadow-sm">
+              <span className="text-primary-700 mb-3 inline-block rounded-full bg-white px-3 py-1 text-xs font-bold shadow-sm">
                 {study.category}
               </span>
               <h2 className="mb-2 text-2xl font-bold sm:text-3xl">{study.title}</h2>
               <p className="font-medium text-white/90">{study.authors}</p>
-              <p className="italic text-white/80">
+              <p className="text-white/80 italic">
                 {study.journal}, {study.year}
               </p>
             </div>
             <div className="hidden sm:block">
               <div className="rounded-lg bg-white/10 p-4 shadow-inner backdrop-blur-sm">
                 <div className="mb-1 text-sm font-medium">DOI Reference</div>
-                <div className="break-all text-xs text-white/90">
+                <div className="text-xs break-all text-white/90">
                   {study.link.replace('https://doi.org/', '')}
                 </div>
               </div>
@@ -431,7 +431,7 @@ const StudyDetail = ({ study, onClose }: { study: Study; onClose: () => void }) 
             <h3 className="mb-3 flex items-center text-lg font-semibold text-gray-900">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="mr-2 h-5 w-5 text-primary-600"
+                className="text-primary-600 mr-2 h-5 w-5"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -451,7 +451,7 @@ const StudyDetail = ({ study, onClose }: { study: Study; onClose: () => void }) 
             <h3 className="mb-4 flex items-center text-lg font-semibold text-gray-900">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="mr-2 h-5 w-5 text-primary-600"
+                className="text-primary-600 mr-2 h-5 w-5"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -465,7 +465,7 @@ const StudyDetail = ({ study, onClose }: { study: Study; onClose: () => void }) 
                   key={index}
                   className="flex items-start rounded-md border border-gray-100 bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
                 >
-                  <span className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 font-bold text-primary-700">
+                  <span className="bg-primary-100 text-primary-700 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full font-bold">
                     {index + 1}
                   </span>
                   <span className="text-gray-700">{finding}</span>
@@ -486,7 +486,7 @@ const StudyDetail = ({ study, onClose }: { study: Study; onClose: () => void }) 
                 href={study.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center rounded-md bg-primary-600 px-6 py-3 font-medium text-white shadow-sm transition-colors hover:bg-primary-700"
+                className="bg-primary-600 hover:bg-primary-700 inline-flex items-center rounded-md px-6 py-3 font-medium text-white shadow-sm transition-colors"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -522,7 +522,7 @@ const Filter = ({
       <div className="mb-3 flex items-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="mr-2 h-5 w-5 text-primary-600"
+          className="text-primary-600 mr-2 h-5 w-5"
           viewBox="0 0 20 20"
           fill="currentColor"
         >
@@ -539,7 +539,7 @@ const Filter = ({
           onClick={() => onChange('All')}
           className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
             activeFilter === 'All'
-              ? 'scale-105 transform bg-primary-600 text-white shadow-md'
+              ? 'bg-primary-600 scale-105 transform text-white shadow-md'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
           }`}
         >
@@ -551,7 +551,7 @@ const Filter = ({
             onClick={() => onChange(option)}
             className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
               activeFilter === option
-                ? 'scale-105 transform bg-primary-600 text-white shadow-md'
+                ? 'bg-primary-600 scale-105 transform text-white shadow-md'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
             }`}
           >
@@ -594,13 +594,13 @@ export default function ResearchPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Hero Section */}
           <div className="mb-16 text-center">
-            <div className="mb-4 inline-block rounded-full bg-primary-100 px-3 py-1 text-sm font-bold text-primary-800">
+            <div className="bg-primary-100 text-primary-800 mb-4 inline-block rounded-full px-3 py-1 text-sm font-bold">
               Evidence-Based Information
             </div>
-            <h1 className="mb-6 text-4xl font-extrabold text-gray-900 sm:text-5xl">
+            <h1 className="mb-6 text-4xl font-extrabold text-gray-900 text-shadow-sm sm:text-5xl">
               Player Benefits & Research
             </h1>
-            <div className="mx-auto mb-6 h-1 w-24 bg-primary-600"></div>
+            <div className="bg-primary-600 mx-auto mb-6 h-1 w-24"></div>
             <p className="mx-auto mt-4 max-w-3xl text-xl text-gray-600">
               Discover why hockey players choose nicotine pouches and explore the science behind how
               they can enhance your performance on and off the ice.
@@ -609,7 +609,7 @@ export default function ResearchPage() {
               <div className="flex items-center rounded-full bg-white px-4 py-2 shadow-sm">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="mr-2 h-5 w-5 text-primary-600"
+                  className="text-primary-600 mr-2 h-5 w-5"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -624,7 +624,7 @@ export default function ResearchPage() {
               <div className="flex items-center rounded-full bg-white px-4 py-2 shadow-sm">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="mr-2 h-5 w-5 text-primary-600"
+                  className="text-primary-600 mr-2 h-5 w-5"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -635,7 +635,7 @@ export default function ResearchPage() {
               <div className="flex items-center rounded-full bg-white px-4 py-2 shadow-sm">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="mr-2 h-5 w-5 text-primary-600"
+                  className="text-primary-600 mr-2 h-5 w-5"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -657,7 +657,7 @@ export default function ResearchPage() {
                 onClick={() => setActiveTab('videos')}
                 className={`flex items-center rounded-md px-6 py-3 text-lg font-medium transition-all duration-200 ${
                   activeTab === 'videos'
-                    ? 'scale-[1.02] transform bg-white text-primary-700 shadow-sm'
+                    ? 'text-primary-700 scale-[1.02] transform bg-white shadow-sm'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
                 }`}
               >
@@ -670,7 +670,7 @@ export default function ResearchPage() {
                   <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
                 </svg>
                 Educational Videos
-                <span className="ml-2 rounded-full bg-primary-100 px-2 py-1 text-xs font-bold text-primary-800">
+                <span className="bg-primary-100 text-primary-800 ml-2 rounded-full px-2 py-1 text-xs font-bold">
                   {videos.length}
                 </span>
               </button>
@@ -678,7 +678,7 @@ export default function ResearchPage() {
                 onClick={() => setActiveTab('studies')}
                 className={`flex items-center rounded-md px-6 py-3 text-lg font-medium transition-all duration-200 ${
                   activeTab === 'studies'
-                    ? 'scale-[1.02] transform bg-white text-primary-700 shadow-sm'
+                    ? 'text-primary-700 scale-[1.02] transform bg-white shadow-sm'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
                 }`}
               >
@@ -691,7 +691,7 @@ export default function ResearchPage() {
                   <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
                 </svg>
                 Medical Studies
-                <span className="ml-2 rounded-full bg-primary-100 px-2 py-1 text-xs font-bold text-primary-800">
+                <span className="bg-primary-100 text-primary-800 ml-2 rounded-full px-2 py-1 text-xs font-bold">
                   {studies.length}
                 </span>
               </button>
@@ -702,7 +702,9 @@ export default function ResearchPage() {
           {activeTab === 'videos' && (
             <div>
               <div className="mb-8">
-                <h2 className="mb-4 text-2xl font-bold text-gray-900">Educational Videos</h2>
+                <h2 className="mb-4 text-2xl font-bold text-gray-900 text-shadow-xs">
+                  Educational Videos
+                </h2>
                 <p className="text-gray-600">
                   Watch these informative videos to learn more about nicotine pouches, their
                   benefits, and how they compare to traditional tobacco products.
@@ -722,11 +724,11 @@ export default function ResearchPage() {
                     className="group overflow-hidden rounded-lg border border-gray-100 bg-white shadow-md transition-all duration-300 hover:shadow-xl"
                   >
                     <div
-                      className="aspect-video relative cursor-pointer"
+                      className="relative aspect-video cursor-pointer overflow-hidden"
                       onClick={() => setActiveVideo(getYoutubeId(video.youtubeUrl))}
                     >
                       <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/60 to-black/10 transition-all duration-300 group-hover:from-black/70 group-hover:to-black/20">
-                        <div className="flex h-16 w-16 transform items-center justify-center rounded-full bg-primary-600 bg-opacity-90 shadow-lg transition-transform duration-300 group-hover:scale-110">
+                        <div className="bg-primary-600 bg-opacity-90 drop-shadow-primary-500/50 flex h-16 w-16 transform items-center justify-center rounded-full shadow-lg drop-shadow-lg transition-transform duration-300 group-hover:scale-110">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-8 w-8 text-white"
@@ -741,11 +743,11 @@ export default function ResearchPage() {
                           </svg>
                         </div>
 
-                        <div className="absolute bottom-4 left-4 right-4">
-                          <h3 className="mb-1 line-clamp-1 text-lg font-bold text-white drop-shadow-md">
+                        <div className="absolute right-4 bottom-4 left-4">
+                          <h3 className="mb-1 line-clamp-1 text-lg font-bold text-white text-shadow-md">
                             {video.title}
                           </h3>
-                          <p className="line-clamp-1 text-sm text-white/80 drop-shadow-md">
+                          <p className="line-clamp-1 text-sm text-white/80 text-shadow-sm">
                             By{' '}
                             {video.title.includes('Huberman')
                               ? 'Dr. Andrew Huberman'
@@ -766,7 +768,7 @@ export default function ResearchPage() {
                         </div>
                       </div>
 
-                      <div className="absolute right-3 top-3 rounded-full bg-primary-600 px-2 py-1 text-xs font-bold text-white shadow-md">
+                      <div className="bg-primary-600 absolute top-3 right-3 rounded-full px-2 py-1 text-xs font-bold text-white shadow-md text-shadow-xs">
                         {video.category}
                       </div>
 
@@ -787,7 +789,7 @@ export default function ResearchPage() {
                         />
                         {/* Preloaded backup image that shows while YouTube thumbnail loads */}
                         <div className="absolute inset-0 z-0 flex items-center justify-center">
-                          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600"></div>
+                          <div className="border-primary-200 border-t-primary-600 h-12 w-12 animate-spin rounded-full border-4"></div>
                         </div>
                       </div>
                     </div>
@@ -820,7 +822,7 @@ export default function ResearchPage() {
                         </span>
                         <button
                           onClick={() => setActiveVideo(getYoutubeId(video.youtubeUrl))}
-                          className="flex items-center text-sm font-medium text-primary-600 hover:text-primary-700"
+                          className="text-primary-600 hover:text-primary-700 flex items-center text-sm font-medium"
                         >
                           Watch Now
                           <svg
@@ -854,7 +856,9 @@ export default function ResearchPage() {
           {activeTab === 'studies' && (
             <div>
               <div className="mb-8">
-                <h2 className="mb-4 text-2xl font-bold text-gray-900">Medical Studies</h2>
+                <h2 className="mb-4 text-2xl font-bold text-gray-900 text-shadow-xs">
+                  Medical Studies
+                </h2>
                 <p className="text-gray-600">
                   Explore peer-reviewed research on nicotine pouches, their health implications, and
                   comparisons with traditional tobacco products.
@@ -877,7 +881,7 @@ export default function ResearchPage() {
                     <div className="p-6">
                       <div className="mb-4 flex flex-wrap items-start justify-between">
                         <div className="mb-2 sm:mb-0">
-                          <span className="inline-block rounded bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800">
+                          <span className="bg-primary-100 text-primary-800 inline-block rounded px-2.5 py-0.5 text-xs font-medium">
                             {study.category}
                           </span>
                           <span className="ml-2 inline-block text-sm text-gray-500">
@@ -892,12 +896,12 @@ export default function ResearchPage() {
                       <p className="mb-4 line-clamp-3 text-gray-600">{study.abstract}</p>
 
                       <div className="flex items-center justify-between">
-                        <span className="font-medium text-primary-600 transition-colors hover:text-primary-700">
+                        <span className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
                           View details
                         </span>
                         <div className="flex space-x-1">
                           {study.keyFindings.slice(0, 3).map((_, index) => (
-                            <div key={index} className="h-2 w-2 rounded-full bg-primary-600"></div>
+                            <div key={index} className="bg-primary-600 h-2 w-2 rounded-full"></div>
                           ))}
                         </div>
                       </div>
@@ -915,13 +919,13 @@ export default function ResearchPage() {
           )}
 
           {/* Call to Action */}
-          <div className="mt-16 overflow-hidden rounded-lg bg-primary-600 shadow-lg">
+          <div className="bg-primary-600 mt-16 overflow-hidden rounded-lg shadow-lg">
             <div className="px-6 py-12 sm:px-12 lg:flex lg:items-center lg:justify-between">
               <div>
-                <h2 className="text-2xl font-extrabold text-white sm:text-3xl">
+                <h2 className="text-shadow-primary-800/30 text-2xl font-extrabold text-white text-shadow-md sm:text-3xl">
                   Want to learn more?
                 </h2>
-                <p className="mt-3 max-w-3xl text-lg text-primary-100">
+                <p className="text-primary-100 mt-3 max-w-3xl text-lg">
                   Ready to experience the benefits for yourself? Shop our premium nicotine pouches
                   designed specifically for hockey players.
                 </p>
@@ -930,7 +934,7 @@ export default function ResearchPage() {
                 <div className="inline-flex rounded-md shadow">
                   <Link
                     href="/contact"
-                    className="inline-flex items-center justify-center rounded-md border border-transparent bg-white px-5 py-3 text-base font-medium text-primary-600 hover:bg-primary-50"
+                    className="text-primary-600 hover:bg-primary-50 inline-flex items-center justify-center rounded-md border border-transparent bg-white px-5 py-3 text-base font-medium"
                   >
                     Contact Us
                   </Link>
@@ -938,7 +942,7 @@ export default function ResearchPage() {
                 <div className="ml-3 inline-flex rounded-md shadow">
                   <Link
                     href="/products"
-                    className="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-700 px-5 py-3 text-base font-medium text-white hover:bg-primary-800"
+                    className="bg-primary-700 hover:bg-primary-800 inline-flex items-center justify-center rounded-md border border-transparent px-5 py-3 text-base font-medium text-white"
                   >
                     Shop Now
                   </Link>

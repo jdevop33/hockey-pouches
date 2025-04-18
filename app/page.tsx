@@ -16,7 +16,7 @@ export default function Home() {
               <div className="bg-primary-50 text-primary-600 mb-6 inline-block rounded-full px-3 py-1 text-sm font-medium">
                 FOR HOCKEY PLAYERS
               </div>
-              <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
+              <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 text-shadow-sm sm:text-5xl lg:text-6xl">
                 Stay in the Game with Hockey Pouches
               </h1>
               <p className="mb-10 max-w-xl text-xl leading-relaxed text-gray-600">
@@ -64,7 +64,7 @@ export default function Home() {
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <span className="text-primary-600 inline-block text-sm font-medium">BENEFITS</span>
-            <h2 className="mt-3 text-3xl font-bold text-gray-900 sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-bold text-gray-900 text-shadow-xs sm:text-4xl">
               Why Hockey Players Choose Our Pouches
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-600">
@@ -77,7 +77,7 @@ export default function Home() {
             <div className="group">
               <div className="bg-primary-50 mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full">
                 <svg
-                  className="text-accent-600 h-6 w-6"
+                  className="text-primary-600 h-6 w-6"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -98,7 +98,7 @@ export default function Home() {
               </p>
               <Link
                 href="/products"
-                className="text-accent-600 hover:text-accent-700 inline-flex items-center text-sm font-medium"
+                className="text-primary-600 hover:text-primary-700 inline-flex items-center text-sm font-medium"
               >
                 Explore our products <span className="ml-1">&rarr;</span>
               </Link>
@@ -107,7 +107,7 @@ export default function Home() {
             <div className="group">
               <div className="bg-primary-50 mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full">
                 <svg
-                  className="text-accent-600 h-6 w-6"
+                  className="text-primary-600 h-6 w-6"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -128,7 +128,7 @@ export default function Home() {
               </p>
               <Link
                 href="/research"
-                className="text-accent-600 hover:text-accent-700 inline-flex items-center text-sm font-medium"
+                className="text-primary-600 hover:text-primary-700 inline-flex items-center text-sm font-medium"
               >
                 Learn how they work <span className="ml-1">&rarr;</span>
               </Link>
@@ -137,7 +137,7 @@ export default function Home() {
             <div className="group">
               <div className="bg-primary-50 mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full">
                 <svg
-                  className="text-accent-600 h-6 w-6"
+                  className="text-primary-600 h-6 w-6"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -158,7 +158,7 @@ export default function Home() {
               </p>
               <Link
                 href="/products"
-                className="text-accent-600 hover:text-accent-700 inline-flex items-center text-sm font-medium"
+                className="text-primary-600 hover:text-primary-700 inline-flex items-center text-sm font-medium"
               >
                 Shop team favorites <span className="ml-1">&rarr;</span>
               </Link>
@@ -171,8 +171,10 @@ export default function Home() {
       <section className="bg-gray-50 py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <span className="text-accent-600 inline-block text-sm font-medium">TOP PICKS</span>
-            <h2 className="mt-3 text-3xl font-bold text-gray-900 sm:text-4xl">Player Favorites</h2>
+            <span className="text-primary-600 inline-block text-sm font-medium">TOP PICKS</span>
+            <h2 className="mt-3 text-3xl font-bold text-gray-900 text-shadow-xs sm:text-4xl">
+              Player Favorites
+            </h2>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-600">
               Our most popular flavors among hockey players. All pouches are tobacco-free, designed
               for maximum performance and convenience on and off the ice.
@@ -186,22 +188,22 @@ export default function Home() {
                 className="group relative overflow-hidden rounded-lg bg-white shadow-sm transition-all hover:shadow-md"
               >
                 {index === 0 && (
-                  <div className="bg-accent-500 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
+                  <div className="bg-primary-600 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
                     BEST SELLER
                   </div>
                 )}
                 {index === 1 && (
-                  <div className="absolute top-0 right-0 z-10 rounded-bl-lg bg-blue-500 px-3 py-1 text-xs font-medium text-white">
+                  <div className="bg-primary-500 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
                     POPULAR
                   </div>
                 )}
                 {index === 2 && (
-                  <div className="absolute top-0 right-0 z-10 rounded-bl-lg bg-gray-700 px-3 py-1 text-xs font-medium text-white">
+                  <div className="bg-primary-700 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
                     STRONG
                   </div>
                 )}
                 {index === 3 && (
-                  <div className="absolute top-0 right-0 z-10 rounded-bl-lg bg-green-500 px-3 py-1 text-xs font-medium text-white">
+                  <div className="bg-primary-400 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
                     NEW
                   </div>
                 )}
@@ -233,7 +235,7 @@ export default function Home() {
                     <span className="text-lg font-medium text-gray-900">$15.00</span>
                     <Link
                       href={`/products?flavor=${encodeURIComponent(flavor)}`}
-                      className="text-accent-600 hover:text-accent-700 text-sm font-medium"
+                      className="text-primary-600 hover:text-primary-700 text-sm font-medium"
                     >
                       Shop now <span className="ml-1">&rarr;</span>
                     </Link>
@@ -272,10 +274,10 @@ export default function Home() {
           <div className="overflow-hidden rounded-2xl bg-gray-50 shadow-sm">
             <div className="grid grid-cols-1 lg:grid-cols-2">
               <div className="p-8 sm:p-12 lg:p-16">
-                <span className="text-accent-600 inline-block text-sm font-medium">
+                <span className="text-primary-600 inline-block text-sm font-medium">
                   JOIN THE COMMUNITY
                 </span>
-                <h2 className="mt-3 text-3xl font-bold text-gray-900 sm:text-4xl">
+                <h2 className="mt-3 text-3xl font-bold text-gray-900 text-shadow-xs sm:text-4xl">
                   Get the Edge On and Off the Ice
                 </h2>
                 <p className="mt-6 text-lg text-gray-600">
@@ -285,7 +287,7 @@ export default function Home() {
                 <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                   <Link
                     href="/products"
-                    className="bg-accent-600 hover:bg-accent-700 inline-flex items-center rounded-md px-6 py-3 text-base font-medium text-white shadow-sm transition-all"
+                    className="bg-primary-600 hover:bg-primary-700 inline-flex items-center rounded-md px-6 py-3 text-base font-medium text-white shadow-sm transition-all"
                   >
                     Shop Now
                   </Link>
@@ -364,7 +366,7 @@ export default function Home() {
                 <div className="mt-8">
                   <Link
                     href="/research"
-                    className="text-accent-600 hover:text-accent-700 inline-flex items-center"
+                    className="text-primary-600 hover:text-primary-700 inline-flex items-center"
                   >
                     Learn more about our products <span className="ml-1">&rarr;</span>
                   </Link>

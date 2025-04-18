@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import '../tailwind.config.css';
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -17,27 +16,29 @@ body {
   html {
     font-size: 14px;
   }
-  
+
   /* Improve tap targets */
-  button, 
-  a, 
-  input[type="button"], 
-  input[type="submit"] {
+  button,
+  a,
+  input[type='button'],
+  input[type='submit'] {
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   /* Prevent zoom on form inputs in iOS */
-  input, select, textarea {
+  input,
+  select,
+  textarea {
     font-size: 16px;
   }
-  
+
   /* Better spacing for mobile */
   .py-12 {
     padding-top: 2rem;
     padding-bottom: 2rem;
   }
-  
+
   /* Make tables scrollable on mobile */
   .overflow-x-auto {
     -webkit-overflow-scrolling: touch;
