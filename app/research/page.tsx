@@ -721,7 +721,7 @@ export default function ResearchPage() {
                 {filteredVideos.map(video => (
                   <div
                     key={video.id}
-                    className="group overflow-hidden rounded-lg border border-gray-100 bg-white shadow-md transition-all duration-300 hover:shadow-xl"
+                    className="group hover:border-primary-200 overflow-hidden rounded-lg border border-gray-100 bg-white shadow-md transition-all duration-300 hover:shadow-xl"
                   >
                     <div
                       className="relative aspect-video cursor-pointer overflow-hidden"
@@ -785,10 +785,10 @@ export default function ResearchPage() {
                             target.src = DEFAULT_VIDEO_IMAGE;
                           }}
                           unoptimized // Use this for external images like YouTube thumbnails
-                          priority={['v1', 'v2', 'v4', 'v5', 'v7'].includes(video.id)} // Prioritize loading key videos
+                          priority={true} // Prioritize loading all video thumbnails for better engagement
                         />
                         {/* Preloaded backup image that shows while YouTube thumbnail loads */}
-                        <div className="absolute inset-0 z-0 flex items-center justify-center">
+                        <div className="absolute inset-0 z-0 flex items-center justify-center bg-gray-100">
                           <div className="border-primary-200 border-t-primary-600 h-12 w-12 animate-spin rounded-full border-4"></div>
                         </div>
                       </div>
