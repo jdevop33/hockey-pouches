@@ -37,13 +37,20 @@ const ReCaptcha: React.FC<ReCaptchaProps> = ({ onVerify }) => {
   const renderReCaptcha = () => {
     if (containerRef.current && window.grecaptcha && window.grecaptcha.render) {
       // Use a dummy site key for development - replace with your actual site key in production
-      const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI';
-      
+      const siteKey =
+        process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI';
+
       try {
-        widgetId.current = window.grecaptcha.render(containerRef.current, {
-          sitekey: siteKey,
-          callback: onVerify,
-        });
+        // Check if reCAPTCHA has already been rendered in this element
+        if (widgetId.current === null) {
+          widgetId.current = window.grecaptcha.render(containerRef.current, {
+            sitekey: siteKey,
+            callback: onVerify,
+          });
+        } else if (window.grecaptcha.reset) {
+          // If already rendered, just reset it
+          window.grecaptcha.reset(widgetId.current);
+        }
       } catch (error) {
         console.error('Error rendering reCAPTCHA:', error);
       }
@@ -62,7 +69,10 @@ export default ReCaptcha;
 declare global {
   interface Window {
     grecaptcha: {
-      render: (container: HTMLElement, parameters: { sitekey: string; callback: (token: string) => void }) => number;
+      render: (
+        container: HTMLElement,
+        parameters: { sitekey: string; callback: (token: string) => void }
+      ) => number;
       reset: (widgetId: number) => void;
       execute: (widgetId: number) => void;
     };
