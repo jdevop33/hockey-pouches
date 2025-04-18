@@ -11,6 +11,7 @@ interface Video {
   title: string;
   description: string;
   thumbnailUrl: string;
+  backupThumbnailUrl?: string; // Backup thumbnail URL
   youtubeUrl: string;
   category: string;
 }
@@ -30,8 +31,12 @@ interface Study {
 // Sample data for videos
 // Function to get YouTube thumbnail URL from video ID
 const getYoutubeThumbnail = (videoId: string) => {
-  // Use the more reliable hqdefault thumbnail instead of maxresdefault
-  return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  // Try multiple thumbnail options to ensure we get a valid image
+  // 1. maxresdefault (highest quality but not always available)
+  // 2. hqdefault (high quality, more reliable)
+  // 3. mqdefault (medium quality, very reliable)
+  // 4. default (lowest quality, always available)
+  return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
 };
 
 // Default fallback image for videos
@@ -45,6 +50,7 @@ const videos: Video[] = [
     description:
       'Dr. Andrew Huberman and Dr. Staci Whitman discuss the dental risks of nicotine pouches, including gum recession and cellular changes in the mouth. They provide recommendations and precautions for users.',
     thumbnailUrl: getYoutubeThumbnail('-cR_PUUTSKg'),
+    backupThumbnailUrl: 'https://i3.ytimg.com/vi/-cR_PUUTSKg/maxresdefault.jpg',
     youtubeUrl: 'https://www.youtube.com/watch?v=-cR_PUUTSKg',
     category: 'Health',
   },
@@ -54,6 +60,7 @@ const videos: Video[] = [
     description:
       "Dr. Gabriela Zambrano Hill, a primary care physician at Houston Methodist, talks about ZYN nicotine pouches, including the side effects and whether they're good for your health.",
     thumbnailUrl: getYoutubeThumbnail('SGSfyWhfr7I'),
+    backupThumbnailUrl: 'https://i3.ytimg.com/vi/SGSfyWhfr7I/maxresdefault.jpg',
     youtubeUrl: 'https://www.youtube.com/watch?v=SGSfyWhfr7I',
     category: 'Health',
   },
@@ -74,6 +81,7 @@ const videos: Video[] = [
     description:
       'Lex Fridman and Dr. Andrew Huberman discuss the cognitive benefits and potential risks of nicotine pouches and gum, exploring their use as cognitive enhancers and the science behind nicotine.',
     thumbnailUrl: getYoutubeThumbnail('S5pwuXqRe3A'),
+    backupThumbnailUrl: 'https://i3.ytimg.com/vi/S5pwuXqRe3A/maxresdefault.jpg',
     youtubeUrl: 'https://www.youtube.com/watch?v=S5pwuXqRe3A',
     category: 'Science',
   },
@@ -83,6 +91,7 @@ const videos: Video[] = [
     description:
       "Thomas DeLauer explores the scientific research on nicotine's potential benefits for longevity and cognitive function, separating the effects of nicotine from the harmful aspects of tobacco.",
     thumbnailUrl: getYoutubeThumbnail('N3tGNIb5srU'),
+    backupThumbnailUrl: 'https://i3.ytimg.com/vi/N3tGNIb5srU/maxresdefault.jpg',
     youtubeUrl: 'https://www.youtube.com/watch?v=N3tGNIb5srU',
     category: 'Science',
   },
@@ -103,6 +112,7 @@ const videos: Video[] = [
     description:
       'Bloomberg News explores how Sweden achieved the lowest smoking rate in Europe (5.6%) through the adoption of snus and nicotine pouches, becoming a controversial case study in tobacco harm reduction.',
     thumbnailUrl: getYoutubeThumbnail('kDpPx0wozhU'),
+    backupThumbnailUrl: 'https://i3.ytimg.com/vi/kDpPx0wozhU/maxresdefault.jpg',
     youtubeUrl: 'https://www.youtube.com/watch?v=kDpPx0wozhU',
     category: 'Case Studies',
   },
@@ -780,16 +790,30 @@ export default function ResearchPage() {
                           style={{ objectFit: 'cover' }}
                           className="z-10 transition-transform duration-500 group-hover:scale-105"
                           onError={e => {
-                            // Fallback to default image if the thumbnail fails to load
+                            // Fallback to backup thumbnail or default image if the thumbnail fails to load
                             const target = e.target as HTMLImageElement;
-                            target.src = DEFAULT_VIDEO_IMAGE;
+                            // Try backup thumbnail URL if available
+                            if (video.backupThumbnailUrl) {
+                              target.src = video.backupThumbnailUrl;
+                            }
+                            // Try different thumbnail qualities if the first one fails
+                            else if (target.src.includes('hqdefault')) {
+                              target.src = target.src.replace('hqdefault', 'mqdefault');
+                            } else if (target.src.includes('mqdefault')) {
+                              target.src = target.src.replace('mqdefault', 'default');
+                            } else {
+                              target.src = DEFAULT_VIDEO_IMAGE;
+                            }
                           }}
                           unoptimized // Use this for external images like YouTube thumbnails
                           priority={true} // Prioritize loading all video thumbnails for better engagement
                         />
                         {/* Preloaded backup image that shows while YouTube thumbnail loads */}
-                        <div className="absolute inset-0 z-0 flex items-center justify-center bg-gray-100">
-                          <div className="border-primary-200 border-t-primary-600 h-12 w-12 animate-spin rounded-full border-4"></div>
+                        <div className="absolute inset-0 z-0 flex flex-col items-center justify-center bg-gray-100 p-4">
+                          <div className="border-primary-200 border-t-primary-600 mb-4 h-12 w-12 animate-spin rounded-full border-4"></div>
+                          <div className="text-center text-sm text-gray-500">
+                            Loading video thumbnail...
+                          </div>
                         </div>
                       </div>
                     </div>
