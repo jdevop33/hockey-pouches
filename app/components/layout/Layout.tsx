@@ -18,7 +18,8 @@ const Navigation: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+    setIsMenuOpen(prevState => !prevState);
+    console.log('Menu toggled:', !isMenuOpen); // Debug log
   };
 
   const navItems: NavItem[] = [
@@ -31,18 +32,19 @@ const Navigation: React.FC = () => {
   ];
 
   return (
-    <nav className="bg-primary-600">
+    <nav className="relative z-10 bg-primary-600 shadow-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-20 items-center justify-between">
           <div className="flex items-center">
             <div className="shrink-0">
               <Link href="/" className="flex items-center">
                 <Image
-                  src="/images/logo/hockey-logo.svg"
+                  src="/images/logo/logo3.svg"
                   alt="Hockey Pouches Logo"
-                  width={180}
-                  height={50}
-                  className="h-12 w-auto"
+                  width={200}
+                  height={56}
+                  className="h-14 w-auto"
+                  priority
                 />
               </Link>
             </div>
@@ -52,12 +54,12 @@ const Navigation: React.FC = () => {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`rounded-md px-3 py-2 text-sm font-medium ${
+                    className={`rounded-md px-3 py-2 text-sm font-medium transition-all ${
                       pathname === item.href
-                        ? 'bg-primary-700 text-white'
+                        ? 'bg-primary-700 text-white shadow-sm'
                         : item.href === '/research'
-                          ? 'bg-primary-600 text-white hover:bg-primary-500'
-                          : 'text-white hover:bg-primary-500'
+                          ? 'bg-primary-600/80 text-white hover:bg-primary-500 hover:shadow-sm'
+                          : 'text-white hover:bg-primary-500/80 hover:shadow-sm'
                     }`}
                   >
                     {item.label}
@@ -71,7 +73,7 @@ const Navigation: React.FC = () => {
               <CartIcon />
               <Link
                 href="/account"
-                className="flex items-center rounded-md bg-white px-3 py-2 text-sm font-medium text-primary-600 hover:bg-gray-100"
+                className="flex items-center rounded-md bg-white px-3 py-2 text-sm font-medium text-primary-600 shadow-sm transition-all hover:bg-gray-100 hover:shadow"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -95,9 +97,9 @@ const Navigation: React.FC = () => {
             <button
               onClick={toggleMenu}
               type="button"
-              className="inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-primary-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              className="mt-2 inline-flex items-center justify-center rounded-md bg-primary-700 p-2 text-white shadow-sm hover:bg-primary-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
               aria-controls="mobile-menu"
-              aria-expanded="false"
+              aria-expanded={isMenuOpen}
             >
               <span className="sr-only">Open main menu</span>
               {/* Icon when menu is closed */}
@@ -137,17 +139,28 @@ const Navigation: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile menu backdrop */}
+      {isMenuOpen && (
+        <div
+          className="animate-fadeIn fixed inset-0 z-10 bg-black bg-opacity-25 md:hidden"
+          onClick={() => setIsMenuOpen(false)}
+        ></div>
+      )}
+
       {/* Mobile menu, show/hide based on menu state */}
-      <div className={`${isMenuOpen ? 'block' : 'hidden'} md:hidden`} id="mobile-menu">
-        <div className="space-y-1 bg-primary-700 px-2 pb-3 pt-2 shadow-lg sm:px-3">
+      <div
+        className={`${isMenuOpen ? 'block' : 'hidden'} absolute z-20 w-full md:hidden`}
+        id="mobile-menu"
+      >
+        <div className="animate-fadeIn space-y-2 border-t border-primary-800 bg-primary-700 px-4 pb-4 pt-3 shadow-lg sm:px-6">
           {navItems.map(item => (
             <Link
               key={item.href}
               href={item.href}
-              className={`block rounded-md px-3 py-2 text-base font-medium ${
+              className={`block rounded-md px-4 py-3 text-base font-medium transition-colors ${
                 pathname === item.href
-                  ? 'bg-primary-800 text-white'
-                  : 'text-white hover:bg-primary-600'
+                  ? 'bg-primary-800 text-white shadow-sm'
+                  : 'text-white hover:bg-primary-600 active:bg-primary-800'
               }`}
               onClick={() => setIsMenuOpen(false)}
             >
@@ -158,7 +171,7 @@ const Navigation: React.FC = () => {
             <CartIcon />
             <Link
               href="/account"
-              className="flex items-center justify-center rounded-md bg-white px-3 py-2 text-base font-medium text-primary-600 hover:bg-gray-100"
+              className="flex items-center justify-center rounded-md bg-white px-4 py-3 text-base font-medium text-primary-600 shadow-sm transition-colors hover:bg-gray-100 active:bg-gray-200"
               onClick={() => setIsMenuOpen(false)}
             >
               <svg

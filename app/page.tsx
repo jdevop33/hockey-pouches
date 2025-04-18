@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-primary-600 to-primary-700 py-20 text-white">
+      <section className="relative overflow-hidden bg-gradient-to-r from-primary-600 to-primary-700 py-20 text-white shadow-lg">
         {/* Hockey-themed background elements */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute left-0 top-0 h-full w-full bg-[url('/images/hockey-pattern.png')] bg-repeat opacity-20"></div>
@@ -19,34 +19,34 @@ export default function Home() {
         <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="items-center lg:grid lg:grid-cols-2 lg:gap-8">
             <div>
-              <div className="mb-4 inline-block rounded-md bg-accent-500 px-3 py-1 text-sm font-semibold text-white">
+              <div className="mb-4 inline-block rounded-md bg-accent-500 px-3 py-1 text-sm font-semibold text-white shadow-sm">
                 DESIGNED FOR HOCKEY PLAYERS
               </div>
-              <h1 className="mb-4 text-4xl font-extrabold tracking-tight sm:text-5xl">
+              <h1 className="mb-4 text-4xl font-extrabold tracking-tight drop-shadow-sm sm:text-5xl">
                 Stay in the Game with Hockey Pouches
               </h1>
-              <p className="mb-8 text-xl">
+              <p className="mb-8 max-w-xl text-xl text-white/90">
                 Premium tobacco-free nicotine pouches designed for hockey players and fans.
                 Discreet, convenient, and perfect for the rink.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row">
                 <Link
                   href="/products"
-                  className="inline-block rounded-md bg-white px-6 py-3 text-lg font-medium text-primary-600 shadow-md hover:bg-gray-100"
+                  className="inline-block transform rounded-md bg-white px-6 py-3 text-lg font-medium text-primary-600 shadow-md transition-all hover:-translate-y-0.5 hover:bg-gray-100 hover:shadow-lg"
                 >
                   Shop Now
                 </Link>
 
                 <Link
                   href="/about"
-                  className="inline-block rounded-md border-2 border-white bg-transparent px-6 py-3 text-lg font-medium text-white hover:bg-white hover:text-primary-600"
+                  className="inline-block rounded-md border-2 border-white bg-transparent px-6 py-3 text-lg font-medium text-white shadow-sm transition-all hover:bg-white hover:text-primary-600"
                 >
                   Our Story
                 </Link>
               </div>
             </div>
             <div className="relative mt-10 lg:mt-0">
-              <div className="relative h-80 overflow-hidden rounded-lg bg-white/10 p-4 shadow-xl backdrop-blur-sm">
+              <div className="relative h-80 transform overflow-hidden rounded-lg bg-white/10 p-4 shadow-xl backdrop-blur-sm transition-transform hover:scale-[1.02]">
                 <div className="absolute -right-6 -top-6 flex h-24 w-24 rotate-12 transform items-center justify-center rounded-full bg-accent-500 text-lg font-bold text-white">
                   <span>NEW!</span>
                 </div>
@@ -67,20 +67,20 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="bg-gray-50 py-16">
+      <section className="border-b border-t border-gray-200 bg-gray-50 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900">
+            <h2 className="text-3xl font-extrabold text-gray-900 drop-shadow-sm">
               Why Hockey Players Choose Our Pouches
             </h2>
-            <p className="mx-auto mt-4 max-w-3xl text-lg text-gray-600">
+            <p className="mx-auto mt-4 max-w-3xl text-lg leading-relaxed text-gray-600">
               Designed specifically for hockey players and fans who need a discreet, convenient
               nicotine option that works with their active lifestyle.
             </p>
           </div>
 
           <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="overflow-hidden rounded-lg border-t-4 border-primary-500 bg-white shadow">
+            <div className="transform overflow-hidden rounded-lg border-t-4 border-primary-500 bg-white shadow-md transition-all hover:-translate-y-1 hover:shadow-lg">
               <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 rounded-md bg-primary-100 p-3">
@@ -120,7 +120,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-lg border-t-4 border-accent-500 bg-white shadow">
+            <div className="transform overflow-hidden rounded-lg border-t-4 border-accent-500 bg-white shadow-md transition-all hover:-translate-y-1 hover:shadow-lg">
               <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 rounded-md bg-accent-100 p-3">
@@ -160,7 +160,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-lg border-t-4 border-primary-500 bg-white shadow">
+            <div className="transform overflow-hidden rounded-lg border-t-4 border-primary-500 bg-white shadow-md transition-all hover:-translate-y-1 hover:shadow-lg">
               <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 rounded-md bg-primary-100 p-3">
@@ -214,10 +214,12 @@ export default function Home() {
           <div className="text-center">
             <div className="inline-flex items-center justify-center">
               <span className="mr-2 h-1 w-10 bg-primary-500"></span>
-              <h2 className="text-3xl font-extrabold text-gray-900">Player Favorites</h2>
+              <h2 className="text-3xl font-extrabold text-gray-900 drop-shadow-sm">
+                Player Favorites
+              </h2>
               <span className="ml-2 h-1 w-10 bg-primary-500"></span>
             </div>
-            <p className="mx-auto mt-4 max-w-3xl text-lg text-gray-600">
+            <p className="mx-auto mt-4 max-w-3xl text-lg leading-relaxed text-gray-600">
               Our most popular flavors among hockey players. All pouches are tobacco-free, designed
               for maximum performance and convenience on and off the ice.
             </p>
@@ -227,7 +229,7 @@ export default function Home() {
             {flavors.slice(0, 4).map((flavor, index) => (
               <div
                 key={index}
-                className="group relative rounded-lg bg-white p-4 shadow-md transition-shadow hover:shadow-lg"
+                className="group relative transform rounded-lg bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg"
               >
                 <div className="absolute right-2 top-2 rounded-full bg-accent-500 px-2 py-1 text-xs font-bold text-white">
                   {index === 0
@@ -294,7 +296,7 @@ export default function Home() {
           <div className="mt-12 text-center">
             <Link
               href="/products"
-              className="inline-flex items-center rounded-md border border-transparent bg-primary-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-primary-700"
+              className="inline-flex transform items-center rounded-md border border-transparent bg-primary-600 px-6 py-3 text-base font-medium text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-primary-700 hover:shadow-lg"
             >
               View All Products
             </Link>
@@ -303,7 +305,7 @@ export default function Home() {
       </section>
 
       {/* Join the Community CTA Section */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-primary-600 to-primary-800 py-16 text-white">
+      <section className="relative overflow-hidden bg-gradient-to-r from-primary-600/90 to-primary-800/90 py-16 text-white shadow-lg">
         {/* Hockey-themed background elements */}
         <div className="absolute inset-0">
           <div className="absolute left-0 top-0 h-full w-full bg-[url('/images/hockey-pattern.png')] bg-repeat opacity-10"></div>
@@ -326,7 +328,7 @@ export default function Home() {
               <div className="flex flex-col gap-4 sm:flex-row">
                 <Link
                   href="/products"
-                  className="inline-block rounded-md bg-white px-6 py-3 text-lg font-medium text-primary-600 shadow-md hover:bg-gray-100"
+                  className="inline-block transform rounded-md bg-white px-6 py-3 text-lg font-medium text-primary-600 shadow-md transition-all hover:-translate-y-0.5 hover:bg-gray-100 hover:shadow-lg"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -340,7 +342,7 @@ export default function Home() {
                 </Link>
                 <Link
                   href="/account"
-                  className="inline-block rounded-md bg-accent-500 px-6 py-3 text-lg font-medium text-white shadow-md hover:bg-accent-600"
+                  className="inline-block rounded-md bg-accent-500 px-6 py-3 text-lg font-medium text-white shadow-md transition-all hover:bg-accent-600 hover:shadow-lg"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
