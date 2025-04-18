@@ -42,6 +42,13 @@ const getYoutubeThumbnail = (videoId: string) => {
 // Default fallback image for videos
 const DEFAULT_VIDEO_IMAGE = '/images/hero.jpeg';
 
+// Extract YouTube video ID from URL
+const getYoutubeId = (url: string) => {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]{11}).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+};
+
 const videos: Video[] = [
   // Health Category
   {
@@ -344,10 +351,9 @@ const VideoPlayer = ({ videoId, onClose }: { videoId: string; onClose: () => voi
             src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            className="h-full w-full"
+            className="h-full w-full border-0"
             onLoad={handleIframeLoad}
             title="YouTube video player"
-            frameBorder="0"
           ></iframe>
         </div>
       </div>
@@ -568,6 +574,9 @@ const Filter = ({
   );
 };
 
+// Filter out videos without a valid YouTube ID
+const validVideos = videos.filter(video => getYoutubeId(video.youtubeUrl));
+
 export default function ResearchPage() {
   const [activeTab, setActiveTab] = useState<'videos' | 'studies'>('videos');
   const [videoFilter, setVideoFilter] = useState('All');
@@ -576,26 +585,21 @@ export default function ResearchPage() {
   const [activeStudy, setActiveStudy] = useState<Study | null>(null);
 
   // Extract unique categories
-  const videoCategories = Array.from(new Set(videos.map(video => video.category)));
+  const videoCategories = Array.from(new Set(validVideos.map(video => video.category)));
   const studyCategories = Array.from(new Set(studies.map(study => study.category)));
 
   // Filter videos and studies based on selected category
   const filteredVideos =
-    videoFilter === 'All' ? videos : videos.filter(video => video.category === videoFilter);
+    videoFilter === 'All'
+      ? validVideos
+      : validVideos.filter(video => video.category === videoFilter);
 
   const filteredStudies =
     studyFilter === 'All' ? studies : studies.filter(study => study.category === studyFilter);
 
-  // Extract YouTube video ID from URL
-  const getYoutubeId = (url: string) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return match && match[2].length === 11 ? match[2] : null;
-  };
-
   return (
     <Layout>
-      <ResearchStructuredData videos={videos} studies={studies} />
+      <ResearchStructuredData videos={validVideos} studies={studies} />
       <div className="bg-gray-50 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Hero Section */}
