@@ -35,8 +35,8 @@ interface Study {
 // Sample data for videos
 // Function to get YouTube thumbnail URL from video ID
 const getYoutubeThumbnail = (videoId: string) => {
-  // Use the standard quality thumbnail which is more reliable
-  return `https://i.ytimg.com/vi/${videoId}/sddefault.jpg`;
+  // Use the most reliable thumbnail format
+  return `https://img.youtube.com/vi/${videoId}/0.jpg`;
 };
 
 // Default fallback image for videos
@@ -49,7 +49,7 @@ const videos: Video[] = [
     title: 'How Nicotine Pouches Affect Oral Health | Dr. Staci Whitman & Dr. Andrew Huberman',
     description:
       'Dr. Andrew Huberman and Dr. Staci Whitman discuss the dental risks of nicotine pouches, including gum recession and cellular changes in the mouth. They provide recommendations and precautions for users.',
-    thumbnailUrl: getYoutubeThumbnail('-cR_PUUTSKg'),
+    thumbnailUrl: 'https://img.youtube.com/vi/-cR_PUUTSKg/0.jpg',
     youtubeUrl: 'https://www.youtube.com/watch?v=-cR_PUUTSKg',
     category: 'Health',
   },
@@ -58,7 +58,7 @@ const videos: Video[] = [
     title: 'What Do ZYN Nicotine Pouches Do To The Body? | Houston Methodist',
     description:
       "Dr. Gabriela Zambrano Hill, a primary care physician at Houston Methodist, talks about ZYN nicotine pouches, including the side effects and whether they're good for your health.",
-    thumbnailUrl: getYoutubeThumbnail('SGSfyWhfr7I'),
+    thumbnailUrl: 'https://img.youtube.com/vi/SGSfyWhfr7I/0.jpg',
     youtubeUrl: 'https://www.youtube.com/watch?v=SGSfyWhfr7I',
     category: 'Health',
   },
@@ -78,7 +78,7 @@ const videos: Video[] = [
     title: 'Lex Fridman on Nicotine Gum and Pouches: Benefits and Risks',
     description:
       'Lex Fridman and Dr. Andrew Huberman discuss the cognitive benefits and potential risks of nicotine pouches and gum, exploring their use as cognitive enhancers and the science behind nicotine.',
-    thumbnailUrl: getYoutubeThumbnail('S5pwuXqRe3A'),
+    thumbnailUrl: 'https://img.youtube.com/vi/S5pwuXqRe3A/0.jpg',
     youtubeUrl: 'https://www.youtube.com/watch?v=S5pwuXqRe3A',
     category: 'Science',
   },
@@ -107,7 +107,7 @@ const videos: Video[] = [
     title: 'Why No One Smokes In Sweden | Bloomberg News',
     description:
       'Bloomberg News explores how Sweden achieved the lowest smoking rate in Europe (5.6%) through the adoption of snus and nicotine pouches, becoming a controversial case study in tobacco harm reduction.',
-    thumbnailUrl: getYoutubeThumbnail('kDpPx0wozhU'),
+    thumbnailUrl: 'https://img.youtube.com/vi/kDpPx0wozhU/0.jpg',
     youtubeUrl: 'https://www.youtube.com/watch?v=kDpPx0wozhU',
     category: 'Case Studies',
   },
@@ -786,24 +786,9 @@ export default function ResearchPage() {
                           style={{ objectFit: 'cover' }}
                           className="z-10 transition-transform duration-500 group-hover:scale-105"
                           onError={e => {
-                            // Fallback to different thumbnail qualities if the sddefault fails
+                            // Simple fallback to default image if YouTube thumbnail fails
                             const target = e.target as HTMLImageElement;
-                            const videoId = getYoutubeId(video.youtubeUrl);
-
-                            // Try different thumbnail qualities in order
-                            if (target.src.includes('sddefault')) {
-                              // Try high quality
-                              target.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-                            } else if (target.src.includes('hqdefault')) {
-                              // Try medium quality
-                              target.src = `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
-                            } else if (target.src.includes('mqdefault')) {
-                              // Try default quality
-                              target.src = `https://i.ytimg.com/vi/${videoId}/default.jpg`;
-                            } else {
-                              // Last resort: use our default image
-                              target.src = DEFAULT_VIDEO_IMAGE;
-                            }
+                            target.src = DEFAULT_VIDEO_IMAGE;
                           }}
                           unoptimized // Use this for external images like YouTube thumbnails
                           priority={true} // Prioritize loading all video thumbnails for better engagement
@@ -812,9 +797,9 @@ export default function ResearchPage() {
                         <div className="absolute inset-0 z-0 flex flex-col items-center justify-center bg-gray-100 p-4">
                           <div className="border-primary-200 border-t-primary-600 mb-4 h-12 w-12 animate-spin rounded-full border-4"></div>
                           <div className="text-center text-sm text-gray-500">
-                            Loading authentic YouTube thumbnail...
+                            Loading video thumbnail...
                           </div>
-                          <div className="mt-2 text-center text-xs text-gray-400">
+                          <div className="mt-2 text-center text-xs font-medium text-gray-400">
                             {video.title.substring(0, 30)}...
                           </div>
                         </div>
