@@ -133,7 +133,7 @@ export default function ContactPage() {
                   </div>
                   <div className="ml-3 text-gray-600">
                     <p className="text-lg font-medium">Email</p>
-                    <p>info@hockeypouches.ca</p>
+                    <p>{process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'jesse@pouchbuzz.ca'}</p>
                   </div>
                 </div>
 

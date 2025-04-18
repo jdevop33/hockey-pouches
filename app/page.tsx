@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import Layout from './components/layout/NewLayout';
-import { flavors } from './data/products';
+import { flavors, products } from './data/products';
 
 export default function Home() {
   return (
@@ -242,7 +242,10 @@ export default function Home() {
                 </div>
                 <div className="relative h-48 w-full overflow-hidden rounded-lg bg-gray-50 transition-opacity group-hover:opacity-90">
                   <Image
-                    src={`/images/products/${flavor.toLowerCase().replace(/\s+/g, '-')}/${flavor.toLowerCase().replace(/\s+/g, '-')}-6mg.png`}
+                    src={
+                      products.find(p => p.flavor === flavor)?.imageUrl ||
+                      '/images/products/placeholder.svg'
+                    }
                     alt={flavor}
                     fill
                     style={{ objectFit: 'contain' }}

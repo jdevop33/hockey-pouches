@@ -42,22 +42,24 @@ const Navigation: React.FC = () => {
               />
             </Link>
           </div>
-          
+
           {/* Desktop menu */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-center space-x-4">
-              {navItems.map((item) => (
+              {navItems.map(item => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-md px-3 py-2 text-sm font-medium ${pathname === item.href
-                    ? 'bg-primary-700 text-white'
-                    : 'text-white hover:bg-primary-500'}`}
+                  className={`rounded-md px-3 py-2 text-sm font-medium ${
+                    pathname === item.href
+                      ? 'bg-primary-700 text-white'
+                      : 'text-white hover:bg-primary-500'
+                  }`}
                 >
                   {item.label}
                 </Link>
               ))}
-              
+
               <div className="ml-4 flex items-center space-x-4">
                 <CartIcon />
                 <Link
@@ -81,7 +83,7 @@ const Navigation: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Mobile menu button */}
           <div className="flex md:hidden">
             <button
@@ -132,19 +134,21 @@ const Navigation: React.FC = () => {
       {mobileMenuOpen && (
         <div className="md:hidden">
           <div className="space-y-1 border-t border-primary-800 bg-primary-700 px-2 pb-3 pt-2 shadow-lg">
-            {navItems.map((item) => (
+            {navItems.map(item => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`block rounded-md px-3 py-2 text-base font-medium ${pathname === item.href
-                  ? 'bg-primary-800 text-white'
-                  : 'text-white hover:bg-primary-600'}`}
+                className={`block rounded-md px-3 py-2 text-base font-medium ${
+                  pathname === item.href
+                    ? 'bg-primary-800 text-white'
+                    : 'text-white hover:bg-primary-600'
+                }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.label}
               </Link>
             ))}
-            <div className="mt-4 flex items-center justify-between border-t border-primary-800 pt-4 px-3">
+            <div className="mt-4 flex items-center justify-between border-t border-primary-800 px-3 pt-4">
               <CartIcon />
               <Link
                 href="/account"
@@ -218,7 +222,7 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="mb-4 text-lg font-semibold">Contact Us</h3>
             <p className="text-gray-300">
-              Email: {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@hockeypouches.ca'}
+              Email: {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'jesse@pouchbuzz.ca'}
             </p>
             <p className="text-gray-300">
               Phone: {process.env.NEXT_PUBLIC_CONTACT_PHONE || '(250) 415-5678'}

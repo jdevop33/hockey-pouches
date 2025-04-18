@@ -79,10 +79,10 @@ function SuccessContent() {
             <p className="text-md mb-6 text-gray-500">
               If you have any questions, please contact us at{' '}
               <a
-                href="mailto:info@hockeypouches.ca"
+                href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'jesse@pouchbuzz.ca'}`}
                 className="text-primary-600 hover:text-primary-500"
               >
-                info@hockeypouches.ca
+                {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'jesse@pouchbuzz.ca'}
               </a>{' '}
               or call us at{' '}
               <a href="tel:2504155678" className="text-primary-600 hover:text-primary-500">
@@ -215,10 +215,10 @@ export default function CheckoutSuccessPage() {
             <p className="text-md mb-6 text-gray-500">
               If you have any questions, please contact us at{' '}
               <a
-                href="mailto:info@hockeypouches.ca"
+                href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'jesse@pouchbuzz.ca'}`}
                 className="text-primary-600 hover:text-primary-500"
               >
-                info@hockeypouches.ca
+                {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'jesse@pouchbuzz.ca'}
               </a>{' '}
               or call us at{' '}
               <a href="tel:2504155678" className="text-primary-600 hover:text-primary-500">
