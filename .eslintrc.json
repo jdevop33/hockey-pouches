@@ -1,0 +1,22 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript",
+    "plugin:tailwindcss/recommended"
+  ],
+  "plugins": [
+    "tailwindcss"
+  ],
+  "rules": {
+    "tailwindcss/no-custom-classname": "warn",
+    "tailwindcss/classnames-order": "warn",
+    "react/no-unescaped-entities": "off",
+    "@next/next/no-img-element": "off"
+  },
+  "settings": {
+    "tailwindcss": {
+      "callees": ["cn", "clsx", "classNames"],
+      "config": "tailwind.config.js"
+    }
+  }
+}

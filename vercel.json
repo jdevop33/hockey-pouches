@@ -4,5 +4,11 @@
   "devCommand": "next dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "env": {
+    "NEXT_PUBLIC_HEROTOFU_ENDPOINT": "https://public.herotofu.com/v1/f129c2a0-180e-11f0-8883-29a3f54ace99",
+    "NEXT_PUBLIC_ORDER_FORM_ENDPOINT": "https://public.herotofu.com/v1/3e028000-1998-11f0-ab37-9d304c3aa51c",
+    "NEXT_PUBLIC_RECAPTCHA_SITE_KEY": "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
+    "NEXT_PUBLIC_GA_MEASUREMENT_ID": "G-XXXXXXXXXX"
+  }
 }

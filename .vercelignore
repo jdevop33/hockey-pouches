@@ -3,3 +3,15 @@ node_modules
 .next
 README.md
 .gitignore
+.env
+.env.*
+*.log
+.vscode
+.idea
+scripts
+build-no-lint.bat
+build-no-lint.js
+deploy-to-vercel.bat
+push-to-github.bat
+reset-git.bat
+test.js
