@@ -33,7 +33,7 @@ export const products: Product[] = [
     flavor: 'Cool Mint',
     strength: 22,
     description: 'Tobacco Free Nicotine Pouch, 22mg/pouch',
-    imageUrl: '/images/products/puxxcoolmint22mg.png',
+    imageUrl: '/images/products/puxxcoolmint22mg-650x650.png',
     price: 15.0,
     compareAtPrice: 18.0, // Optional "was" price to show savings
     bulkDiscounts: [
@@ -55,7 +55,7 @@ export const products: Product[] = [
     flavor: 'Peppermint',
     strength: 22,
     description: 'Tobacco Free Nicotine Pouch, 22mg/pouch',
-    imageUrl: '/images/products/puxxperpermint22mg.png',
+    imageUrl: '/images/products/puxxperpermint22mg-650x650.png',
     price: 15.0,
     compareAtPrice: 18.0,
     bulkDiscounts: [
@@ -77,7 +77,7 @@ export const products: Product[] = [
     flavor: 'Spearmint',
     strength: 22,
     description: 'Tobacco Free Nicotine Pouch, 22mg/pouch',
-    imageUrl: '/images/products/puxxspearmint22mg.png',
+    imageUrl: '/images/products/puxxspearmint22mg-650x650.png',
     price: 15.0,
     compareAtPrice: 18.0,
     bulkDiscounts: [
@@ -99,7 +99,7 @@ export const products: Product[] = [
     flavor: 'Watermelon',
     strength: 16,
     description: 'Tobacco Free Nicotine Pouch, 16mg/pouch',
-    imageUrl: '/images/products/puxxwatermelon16mg.png',
+    imageUrl: '/images/products/puxxwatermelon16mg-650x650.png',
     price: 15.0,
     compareAtPrice: 18.0,
     bulkDiscounts: [
@@ -121,7 +121,7 @@ export const products: Product[] = [
     flavor: 'Cola',
     strength: 16,
     description: 'Tobacco Free Nicotine Pouch, 16mg/pouch',
-    imageUrl: '/images/products/puxxcola16mg.png',
+    imageUrl: '/images/products/puxxcola16mg-650x650.png',
     price: 15.0,
     compareAtPrice: 18.0,
     bulkDiscounts: [
