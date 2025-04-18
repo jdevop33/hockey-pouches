@@ -4,8 +4,8 @@ import Script from 'next/script';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 
-// Replace with your actual Google Analytics ID
-const GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+// Get Google Analytics ID from environment variables
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-XXXXXXXXXX';
 
 export default function GoogleAnalytics() {
   const pathname = usePathname();

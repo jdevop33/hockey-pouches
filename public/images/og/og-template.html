@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hockey Pouches OpenGraph Image</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    .og-container {
+      width: 1200px;
+      height: 630px;
+      background-color: #0F172A; /* Dark blue background */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo-container {
+      width: 500px;
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    .logo {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .title {
+      font-size: 48px;
+      font-weight: 800;
+      color: white;
+      text-align: center;
+      margin-bottom: 16px;
+      max-width: 900px;
+    }
+
+    .subtitle {
+      font-size: 32px;
+      color: #94A3B8; /* Light blue-gray */
+      text-align: center;
+      max-width: 800px;
+    }
+
+    .pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.05;
+      z-index: 0;
+      background-image: url('/images/hockey-pattern.png');
+      background-size: 300px;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .instructions {
+      margin-top: 40px;
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      max-width: 800px;
+    }
+
+    .instructions h2 {
+      margin-top: 0;
+    }
+
+    .instructions ol {
+      padding-left: 20px;
+    }
+
+    .instructions li {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="og-container" id="og-image">
+    <div class="pattern"></div>
+    <div class="content">
+      <div class="logo-container">
+        <!-- Using the actual logo -->
+        <img src="/images/logo/hockey-logo2.png" alt="Hockey Pouches Logo" class="logo">
+      </div>
+      <h1 class="title">Premium Nicotine Pouches</h1>
+      <p class="subtitle">For Hockey Players</p>
+    </div>
+  </div>
+
+  <div class="instructions">
+    <h2>How to create your OpenGraph image:</h2>
+    <ol>
+      <li>Replace the placeholder logo with your actual PNG logo by putting a file named "hockey-logo.png" in the /public/images/og/ directory.</li>
+      <li>Take a screenshot of the image above (use a browser extension or your OS screenshot tool).</li>
+      <li>Crop the screenshot to exactly 1200x630 pixels.</li>
+      <li>Save it as "hockey-pouches-og.png" in the /public/images/og/ directory.</li>
+      <li>Update your layout.tsx file to use this new image for OpenGraph and Twitter cards.</li>
+    </ol>
+  </div>
+</body>
+</html>

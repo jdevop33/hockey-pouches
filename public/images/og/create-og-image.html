@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hockey Pouches - OpenGraph Image Creator</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+    
+    .og-container {
+      width: 1200px;
+      height: 630px;
+      background-color: #0F172A;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 40px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+    
+    .pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.05;
+      background-image: repeating-linear-gradient(
+        45deg,
+        #ffffff,
+        #ffffff 2px,
+        transparent 2px,
+        transparent 12px
+      );
+    }
+    
+    .content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 40px;
+    }
+    
+    .logo-container {
+      width: 500px;
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+    
+    .logo {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    
+    .title {
+      font-size: 48px;
+      font-weight: 800;
+      color: white;
+      text-align: center;
+      margin: 0 0 16px 0;
+      max-width: 900px;
+    }
+    
+    .subtitle {
+      font-size: 32px;
+      color: #94A3B8;
+      text-align: center;
+      margin: 0;
+      max-width: 800px;
+    }
+    
+    .instructions {
+      max-width: 800px;
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .instructions h2 {
+      margin-top: 0;
+      color: #0F172A;
+    }
+    
+    .instructions p {
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    
+    .button {
+      background-color: #2563EB;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .button:hover {
+      background-color: #1D4ED8;
+    }
+  </style>
+</head>
+<body>
+  <div class="og-container" id="og-image">
+    <div class="pattern"></div>
+    <div class="content">
+      <div class="logo-container">
+        <img src="/images/logo/hockey-logo2.png" alt="Hockey Pouches Logo" class="logo">
+      </div>
+      <h1 class="title">Premium Nicotine Pouches</h1>
+      <p class="subtitle">For Hockey Players</p>
+    </div>
+  </div>
+  
+  <div class="instructions">
+    <h2>Create Your OpenGraph Image</h2>
+    <p>
+      This page displays how your OpenGraph image will look when shared on social media platforms like Facebook, Twitter, and LinkedIn.
+    </p>
+    <p>
+      To create the final image:
+    </p>
+    <ol>
+      <li>Take a screenshot of the image above (use your browser's screenshot tool or an OS screenshot utility)</li>
+      <li>Make sure to capture exactly 1200×630 pixels</li>
+      <li>Save the screenshot as "hockey-pouches-og.png" in the /public/images/og/ directory</li>
+      <li>Update your layout.tsx file to use this new image for OpenGraph and Twitter cards</li>
+    </ol>
+    <p>
+      <strong>Note:</strong> For the best results on social media platforms, use a PNG image rather than SVG.
+    </p>
+    <button class="button" id="download-button">Download Image (Experimental)</button>
+  </div>
+  
+  <script>
+    document.getElementById('download-button').addEventListener('click', function() {
+      // This is a simple approach - in a real implementation, you'd use html2canvas or similar
+      alert('Please take a screenshot of the image above. For best results, use a dedicated screenshot tool to capture exactly 1200×630 pixels.');
+      
+      // In a real implementation with html2canvas:
+      /*
+      html2canvas(document.getElementById('og-image')).then(function(canvas) {
+        const link = document.createElement('a');
+        link.download = 'hockey-pouches-og.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+      */
+    });
+  </script>
+</body>
+</html>

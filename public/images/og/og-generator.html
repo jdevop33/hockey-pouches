@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenGraph Image Generator</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #f1f5f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      width: 1200px;
+      height: 630px;
+      position: relative;
+      background-color: #0F172A;
+      overflow: hidden;
+    }
+    .logo {
+      position: absolute;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 500px;
+      height: 300px;
+      object-fit: contain;
+    }
+    .title {
+      position: absolute;
+      top: 450px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: 48px;
+      font-weight: bold;
+      text-align: center;
+      width: 100%;
+    }
+    .subtitle {
+      position: absolute;
+      top: 510px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #94A3B8;
+      font-size: 32px;
+      text-align: center;
+      width: 100%;
+    }
+    .instructions {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+    }
+    button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="container" id="og-container">
+      <img src="hockey-logo.svg" alt="Hockey Pouches Logo" class="logo">
+      <div class="title">Premium Nicotine Pouches</div>
+      <div class="subtitle">For Hockey Players</div>
+    </div>
+    
+    <div class="instructions">
+      <h2>OpenGraph Image Generator</h2>
+      <p>This page helps you generate a PNG version of your OpenGraph image.</p>
+      <p>1. Take a screenshot of the image above (use a browser extension or your OS screenshot tool)</p>
+      <p>2. Save it as "hockey-pouches-og.png" in the /public/images/og/ directory</p>
+      <p>3. Or click the button below to download the image (may not work in all browsers)</p>
+      <button id="download-btn">Download OpenGraph Image</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('download-btn').addEventListener('click', function() {
+      const container = document.getElementById('og-container');
+      
+      // This is a simple approach - for production, you'd use html2canvas or a similar library
+      alert('Please take a screenshot of the image above and save it as hockey-pouches-og.png');
+      
+      // In a real implementation, you'd use something like:
+      // html2canvas(container).then(canvas => {
+      //   const link = document.createElement('a');
+      //   link.download = 'hockey-pouches-og.png';
+      //   link.href = canvas.toDataURL('image/png');
+      //   link.click();
+      // });
+    });
+  </script>
+</body>
+</html>
