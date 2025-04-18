@@ -4,6 +4,10 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Layout from '../components/layout/NewLayout';
+import { metadata } from './metadata';
+import ResearchStructuredData from '../components/seo/ResearchStructuredData';
+import SocialShare from '../components/social/SocialShare';
+import RelatedContent from '../components/content/RelatedContent';
 
 // Define types for our data
 interface Video {
@@ -31,12 +35,8 @@ interface Study {
 // Sample data for videos
 // Function to get YouTube thumbnail URL from video ID
 const getYoutubeThumbnail = (videoId: string) => {
-  // Try multiple thumbnail options to ensure we get a valid image
-  // 1. maxresdefault (highest quality but not always available)
-  // 2. hqdefault (high quality, more reliable)
-  // 3. mqdefault (medium quality, very reliable)
-  // 4. default (lowest quality, always available)
-  return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+  // Use the direct YouTube image API for highest quality available thumbnails
+  return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 };
 
 // Default fallback image for videos
@@ -50,7 +50,6 @@ const videos: Video[] = [
     description:
       'Dr. Andrew Huberman and Dr. Staci Whitman discuss the dental risks of nicotine pouches, including gum recession and cellular changes in the mouth. They provide recommendations and precautions for users.',
     thumbnailUrl: getYoutubeThumbnail('-cR_PUUTSKg'),
-    backupThumbnailUrl: 'https://i3.ytimg.com/vi/-cR_PUUTSKg/maxresdefault.jpg',
     youtubeUrl: 'https://www.youtube.com/watch?v=-cR_PUUTSKg',
     category: 'Health',
   },
@@ -60,7 +59,6 @@ const videos: Video[] = [
     description:
       "Dr. Gabriela Zambrano Hill, a primary care physician at Houston Methodist, talks about ZYN nicotine pouches, including the side effects and whether they're good for your health.",
     thumbnailUrl: getYoutubeThumbnail('SGSfyWhfr7I'),
-    backupThumbnailUrl: 'https://i3.ytimg.com/vi/SGSfyWhfr7I/maxresdefault.jpg',
     youtubeUrl: 'https://www.youtube.com/watch?v=SGSfyWhfr7I',
     category: 'Health',
   },
@@ -81,7 +79,6 @@ const videos: Video[] = [
     description:
       'Lex Fridman and Dr. Andrew Huberman discuss the cognitive benefits and potential risks of nicotine pouches and gum, exploring their use as cognitive enhancers and the science behind nicotine.',
     thumbnailUrl: getYoutubeThumbnail('S5pwuXqRe3A'),
-    backupThumbnailUrl: 'https://i3.ytimg.com/vi/S5pwuXqRe3A/maxresdefault.jpg',
     youtubeUrl: 'https://www.youtube.com/watch?v=S5pwuXqRe3A',
     category: 'Science',
   },
@@ -91,7 +88,6 @@ const videos: Video[] = [
     description:
       "Thomas DeLauer explores the scientific research on nicotine's potential benefits for longevity and cognitive function, separating the effects of nicotine from the harmful aspects of tobacco.",
     thumbnailUrl: getYoutubeThumbnail('N3tGNIb5srU'),
-    backupThumbnailUrl: 'https://i3.ytimg.com/vi/N3tGNIb5srU/maxresdefault.jpg',
     youtubeUrl: 'https://www.youtube.com/watch?v=N3tGNIb5srU',
     category: 'Science',
   },
@@ -112,7 +108,6 @@ const videos: Video[] = [
     description:
       'Bloomberg News explores how Sweden achieved the lowest smoking rate in Europe (5.6%) through the adoption of snus and nicotine pouches, becoming a controversial case study in tobacco harm reduction.',
     thumbnailUrl: getYoutubeThumbnail('kDpPx0wozhU'),
-    backupThumbnailUrl: 'https://i3.ytimg.com/vi/kDpPx0wozhU/maxresdefault.jpg',
     youtubeUrl: 'https://www.youtube.com/watch?v=kDpPx0wozhU',
     category: 'Case Studies',
   },
@@ -600,6 +595,7 @@ export default function ResearchPage() {
 
   return (
     <Layout>
+      <ResearchStructuredData videos={videos} studies={studies} />
       <div className="bg-gray-50 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Hero Section */}
@@ -790,18 +786,25 @@ export default function ResearchPage() {
                           style={{ objectFit: 'cover' }}
                           className="z-10 transition-transform duration-500 group-hover:scale-105"
                           onError={e => {
-                            // Fallback to backup thumbnail or default image if the thumbnail fails to load
+                            // Fallback to different thumbnail qualities if the maxresdefault fails
                             const target = e.target as HTMLImageElement;
-                            // Try backup thumbnail URL if available
-                            if (video.backupThumbnailUrl) {
-                              target.src = video.backupThumbnailUrl;
-                            }
-                            // Try different thumbnail qualities if the first one fails
-                            else if (target.src.includes('hqdefault')) {
-                              target.src = target.src.replace('hqdefault', 'mqdefault');
+                            const videoId = getYoutubeId(video.youtubeUrl);
+
+                            // Try different thumbnail qualities in order
+                            if (target.src.includes('maxresdefault')) {
+                              // Try high quality
+                              target.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                            } else if (target.src.includes('hqdefault')) {
+                              // Try medium quality
+                              target.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
                             } else if (target.src.includes('mqdefault')) {
-                              target.src = target.src.replace('mqdefault', 'default');
+                              // Try standard quality
+                              target.src = `https://img.youtube.com/vi/${videoId}/sddefault.jpg`;
+                            } else if (target.src.includes('sddefault')) {
+                              // Try default quality
+                              target.src = `https://img.youtube.com/vi/${videoId}/default.jpg`;
                             } else {
+                              // Last resort: use our default image
                               target.src = DEFAULT_VIDEO_IMAGE;
                             }
                           }}
@@ -812,7 +815,10 @@ export default function ResearchPage() {
                         <div className="absolute inset-0 z-0 flex flex-col items-center justify-center bg-gray-100 p-4">
                           <div className="border-primary-200 border-t-primary-600 mb-4 h-12 w-12 animate-spin rounded-full border-4"></div>
                           <div className="text-center text-sm text-gray-500">
-                            Loading video thumbnail...
+                            Loading authentic YouTube thumbnail...
+                          </div>
+                          <div className="mt-2 text-center text-xs text-gray-400">
+                            {video.title.substring(0, 30)}...
                           </div>
                         </div>
                       </div>
@@ -942,8 +948,43 @@ export default function ResearchPage() {
             </div>
           )}
 
+          {/* Related Content */}
+          <RelatedContent
+            title="Explore More Hockey Performance Content"
+            items={[
+              {
+                title: 'Premium Nicotine Pouches for Hockey Players',
+                description:
+                  'Shop our selection of high-quality nicotine pouches designed specifically for hockey players.',
+                image: '/images/hero.jpeg',
+                link: '/products',
+              },
+              {
+                title: 'About Hockey Pouches',
+                description:
+                  'Learn about our mission to provide the best nicotine pouches for hockey players.',
+                image: '/images/hero.jpeg',
+                link: '/about',
+              },
+              {
+                title: 'Contact Our Team',
+                description:
+                  'Have questions about our products? Get in touch with our knowledgeable team.',
+                image: '/images/hero.jpeg',
+                link: '/contact',
+              },
+            ]}
+          />
+
+          {/* Social Sharing */}
+          <SocialShare
+            url="https://hockey-pouches.vercel.app/research"
+            title="Hockey Pouches - Research & Benefits | Scientific Studies on Nicotine Pouches"
+            description="Explore scientific research, studies, and expert videos on nicotine pouches. Learn about health implications, performance benefits, and how they compare to traditional tobacco products."
+          />
+
           {/* Call to Action */}
-          <div className="bg-primary-600 mt-16 overflow-hidden rounded-lg shadow-lg">
+          <div className="bg-primary-600 mt-8 overflow-hidden rounded-lg shadow-lg">
             <div className="px-6 py-12 sm:px-12 lg:flex lg:items-center lg:justify-between">
               <div>
                 <h2 className="text-shadow-primary-800/30 text-2xl font-extrabold text-white text-shadow-md sm:text-3xl">
