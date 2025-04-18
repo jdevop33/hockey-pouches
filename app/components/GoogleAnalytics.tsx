@@ -4,6 +4,14 @@ import Script from 'next/script';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 
+// Declare gtag as a property on the window object
+declare global {
+  interface Window {
+    gtag: (command: string, target: string, config?: Record<string, any>) => void;
+    dataLayer: any[];
+  }
+}
+
 // Get Google Analytics ID from environment variables
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-XXXXXXXXXX';
 

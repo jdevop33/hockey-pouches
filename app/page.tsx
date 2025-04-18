@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import Layout from './components/layout/Layout';
-import { flavors } from './data/products.ts';
+import { flavors } from './data/products';
 
 export default function Home() {
   return (
