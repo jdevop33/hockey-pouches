@@ -3,7 +3,7 @@
 import React, { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import Layout from '../../components/layout/Layout';
+import Layout from '../../components/layout/NewLayout';
 
 // Content component that uses useSearchParams
 function SuccessContent() {

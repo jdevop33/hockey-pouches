@@ -2,7 +2,7 @@
 
 import React, { Suspense } from 'react';
 import Link from 'next/link';
-import Layout from './components/layout/Layout';
+import Layout from './components/layout/NewLayout';
 
 // Loading component
 function NotFoundLoading() {

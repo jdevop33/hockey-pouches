@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import Layout from '../components/layout/Layout';
+import Layout from '../components/layout/NewLayout';
 import ReCaptcha from '../components/ui/ReCaptcha';
 
 type FormData = {
@@ -19,7 +19,12 @@ export default function ContactPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState('');
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormData>();
 
   const onSubmit = async (data: FormData) => {
     // Check if honeypot field is filled (spam bot)
@@ -42,7 +47,9 @@ export default function ContactPage() {
       const { ...formData } = data;
 
       // Send form data to HeroTofu
-      const endpoint = process.env.NEXT_PUBLIC_HEROTOFU_ENDPOINT || 'https://public.herotofu.com/v1/f129c2a0-180e-11f0-8883-29a3f54ace99';
+      const endpoint =
+        process.env.NEXT_PUBLIC_HEROTOFU_ENDPOINT ||
+        'https://public.herotofu.com/v1/f129c2a0-180e-11f0-8883-29a3f54ace99';
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -71,22 +78,34 @@ export default function ContactPage() {
   return (
     <Layout>
       <div className="bg-gray-50 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-8">Contact Us</h1>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h1 className="mb-8 text-3xl font-extrabold text-gray-900">Contact Us</h1>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid gap-8 md:grid-cols-2">
             {/* Contact Information */}
-            <div className="bg-white p-8 rounded-lg shadow-md">
-              <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
-              <p className="text-gray-600 mb-8">
-                Have questions about our products or want to share your experience? We&apos;re here to help! Fill out the form or use our contact information below.
+            <div className="rounded-lg bg-white p-8 shadow-md">
+              <h2 className="mb-6 text-2xl font-bold">Get in Touch</h2>
+              <p className="mb-8 text-gray-600">
+                Have questions about our products or want to share your experience? We&apos;re here
+                to help! Fill out the form or use our contact information below.
               </p>
 
               <div className="space-y-6">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <svg className="h-6 w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    <svg
+                      className="h-6 w-6 text-primary-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                      />
                     </svg>
                   </div>
                   <div className="ml-3 text-gray-600">
@@ -97,8 +116,19 @@ export default function ContactPage() {
 
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <svg className="h-6 w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    <svg
+                      className="h-6 w-6 text-primary-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
                     </svg>
                   </div>
                   <div className="ml-3 text-gray-600">
@@ -109,9 +139,25 @@ export default function ContactPage() {
 
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <svg className="h-6 w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <svg
+                      className="h-6 w-6 text-primary-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
                     </svg>
                   </div>
                   <div className="ml-3 text-gray-600">
@@ -124,8 +170,19 @@ export default function ContactPage() {
 
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <svg className="h-6 w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="h-6 w-6 text-primary-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   </div>
                   <div className="ml-3 text-gray-600">
@@ -138,29 +195,44 @@ export default function ContactPage() {
             </div>
 
             {/* Contact Form */}
-            <div className="bg-white p-8 rounded-lg shadow-md">
+            <div className="rounded-lg bg-white p-8 shadow-md">
               {isSubmitted ? (
-                <div className="text-center py-12">
-                  <svg className="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <div className="py-12 text-center">
+                  <svg
+                    className="mx-auto mb-4 h-16 w-16 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
-                  <h2 className="text-2xl font-bold mb-2">Thank You!</h2>
+                  <h2 className="mb-2 text-2xl font-bold">Thank You!</h2>
                   <p className="text-gray-600">
-                    Your message has been sent successfully. We&apos;ll get back to you as soon as possible.
+                    Your message has been sent successfully. We&apos;ll get back to you as soon as
+                    possible.
                   </p>
                 </div>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold mb-6">Send Us a Message</h2>
+                  <h2 className="mb-6 text-2xl font-bold">Send Us a Message</h2>
                   <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-4">
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="name"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         Full Name *
                       </label>
                       <input
                         type="text"
                         id="name"
-                        className={`w-full border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md py-2 px-3`}
+                        className={`w-full border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
                         {...register('name', { required: 'Name is required' })}
                       />
                       {errors.name && (
@@ -169,19 +241,22 @@ export default function ContactPage() {
                     </div>
 
                     <div className="mb-4">
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="email"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         Email Address *
                       </label>
                       <input
                         type="email"
                         id="email"
-                        className={`w-full border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md py-2 px-3`}
+                        className={`w-full border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
                         {...register('email', {
                           required: 'Email is required',
                           pattern: {
                             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                            message: 'Invalid email address'
-                          }
+                            message: 'Invalid email address',
+                          },
                         })}
                       />
                       {errors.email && (
@@ -190,37 +265,46 @@ export default function ContactPage() {
                     </div>
 
                     <div className="mb-4">
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="phone"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         Phone Number
                       </label>
                       <input
                         type="tel"
                         id="phone"
-                        className="w-full border border-gray-300 rounded-md py-2 px-3"
+                        className="w-full rounded-md border border-gray-300 px-3 py-2"
                         {...register('phone')}
                       />
                     </div>
 
                     <div className="mb-4">
-                      <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="company"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         Team/Club Name (Optional)
                       </label>
                       <input
                         type="text"
                         id="company"
-                        className="w-full border border-gray-300 rounded-md py-2 px-3"
+                        className="w-full rounded-md border border-gray-300 px-3 py-2"
                         {...register('company')}
                       />
                     </div>
 
                     <div className="mb-4">
-                      <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="message"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         Message *
                       </label>
                       <textarea
                         id="message"
                         rows={5}
-                        className={`w-full border ${errors.message ? 'border-red-500' : 'border-gray-300'} rounded-md py-2 px-3`}
+                        className={`w-full border ${errors.message ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
                         {...register('message', { required: 'Message is required' })}
                       ></textarea>
                       {errors.message && (
@@ -230,18 +314,15 @@ export default function ContactPage() {
 
                     {/* Honeypot field - hidden from users but bots will fill it out */}
                     <div className="hidden">
-                      <input
-                        type="text"
-                        {...register('honeypot')}
-                      />
+                      <input type="text" {...register('honeypot')} />
                     </div>
 
-                    <ReCaptcha onVerify={(token) => setRecaptchaToken(token)} />
+                    <ReCaptcha onVerify={token => setRecaptchaToken(token)} />
 
                     <div className="mt-6">
                       <button
                         type="submit"
-                        className="w-full bg-primary-600 text-white py-3 px-4 rounded-md font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                        className="w-full rounded-md bg-primary-600 px-4 py-3 font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? 'Sending...' : 'Send Message'}

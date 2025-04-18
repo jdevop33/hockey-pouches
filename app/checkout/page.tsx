@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import Layout from '../components/layout/Layout';
+import Layout from '../components/layout/NewLayout';
 import { useCart } from '../context/CartContext';
 
 // Loading component

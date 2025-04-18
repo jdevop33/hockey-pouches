@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import Layout from './components/layout/Layout';
+import Layout from './components/layout/NewLayout';
 import { flavors } from './data/products';
 
 export default function Home() {

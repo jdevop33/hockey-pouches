@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import Layout from '../../components/layout/Layout';
+import Layout from '../../components/layout/NewLayout';
 import { products } from '../../data/products';
 import { useCart } from '../../context/CartContext';
 import SocialShare from '../../components/SocialShare';
@@ -36,7 +36,7 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     addToCart(product, quantity);
     setAddedToCart(true);
-    
+
     // Reset the "Added to cart" message after 2 seconds
     setTimeout(() => {
       setAddedToCart(false);
@@ -46,55 +46,69 @@ export default function ProductDetailPage() {
   // Calculate price with bulk discount if applicable
   const getDiscountedPrice = (qty: number) => {
     if (!product.bulkDiscounts) return product.price;
-    
+
     const applicableDiscount = product.bulkDiscounts
       .filter(discount => qty >= discount.quantity)
       .sort((a, b) => b.discountPercentage - a.discountPercentage)[0];
-      
+
     if (!applicableDiscount) return product.price;
-    
-    const discountMultiplier = 1 - (applicableDiscount.discountPercentage / 100);
+
+    const discountMultiplier = 1 - applicableDiscount.discountPercentage / 100;
     return product.price * discountMultiplier;
   };
 
   const currentPrice = getDiscountedPrice(quantity);
   const showDiscount = currentPrice < product.price;
-  
+
   // Get related products (same flavor or strength)
   const relatedProducts = products
-    .filter(p => p.id !== product.id && (p.flavor === product.flavor || p.strength === product.strength))
+    .filter(
+      p => p.id !== product.id && (p.flavor === product.flavor || p.strength === product.strength)
+    )
     .slice(0, 3);
 
   return (
     <Layout>
       <ProductSchema product={product} />
-      
+
       <div className="bg-gray-50 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Breadcrumbs */}
-          <nav className="flex mb-8" aria-label="Breadcrumb">
+          <nav className="mb-8 flex" aria-label="Breadcrumb">
             <ol className="flex items-center space-x-2">
               <li>
-                <Link href="/" className="text-gray-500 hover:text-gray-700">Home</Link>
+                <Link href="/" className="text-gray-500 hover:text-gray-700">
+                  Home
+                </Link>
               </li>
               <li className="flex items-center">
                 <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clipRule="evenodd"
+                  />
                 </svg>
-                <Link href="/products" className="ml-2 text-gray-500 hover:text-gray-700">Products</Link>
+                <Link href="/products" className="ml-2 text-gray-500 hover:text-gray-700">
+                  Products
+                </Link>
               </li>
               <li className="flex items-center">
                 <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clipRule="evenodd"
+                  />
                 </svg>
-                <span className="ml-2 text-gray-900 font-medium">{product.name}</span>
+                <span className="ml-2 font-medium text-gray-900">{product.name}</span>
               </li>
             </ol>
           </nav>
 
-          <div className="lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
+          <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
             {/* Product image */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="overflow-hidden rounded-lg bg-white shadow-md">
               <div className="relative h-96 w-full">
                 <Image
                   src={product.imageUrl}
@@ -107,18 +121,22 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Product details */}
-            <div className="mt-10 px-4 sm:px-0 sm:mt-16 lg:mt-0">
-              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">{product.name}</h1>
-              
+            <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
+              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
+                {product.name}
+              </h1>
+
               <div className="mt-3">
                 <h2 className="sr-only">Product information</h2>
                 <div className="flex items-center">
                   {showDiscount ? (
                     <>
                       <p className="text-3xl text-gray-900">${currentPrice.toFixed(2)}</p>
-                      <p className="ml-2 text-lg text-gray-500 line-through">${product.price.toFixed(2)}</p>
-                      <span className="ml-2 px-2 py-1 text-xs font-semibold text-white bg-green-500 rounded-full">
-                        SAVE {((1 - (currentPrice / product.price)) * 100).toFixed(0)}%
+                      <p className="ml-2 text-lg text-gray-500 line-through">
+                        ${product.price.toFixed(2)}
+                      </p>
+                      <span className="ml-2 rounded-full bg-green-500 px-2 py-1 text-xs font-semibold text-white">
+                        SAVE {((1 - currentPrice / product.price) * 100).toFixed(0)}%
                       </span>
                     </>
                   ) : (
@@ -130,7 +148,7 @@ export default function ProductDetailPage() {
               <div className="mt-6">
                 <div className="flex items-center">
                   <div className="flex items-center">
-                    {[0, 1, 2, 3, 4].map((rating) => (
+                    {[0, 1, 2, 3, 4].map(rating => (
                       <svg
                         key={rating}
                         className="h-5 w-5 text-yellow-400"
@@ -163,9 +181,14 @@ export default function ProductDetailPage() {
                 <div className="mt-6">
                   <h3 className="text-sm font-medium text-gray-900">Bulk Discounts</h3>
                   <div className="mt-2 grid grid-cols-3 gap-4">
-                    {product.bulkDiscounts.map((discount) => (
-                      <div key={discount.quantity} className="border border-gray-200 rounded-md p-3 text-center">
-                        <p className="text-sm font-medium text-gray-900">{discount.quantity}+ cans</p>
+                    {product.bulkDiscounts.map(discount => (
+                      <div
+                        key={discount.quantity}
+                        className="rounded-md border border-gray-200 p-3 text-center"
+                      >
+                        <p className="text-sm font-medium text-gray-900">
+                          {discount.quantity}+ cans
+                        </p>
                         <p className="text-sm text-green-600">{discount.discountPercentage}% off</p>
                       </div>
                     ))}
@@ -182,10 +205,15 @@ export default function ProductDetailPage() {
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="text-gray-500 focus:outline-none focus:text-gray-600 p-1"
+                    className="p-1 text-gray-500 focus:text-gray-600 focus:outline-none"
                   >
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M20 12H4"
+                      />
                     </svg>
                   </button>
                   <input
@@ -194,16 +222,21 @@ export default function ProductDetailPage() {
                     type="number"
                     min="1"
                     value={quantity}
-                    onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                    className="mx-2 text-center w-16 border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    onChange={e => setQuantity(parseInt(e.target.value) || 1)}
+                    className="mx-2 w-16 rounded-md border-gray-300 text-center shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                   />
                   <button
                     type="button"
                     onClick={() => setQuantity(quantity + 1)}
-                    className="text-gray-500 focus:outline-none focus:text-gray-600 p-1"
+                    className="p-1 text-gray-500 focus:text-gray-600 focus:outline-none"
                   >
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 4v16m8-8H4"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -214,20 +247,26 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className={`w-full flex items-center justify-center px-8 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white ${
-                    addedToCart ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-600 hover:bg-primary-700'
-                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500`}
+                  className={`flex w-full items-center justify-center rounded-md border border-transparent px-8 py-3 text-base font-medium text-white shadow-sm ${
+                    addedToCart
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-primary-600 hover:bg-primary-700'
+                  } focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2`}
                 >
                   {addedToCart ? (
                     <>
-                      <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       Added to Cart
                     </>
                   ) : (
                     <>
-                      <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                       </svg>
                       Add to Cart
@@ -236,7 +275,7 @@ export default function ProductDetailPage() {
                 </button>
                 <Link
                   href="/cart"
-                  className="mt-4 sm:mt-0 w-full sm:w-auto flex items-center justify-center px-8 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  className="mt-4 flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-8 py-3 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:mt-0 sm:w-auto"
                 >
                   View Cart
                 </Link>
@@ -262,8 +301,8 @@ export default function ProductDetailPage() {
                   className={`${
                     activeTab === 'description'
                       ? 'border-primary-500 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                  } whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium`}
                 >
                   Description
                 </button>
@@ -272,8 +311,8 @@ export default function ProductDetailPage() {
                   className={`${
                     activeTab === 'details'
                       ? 'border-primary-500 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                  } whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium`}
                 >
                   Product Details
                 </button>
@@ -282,8 +321,8 @@ export default function ProductDetailPage() {
                   className={`${
                     activeTab === 'reviews'
                       ? 'border-primary-500 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                  } whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium`}
                 >
                   Reviews
                 </button>
@@ -294,10 +333,16 @@ export default function ProductDetailPage() {
               {activeTab === 'description' && (
                 <div className="prose prose-lg max-w-none">
                   <p>
-                    Our premium {product.flavor} nicotine pouches are designed specifically for hockey players who need a discreet, convenient option that works with their active lifestyle. With {product.strength}mg of nicotine per pouch, they provide just the right amount of satisfaction without the mess or inconvenience of traditional tobacco products.
+                    Our premium {product.flavor} nicotine pouches are designed specifically for
+                    hockey players who need a discreet, convenient option that works with their
+                    active lifestyle. With {product.strength}mg of nicotine per pouch, they provide
+                    just the right amount of satisfaction without the mess or inconvenience of
+                    traditional tobacco products.
                   </p>
                   <p>
-                    Perfect for use between periods, during practice breaks, or anytime you need a quick boost. The slim, comfortable pouches fit discreetly under your lip and deliver a consistent release of nicotine without the need for spitting.
+                    Perfect for use between periods, during practice breaks, or anytime you need a
+                    quick boost. The slim, comfortable pouches fit discreetly under your lip and
+                    deliver a consistent release of nicotine without the need for spitting.
                   </p>
                   <h3>Why Hockey Players Love Our Pouches:</h3>
                   <ul>
@@ -313,33 +358,47 @@ export default function ProductDetailPage() {
               {activeTab === 'details' && (
                 <div className="border-t border-gray-200 py-6">
                   <dl className="divide-y divide-gray-200">
-                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+                    <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
                       <dt className="text-sm font-medium text-gray-500">Product name</dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{product.name}</dd>
+                      <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        {product.name}
+                      </dd>
                     </div>
-                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+                    <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
                       <dt className="text-sm font-medium text-gray-500">Flavor</dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{product.flavor}</dd>
+                      <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        {product.flavor}
+                      </dd>
                     </div>
-                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+                    <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
                       <dt className="text-sm font-medium text-gray-500">Nicotine strength</dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{product.strength}mg per pouch</dd>
+                      <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        {product.strength}mg per pouch
+                      </dd>
                     </div>
-                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+                    <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
                       <dt className="text-sm font-medium text-gray-500">Pouches per can</dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">20</dd>
+                      <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">20</dd>
                     </div>
-                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+                    <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
                       <dt className="text-sm font-medium text-gray-500">Ingredients</dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">Nicotine, plant-based fibers, water, salt, pH adjusters, sweeteners, flavoring</dd>
+                      <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        Nicotine, plant-based fibers, water, salt, pH adjusters, sweeteners,
+                        flavoring
+                      </dd>
                     </div>
-                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+                    <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
                       <dt className="text-sm font-medium text-gray-500">Storage</dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">Store in a cool, dry place away from direct sunlight</dd>
+                      <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        Store in a cool, dry place away from direct sunlight
+                      </dd>
                     </div>
-                    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+                    <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
                       <dt className="text-sm font-medium text-gray-500">Warning</dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">This product contains nicotine. Nicotine is an addictive chemical. Not for sale to minors.</dd>
+                      <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        This product contains nicotine. Nicotine is an addictive chemical. Not for
+                        sale to minors.
+                      </dd>
                     </div>
                   </dl>
                 </div>
@@ -348,11 +407,11 @@ export default function ProductDetailPage() {
               {activeTab === 'reviews' && (
                 <div className="mt-6">
                   <h3 className="text-lg font-medium text-gray-900">Customer Reviews</h3>
-                  <div className="mt-6 border-t border-b border-gray-200 py-6 space-y-8">
+                  <div className="mt-6 space-y-8 border-b border-t border-gray-200 py-6">
                     <div>
                       <div className="flex items-center">
                         <div className="flex items-center">
-                          {[0, 1, 2, 3, 4].map((rating) => (
+                          {[0, 1, 2, 3, 4].map(rating => (
                             <svg
                               key={rating}
                               className="h-5 w-5 text-yellow-400"
@@ -368,14 +427,16 @@ export default function ProductDetailPage() {
                       </div>
                       <div className="mt-4 text-base text-gray-600">
                         <p>
-                          These pouches are perfect for between periods. I used to use traditional products but these are so much cleaner and more convenient. The {product.flavor} flavor is great and lasts a long time.
+                          These pouches are perfect for between periods. I used to use traditional
+                          products but these are so much cleaner and more convenient. The{' '}
+                          {product.flavor} flavor is great and lasts a long time.
                         </p>
                       </div>
                     </div>
                     <div>
                       <div className="flex items-center">
                         <div className="flex items-center">
-                          {[0, 1, 2, 3, 4].map((rating) => (
+                          {[0, 1, 2, 3, 4].map(rating => (
                             <svg
                               key={rating}
                               className={`h-5 w-5 ${
@@ -393,7 +454,9 @@ export default function ProductDetailPage() {
                       </div>
                       <div className="mt-4 text-base text-gray-600">
                         <p>
-                          I'm a goalie and these help me stay focused during long games. The {product.strength}mg strength is perfect - not too strong, not too weak. Will definitely buy again.
+                          I'm a goalie and these help me stay focused during long games. The{' '}
+                          {product.strength}mg strength is perfect - not too strong, not too weak.
+                          Will definitely buy again.
                         </p>
                       </div>
                     </div>
@@ -406,10 +469,15 @@ export default function ProductDetailPage() {
           {/* Related products */}
           {relatedProducts.length > 0 && (
             <div className="mt-16">
-              <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">You may also like</h2>
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {relatedProducts.map((relatedProduct) => (
-                  <div key={relatedProduct.id} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
+              <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">
+                You may also like
+              </h2>
+              <div className="mt-6 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {relatedProducts.map(relatedProduct => (
+                  <div
+                    key={relatedProduct.id}
+                    className="flex flex-col overflow-hidden rounded-lg bg-white shadow-md"
+                  >
                     <div className="relative h-64 bg-gray-100">
                       <Image
                         src={relatedProduct.imageUrl}
@@ -419,14 +487,18 @@ export default function ProductDetailPage() {
                         className="p-4"
                       />
                     </div>
-                    <div className="p-6 flex-grow flex flex-col">
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">{relatedProduct.name}</h3>
-                      <p className="text-gray-500 mb-4">{relatedProduct.description}</p>
-                      <div className="mt-auto flex justify-between items-center">
-                        <p className="text-lg font-medium text-gray-900">${relatedProduct.price.toFixed(2)}</p>
+                    <div className="flex flex-grow flex-col p-6">
+                      <h3 className="mb-2 text-lg font-medium text-gray-900">
+                        {relatedProduct.name}
+                      </h3>
+                      <p className="mb-4 text-gray-500">{relatedProduct.description}</p>
+                      <div className="mt-auto flex items-center justify-between">
+                        <p className="text-lg font-medium text-gray-900">
+                          ${relatedProduct.price.toFixed(2)}
+                        </p>
                         <Link
                           href={`/products/${relatedProduct.id}`}
-                          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
+                          className="inline-flex items-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700"
                         >
                           View Product
                         </Link>
