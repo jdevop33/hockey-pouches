@@ -116,12 +116,10 @@ const nextConfig = {
   },
   // Enable experimental features for Next.js 15
   experimental: {
-    // Enable server actions
-    serverActions: true,
-    // Enable optimized loading of fonts
-    optimizeFonts: true,
-    // Enable modern JavaScript features
-    serverComponentsExternalPackages: [],
+    // Enable server actions (as an object with properties)
+    serverActions: {
+      allowedOrigins: ['localhost:3000', 'nicotinetins.com'],
+    },
   },
 };
 

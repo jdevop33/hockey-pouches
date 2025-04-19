@@ -5,11 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:no-lint": "node scripts/build-no-lint.js",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "deploy": "node scripts/deploy.js",
+    "git:push": "node scripts/git-push.js"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.4",
