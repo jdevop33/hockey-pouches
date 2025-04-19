@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M20 10C15.5817 10 12 13.5817 12 18V42C12 46.4183 15.5817 50 20 50H180C184.418 50 188 46.4183 188 42V18C188 13.5817 184.418 10 180 10H20Z" fill="#DC2626" stroke="white" stroke-width="2"/>
+  <path d="M30 15L30 45" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <path d="M170 15L170 45" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <path d="M40 25H50V35H40V25Z" fill="white"/>
+  <path d="M60 20H70L65 40H55L60 20Z" fill="white"/>
+  <path d="M80 20H90L95 40H85L80 20Z" fill="white"/>
+  <path d="M105 20H115L110 40H100L105 20Z" fill="white"/>
+  <path d="M125 20H135V40H125V20Z" fill="white"/>
+  <path d="M145 20H155L150 30L155 40H145L140 30L145 20Z" fill="white"/>
+  <text x="45" y="33" font-family="Arial" font-size="12" font-weight="bold" fill="#DC2626">HOCKEY</text>
+  <text x="100" y="33" font-family="Arial" font-size="12" font-weight="bold" fill="#DC2626">POUCHES</text>
+</svg>

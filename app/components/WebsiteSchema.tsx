@@ -1,5 +1,5 @@
 import React from 'react';
-import WebsiteSchemaScript from './WebsiteSchemaScript';
+import Script from 'next/script';
 
 interface WebsiteSchemaProps {
   siteUrl?: string;
@@ -73,13 +73,14 @@ const WebsiteSchema = ({
   };
 
   return (
-    <WebsiteSchemaScript
-      siteUrl={siteUrl}
-      siteName={siteName}
-      logo={logo}
-      title={title}
-      description={description}
-    />
+    <>
+      <Script id="website-schema" type="application/ld+json" strategy="afterInteractive">
+        {JSON.stringify(schemaData)}
+      </Script>
+      <Script id="organization-schema" type="application/ld+json" strategy="afterInteractive">
+        {JSON.stringify(organizationData)}
+      </Script>
+    </>
   );
 };
 
