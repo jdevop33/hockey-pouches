@@ -6,7 +6,7 @@ import CartWrapper from './components/CartWrapper';
 import { Analytics } from '@vercel/analytics/react';
 import { WebVitals } from './_components/web-vitals';
 
-// Analytics tracking IDs - configured for production
+// Analytics tracking IDs - configured for production deployment
 const GA_TRACKING_ID = 'G-PMM01WKF05';
 const CLARITY_TRACKING_ID = 'r6bz25gfvl';
 
