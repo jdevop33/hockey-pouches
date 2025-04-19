@@ -28,17 +28,18 @@ const Navigation: React.FC = () => {
     <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
       {/* Desktop navigation */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-24 items-center justify-between">
+        <div className="flex h-28 items-center justify-between">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
               <Image
                 src="/images/logo/hockey-logo2.svg"
                 alt="Nicotine Tins Logo"
-                width={300}
-                height={85}
-                className="h-20 w-auto"
+                width={400}
+                height={120}
+                className="h-24 w-auto max-w-none"
                 priority
+                style={{ transform: 'scale(1.2)' }}
               />
             </Link>
           </div>

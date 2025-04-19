@@ -87,9 +87,9 @@ function AboutContent() {
                 <Image
                   src="/images/logo/hockey-logo2.svg"
                   alt="Hockey Puxx Logo"
-                  width={500}
-                  height={250}
-                  style={{ objectFit: 'contain' }}
+                  width={600}
+                  height={300}
+                  style={{ objectFit: 'contain', transform: 'scale(1.3)' }}
                   className="max-h-full max-w-full"
                 />
               </div>
