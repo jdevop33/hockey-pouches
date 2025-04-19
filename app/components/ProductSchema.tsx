@@ -13,22 +13,24 @@ const ProductSchema: React.FC<ProductSchemaProps> = ({ product }) => {
     '@type': 'Product',
     name: product.name,
     description: product.description,
-    image: `https://hockeypouches.ca${product.imageUrl}`,
-    sku: `HP-${product.id}`,
+    image: `https://nicotinetins.com${product.imageUrl}`,
+    sku: `NT-${product.id}`,
     brand: {
       '@type': 'Brand',
-      name: 'Hockey Pouches',
+      name: 'Hockey Puxx',
     },
     offers: {
       '@type': 'Offer',
-      url: `https://hockeypouches.ca/products/${product.id}`,
+      url: `https://nicotinetins.com/products/${product.id}`,
       priceCurrency: 'CAD',
       price: product.price,
-      priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+      priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+        .toISOString()
+        .split('T')[0],
       availability: 'https://schema.org/InStock',
       seller: {
         '@type': 'Organization',
-        name: 'Hockey Pouches',
+        name: 'Nicotine Tins',
       },
     },
   };

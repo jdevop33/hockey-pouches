@@ -56,7 +56,9 @@ function AboutContent() {
     <Layout>
       <div className="bg-gray-50 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 className="mb-8 text-center text-4xl font-bold text-gray-900">About Hockey Pouches</h1>
+          <h1 className="mb-8 text-center text-4xl font-bold text-gray-900">
+            About Hockey Pouches
+          </h1>
 
           {/* Our Story */}
           <div className="mb-12 rounded-lg bg-white p-8 shadow-md">
@@ -64,27 +66,27 @@ function AboutContent() {
             <div className="grid gap-8 md:grid-cols-2">
               <div className="space-y-4">
                 <p className="text-gray-600">
-                  Hockey Pouches was founded by a group of passionate hockey players who were looking
+                  Hockey Puxx was founded by a group of passionate hockey players who were looking
                   for a better way to enjoy nicotine without the drawbacks of traditional tobacco
                   products.
                 </p>
                 <p className="text-gray-600">
                   As athletes, we understood the importance of maintaining peak physical condition
-                  while still enjoying the focus and relaxation that nicotine can provide. Our search
-                  for a solution that wouldn't compromise our lung capacity, endurance, or overall
-                  health led us to discover nicotine pouches.
+                  while still enjoying the focus and relaxation that nicotine can provide. Our
+                  search for a solution that wouldn't compromise our lung capacity, endurance, or
+                  overall health led us to discover nicotine pouches.
                 </p>
                 <p className="text-gray-600">
                   We started importing premium European nicotine pouches for our own team, and soon
-                  other players were asking where they could get them. That's when Hockey Pouches
-                  was born - a brand dedicated to providing Canadian hockey players with the highest
+                  other players were asking where they could get them. That's when Hockey Puxx was
+                  born - a brand dedicated to providing Canadian hockey players with the highest
                   quality nicotine pouches designed specifically for their lifestyle.
                 </p>
               </div>
               <div className="relative flex h-64 items-center justify-center rounded-lg bg-white p-8 shadow-md">
                 <Image
                   src="/images/logo/hockey-logo.svg"
-                  alt="Hockey Pouches Logo"
+                  alt="Hockey Puxx Logo"
                   width={400}
                   height={200}
                   style={{ objectFit: 'contain' }}
@@ -98,9 +100,9 @@ function AboutContent() {
             <h2 className="mb-6 text-2xl font-bold">Our Values</h2>
             <div className="grid gap-8 md:grid-cols-3">
               <div>
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
+                <div className="bg-primary-100 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
                   <svg
-                    className="h-6 w-6 text-primary-600"
+                    className="text-primary-600 h-6 w-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -121,9 +123,9 @@ function AboutContent() {
                 </p>
               </div>
               <div>
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
+                <div className="bg-primary-100 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
                   <svg
-                    className="h-6 w-6 text-primary-600"
+                    className="text-primary-600 h-6 w-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -145,9 +147,9 @@ function AboutContent() {
                 </p>
               </div>
               <div>
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
+                <div className="bg-primary-100 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
                   <svg
-                    className="h-6 w-6 text-primary-600"
+                    className="text-primary-600 h-6 w-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -176,7 +178,7 @@ function AboutContent() {
             <h2 className="mb-6 text-2xl font-bold">Our Team</h2>
             <div className="grid gap-8 md:grid-cols-3">
               <div className="text-center">
-                <div className="relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full bg-primary-100">
+                <div className="bg-primary-100 relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full">
                   <Image
                     src="https://randomuser.me/api/portraits/men/32.jpg"
                     alt="John Smith"
@@ -188,7 +190,7 @@ function AboutContent() {
                 <p className="text-gray-600">Founder & Former NHL Player</p>
               </div>
               <div className="text-center">
-                <div className="relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full bg-primary-100">
+                <div className="bg-primary-100 relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full">
                   <Image
                     src="https://randomuser.me/api/portraits/women/44.jpg"
                     alt="Sarah Johnson"
@@ -200,7 +202,7 @@ function AboutContent() {
                 <p className="text-gray-600">Product Development & Nutritionist</p>
               </div>
               <div className="text-center">
-                <div className="relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full bg-primary-100">
+                <div className="bg-primary-100 relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full">
                   <Image
                     src="https://randomuser.me/api/portraits/men/67.jpg"
                     alt="Michael Brown"
@@ -235,8 +237,8 @@ function AboutContent() {
                   </div>
                 </div>
                 <p className="mb-4 text-gray-600">
-                  &quot;Hockey Pouches has been a game-changer for me during the season. I can use
-                  them discreetly between periods for that extra boost, and they don't affect my
+                  &quot;Hockey Puxx has been a game-changer for me during the season. I can use them
+                  discreetly between periods for that extra boost, and they don't affect my
                   breathing or performance like other products did. The mint flavor is perfect for
                   keeping me alert during those late-night games.&quot;
                 </p>
@@ -273,7 +275,7 @@ function AboutContent() {
                 </div>
                 <p className="mb-4 text-gray-600">
                   &quot;As a hockey coach, I was looking for an alternative to traditional tobacco
-                  products for myself and to recommend to my adult players. Hockey Pouches are
+                  products for myself and to recommend to my adult players. Hockey Puxx pouches are
                   perfect - they're discreet, don't require spitting, and don't leave a mess in the
                   locker room. Plus, the team discount program is a great perk for our club.&quot;
                 </p>
@@ -296,22 +298,22 @@ function AboutContent() {
           </div>
 
           {/* CTA */}
-          <div className="rounded-lg bg-primary-600 p-8 text-white">
+          <div className="bg-primary-600 rounded-lg p-8 text-white">
             <h2 className="mb-4 text-2xl font-bold">Ready to Join the Team?</h2>
             <p className="mb-6">
-              Join thousands of hockey players across Canada who trust Hockey Pouches for a clean,
+              Join thousands of hockey players across Canada who trust Hockey Puxx for a clean,
               discreet nicotine experience.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row">
               <Link
                 href="/contact"
-                className="rounded-md bg-white px-6 py-3 text-center font-medium text-primary-600 hover:bg-gray-100"
+                className="text-primary-600 rounded-md bg-white px-6 py-3 text-center font-medium hover:bg-gray-100"
               >
                 Contact Us
               </Link>
               <Link
                 href="/products"
-                className="rounded-md border-2 border-white bg-transparent px-6 py-3 text-center font-medium text-white hover:bg-primary-700"
+                className="hover:bg-primary-700 rounded-md border-2 border-white bg-transparent px-6 py-3 text-center font-medium text-white"
               >
                 Shop Now
               </Link>

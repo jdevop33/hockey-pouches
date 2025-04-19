@@ -32,7 +32,7 @@ const Navigation: React.FC = () => {
   ];
 
   return (
-    <nav className="relative z-10 bg-primary-600 shadow-md">
+    <nav className="bg-primary-600 relative z-10 shadow-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
           <div className="flex items-center">
@@ -58,8 +58,8 @@ const Navigation: React.FC = () => {
                       pathname === item.href
                         ? 'bg-primary-700 text-white shadow-sm'
                         : item.href === '/research'
-                          ? 'bg-primary-600/80 text-white hover:bg-primary-500 hover:shadow-sm'
-                          : 'text-white hover:bg-primary-500/80 hover:shadow-sm'
+                          ? 'bg-primary-600/80 hover:bg-primary-500 text-white hover:shadow-sm'
+                          : 'hover:bg-primary-500/80 text-white hover:shadow-sm'
                     }`}
                   >
                     {item.label}
@@ -73,7 +73,7 @@ const Navigation: React.FC = () => {
               <CartIcon />
               <Link
                 href="/account"
-                className="flex items-center rounded-md bg-white px-3 py-2 text-sm font-medium text-primary-600 shadow-sm transition-all hover:bg-gray-100 hover:shadow"
+                className="text-primary-600 flex items-center rounded-md bg-white px-3 py-2 text-sm font-medium shadow-sm transition-all hover:bg-gray-100 hover:shadow"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -97,7 +97,7 @@ const Navigation: React.FC = () => {
             <button
               onClick={toggleMenu}
               type="button"
-              className="mt-2 inline-flex items-center justify-center rounded-md bg-primary-700 p-2 text-white shadow-sm hover:bg-primary-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              className="bg-primary-700 hover:bg-primary-800 mt-2 inline-flex items-center justify-center rounded-md p-2 text-white shadow-sm hover:text-white focus:ring-2 focus:ring-white focus:outline-none focus:ring-inset"
               aria-controls="mobile-menu"
               aria-expanded={isMenuOpen}
             >
@@ -142,7 +142,7 @@ const Navigation: React.FC = () => {
       {/* Mobile menu backdrop */}
       {isMenuOpen && (
         <div
-          className="animate-fadeIn fixed inset-0 z-10 bg-black bg-opacity-25 md:hidden"
+          className="animate-fadeIn bg-opacity-25 fixed inset-0 z-10 bg-black md:hidden"
           onClick={() => setIsMenuOpen(false)}
         ></div>
       )}
@@ -152,7 +152,7 @@ const Navigation: React.FC = () => {
         className={`${isMenuOpen ? 'block' : 'hidden'} absolute z-20 w-full md:hidden`}
         id="mobile-menu"
       >
-        <div className="animate-fadeIn space-y-2 border-t border-primary-800 bg-primary-700 px-4 pb-4 pt-3 shadow-lg sm:px-6">
+        <div className="animate-fadeIn border-primary-800 bg-primary-700 space-y-2 border-t px-4 pt-3 pb-4 shadow-lg sm:px-6">
           {navItems.map(item => (
             <Link
               key={item.href}
@@ -160,7 +160,7 @@ const Navigation: React.FC = () => {
               className={`block rounded-md px-4 py-3 text-base font-medium transition-colors ${
                 pathname === item.href
                   ? 'bg-primary-800 text-white shadow-sm'
-                  : 'text-white hover:bg-primary-600 active:bg-primary-800'
+                  : 'hover:bg-primary-600 active:bg-primary-800 text-white'
               }`}
               onClick={() => setIsMenuOpen(false)}
             >
@@ -171,7 +171,7 @@ const Navigation: React.FC = () => {
             <CartIcon />
             <Link
               href="/account"
-              className="flex items-center justify-center rounded-md bg-white px-4 py-3 text-base font-medium text-primary-600 shadow-sm transition-colors hover:bg-gray-100 active:bg-gray-200"
+              className="text-primary-600 flex items-center justify-center rounded-md bg-white px-4 py-3 text-base font-medium shadow-sm transition-colors hover:bg-gray-100 active:bg-gray-200"
               onClick={() => setIsMenuOpen(false)}
             >
               <svg
@@ -201,10 +201,10 @@ const Footer: React.FC = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <div>
-            <h3 className="mb-4 text-lg font-semibold">Hockey Pouches</h3>
+            <h3 className="mb-4 text-lg font-semibold">Hockey Puxx</h3>
             <p className="text-gray-300">
-              Premium tobacco-free nicotine pouches designed for hockey players and fans across
-              Canada.
+              Premium tobacco-free nicotine pouches by Hockey Puxx, designed for hockey players and
+              fans across Canada.
             </p>
           </div>
           <div>
@@ -240,7 +240,7 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="mb-4 text-lg font-semibold">Contact Us</h3>
             <p className="text-gray-300">
-              Email: {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@hockeypouches.ca'}
+              Email: {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@nicotinetins.com'}
             </p>
             <p className="text-gray-300">
               Phone: {process.env.NEXT_PUBLIC_CONTACT_PHONE || '(250) 415-5678'}
@@ -288,7 +288,9 @@ const Footer: React.FC = () => {
           </div>
         </div>
         <div className="mt-8 border-t border-gray-700 pt-8 text-center text-gray-300">
-          <p>&copy; {new Date().getFullYear()} Hockey Pouches. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} Nicotine Tins by Hockey Puxx. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

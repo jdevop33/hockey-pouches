@@ -17,7 +17,7 @@ export default function Home() {
                 FOR HOCKEY PLAYERS
               </div>
               <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 text-shadow-sm sm:text-5xl lg:text-6xl">
-                Stay in the Game with Hockey Pouches
+                Stay in the Game with Hockey Puxx
               </h1>
               <p className="mb-10 max-w-xl text-xl leading-relaxed text-gray-600">
                 Premium tobacco-free nicotine pouches designed for hockey players and fans.
@@ -47,7 +47,7 @@ export default function Home() {
                 <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl">
                   <Image
                     src="/images/hero.jpeg"
-                    alt="Hockey Pouches - Premium Nicotine Pouches"
+                    alt="Hockey Puxx - Premium Nicotine Pouches"
                     fill
                     style={{ objectFit: 'cover' }}
                     className="rounded-2xl"
@@ -281,8 +281,8 @@ export default function Home() {
                   Get the Edge On and Off the Ice
                 </h2>
                 <p className="mt-6 text-lg text-gray-600">
-                  Join thousands of hockey players across Canada who trust Hockey Pouches for a
-                  clean, discreet nicotine experience that fits their active lifestyle.
+                  Join thousands of hockey players across Canada who trust Hockey Puxx for a clean,
+                  discreet nicotine experience that fits their active lifestyle.
                 </p>
                 <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                   <Link

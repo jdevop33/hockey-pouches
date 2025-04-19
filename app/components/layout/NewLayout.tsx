@@ -34,7 +34,7 @@ const Navigation: React.FC = () => {
             <Link href="/" className="flex items-center">
               <Image
                 src="/images/logo/logo3.svg"
-                alt="Hockey Pouches Logo"
+                alt="Nicotine Tins Logo"
                 width={200}
                 height={56}
                 className="h-14 w-auto"
@@ -183,10 +183,10 @@ const Footer: React.FC = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <div>
-            <h3 className="mb-4 text-lg font-semibold">Hockey Pouches</h3>
+            <h3 className="mb-4 text-lg font-semibold">Nicotine Tins</h3>
             <p className="text-gray-300">
-              Premium tobacco-free nicotine pouches designed for hockey players and fans across
-              Canada.
+              Premium tobacco-free nicotine pouches by Hockey Puxx, designed for hockey players and
+              fans across Canada.
             </p>
           </div>
           <div>
@@ -222,7 +222,7 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="mb-4 text-lg font-semibold">Contact Us</h3>
             <p className="text-gray-300">
-              Email: {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'jesse@pouchbuzz.ca'}
+              Email: {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@nicotinetins.com'}
             </p>
             <p className="text-gray-300">
               Phone: {process.env.NEXT_PUBLIC_CONTACT_PHONE || '(250) 415-5678'}
@@ -271,7 +271,9 @@ const Footer: React.FC = () => {
           </div>
         </div>
         <div className="mt-8 border-t border-gray-700 pt-8 text-center text-gray-300">
-          <p>&copy; {new Date().getFullYear()} Hockey Pouches. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} Nicotine Tins by Hockey Puxx. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
