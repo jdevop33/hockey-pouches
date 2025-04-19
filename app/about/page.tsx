@@ -168,6 +168,109 @@ function AboutContent() {
             </div>
           </div>
 
+          {/* Our Strengths */}
+          <div className="mb-12 rounded-lg bg-white p-8 shadow-md">
+            <h2 className="mb-6 text-2xl font-bold">Our Strengths</h2>
+            <div className="grid gap-8 md:grid-cols-3">
+              <div className="text-center">
+                <div className="bg-primary-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                  <Image
+                    src="/images/products/mint/mint-12mg.png"
+                    alt="Superior Quality"
+                    width={40}
+                    height={40}
+                    className="object-contain"
+                  />
+                </div>
+                <h3 className="mb-2 text-xl font-semibold">Superior Quality</h3>
+                <p className="text-gray-600">
+                  Globally-sourced excellence in every pouch, with pharmaceutical-grade nicotine for
+                  consistent satisfaction.
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="bg-primary-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                  <Image
+                    src="/images/products/berry/berry-12mg.png"
+                    alt="Perfect Balance"
+                    width={40}
+                    height={40}
+                    className="object-contain"
+                  />
+                </div>
+                <h3 className="mb-2 text-xl font-semibold">Perfect Balance</h3>
+                <p className="text-gray-600">
+                  Ideal harmony of flavor, strength, and comfort designed specifically for athletes
+                  who demand the best.
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="bg-primary-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                  <Image
+                    src="/images/products/citrus/citrus-12mg.png"
+                    alt="Revolutionary Design"
+                    width={40}
+                    height={40}
+                    className="object-contain"
+                  />
+                </div>
+                <h3 className="mb-2 text-xl font-semibold">Revolutionary Design</h3>
+                <p className="text-gray-600">
+                  Optimal placement, minimal movement, maximum comfort - perfect for use during
+                  intense physical activity.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Premium Experience */}
+          <div className="from-primary-600 to-primary-800 mb-12 rounded-lg bg-gradient-to-r p-8 text-white shadow-md">
+            <div className="mb-8 text-center">
+              <h2 className="mb-2 text-2xl font-bold">Premium Nicotine Experience</h2>
+              <p className="text-lg">
+                Precision Crafted for Those Who Demand Excellence On and Off the Ice
+              </p>
+            </div>
+            <p className="mx-auto mb-8 max-w-3xl text-center">
+              In a world of compromises, Hockey Puxx stands apart. We've meticulously crafted these
+              premium nicotine pouches from the highest-grade sources available, delivering an
+              unparalleled experience without smoke or odor that won't affect your performance on
+              the ice.
+            </p>
+            <div className="mt-10 grid gap-8 md:grid-cols-3">
+              <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm transition-all hover:bg-white/20">
+                <div className="bg-primary-500 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                  <span className="text-xl font-bold text-white">01</span>
+                </div>
+                <h3 className="mb-3 text-center text-xl font-semibold">Smoke-Free</h3>
+                <p className="text-center">
+                  A cleaner alternative delivering nicotine without the smoke, protecting your lung
+                  capacity for peak performance.
+                </p>
+              </div>
+              <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm transition-all hover:bg-white/20">
+                <div className="bg-primary-500 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                  <span className="text-xl font-bold text-white">02</span>
+                </div>
+                <h3 className="mb-3 text-center text-xl font-semibold">Discreet Usage</h3>
+                <p className="text-center">
+                  Perfect for use during games, practices, or in the locker room - our odorless
+                  pouches leave no trace behind.
+                </p>
+              </div>
+              <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm transition-all hover:bg-white/20">
+                <div className="bg-primary-500 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                  <span className="text-xl font-bold text-white">03</span>
+                </div>
+                <h3 className="mb-3 text-center text-xl font-semibold">Athlete Focused</h3>
+                <p className="text-center">
+                  Designed by hockey players for hockey players - ready when you are, wherever the
+                  game takes you.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Team */}
           <div className="mb-12 rounded-lg bg-white p-8 shadow-md">
             <h2 className="mb-6 text-2xl font-bold">Our Team</h2>
