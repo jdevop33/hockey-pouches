@@ -85,10 +85,10 @@ function AboutContent() {
               </div>
               <div className="relative flex h-64 items-center justify-center">
                 <Image
-                  src="/images/logo/hockey-logo2.png"
+                  src="/images/logo/hockey-logo2.svg"
                   alt="Hockey Puxx Logo"
-                  width={400}
-                  height={200}
+                  width={500}
+                  height={250}
                   style={{ objectFit: 'contain' }}
                   className="max-h-full max-w-full"
                 />

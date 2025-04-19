@@ -34,16 +34,16 @@ const Navigation: React.FC = () => {
   return (
     <nav className="bg-primary-600 relative z-10 shadow-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-20 items-center justify-between">
+        <div className="flex h-24 items-center justify-between">
           <div className="flex items-center">
             <div className="shrink-0">
               <Link href="/" className="flex items-center">
                 <Image
-                  src="/images/logo/hockey-logo2.png"
+                  src="/images/logo/hockey-logo2.svg"
                   alt="Hockey Pouches Logo"
-                  width={240}
-                  height={68}
-                  className="h-16 w-auto"
+                  width={300}
+                  height={85}
+                  className="h-20 w-auto"
                   priority
                 />
               </Link>
