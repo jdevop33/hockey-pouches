@@ -85,7 +85,7 @@ function AboutContent() {
               </div>
               <div className="relative flex h-64 items-center justify-center rounded-lg bg-white p-8 shadow-md">
                 <Image
-                  src="/images/logo/hockey-logo.svg"
+                  src="/images/logo/logo3.svg"
                   alt="Hockey Puxx Logo"
                   width={400}
                   height={200}
