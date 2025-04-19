@@ -22,7 +22,11 @@ function AboutLoading() {
                 <div className="h-4 w-full animate-pulse rounded bg-gray-200"></div>
                 <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200"></div>
               </div>
-              <div className="h-64 animate-pulse rounded-lg bg-gray-200"></div>
+              <div className="h-64 animate-pulse rounded-lg bg-gray-200 p-4">
+                <div className="flex h-full items-center justify-center">
+                  <div className="h-32 w-32 animate-pulse rounded-full bg-gray-300"></div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -77,13 +81,15 @@ function AboutContent() {
                   quality nicotine pouches designed specifically for their lifestyle.
                 </p>
               </div>
-              <div className="relative flex h-64 items-center justify-center rounded-lg bg-white p-8 shadow-md">
+              <div className="relative flex h-64 items-center justify-center rounded-lg bg-white p-4 shadow-md">
                 <Image
-                  src="/images/logo/hockey-logo.svg"
+                  src="/images/logo/hockey-logo2.png"
                   alt="Hockey Pouches Logo"
                   width={400}
                   height={200}
+                  priority
                   style={{ objectFit: 'contain' }}
+                  className="rounded-lg transition-transform duration-300 hover:scale-105"
                 />
               </div>
             </div>
@@ -94,9 +100,9 @@ function AboutContent() {
             <h2 className="mb-6 text-2xl font-bold">Our Values</h2>
             <div className="grid gap-8 md:grid-cols-3">
               <div>
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
+                <div className="bg-primary-100 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
                   <svg
-                    className="h-6 w-6 text-primary-600"
+                    className="text-primary-600 h-6 w-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -117,9 +123,9 @@ function AboutContent() {
                 </p>
               </div>
               <div>
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
+                <div className="bg-primary-100 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
                   <svg
-                    className="h-6 w-6 text-primary-600"
+                    className="text-primary-600 h-6 w-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -141,9 +147,9 @@ function AboutContent() {
                 </p>
               </div>
               <div>
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
+                <div className="bg-primary-100 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
                   <svg
-                    className="h-6 w-6 text-primary-600"
+                    className="text-primary-600 h-6 w-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -172,7 +178,7 @@ function AboutContent() {
             <h2 className="mb-6 text-2xl font-bold">Our Team</h2>
             <div className="grid gap-8 md:grid-cols-3">
               <div className="text-center">
-                <div className="relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full bg-primary-100">
+                <div className="bg-primary-100 relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full">
                   <Image
                     src="https://randomuser.me/api/portraits/men/32.jpg"
                     alt="John Smith"
@@ -184,7 +190,7 @@ function AboutContent() {
                 <p className="text-gray-600">Founder & Former NHL Player</p>
               </div>
               <div className="text-center">
-                <div className="relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full bg-primary-100">
+                <div className="bg-primary-100 relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full">
                   <Image
                     src="https://randomuser.me/api/portraits/women/44.jpg"
                     alt="Sarah Johnson"
@@ -196,7 +202,7 @@ function AboutContent() {
                 <p className="text-gray-600">Product Development & Nutritionist</p>
               </div>
               <div className="text-center">
-                <div className="relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full bg-primary-100">
+                <div className="bg-primary-100 relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full">
                   <Image
                     src="https://randomuser.me/api/portraits/men/67.jpg"
                     alt="Michael Brown"
@@ -292,7 +298,7 @@ function AboutContent() {
           </div>
 
           {/* CTA */}
-          <div className="rounded-lg bg-primary-600 p-8 text-white">
+          <div className="bg-primary-600 rounded-lg p-8 text-white">
             <h2 className="mb-4 text-2xl font-bold">Ready to Join the Team?</h2>
             <p className="mb-6">
               Join thousands of hockey players across Canada who trust Hockey Pouches for a clean,
@@ -301,13 +307,13 @@ function AboutContent() {
             <div className="flex flex-col gap-4 sm:flex-row">
               <Link
                 href="/contact"
-                className="rounded-md bg-white px-6 py-3 text-center font-medium text-primary-600 hover:bg-gray-100"
+                className="text-primary-600 rounded-md bg-white px-6 py-3 text-center font-medium hover:bg-gray-100"
               >
                 Contact Us
               </Link>
               <Link
                 href="/products"
-                className="rounded-md border-2 border-white bg-transparent px-6 py-3 text-center font-medium text-white hover:bg-primary-700"
+                className="hover:bg-primary-700 rounded-md border-2 border-white bg-transparent px-6 py-3 text-center font-medium text-white"
               >
                 Shop Now
               </Link>
