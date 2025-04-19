@@ -50,29 +50,29 @@ function AboutLoading() {
   );
 }
 
-// Content component
+// Main content component
 function AboutContent() {
   return (
     <Layout>
       <div className="bg-gray-50 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 className="mb-8 text-3xl font-extrabold text-gray-900">About Hockey Pouches</h1>
+          <h1 className="mb-8 text-center text-4xl font-bold text-gray-900">About Hockey Pouches</h1>
 
-          {/* Company Story */}
+          {/* Our Story */}
           <div className="mb-12 rounded-lg bg-white p-8 shadow-md">
             <h2 className="mb-6 text-2xl font-bold">Our Story</h2>
-            <div className="grid items-center gap-8 md:grid-cols-2">
-              <div>
-                <p className="mb-4 text-gray-600">
-                  Hockey Pouches was founded in 2022 by a group of passionate hockey players who
-                  were looking for a better nicotine alternative that would fit their active
-                  lifestyle on and off the ice.
+            <div className="grid gap-8 md:grid-cols-2">
+              <div className="space-y-4">
+                <p className="text-gray-600">
+                  Hockey Pouches was founded by a group of passionate hockey players who were looking
+                  for a better way to enjoy nicotine without the drawbacks of traditional tobacco
+                  products.
                 </p>
-                <p className="mb-4 text-gray-600">
-                  As hockey players ourselves, we understood the unique challenges of using
-                  traditional tobacco products in a hockey environment. The cold rinks, the need for
-                  quick energy boosts between periods, and the desire for a discreet option that
-                  wouldn't affect performance led us to discover nicotine pouches.
+                <p className="text-gray-600">
+                  As athletes, we understood the importance of maintaining peak physical condition
+                  while still enjoying the focus and relaxation that nicotine can provide. Our search
+                  for a solution that wouldn't compromise our lung capacity, endurance, or overall
+                  health led us to discover nicotine pouches.
                 </p>
                 <p className="text-gray-600">
                   We started importing premium European nicotine pouches for our own team, and soon
@@ -81,15 +81,13 @@ function AboutContent() {
                   quality nicotine pouches designed specifically for their lifestyle.
                 </p>
               </div>
-              <div className="relative flex h-64 items-center justify-center rounded-lg bg-white p-4 shadow-md">
+              <div className="relative flex h-64 items-center justify-center rounded-lg bg-white p-8 shadow-md">
                 <Image
-                  src="/images/logo/hockey-logo2.png"
+                  src="/images/logo/hockey-logo.svg"
                   alt="Hockey Pouches Logo"
                   width={400}
                   height={200}
-                  priority
                   style={{ objectFit: 'contain' }}
-                  className="rounded-lg transition-transform duration-300 hover:scale-105"
                 />
               </div>
             </div>
@@ -100,9 +98,9 @@ function AboutContent() {
             <h2 className="mb-6 text-2xl font-bold">Our Values</h2>
             <div className="grid gap-8 md:grid-cols-3">
               <div>
-                <div className="bg-primary-100 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
                   <svg
-                    className="text-primary-600 h-6 w-6"
+                    className="h-6 w-6 text-primary-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -123,9 +121,9 @@ function AboutContent() {
                 </p>
               </div>
               <div>
-                <div className="bg-primary-100 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
                   <svg
-                    className="text-primary-600 h-6 w-6"
+                    className="h-6 w-6 text-primary-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -147,9 +145,9 @@ function AboutContent() {
                 </p>
               </div>
               <div>
-                <div className="bg-primary-100 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
                   <svg
-                    className="text-primary-600 h-6 w-6"
+                    className="h-6 w-6 text-primary-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -178,7 +176,7 @@ function AboutContent() {
             <h2 className="mb-6 text-2xl font-bold">Our Team</h2>
             <div className="grid gap-8 md:grid-cols-3">
               <div className="text-center">
-                <div className="bg-primary-100 relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full">
+                <div className="relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full bg-primary-100">
                   <Image
                     src="https://randomuser.me/api/portraits/men/32.jpg"
                     alt="John Smith"
@@ -190,7 +188,7 @@ function AboutContent() {
                 <p className="text-gray-600">Founder & Former NHL Player</p>
               </div>
               <div className="text-center">
-                <div className="bg-primary-100 relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full">
+                <div className="relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full bg-primary-100">
                   <Image
                     src="https://randomuser.me/api/portraits/women/44.jpg"
                     alt="Sarah Johnson"
@@ -202,7 +200,7 @@ function AboutContent() {
                 <p className="text-gray-600">Product Development & Nutritionist</p>
               </div>
               <div className="text-center">
-                <div className="bg-primary-100 relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full">
+                <div className="relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full bg-primary-100">
                   <Image
                     src="https://randomuser.me/api/portraits/men/67.jpg"
                     alt="Michael Brown"
@@ -298,7 +296,7 @@ function AboutContent() {
           </div>
 
           {/* CTA */}
-          <div className="bg-primary-600 rounded-lg p-8 text-white">
+          <div className="rounded-lg bg-primary-600 p-8 text-white">
             <h2 className="mb-4 text-2xl font-bold">Ready to Join the Team?</h2>
             <p className="mb-6">
               Join thousands of hockey players across Canada who trust Hockey Pouches for a clean,
@@ -307,13 +305,13 @@ function AboutContent() {
             <div className="flex flex-col gap-4 sm:flex-row">
               <Link
                 href="/contact"
-                className="text-primary-600 rounded-md bg-white px-6 py-3 text-center font-medium hover:bg-gray-100"
+                className="rounded-md bg-white px-6 py-3 text-center font-medium text-primary-600 hover:bg-gray-100"
               >
                 Contact Us
               </Link>
               <Link
                 href="/products"
-                className="hover:bg-primary-700 rounded-md border-2 border-white bg-transparent px-6 py-3 text-center font-medium text-white"
+                className="rounded-md border-2 border-white bg-transparent px-6 py-3 text-center font-medium text-white hover:bg-primary-700"
               >
                 Shop Now
               </Link>
