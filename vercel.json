@@ -9,6 +9,42 @@
     "NEXT_PUBLIC_HEROTOFU_ENDPOINT": "https://public.herotofu.com/v1/f129c2a0-180e-11f0-8883-29a3f54ace99",
     "NEXT_PUBLIC_ORDER_FORM_ENDPOINT": "https://public.herotofu.com/v1/3e028000-1998-11f0-ab37-9d304c3aa51c",
     "NEXT_PUBLIC_RECAPTCHA_SITE_KEY": "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
-    "NEXT_PUBLIC_GA_MEASUREMENT_ID": "G-XXXXXXXXXX"
-  }
+    "NEXT_PUBLIC_GA_MEASUREMENT_ID": "G-PMM01WKF05",
+    "NEXT_PUBLIC_BASE_URL": "https://nicotinetins.com",
+    "NEXT_PUBLIC_CONTACT_EMAIL": "info@nicotinetins.com",
+    "NEXT_PUBLIC_SITE_NAME": "Nicotine Tins"
+  },
+  "images": {
+    "sizes": [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    "remotePatterns": [
+      {
+        "protocol": "https",
+        "hostname": "i.ytimg.com",
+        "pathname": "/**"
+      }
+    ]
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
 }

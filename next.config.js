@@ -114,6 +114,15 @@ const nextConfig = {
       },
     ];
   },
+  // Enable experimental features for Next.js 15
+  experimental: {
+    // Enable server actions
+    serverActions: true,
+    // Enable optimized loading of fonts
+    optimizeFonts: true,
+    // Enable modern JavaScript features
+    serverComponentsExternalPackages: [],
+  },
 };
 
 module.exports = withBundleAnalyzer(nextConfig);
