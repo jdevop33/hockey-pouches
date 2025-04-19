@@ -75,9 +75,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="canonical" href="https://nicotinetins.com" />
         <link rel="icon" href="/images/logo/logo3.svg" sizes="any" />
-        <link rel="apple-touch-icon" href="/images/logo/logo3.svg" sizes="180x180" />
+        <link rel="apple-touch-icon" href="/images/logo/logo3.svg" sizes="192x192" />
+        <link rel="icon" type="image/svg+xml" sizes="48x48" href="/images/logo/logo3.svg" />
         <link rel="icon" type="image/svg+xml" sizes="32x32" href="/images/logo/logo3.svg" />
-        <link rel="icon" type="image/svg+xml" sizes="16x16" href="/images/logo/logo3.svg" />
 
         {/* Prevent iOS from auto-detecting phone numbers and emails */}
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />

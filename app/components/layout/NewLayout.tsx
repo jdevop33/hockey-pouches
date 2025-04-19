@@ -35,9 +35,9 @@ const Navigation: React.FC = () => {
               <Image
                 src="/images/logo/hockey-logo2.png"
                 alt="Nicotine Tins Logo"
-                width={200}
-                height={56}
-                className="h-14 w-auto"
+                width={240}
+                height={68}
+                className="h-16 w-auto"
                 priority
               />
             </Link>

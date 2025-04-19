@@ -83,13 +83,14 @@ function AboutContent() {
                   quality nicotine pouches designed specifically for their lifestyle.
                 </p>
               </div>
-              <div className="relative flex h-64 items-center justify-center rounded-lg bg-white p-8 shadow-md">
+              <div className="relative flex h-64 items-center justify-center">
                 <Image
-                  src="/images/logo/logo3.svg"
+                  src="/images/logo/hockey-logo2.png"
                   alt="Hockey Puxx Logo"
                   width={400}
                   height={200}
                   style={{ objectFit: 'contain' }}
+                  className="max-h-full max-w-full"
                 />
               </div>
             </div>
