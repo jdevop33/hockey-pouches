@@ -2,10 +2,19 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Script from 'next/script';
+import dynamic from 'next/dynamic';
 import CartWrapper from './components/CartWrapper';
-import WebsiteSchema from './components/WebsiteSchema';
-import { WebVitals } from './_components/web-vitals';
-import { Analytics } from '@vercel/analytics/react';
+// Import WebsiteSchema dynamically to avoid client/server component issues
+const WebsiteSchema = dynamic(() => import('./components/WebsiteSchema'), { ssr: false });
+
+// Dynamically import client components with SSR disabled
+const WebVitals = dynamic(() => import('./_components/web-vitals').then(mod => mod.WebVitals), {
+  ssr: false,
+});
+const VercelAnalytics = dynamic(
+  () => import('@vercel/analytics/react').then(mod => mod.Analytics),
+  { ssr: false }
+);
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -140,7 +149,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <WebVitals />
 
         {/* Vercel Analytics */}
-        <Analytics />
+        <VercelAnalytics />
 
         {/* Structured Data */}
         <WebsiteSchema
