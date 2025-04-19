@@ -4,6 +4,7 @@ import React, { ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import Logo from '../ui/Logo';
 
 interface NavItem {
   href: string;
@@ -37,17 +38,7 @@ const Navigation: React.FC = () => {
         <div className="flex h-28 items-center justify-between">
           <div className="flex items-center">
             <div className="shrink-0">
-              <Link href="/" className="flex items-center">
-                <Image
-                  src="/images/logo/hockey-logo2.svg"
-                  alt="Hockey Pouches Logo"
-                  width={400}
-                  height={120}
-                  className="h-24 w-auto max-w-none"
-                  priority
-                  style={{ transform: 'scale(1.2)' }}
-                />
-              </Link>
+              <Logo size="large" />
             </div>
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-4">

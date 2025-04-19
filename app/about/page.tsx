@@ -4,6 +4,7 @@ import React, { Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Layout from '../components/layout/NewLayout';
+import Logo from '../components/ui/Logo';
 
 // Loading component
 function AboutLoading() {
@@ -84,14 +85,7 @@ function AboutContent() {
                 </p>
               </div>
               <div className="relative flex h-64 items-center justify-center">
-                <Image
-                  src="/images/logo/hockey-logo2.svg"
-                  alt="Hockey Puxx Logo"
-                  width={600}
-                  height={300}
-                  style={{ objectFit: 'contain', transform: 'scale(1.3)' }}
-                  className="max-h-full max-w-full"
-                />
+                <Logo size="large" className="scale-150" />
               </div>
             </div>
           </div>
