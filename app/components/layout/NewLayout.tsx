@@ -33,7 +33,7 @@ const Navigation: React.FC = () => {
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
               <Image
-                src="/images/logo/logo3.svg"
+                src="/images/logo/hockey-logo2.png"
                 alt="Nicotine Tins Logo"
                 width={200}
                 height={56}

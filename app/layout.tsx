@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     siteName: 'Nicotine Tins by Hockey Puxx',
     images: [
       {
-        url: '/images/logo/hockey-logo2.png',
+        url: '/images/logo/logo3.svg',
         width: 1200,
         height: 630,
         alt: 'Nicotine Tins - Premium Nicotine Pouches by Hockey Puxx',
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     title: 'Nicotine Tins - Premium Nicotine Pouches by Hockey Puxx',
     description:
       'Premium tobacco-free nicotine pouches designed for hockey players and fans across Canada. Free shipping on orders over $50.',
-    images: ['/images/logo/hockey-logo2.png'],
+    images: ['/images/logo/logo3.svg'],
     creator: '@nicotinetins',
     site: '@nicotinetins',
   },
@@ -74,10 +74,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <link rel="canonical" href="https://nicotinetins.com" />
-        <link rel="icon" href="/images/logo/hockey-logo2.png" sizes="any" />
-        <link rel="apple-touch-icon" href="/images/logo/hockey-logo2.png" sizes="180x180" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/hockey-logo2.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/images/logo/hockey-logo2.png" />
+        <link rel="icon" href="/images/logo/logo3.svg" sizes="any" />
+        <link rel="apple-touch-icon" href="/images/logo/logo3.svg" sizes="180x180" />
+        <link rel="icon" type="image/svg+xml" sizes="32x32" href="/images/logo/logo3.svg" />
+        <link rel="icon" type="image/svg+xml" sizes="16x16" href="/images/logo/logo3.svg" />
 
         {/* Prevent iOS from auto-detecting phone numbers and emails */}
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
@@ -177,7 +177,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 name: 'Nicotine Tins by Hockey Puxx',
                 logo: {
                   '@type': 'ImageObject',
-                  url: 'https://nicotinetins.com/images/logo/hockey-logo2.png',
+                  url: 'https://nicotinetins.com/images/logo/logo3.svg',
                 },
               },
             }),
@@ -197,7 +197,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               url: 'https://nicotinetins.com',
               logo: {
                 '@type': 'ImageObject',
-                url: 'https://nicotinetins.com/images/logo/hockey-logo2.png',
+                url: 'https://nicotinetins.com/images/logo/logo3.svg',
                 width: 512,
                 height: 512,
               },
