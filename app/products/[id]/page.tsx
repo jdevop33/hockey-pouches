@@ -223,7 +223,7 @@ export default function ProductDetailPage() {
                     min="1"
                     value={quantity}
                     onChange={e => setQuantity(parseInt(e.target.value) || 1)}
-                    className="mx-2 w-16 rounded-md border-gray-300 text-center shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                    className="focus:border-primary-500 focus:ring-primary-500 mx-2 w-16 rounded-md border-gray-300 text-center shadow-sm sm:text-sm"
                   />
                   <button
                     type="button"
@@ -251,7 +251,7 @@ export default function ProductDetailPage() {
                     addedToCart
                       ? 'bg-green-600 hover:bg-green-700'
                       : 'bg-primary-600 hover:bg-primary-700'
-                  } focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2`}
+                  } focus:ring-primary-500 focus:ring-2 focus:ring-offset-2 focus:outline-none`}
                 >
                   {addedToCart ? (
                     <>
@@ -275,7 +275,7 @@ export default function ProductDetailPage() {
                 </button>
                 <Link
                   href="/cart"
-                  className="mt-4 flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-8 py-3 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:mt-0 sm:w-auto"
+                  className="focus:ring-primary-500 mt-4 flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-8 py-3 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:outline-none sm:mt-0 sm:w-auto"
                 >
                   View Cart
                 </Link>
@@ -284,8 +284,8 @@ export default function ProductDetailPage() {
               {/* Social sharing */}
               <div className="mt-8 border-t border-gray-200 pt-8">
                 <SocialShare
-                  url={`https://hockeypouches.ca/products/${product.id}`}
-                  title={`Check out ${product.name} from Hockey Pouches`}
+                  url={`https://hockey.pouchbuzz.ca/products/${product.id}`}
+                  title={`Check out ${product.name} from Hockey Puxx`}
                   description={product.description}
                 />
               </div>
@@ -302,7 +302,7 @@ export default function ProductDetailPage() {
                     activeTab === 'description'
                       ? 'border-primary-500 text-primary-600'
                       : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  } whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium`}
+                  } border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap`}
                 >
                   Description
                 </button>
@@ -312,7 +312,7 @@ export default function ProductDetailPage() {
                     activeTab === 'details'
                       ? 'border-primary-500 text-primary-600'
                       : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  } whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium`}
+                  } border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap`}
                 >
                   Product Details
                 </button>
@@ -322,7 +322,7 @@ export default function ProductDetailPage() {
                     activeTab === 'reviews'
                       ? 'border-primary-500 text-primary-600'
                       : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  } whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium`}
+                  } border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap`}
                 >
                   Reviews
                 </button>
@@ -407,7 +407,7 @@ export default function ProductDetailPage() {
               {activeTab === 'reviews' && (
                 <div className="mt-6">
                   <h3 className="text-lg font-medium text-gray-900">Customer Reviews</h3>
-                  <div className="mt-6 space-y-8 border-b border-t border-gray-200 py-6">
+                  <div className="mt-6 space-y-8 border-t border-b border-gray-200 py-6">
                     <div>
                       <div className="flex items-center">
                         <div className="flex items-center">
@@ -498,7 +498,7 @@ export default function ProductDetailPage() {
                         </p>
                         <Link
                           href={`/products/${relatedProduct.id}`}
-                          className="inline-flex items-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700"
+                          className="bg-primary-600 hover:bg-primary-700 inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white shadow-sm"
                         >
                           View Product
                         </Link>

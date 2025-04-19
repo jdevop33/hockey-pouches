@@ -964,8 +964,8 @@ export default function ResearchPage() {
 
           {/* Social Sharing */}
           <SocialShare
-            url="https://hockey-pouches.vercel.app/research"
-            title="Hockey Pouches - Research & Benefits | Scientific Studies on Nicotine Pouches"
+            url="https://hockey.pouchbuzz.ca/research"
+            title="Hockey Puxx - Research & Benefits | Scientific Studies on Nicotine Pouches"
             description="Explore scientific research, studies, and expert videos on nicotine pouches. Learn about health implications, performance benefits, and how they compare to traditional tobacco products."
           />
 
