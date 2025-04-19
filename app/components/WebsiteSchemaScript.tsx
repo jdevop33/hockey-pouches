@@ -1,5 +1,6 @@
+'use client';
+
 import React from 'react';
-import WebsiteSchemaScript from './WebsiteSchemaScript';
 
 interface WebsiteSchemaProps {
   siteUrl?: string;
@@ -9,13 +10,13 @@ interface WebsiteSchemaProps {
   description?: string;
 }
 
-const WebsiteSchema = ({
+const WebsiteSchemaScript: React.FC<WebsiteSchemaProps> = ({
   siteUrl = 'https://nicotinetins.com',
   siteName = 'Nicotine Tins by Hockey Puxx',
   logo = 'https://nicotinetins.com/images/logo/hockey-logo2.png',
   title = 'Nicotine Tins - Premium Nicotine Pouches by Hockey Puxx',
   description = 'Premium tobacco-free nicotine pouches designed for hockey players and fans across Canada. Discreet, convenient, and perfect for your active lifestyle.',
-}: WebsiteSchemaProps) => {
+}) => {
   const schemaData = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -73,14 +74,17 @@ const WebsiteSchema = ({
   };
 
   return (
-    <WebsiteSchemaScript
-      siteUrl={siteUrl}
-      siteName={siteName}
-      logo={logo}
-      title={title}
-      description={description}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationData) }}
+      />
+    </>
   );
 };
 
-export default WebsiteSchema;
+export default WebsiteSchemaScript;

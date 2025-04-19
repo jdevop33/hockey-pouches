@@ -13,7 +13,7 @@ declare global {
 }
 
 // Get Google Analytics ID from environment variables
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-XXXXXXXXXX';
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-PMM01WKF05';
 
 // Check if we should load GA (don't load in development)
 const shouldLoadGA = () => {
@@ -24,6 +24,11 @@ const shouldLoadGA = () => {
   // Skip if measurement ID is the placeholder
   if (GA_MEASUREMENT_ID === 'G-XXXXXXXXXX') {
     return false;
+  }
+
+  // Always return true for the new GA ID
+  if (GA_MEASUREMENT_ID === 'G-PMM01WKF05') {
+    return true;
   }
 
   return true;

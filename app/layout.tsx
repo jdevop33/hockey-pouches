@@ -4,6 +4,8 @@ import { Inter } from 'next/font/google';
 import CartWrapper from './components/CartWrapper';
 import GoogleAnalytics from './components/GoogleAnalytics';
 import WebsiteSchema from './components/WebsiteSchema';
+import MicrosoftClarity from './components/MicrosoftClarity';
+import VercelAnalytics from './components/VercelAnalytics';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -104,7 +106,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="application-name" content="Nicotine Tins by Hockey Puxx" />
       </head>
       <body className={`${inter.variable} font-sans`}>
+        {/* Analytics */}
         <GoogleAnalytics />
+        <MicrosoftClarity />
+        <VercelAnalytics />
+
+        {/* Structured Data */}
         <WebsiteSchema
           siteUrl="https://nicotinetins.com"
           siteName="Nicotine Tins by Hockey Puxx"
@@ -112,6 +119,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           title="Nicotine Tins - Premium Nicotine Pouches by Hockey Puxx | Best Tobacco-Free Pouches in Canada"
           description="Premium tobacco-free nicotine pouches by Hockey Puxx, designed for hockey players and fans across Canada. Discreet, convenient, and perfect for your active lifestyle."
         />
+
+        {/* Main Content */}
         <CartWrapper>{children}</CartWrapper>
       </body>
     </html>
