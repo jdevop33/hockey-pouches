@@ -94,7 +94,7 @@ export default function ContactPage() {
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
                     <svg
-                      className="h-6 w-6 text-primary-600"
+                      className="text-primary-600 h-6 w-6"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -117,7 +117,7 @@ export default function ContactPage() {
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
                     <svg
-                      className="h-6 w-6 text-primary-600"
+                      className="text-primary-600 h-6 w-6"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -133,14 +133,14 @@ export default function ContactPage() {
                   </div>
                   <div className="ml-3 text-gray-600">
                     <p className="text-lg font-medium">Email</p>
-                    <p>{process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'jesse@pouchbuzz.ca'}</p>
+                    <p>{process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@nicotinetins.com'}</p>
                   </div>
                 </div>
 
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
                     <svg
-                      className="h-6 w-6 text-primary-600"
+                      className="text-primary-600 h-6 w-6"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -171,7 +171,7 @@ export default function ContactPage() {
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
                     <svg
-                      className="h-6 w-6 text-primary-600"
+                      className="text-primary-600 h-6 w-6"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -322,7 +322,7 @@ export default function ContactPage() {
                     <div className="mt-6">
                       <button
                         type="submit"
-                        className="w-full rounded-md bg-primary-600 px-4 py-3 font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                        className="bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 w-full rounded-md px-4 py-3 font-medium text-white focus:ring-2 focus:ring-offset-2 focus:outline-none"
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? 'Sending...' : 'Send Message'}
