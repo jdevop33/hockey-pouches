@@ -1,20 +1,9 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import Script from 'next/script';
-import dynamic from 'next/dynamic';
 import CartWrapper from './components/CartWrapper';
-// Import WebsiteSchema dynamically to avoid client/server component issues
-const WebsiteSchema = dynamic(() => import('./components/WebsiteSchema'), { ssr: false });
-
-// Dynamically import client components with SSR disabled
-const WebVitals = dynamic(() => import('./_components/web-vitals').then(mod => mod.WebVitals), {
-  ssr: false,
-});
-const VercelAnalytics = dynamic(
-  () => import('@vercel/analytics/react').then(mod => mod.Analytics),
-  { ssr: false }
-);
+import ClientAnalyticsWrapper from './components/ClientAnalyticsWrapper';
+import ClientWebsiteSchema from './components/ClientWebsiteSchema';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -115,44 +104,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="application-name" content="Nicotine Tins by Hockey Puxx" />
       </head>
       <body className={`${inter.variable} font-sans`}>
-        {/* Google Analytics */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=G-PMM01WKF05`}
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-PMM01WKF05', {
-              page_path: window.location.pathname + window.location.search,
-              transport_type: 'beacon',
-              send_page_view: true,
-              anonymize_ip: true
-            });
-          `}
-        </Script>
+        {/* All Analytics in Client Component */}
+        <ClientAnalyticsWrapper />
 
-        {/* Microsoft Clarity */}
-        <Script id="microsoft-clarity" strategy="afterInteractive">
-          {`
-            (function(c,l,a,r,i,t,y){
-                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-            })(window, document, "clarity", "script", "r6bz25gfvl");
-          `}
-        </Script>
-
-        {/* Web Vitals Tracking */}
-        <WebVitals />
-
-        {/* Vercel Analytics */}
-        <VercelAnalytics />
-
-        {/* Structured Data */}
-        <WebsiteSchema
+        {/* Structured Data in Client Component */}
+        <ClientWebsiteSchema
           siteUrl="https://nicotinetins.com"
           siteName="Nicotine Tins by Hockey Puxx"
           logo="https://nicotinetins.com/images/logo/hockey-logo2.png"
