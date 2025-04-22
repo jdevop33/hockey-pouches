@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Layout from '@/components/layout/NewLayout'; // Updated path alias
+import Layout from '../../../components/layout/NewLayout'; // Corrected relative path (3 levels up)
 // import { useAuth } from '@/context/AuthContext'; // Example auth context
 
 // Placeholder Type

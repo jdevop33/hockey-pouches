@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Layout from '@/components/layout/NewLayout'; // Updated path alias
-// import { useAuth } from '@/context/AuthContext'; // Example auth context
+import Layout from '../../../../components/layout/NewLayout';
+// import { useAuth } from '../../../../../context/AuthContext'; // Example auth context
 
 // Placeholder Types - Reuse or adapt from customer/distributor views
 type OrderItem = { id: string; productId: string; name: string; quantity: number; price: number; imageUrl: string };
