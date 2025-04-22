@@ -24,5 +24,7 @@
   "files.associations": {
     "*.css": "tailwindcss"
   },
-  "css.validate": false
+  "css.validate": false,
+  "IDX.aI.enableInlineCompletion": true,
+  "IDX.aI.enableCodebaseIndexing": true
 }
