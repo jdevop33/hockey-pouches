@@ -2,19 +2,22 @@ import { NextResponse } from 'next/server';
 // import { verifyAdmin } from '@/lib/auth';
 // import { getInventoryForProduct } from '@/lib/inventoryService';
 
-// Removed the separate Params interface
+// Defining Params interface specifically for this route
+interface InventoryParams {
+  productId: string;
+}
 
 export async function GET(
   request: Request, 
-  context: { params: { productId: string } } // Simplified inline type for context
+  { params }: { params: InventoryParams } // Using the destructured params object with the specific interface
 ) {
   // TODO: Implement admin logic to get inventory for a specific product
   // 1. Verify Admin Authentication.
-  // 2. Extract productId from context.params.
+  // 2. Extract productId from params.
   // 3. Fetch Inventory Data: Retrieve inventory levels for the specified product across all locations/variations.
   // 4. Return Inventory Data.
 
-  const { productId } = context.params; // Access productId via context
+  const { productId } = params; // Access productId via the destructured params
 
   try {
     // --- Add Admin Authentication Verification Logic Here ---
