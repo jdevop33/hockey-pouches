@@ -17,7 +17,7 @@ interface AuthContextType {
   isLoading: boolean; 
   login: (userData: User, token: string) => void;
   logout: () => void;
-  updateUser: (updatedData: Partial<User>) => void; // Added updateUser function
+  updateUser: (updatedData: Partial<User>) => void; 
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,49 +31,67 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true); 
 
+  // Load auth state from localStorage on initial mount
   useEffect(() => {
+    console.log('AuthProvider useEffect: Attempting to load state...');
+    // --- TEMPORARILY DISABLED LOCALSTORAGE --- 
+    /*
     try {
       const storedToken = localStorage.getItem('authToken');
       const storedUser = localStorage.getItem('authUser');
+      console.log('AuthProvider useEffect: Found in localStorage:', { storedToken: !!storedToken, storedUser: !!storedUser });
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
+        console.log('AuthProvider useEffect: State set from localStorage.');
+      } else {
+        console.log('AuthProvider useEffect: No valid state found in localStorage.');
       }
     } catch (error) {
-      console.error("Error loading auth state:", error);
+      console.error("AuthProvider useEffect: Error loading auth state:", error);
       localStorage.removeItem('authToken');
       localStorage.removeItem('authUser');
-    } finally {
-        setIsLoading(false); 
     }
+    */
+    // --- END TEMPORARY DISABLE ---
+    setIsLoading(false); // Mark loading as false even if localStorage fails/is disabled
+    console.log('AuthProvider useEffect: Loading finished.');
+    
   }, []);
 
   const login = (userData: User, token: string) => {
+    console.log('AuthProvider login: Setting state and localStorage');
     setToken(token);
     setUser(userData);
-    localStorage.setItem('authToken', token);
-    localStorage.setItem('authUser', JSON.stringify(userData));
+    try {
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('authUser', JSON.stringify(userData));
+    } catch (error) { console.error('Failed to save auth state to localStorage:', error); }
   };
 
   const logout = () => {
+    console.log('AuthProvider logout: Clearing state and localStorage');
     setToken(null);
     setUser(null);
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authUser');
-    // Consider calling API endpoint if needed
+    try {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('authUser');
+    } catch (error) { console.error('Failed to clear auth state from localStorage:', error); }
   };
   
-  // Function to update user state in context and localStorage
   const updateUser = (updatedData: Partial<User>) => {
+      console.log('AuthProvider updateUser: Updating state and localStorage');
       setUser(prevUser => {
-          if (!prevUser) return null; // Should not happen if called when logged in
+          if (!prevUser) return null; 
           const newUser = { ...prevUser, ...updatedData };
-          localStorage.setItem('authUser', JSON.stringify(newUser)); // Update storage
+          try {
+              localStorage.setItem('authUser', JSON.stringify(newUser)); 
+          } catch (error) { console.error('Failed to update user in localStorage:', error); }
           return newUser;
       });
   };
 
-  const value = { user, token, isLoading, login, logout, updateUser }; // Added updateUser
+  const value = { user, token, isLoading, login, logout, updateUser }; 
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
