@@ -1,48 +1,102 @@
 import { NextResponse, type NextRequest } from 'next/server';
-// import { verifyAdmin } from '@/lib/auth';
-// import { getInventoryLevels } from '@/lib/inventoryService';
+import sql from '@/lib/db';
 
-export const dynamic = 'force-dynamic'; // Force dynamic rendering
+// TODO: Add JWT verification + Admin role check
 
-export async function GET(request: NextRequest) { // Use NextRequest
-  // TODO: Implement admin logic to list inventory levels
-  // ... (rest of comments)
+export const dynamic = 'force-dynamic'; 
+
+// Type for the returned inventory item
+interface InventoryItemAdmin {
+  inventoryId: number; // inventory.id
+  productId: number;   // inventory.product_id
+  productName: string; // products.name
+  variationName?: string | null; // Placeholder if variations implemented
+  location: string;
+  quantity: number;
+  lowStockThreshold?: number | null; // Placeholder if needed
+  imageUrl?: string | null; // products.image_url
+}
+
+export async function GET(request: NextRequest) {
+  // TODO: Admin Auth Check
+  console.log('GET /api/admin/inventory request');
 
   try {
-    // --- Add Admin Authentication Verification Logic Here ---
-    // ...
-
-    // Access searchParams directly from NextRequest
-    const searchParams = request.nextUrl.searchParams; 
-    const page = searchParams.get('page') || '1';
-    const limit = searchParams.get('limit') || '20';
-    const location = searchParams.get('location');
+    const searchParams = request.nextUrl.searchParams;
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20'); 
+    const offset = (page - 1) * limit;
     
-    console.log(`Admin: Get inventory list request - Page: ${page}, Limit: ${limit}, Location: ${location}`);
+    // --- Filtering --- 
+    const locationFilter = searchParams.get('location');
+    const productIdFilter = searchParams.get('productId');
+    const lowStockFilter = searchParams.get('lowStock'); // If 'true', show low stock
+    // TODO: Add search filter (product name?)
 
-    // --- Fetch Inventory Logic Here ---
-    // ...
+    let conditions = [];
+    let queryParams: any[] = [];
+    let paramIndex = 1;
 
-    // Placeholder data
-    const dummyInventory = [
-      { inventoryId: 'inv-1', productId: 'prod-1', productName: 'Cool Mint Pouch', variationId: 'var-1', variationName: '12mg', location: 'Warehouse A', quantity: 150 },
-      { inventoryId: 'inv-2', productId: 'prod-2', productName: 'Cherry Pouch', variationId: 'var-3', variationName: '6mg', location: 'Warehouse A', quantity: 25 },
-      { inventoryId: 'inv-3', productId: 'prod-1', productName: 'Cool Mint Pouch', variationId: 'var-1', variationName: '12mg', location: 'Warehouse B', quantity: 300 },
-    ];
-    const totalItems = 50; 
+    if (locationFilter) {
+        conditions.push(`i.location = $${paramIndex++}`);
+        queryParams.push(locationFilter);
+    }
+    if (productIdFilter) {
+        conditions.push(`i.product_id = $${paramIndex++}`);
+        queryParams.push(parseInt(productIdFilter)); // Assuming product ID is integer
+    }
+    if (lowStockFilter === 'true') {
+        // Assuming a threshold exists or comparing to a fixed value like 10
+        // TODO: Implement proper low stock threshold logic if needed
+        conditions.push(`i.quantity < 10`); // Example fixed threshold
+    }
+    // TODO: Add search condition
+    
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    // --- Database Query --- 
+    // Fetch inventory, joining with products for name/image
+    const inventoryQuery = `
+        SELECT 
+            i.id as inventoryId, 
+            i.product_id as productId, 
+            p.name as productName, 
+            -- TODO: Add variation name if variations exist
+            i.location, 
+            i.quantity, 
+            p.image_url as imageUrl 
+            -- TODO: Add low_stock_threshold if needed
+        FROM inventory i
+        JOIN products p ON i.product_id = p.id
+        ${whereClause} 
+        ORDER BY p.name ASC, i.location ASC 
+        LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+    `;
+    queryParams.push(limit, offset);
+
+    // Fetch Total Count with same filters
+    const countQuery = `SELECT COUNT(*) FROM inventory i ${whereClause}`;
+    const countQueryParams = queryParams.slice(0, conditions.length); 
+
+    console.log('Executing Admin Inventory Query:', inventoryQuery, queryParams);
+    console.log('Executing Admin Inventory Count Query:', countQuery, countQueryParams);
+
+    const [inventoryResult, totalResult] = await Promise.all([
+        sql.query(inventoryQuery, queryParams),
+        sql.query(countQuery, countQueryParams)
+    ]);
+
+    const totalItems = parseInt(totalResult[0]?.count || '0');
+    const totalPages = Math.ceil(totalItems / limit);
+    const inventory = inventoryResult as InventoryItemAdmin[]; 
 
     return NextResponse.json({ 
-      inventory: dummyInventory, 
-      pagination: { 
-        page: parseInt(page), 
-        limit: parseInt(limit), 
-        total: totalItems, 
-        totalPages: Math.ceil(totalItems / parseInt(limit))
-      }
+      inventory: inventory, 
+      pagination: { page, limit, total: totalItems, totalPages }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Admin: Failed to get inventory list:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
