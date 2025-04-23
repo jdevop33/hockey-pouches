@@ -1,18 +1,16 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
-// Removed QueryResult import as it's not returned by default
-// import { QueryResult } from '@neondatabase/serverless';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'; 
 
-type AdminOrder = {
-  id: number; // Changed to number to match SERIAL type from DB
-  date: string;
-  customerName: string;
-  customerId: string;
-  total: number;
-  status: string; 
-  distributorId?: string | null;
+type AdminOrderListItem = {
+  id: number; 
+  created_at: string; 
+  status: string;
+  total_amount: number;
+  customer_id: string; 
+  customer_name: string | null; 
+  assigned_distributor_id?: string | null;
 };
 
 export async function GET(request: NextRequest) {
@@ -23,58 +21,58 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '15'); 
     const offset = (page - 1) * limit;
     const statusFilter = searchParams.get('status');
+    const customerIdFilter = searchParams.get('customerId');
+    const distributorIdFilter = searchParams.get('distributorId');
     
     console.log(`Admin GET /api/admin/orders - Page: ${page}, Limit: ${limit}, Status: ${statusFilter}`);
 
     let conditions = [];
     let queryParams: any[] = [];
     let paramIndex = 1;
-    if (statusFilter) {
-        conditions.push(`status = $${paramIndex++}`);
-        queryParams.push(statusFilter);
+    if (statusFilter) { conditions.push(`o.status = $${paramIndex++}`); queryParams.push(statusFilter); }
+    if (customerIdFilter) { conditions.push(`o.user_id = $${paramIndex++}`); queryParams.push(customerIdFilter); }
+     if (distributorIdFilter) {
+        if (distributorIdFilter === 'unassigned') {
+             conditions.push(`o.assigned_distributor_id IS NULL`);
+        } else {
+             conditions.push(`o.assigned_distributor_id = $${paramIndex++}`);
+             queryParams.push(distributorIdFilter);
+        }
     }
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    // Fetch Orders
-    // Note: Selecting specific columns and casting numeric types
     const ordersQuery = `
         SELECT 
-            id, 
-            created_at as date, 
-            shipping_address->>'name' as customerName, -- Example: extract name from JSON
-            user_id as customerId, 
-            CAST(total_amount AS FLOAT) as total, 
-            status, 
-            assigned_distributor_id as distributorId 
-        FROM orders 
-        ${whereClause} 
-        ORDER BY created_at DESC 
+            o.id, o.created_at, o.status, 
+            CAST(o.total_amount AS FLOAT) as total_amount, 
+            o.user_id as customer_id, u.name as customer_name, 
+            o.assigned_distributor_id
+        FROM orders o LEFT JOIN users u ON o.user_id = u.id
+        ${whereClause} ORDER BY o.created_at DESC 
         LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
     queryParams.push(limit, offset);
     
-    // Fetch Total Count with same filters
-    const countQuery = `SELECT COUNT(*) FROM orders ${whereClause}`;
-    const countQueryParams = queryParams.slice(0, conditions.length); 
+    const countQuery = `SELECT COUNT(*) FROM orders o ${whereClause}`;
+    const countQueryParams = queryParams.slice(0, conditions.length);
 
-    // Execute concurrently
     const [ordersResult, totalResult] = await Promise.all([
         sql.query(ordersQuery, queryParams),
         sql.query(countQuery, countQueryParams)
     ]);
 
-    // Access results directly as arrays
-    const totalOrders = parseInt(totalResult[0]?.count || '0'); // Access count from the first row
+    // Corrected: Access result directly as array
+    const totalOrders = parseInt(totalResult[0]?.count || '0'); 
     const totalPages = Math.ceil(totalOrders / limit);
-    const orders = ordersResult as AdminOrder[]; // Cast the array of rows
+    const orders = ordersResult as AdminOrderListItem[]; // Corrected: Cast array directly
 
     return NextResponse.json({ 
       orders: orders, 
       pagination: { page, limit, total: totalOrders, totalPages }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Admin: Failed to get orders:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }

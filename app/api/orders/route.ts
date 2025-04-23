@@ -36,18 +36,24 @@ async function getUserIdFromToken(request: NextRequest): Promise<string | null> 
 }
 
 function getTargetLocation(address: AddressInput): string {
+    // --- TODO: Implement Robust Location Logic --- 
+    // This needs to map the address (province, city, postal code ranges) 
+    // to your defined distribution centers: 'Vancouver', 'Calgary', 'Edmonton', 'Toronto'
+    // Example placeholder based on province:
     const province = address.province?.toUpperCase() || '';
     if (['BC'].includes(province)) return 'Vancouver';
     if (['AB', 'SK', 'MB'].includes(province)) return 'Calgary'; 
     if (['ON', 'QC'].includes(province)) return 'Toronto'; 
-    console.warn(`Could not determine specific location for province: ${province}, using fallback.`);
-    return 'Toronto'; // Default fallback location - Adjust!
+    console.warn(`Could not determine specific location for province: ${province}, using fallback 'Toronto'.`);
+    return 'Toronto'; // Default fallback location - VERY IMPORTANT TO FIX
 }
 
 // --- Main POST Handler --- 
 export async function POST(request: NextRequest) {
     let userId: string | null = null;
+    let orderCreated = false; // Flag to track if order record was inserted
     let newOrderId: number | null = null; 
+    
     try {
         userId = await getUserIdFromToken(request);
         if (!userId) {
@@ -77,42 +83,40 @@ export async function POST(request: NextRequest) {
 
         // 2. Check Availability & Prepare Order Data
         let subtotal = 0;
-        const orderItemsData = [];
-        const inventoryChecks: {productId: number; requested: number; name: string;}[] = [];
-
+        const orderItemsData: { productId: number; quantity: number; pricePerItem: number; name: string }[] = [];
+        
         for (const item of items) {
             const product = productMap.get(item.productId);
-            if (!product || !product.is_active) return NextResponse.json({ message: `Product ID ${item.productId} not found or not available.` }, { status: 400 });
+            if (!product || !product.is_active) return NextResponse.json({ message: `Product ID ${item.productId} (${product?.name || 'Unknown'}) not found or not available.` }, { status: 400 });
             if (!item.quantity || item.quantity <= 0) return NextResponse.json({ message: `Invalid quantity for product ID ${item.productId}.` }, { status: 400 });
             
-            inventoryChecks.push({ productId: item.productId, requested: item.quantity, name: product.name });
+            // Prepare data for stock check and order items
             const pricePerItem = parseFloat(product.price);
             subtotal += pricePerItem * item.quantity;
             orderItemsData.push({
                 productId: item.productId,
                 quantity: item.quantity,
-                pricePerItem: pricePerItem
+                pricePerItem: pricePerItem,
+                name: product.name // Include name for error messages
             });
         }
-
-        // Perform all inventory checks *before* creating the order
-        console.log(`Checking inventory at ${targetLocation} for ${inventoryChecks.length} items...`);
-        const stockCheckPromises = inventoryChecks.map(check => sql`
-            SELECT quantity 
-            FROM inventory 
-            WHERE product_id = ${check.productId} AND location = ${targetLocation}
+        
+        // Perform inventory checks *before* creating the order
+        console.log(`Checking inventory at ${targetLocation} for ${orderItemsData.length} items...`);
+        const stockCheckPromises = orderItemsData.map(item => sql`
+            SELECT quantity FROM inventory WHERE product_id = ${item.productId} AND location = ${targetLocation}
         `);
         const stockResults = await Promise.all(stockCheckPromises);
 
         // Validate stock levels
-        for (let i = 0; i < inventoryChecks.length; i++) {
-            const check = inventoryChecks[i];
+        for (let i = 0; i < orderItemsData.length; i++) {
+            const item = orderItemsData[i];
             const result = stockResults[i];
             const available = parseInt(result[0]?.quantity as string || '0');
-            if (available < check.requested) {
-                 const message = `Insufficient stock for product ${check.name}. Only ${available} available at your location (${targetLocation}).`;
+            if (available < item.quantity) {
+                 const message = `Insufficient stock for product ${item.name}. Only ${available} available at your location (${targetLocation}).`;
                  console.error(message);
-                 return NextResponse.json({ message }, { status: 400 });
+                 return NextResponse.json({ message }, { status: 400 }); // Use 400 Bad Request for stock issues
             }
         }
         console.log('Stock levels verified for all items at location:', targetLocation);
@@ -122,7 +126,9 @@ export async function POST(request: NextRequest) {
         const taxes = subtotal * 0.13; 
         const totalAmount = subtotal + shippingCost + taxes;
 
-        // 4. Create Order and Order Items in DB
+        // --- Database Modification Start (Simulated Transaction) --- 
+        
+        // 4. Create Order Record
         console.log('Inserting order into database...');
         const initialStatus = 'Pending Approval';
         const initialPaymentStatus = paymentMethod === 'etransfer' || paymentMethod === 'btc' ? 'Awaiting Confirmation' : 'Pending';
@@ -135,9 +141,11 @@ export async function POST(request: NextRequest) {
             RETURNING id
         `;
         newOrderId = orderResult[0]?.id as number | undefined;
-        if (!newOrderId) throw new Error('Failed to create order record.');
+        if (!newOrderId) throw new Error('Failed to create order record (no ID returned).');
+        orderCreated = true; // Mark order as created
         console.log(`Order record created with ID: ${newOrderId}`);
 
+        // 5. Create Order Items
         console.log('Inserting order items...');
         const itemInsertPromises = orderItemsData.map(item => sql`
             INSERT INTO order_items (order_id, product_id, quantity, price_per_item)
@@ -146,23 +154,24 @@ export async function POST(request: NextRequest) {
         await Promise.all(itemInsertPromises);
         console.log(`${orderItemsData.length} order items inserted.`);
 
-        // 5. Decrement Inventory (CRITICAL)
+        // 6. Decrement Inventory (CRITICAL - Now Implemented)
         console.log(`Decrementing inventory for order ${newOrderId} at location ${targetLocation}...`);
         const inventoryUpdatePromises = orderItemsData.map(item => sql`
             UPDATE inventory 
             SET quantity = quantity - ${item.quantity}, last_updated = CURRENT_TIMESTAMP
             WHERE product_id = ${item.productId} AND location = ${targetLocation} AND quantity >= ${item.quantity}
         `); 
-        const updateResults = await Promise.all(inventoryUpdatePromises);
-        // Basic check: ensure all updates reported modifying rows (Neon might just return empty array on success for UPDATE)
-        // For more robust check, might need to query stock again or use ORM with row count support
-        console.log(`Inventory decrement attempted for ${orderItemsData.length} items.`); 
+        await Promise.all(inventoryUpdatePromises);
+        // TODO: Check results of Promise.all for row counts if driver supports it, or re-query to verify.
+        // If any update failed (e.g., quantity < item.quantity due to race condition), we need to handle it!
+        // For now, we assume it worked if no error was thrown.
+        console.log(`Inventory decrement executed for ${orderItemsData.length} items.`);
+        
+        // --- Database Modification End --- 
 
-        // --- Transaction Simulation End --- 
+        // 7. TODO: Handle Payment Processing
 
-        // 6. TODO: Handle Payment Processing
-
-        // 7. Return Success Response
+        // 8. Return Success Response
         return NextResponse.json({ 
             message: 'Order placed successfully!', 
             orderId: newOrderId,
@@ -171,9 +180,9 @@ export async function POST(request: NextRequest) {
         }, { status: 201 });
 
     } catch (error: any) {
-        console.error(`POST /api/orders - Failed for user ${userId || '(unknown)'}:`, error);
-        // TODO: Add specific error handling for stock check / inventory update failures
-        // If error happened *after* order insert but *before* inventory decrement, need to flag/handle!
+        console.error(`POST /api/orders - Failed for user ${userId || '(unknown)'} (Order Created: ${orderCreated}, ID: ${newOrderId}):`, error);
+        // TODO: If orderCreated is true but inventory decrement failed, we have an inconsistent state!
+        // Need robust error handling/rollback or notification system here.
         return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }
