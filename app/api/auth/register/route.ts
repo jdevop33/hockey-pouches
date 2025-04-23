@@ -1,23 +1,107 @@
 import { NextResponse } from 'next/server';
+import bcrypt from 'bcrypt';
+import sql from '@/lib/db'; // Using updated alias
+
+// Basic interface for expected registration data
+interface RegistrationBody {
+  name?: string;
+  email?: string;
+  password?: string;
+  referralCode?: string | null;
+}
+
+// Define a simple User type returned from DB (adjust based on actual query)
+interface User {
+    id: string; // Assuming UUID
+    email: string;
+}
 
 export async function POST(request: Request) {
-  // TODO: Implement user registration logic
-  // - Validate request body (name, email, password, referral code)
-  // - Check if user already exists
-  // - Hash password
-  // - Trigger age verification if necessary
-  // - Create user in the database (e.g., MongoDB)
-  // - Handle potential referral code logic
-  // - Return success response or error
-
   try {
-    const body = await request.json();
-    console.log('Registration attempt:', body); // Placeholder
+    const body: RegistrationBody = await request.json();
+    const { name, email, password, referralCode } = body;
 
-    // --- Add Registration Logic Here ---
+    // --- Input Validation --- 
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return NextResponse.json({ message: 'Full name is required.' }, { status: 400 });
+    }
+    const trimmedName = name.trim();
+    
+    if (!email || typeof email !== 'string' || !/\S+@\S+\.\S+/.test(email)) { 
+      return NextResponse.json({ message: 'Valid email is required.' }, { status: 400 });
+    }
+    const lowerCaseEmail = email.toLowerCase(); // Store emails consistently
 
-    return NextResponse.json({ message: 'Registration endpoint placeholder' }, { status: 201 });
-  } catch (error) {
+    if (!password || typeof password !== 'string' || password.length < 8) {
+      return NextResponse.json({ message: 'Password must be at least 8 characters long.' }, { status: 400 });
+    }
+    if (referralCode && typeof referralCode !== 'string') {
+        return NextResponse.json({ message: 'Invalid referral code format.' }, { status: 400 });
+    }
+    const referredBy = referralCode?.trim() || null;
+
+    console.log('Registration attempt validation passed for:', lowerCaseEmail);
+
+    // --- Database Operations --- 
+
+    // 1. Check if user already exists
+    console.log('Checking for existing user...');
+    // Removed the type argument from sql tag
+    const existingUsers = await sql`SELECT id, email FROM users WHERE email = ${lowerCaseEmail}`;
+
+    // We can assert the type on the result if needed for clarity, though length check often suffices
+    if ((existingUsers as User[]).length > 0) {
+        console.warn('User already exists:', lowerCaseEmail);
+        return NextResponse.json({ message: 'User with this email already exists.' }, { status: 409 }); // 409 Conflict
+    }
+    console.log('User does not exist, proceeding...');
+
+    // 2. Hash password
+    console.log('Hashing password...');
+    const saltRounds = 10; // Standard salt rounds
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+    console.log('Password hashed.');
+
+    // 3. TODO: Validate referred_by_code if provided (check if a user with that referral_code exists)
+    if (referredBy) {
+        console.log(`Validating referral code: ${referredBy}`);
+        // const referrer = await sql`SELECT id FROM users WHERE referral_code = ${referredBy}`;
+        // if (referrer.length === 0) {
+        //     return NextResponse.json({ message: 'Invalid referral code.' }, { status: 400 });
+        // }
+    }
+    
+    // 4. TODO: Generate a unique referral_code for the new user (e.g., base part of name + random chars)
+    const newUserReferralCode = `${trimmedName.split(' ')[0].toUpperCase()}${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+    console.log(`Generated referral code: ${newUserReferralCode}`);
+
+    // 5. Create user in DB
+    console.log('Inserting new user into database...');
+    await sql`
+        INSERT INTO users (name, email, password_hash, referred_by_code, referral_code, role, status)
+        VALUES (${trimmedName}, ${lowerCaseEmail}, ${passwordHash}, ${referredBy}, ${newUserReferralCode}, 'Retail Customer', 'Active')
+    `;
+    console.log('User inserted successfully:', lowerCaseEmail);
+
+    // --- Success Response --- 
+    return NextResponse.json({ message: 'User registered successfully.' }, { status: 201 });
+
+  } catch (error: any) {
+    // Handle JSON parsing errors
+    if (error instanceof SyntaxError) {
+         return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
+    }
+    // Handle potential DB unique constraint errors (example check)
+    if (error.message?.includes('duplicate key value violates unique constraint "users_email_key"')) {
+         console.warn('Conflict during insert (user likely registered concurrently): ', error.message);
+         return NextResponse.json({ message: 'User with this email already exists.' }, { status: 409 });
+    }
+     if (error.message?.includes('duplicate key value violates unique constraint "users_referral_code_key"')) {
+         console.warn('Conflict during insert (referral code collision): ', error.message);
+         // TODO: Retry with a new referral code? Or just fail for now?
+         return NextResponse.json({ message: 'Internal server error during registration.' }, { status: 500 });
+    }
+
     console.error('Registration failed:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }

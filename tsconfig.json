@@ -22,9 +22,9 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".", // Added: Base directory for path resolution
-    "paths": {       // Added: Path alias configuration
-      "@/*": ["./*"] // Maps @/ to the root directory
+    "baseUrl": ".", 
+    "paths": {       
+      "@/*": ["app/*"] // Changed: Maps @/ to the app directory
     }
   },
   "include": [
