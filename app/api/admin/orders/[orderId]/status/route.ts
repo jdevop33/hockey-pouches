@@ -1,14 +1,11 @@
-import { NextResponse, type NextRequest } from 'next/server'; // Import NextRequest
+import { NextResponse, type NextRequest } from 'next/server';
 // import { verifyAdmin } from '@/lib/auth';
 // import { updateOrderStatusManually } from '@/lib/orderAdminService';
 
 export async function PUT(
     request: NextRequest, 
-    { params }: { params: { orderId: string } } // Standard signature
+    { params }: { params: { orderId: string } } // Applying correct standard signature
 ) {
-  // TODO: Implement admin logic for manual order status updates
-  // ... (rest of comments)
-
   const { orderId } = params;
 
   try {
@@ -18,7 +15,7 @@ export async function PUT(
     // const adminUserId = adminCheck.userId;
 
     const body = await request.json();
-    console.log(`Admin: Manual status update for Order ID: ${orderId}`, body); // Placeholder
+    console.log(`Admin: Manual status update for Order ID: ${orderId}`, body);
 
     // --- Add Input Validation (status, reason) ---
     if (!body.status || !body.reason) {
@@ -29,7 +26,7 @@ export async function PUT(
     // --- Manual Status Update Logic Here (including side effects) ---
     // ...
 
-    return NextResponse.json({ message: `Order ${orderId} status manually updated to ${body.status}.` }); // Placeholder
+    return NextResponse.json({ message: `Order ${orderId} status manually updated to ${body.status}.` });
 
   } catch (error: any) {
      if (error instanceof SyntaxError) {

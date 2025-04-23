@@ -1,17 +1,14 @@
-import { NextResponse, type NextRequest } from 'next/server'; // Import NextRequest
+import { NextResponse, type NextRequest } from 'next/server'; 
 // import { findProductById } from '@/lib/productService'; // Example service
 
 export async function GET(
     request: NextRequest, 
-    { params }: { params: { productId: string } } // Standard signature
+    { params }: { params: { productId: string } } // Applying correct standard signature
 ) {
-  // TODO: Implement logic to get a specific product's details
-  // ... (rest of comments)
-
   const { productId } = params;
 
   try {
-    console.log(`Get product details request for ID: ${productId}`); // Placeholder
+    console.log(`Get product details request for ID: ${productId}`);
 
     // --- Fetch Product Logic Here ---
     // ...

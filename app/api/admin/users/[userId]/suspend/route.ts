@@ -2,12 +2,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export async function POST(
     request: NextRequest, 
-    context: any // Using generic 'any' as workaround
+    { params }: { params: { userId: string } } // Applying correct standard signature
 ) {
-  const userId = context?.params?.userId as string | undefined;
-  if (!userId) {
-    return NextResponse.json({ message: 'User ID is missing.' }, { status: 400 });
-  }
+  const { userId } = params;
 
   try {
     console.log(`Admin: Suspend user request for ID: ${userId}`);

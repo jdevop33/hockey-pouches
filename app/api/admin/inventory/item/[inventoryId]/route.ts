@@ -2,17 +2,13 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export async function PUT(
     request: NextRequest, 
-    context: any // Using generic 'any' as workaround
+    { params }: { params: { inventoryId: string } } // Applying correct standard signature
 ) {
-  const inventoryId = context?.params?.inventoryId as string | undefined;
-
-  if (!inventoryId) {
-    return NextResponse.json({ message: 'Inventory ID is missing.' }, { status: 400 });
-  }
+  const { inventoryId } = params;
 
   try {
     const body = await request.json();
-    console.log(`Admin: Update inventory quantity for ID: ${inventoryId}`, body); // Placeholder
+    console.log(`Admin: Update inventory quantity for ID: ${inventoryId}`, body); 
 
     if (typeof body.quantity !== 'number' || body.quantity < 0) {
       return NextResponse.json({ message: 'Invalid quantity provided' }, { status: 400 });
@@ -20,7 +16,7 @@ export async function PUT(
 
     // --- Update Inventory Logic Here ---
 
-    return NextResponse.json({ message: `Inventory ${inventoryId} updated successfully` }); // Placeholder
+    return NextResponse.json({ message: `Inventory ${inventoryId} updated successfully` }); 
 
   } catch (error: any) {
      if (error instanceof SyntaxError) {

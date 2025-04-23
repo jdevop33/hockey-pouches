@@ -1,18 +1,17 @@
 import { NextResponse, type NextRequest } from 'next/server';
+// import { verifyAdmin } from '@/lib/auth';
+// import { getSpecificOrderAdmin, updateOrderAdmin } from '@/lib/orderAdminService';
 
 export async function GET(
-    request: NextRequest,
-    context: any // Applying workaround
+    request: NextRequest, 
+    { params }: { params: { orderId: string } } // Applying correct standard signature
 ) {
-  const orderId = context?.params?.orderId as string | undefined; // Extracting safely
-
-  if (!orderId) {
-    return NextResponse.json({ message: 'Order ID is missing.' }, { status: 400 });
-  }
+  const { orderId } = params;
 
   try {
-    console.log(`Admin: Get specific order details request - Order ID: ${orderId}`); 
-
+    // --- Add Admin Authentication Verification Logic ---
+    console.log(`Admin: Get specific order details request - Order ID: ${orderId}`);
+    // --- Fetch Specific Order Logic ---
     const dummyOrder = {
       orderId: orderId,
       customerId: 'cust-def',
@@ -28,9 +27,7 @@ export async function GET(
       assignedDistributorId: null,
       orderHistory: [ { timestamp: new Date().toISOString(), status: 'Pending Approval', notes: 'Order placed.' } ]
     };
-
     return NextResponse.json(dummyOrder);
-
   } catch (error) {
     console.error(`Admin: Failed to get order ${orderId}:`, error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
@@ -39,16 +36,16 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest, 
-    context: any // Keep using workaround for PUT for now
+    { params }: { params: { orderId: string } } // Applying correct standard signature
 ) {
-  const orderId = context?.params?.orderId as string | undefined; 
-  if (!orderId) {
-    return NextResponse.json({ message: 'Order ID is missing.' }, { status: 400 });
-  }
+  const { orderId } = params;
 
   try {
+    // --- Add Admin Authentication Verification Logic ---
     const body = await request.json();
-    console.log(`Admin: Update order request for ID: ${orderId}`, body);
+    console.log(`Admin: Update order request for ID: ${orderId}`, body); 
+    // --- Input Validation ---
+    // --- Update Order Logic ---
     return NextResponse.json({ message: `Order ${orderId} updated successfully` }); 
 
   } catch (error: any) {

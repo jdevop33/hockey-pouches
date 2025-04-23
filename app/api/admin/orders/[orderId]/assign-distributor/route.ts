@@ -5,12 +5,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export async function POST(
     request: NextRequest, 
-    context: any // Using generic 'any' as workaround for build error
+    { params }: { params: { orderId: string } } // Applying correct standard signature
 ) {
-  const orderId = context?.params?.orderId as string | undefined;
-  if (!orderId) {
-    return NextResponse.json({ message: 'Order ID is missing.' }, { status: 400 });
-  }
+  const { orderId } = params;
 
   try {
     // --- Add Admin Authentication Verification Logic Here ---
@@ -19,7 +16,7 @@ export async function POST(
     // const adminUserId = adminCheck.userId;
 
     const body = await request.json();
-    console.log(`Admin: Assign distributor request for Order ID: ${orderId}`, body); // Placeholder
+    console.log(`Admin: Assign distributor request for Order ID: ${orderId}`, body);
 
     // --- Add Input Validation (distributorId) ---
     if (!body.distributorId) {
@@ -31,7 +28,7 @@ export async function POST(
     // --- Optional: Update related task ---
     // ...
 
-    return NextResponse.json({ message: `Distributor ${body.distributorId} assigned to order ${orderId}.` }); // Placeholder
+    return NextResponse.json({ message: `Distributor ${body.distributorId} assigned to order ${orderId}.` });
 
   } catch (error: any) {
      if (error instanceof SyntaxError) {

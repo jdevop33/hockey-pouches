@@ -1,34 +1,28 @@
-import { NextResponse, type NextRequest } from 'next/server'; // Import NextRequest
+import { NextResponse, type NextRequest } from 'next/server';
 // import { verifyAdmin } from '@/lib/auth';
 // import { verifyFulfillment } from '@/lib/orderWorkflowService';
 // import { createTask } from '@/lib/taskService';
-// import { updateTaskStatus } from '@/lib/taskService'; // To potentially close verification task
+// import { updateTaskStatus } from '@/lib/taskService';
 
 export async function POST(
     request: NextRequest, 
-    { params }: { params: { orderId: string } } // Standard signature
+    { params }: { params: { orderId: string } } // Applying correct standard signature
 ) {
-  // TODO: Implement admin logic to verify distributor fulfillment
-  // ... (rest of comments)
-
   const { orderId } = params;
 
   try {
-    // --- Add Admin Authentication Verification Logic Here ---
+    // --- Add Admin Authentication Verification Logic ---
     // const adminCheck = await verifyAdmin(request);
-    // if (!adminCheck.isAdmin) { // ... }
+    // if (!adminCheck.isAdmin) { //... }
     // const adminUserId = adminCheck.userId;
 
-    console.log(`Admin: Verify fulfillment request for Order ID: ${orderId}`); // Placeholder
+    console.log(`Admin: Verify fulfillment request for Order ID: ${orderId}`);
 
-    // --- Verify Fulfillment Logic Here ---
-    // ...
+    // --- Verify Fulfillment Logic ---
     // --- Optional: Update related task ---
-    // ...
     // --- Optional: Create Shipping Task ---
-    // ...
 
-    return NextResponse.json({ message: `Fulfillment for order ${orderId} verified.` }); // Placeholder
+    return NextResponse.json({ message: `Fulfillment for order ${orderId} verified.` });
 
   } catch (error) {
     console.error(`Admin: Failed to verify fulfillment for order ${orderId}:`, error);

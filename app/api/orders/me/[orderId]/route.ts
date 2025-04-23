@@ -1,30 +1,17 @@
-import { NextResponse, type NextRequest } from 'next/server'; // Import NextRequest
+import { NextResponse, type NextRequest } from 'next/server';
 // import { verifyAuth } from '@/lib/auth';
 // import { getCustomerSpecificOrder } from '@/lib/orderService';
 
 export async function GET(
     request: NextRequest, 
-    { params }: { params: { orderId: string } } // Standard signature
+    { params }: { params: { orderId: string } } // Applying correct standard signature
 ) {
-  // TODO: Implement logic for customer to get a specific order
-  // ... (rest of comments)
-
   const { orderId } = params;
 
   try {
     // --- Add Authentication Verification Logic ---
-    // const authResult = await verifyAuth(request); // Need to pass request or headers
-    // if (!authResult.isAuthenticated) {
-    //   return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    // }
-    // const customerId = authResult.userId;
-
-    console.log(`Get my specific order request - Order ID: ${orderId}`); // Placeholder
-
-    // --- Fetch Specific Order Logic Here (check ownership: customerId === order.customerId) ---
-    // ...
-
-    // Placeholder data
+    console.log(`Get my specific order request - Order ID: ${orderId}`);
+    // --- Fetch Specific Order Logic Here (check ownership) ---
     const dummyOrder = {
       orderId: orderId,
       date: new Date().toISOString(),
@@ -37,9 +24,7 @@ export async function GET(
       ],
       trackingNumber: 'XYZ123456789',
     };
-
     return NextResponse.json(dummyOrder);
-
   } catch (error) {
     console.error(`Failed to get customer order ${orderId}:`, error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
