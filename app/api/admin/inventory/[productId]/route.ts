@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import { NextResponse } from 'next/server'; // Use only NextResponse
 
 export async function GET(
-  request: NextRequest, 
-  { params }: { params: { productId: string } } // Applying correct standard signature
+  request: Request, // Use standard Request type
+  { params }: { params: { productId: string } } // Keep standard param destructuring
 ) {
   const { productId } = params;
 
@@ -14,6 +14,7 @@ export async function GET(
       { inventoryId: 'inv-4', productId: productId, variationId: 'var-2', variationName: '6mg', location: 'Warehouse A', quantity: 200 },
     ];
     return NextResponse.json(dummyProductInventory);
+
   } catch (error) {
     console.error(`Admin: Failed to get inventory for product ${productId}:`, error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
