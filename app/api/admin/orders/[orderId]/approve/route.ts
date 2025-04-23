@@ -1,22 +1,25 @@
-import { NextResponse, type NextRequest } from 'next/server';
-// import { verifyAdmin } from '@/lib/auth';
-// import { approveOrder } from '@/lib/orderWorkflowService';
-// import { createTask } from '@/lib/taskService';
+import { NextResponse } from 'next/server'; // Only import NextResponse
+
+// Define the expected params structure for clarity, though not used directly in signature type
+interface RouteParams {
+    orderId: string;
+}
 
 export async function POST(
-    request: NextRequest, 
-    context: any // Applying workaround universally
+    request: Request, // Use standard Request
+    { params }: { params: RouteParams } // Use standard destructuring with explicit type
 ) {
-  const orderId = context?.params?.orderId as string | undefined;
-  if (!orderId) {
-    return NextResponse.json({ message: 'Order ID is missing.' }, { status: 400 });
-  }
+  const { orderId } = params;
 
   try {
-    // --- Add Admin Authentication Verification Logic Here ---
-    // const adminCheck = await verifyAdmin(request);
-    // if (!adminCheck.isAdmin) { // ... }
-    // const adminUserId = adminCheck.userId;
+    // Ensure orderId was actually extracted (though type check should guarantee)
+    if (!orderId) {
+         return NextResponse.json({ message: 'Order ID missing in route parameters.' }, { status: 400 });
+    }
+    
+    // --- Add Admin Authentication Verification Logic Here (might need headers from request) ---
+    // const authHeader = request.headers.get('authorization'); // Example
+    // ... verify token ...
 
     console.log(`Admin: Approve order request for ID: ${orderId}`);
 
