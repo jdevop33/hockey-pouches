@@ -20,7 +20,7 @@ interface ProductInfo {
 }
 
 // --- Helper Functions --- 
-async function getUserIdFromToken(request: NextRequest): Promise<string | null> { /* ... */ 
+async function getUserIdFromToken(request: NextRequest): Promise<string | null> { 
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.split(' ')[1];
     if (!token) return null;
@@ -35,13 +35,13 @@ async function getUserIdFromToken(request: NextRequest): Promise<string | null> 
     } 
 }
 
-function getTargetLocation(address: AddressInput): string { /* ... */ 
+function getTargetLocation(address: AddressInput): string {
     const province = address.province?.toUpperCase() || '';
     if (['BC'].includes(province)) return 'Vancouver';
-    if (['AB', 'SK', 'MB'].includes(province)) return 'Calgary';
-    if (['ON', 'QC'].includes(province)) return 'Toronto';
+    if (['AB', 'SK', 'MB'].includes(province)) return 'Calgary'; 
+    if (['ON', 'QC'].includes(province)) return 'Toronto'; 
     console.warn(`Could not determine specific location for province: ${province}, using fallback.`);
-    return 'Toronto'; 
+    return 'Toronto'; // Default fallback location - Adjust!
 }
 
 // --- Main POST Handler --- 
@@ -65,18 +65,12 @@ export async function POST(request: NextRequest) {
 
         // --- Transaction Simulation Start --- 
 
-        // 1. Fetch Product Details
+        // 1. Fetch Product Details & Determine Target Location
         const productIds = items.map(item => item.productId);
         if (productIds.length === 0) return NextResponse.json({ message: 'No valid product IDs in order.' }, { status: 400 });
         
-        // Corrected: Removed type argument from sql tag
-        const productDetailsResult = await sql` 
-            SELECT id, name, price, is_active 
-            FROM products 
-            WHERE id = ANY(${productIds})
-        `;
-        const productDetails = productDetailsResult as ProductInfo[]; // Assert type here
-        
+        const productDetailsResult = await sql`SELECT id, name, price, is_active FROM products WHERE id = ANY(${productIds})`;
+        const productDetails = productDetailsResult as ProductInfo[];
         const productMap = new Map(productDetails.map(p => [p.id, p]));
         const targetLocation = getTargetLocation(shippingAddress);
         console.log(`Target fulfillment location determined as: ${targetLocation}`);
@@ -92,7 +86,6 @@ export async function POST(request: NextRequest) {
             if (!item.quantity || item.quantity <= 0) return NextResponse.json({ message: `Invalid quantity for product ID ${item.productId}.` }, { status: 400 });
             
             inventoryChecks.push({ productId: item.productId, requested: item.quantity, name: product.name });
-
             const pricePerItem = parseFloat(product.price);
             subtotal += pricePerItem * item.quantity;
             orderItemsData.push({
@@ -102,12 +95,16 @@ export async function POST(request: NextRequest) {
             });
         }
 
+        // Perform all inventory checks *before* creating the order
         console.log(`Checking inventory at ${targetLocation} for ${inventoryChecks.length} items...`);
         const stockCheckPromises = inventoryChecks.map(check => sql`
-            SELECT quantity FROM inventory WHERE product_id = ${check.productId} AND location = ${targetLocation}
+            SELECT quantity 
+            FROM inventory 
+            WHERE product_id = ${check.productId} AND location = ${targetLocation}
         `);
         const stockResults = await Promise.all(stockCheckPromises);
 
+        // Validate stock levels
         for (let i = 0; i < inventoryChecks.length; i++) {
             const check = inventoryChecks[i];
             const result = stockResults[i];
@@ -130,7 +127,7 @@ export async function POST(request: NextRequest) {
         const initialStatus = 'Pending Approval';
         const initialPaymentStatus = paymentMethod === 'etransfer' || paymentMethod === 'btc' ? 'Awaiting Confirmation' : 'Pending';
         const shippingAddrJson = JSON.stringify(shippingAddress);
-        const billingAddrJson = JSON.stringify(billingAddress);
+        const billingAddrJson = JSON.stringify(billingAddress); 
 
         const orderResult = await sql`
             INSERT INTO orders (user_id, status, subtotal, shipping_cost, taxes, total_amount, shipping_address, billing_address, payment_method, payment_status)
@@ -156,11 +153,14 @@ export async function POST(request: NextRequest) {
             SET quantity = quantity - ${item.quantity}, last_updated = CURRENT_TIMESTAMP
             WHERE product_id = ${item.productId} AND location = ${targetLocation} AND quantity >= ${item.quantity}
         `); 
-        await Promise.all(inventoryUpdatePromises);
-        console.log(`Inventory decremented for ${orderItemsData.length} items.`);
-        
-        // 6. TODO: Handle Payment Processing
+        const updateResults = await Promise.all(inventoryUpdatePromises);
+        // Basic check: ensure all updates reported modifying rows (Neon might just return empty array on success for UPDATE)
+        // For more robust check, might need to query stock again or use ORM with row count support
+        console.log(`Inventory decrement attempted for ${orderItemsData.length} items.`); 
+
         // --- Transaction Simulation End --- 
+
+        // 6. TODO: Handle Payment Processing
 
         // 7. Return Success Response
         return NextResponse.json({ 
@@ -172,6 +172,8 @@ export async function POST(request: NextRequest) {
 
     } catch (error: any) {
         console.error(`POST /api/orders - Failed for user ${userId || '(unknown)'}:`, error);
+        // TODO: Add specific error handling for stock check / inventory update failures
+        // If error happened *after* order insert but *before* inventory decrement, need to flag/handle!
         return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }

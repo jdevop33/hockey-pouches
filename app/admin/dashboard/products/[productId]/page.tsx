@@ -6,8 +6,7 @@ import Link from 'next/link';
 import Layout from '@/components/layout/NewLayout'; 
 import { useAuth } from '@/context/AuthContext'; 
 
-// Placeholder Types
-type Variation = { id: string; name: string; strength: string; price: number; stock?: number }; 
+// Define Product type for this page
 type ProductDetails = {
   id: number; 
   name: string;
@@ -18,9 +17,9 @@ type ProductDetails = {
   is_active: boolean;
   image_url: string | null;
   strength: number | null; // Added missing strength
-  // We don't fetch these complex types in the basic product detail API yet
+  // Complex types might be fetched separately or not needed for basic edit
   // images?: string[]; 
-  // variations?: Variation[]; 
+  // variations?: any[]; // Use specific type if needed
 };
 
 export default function AdminProductDetailPage() {
@@ -70,7 +69,7 @@ export default function AdminProductDetailPage() {
       };
       loadProduct();
     }
-  }, [user, token, productId, router, logout]); // Removed authLoading dependency here
+  }, [user, token, productId, router, logout]); // Removed authLoading here, handled in separate effect
   
   // --- Handlers --- 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -79,10 +78,10 @@ export default function AdminProductDetailPage() {
       if (type === 'checkbox') {
           finalValue = (e.target as HTMLInputElement).checked;
       } else if (type === 'number' || name === 'price' || name === 'compare_at_price' || name === 'strength') {
-          // Allow empty string for optional numbers, otherwise parse
           finalValue = value === '' ? null : parseFloat(value);
           if (value !== '' && isNaN(finalValue as number)) {
-              finalValue = editData[name as keyof ProductDetails]; // Revert if invalid number
+              // Revert if not a valid number (or handle error differently)
+              finalValue = name in editData ? editData[name as keyof ProductDetails] : null;
           }
       }
       setEditData(prev => ({ ...prev, [name]: finalValue }));
@@ -94,39 +93,46 @@ export default function AdminProductDetailPage() {
       setIsSaving(true);
       setError(null);
       
-      // Construct payload with only changed, valid fields
-      // Explicitly type payload to satisfy TS
-      const payload: { [K in keyof ProductDetails]?: ProductDetails[K] } = {}; 
+      const payload: Partial<ProductDetails> = {}; 
       let hasChanges = false;
       
+      // Compare editData with original product state to build payload
       (Object.keys(editData) as Array<keyof ProductDetails>).forEach(key => {
-          // Skip complex fields or ID
           if (key === 'id') return; 
           
-          // Normalize empty strings to null for nullable fields
-          let editVal = editData[key];
-          if (editVal === '' && ['description', 'category', 'image_url', 'compare_at_price', 'strength'].includes(key)) {
-              editVal = null;
+          let currentVal = product[key];
+          let editedVal = editData[key];
+
+          // Normalize empty strings to null for comparison and payload
+          if (editedVal === '' && ['description', 'category', 'image_url', 'compare_at_price', 'strength'].includes(key)) {
+              editedVal = null;
           }
-          
-          // Check if value actually changed
-          if (editVal !== product[key]) {
-              // Type assertion might be needed if TS still struggles
-              payload[key] = editVal as any; 
+           // Handle potential number vs string comparison issue for price/strength
+           if (typeof currentVal === 'number' && typeof editedVal === 'string') {
+                editedVal = parseFloat(editedVal);
+                if(isNaN(editedVal as number)) editedVal = null; // Treat invalid parse as null
+           }
+           if (editedVal === "") editedVal = null; // Treat empty string as null generally if allowed
+
+          if (editedVal !== currentVal) {
+               // Type casting here should be safe if validation below passes
+              payload[key] = editedVal as any; // Using 'as any' here as TS struggles with the dynamic key typing
               hasChanges = true;
           }
       });
 
-      // Validate required fields in the *payload* (only if they are being changed)
+      // --- Validation on the payload --- 
       if (payload.name !== undefined && !payload.name?.trim()) {
           setError("Name cannot be empty."); setIsSaving(false); return;
       }
        if (payload.price !== undefined && (payload.price === null || isNaN(payload.price) || payload.price < 0)) {
           setError("Invalid Price."); setIsSaving(false); return;
       }
+       // Allow strength to be null
        if (payload.strength !== undefined && payload.strength !== null && (isNaN(payload.strength) || payload.strength <= 0)) {
           setError("Invalid Strength."); setIsSaving(false); return;
       }
+      // Add other validations... 
       
       if (!hasChanges) {
           setIsEditing(false); 
@@ -163,10 +169,11 @@ export default function AdminProductDetailPage() {
   const handleEditVariation = (variationId: string) => { alert(`Edit Variation ${variationId} UI Needed`); };
   const handleDeleteVariation = (variationId: string) => { alert(`Delete Variation ${variationId}? API Call Needed`); };
 
+  // --- Render Logic --- 
   if (authLoading || isLoadingData) return <Layout><div className="p-8">Loading...</div></Layout>;
   if (!user || user.role !== 'Admin') return <Layout><div className="p-8">Access Denied.</div></Layout>;
-  if (error && !product) return <Layout><div className="p-8 text-red-500">Error: {error}</div></Layout>; // Show error only if product failed to load
-  if (!product) return <Layout><div className="p-8">Product not found.</div></Layout>; // Product load finished but not found
+  if (error && !product) return <Layout><div className="p-8 text-red-500">Error: {error}</div></Layout>; 
+  if (!product) return <Layout><div className="p-8">Product not found.</div></Layout>; 
 
   return (
     <Layout>
@@ -174,48 +181,48 @@ export default function AdminProductDetailPage() {
          <div className="mb-6"><Link href="/admin/dashboard/products" className="text-primary-600 hover:text-primary-700">&larr; Back to Products</Link></div>
          <form onSubmit={handleSaveChanges}>
             <div className="flex justify-between items-center mb-6"> {/* ... Header ... */}</div>
-            {error && <p className="text-red-500 bg-red-100 p-3 rounded mb-4">Error: {error}</p>} {/* Show save errors */} 
+            {error && <p className="text-red-500 bg-red-100 p-3 rounded mb-4">Error: {error}</p>} 
             <div className="bg-white shadow-lg rounded-lg p-6 space-y-6">
-                {/* ... Form Fields using editData ... */} 
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 {/* ... Form Fields using editData, mapping name/description/category/price/strength/is_active/image_url ... */} 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <div>
                          <label htmlFor="name" className="block text-sm font-medium text-gray-700">Product Name</label>
-                         <input type="text" id="name" name="name" value={editData.name || ''} onChange={handleInputChange} readOnly={!isEditing} required className={`...`} />
+                         <input type="text" id="name" name="name" value={editData.name || ''} onChange={handleInputChange} readOnly={!isEditing} required className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm ${!isEditing ? 'bg-gray-100' : ''}`} />
                      </div>
                      <div>
                          <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
-                         <input type="text" id="category" name="category" value={editData.category || ''} onChange={handleInputChange} readOnly={!isEditing} className={`...`} />
+                         <input type="text" id="category" name="category" value={editData.category || ''} onChange={handleInputChange} readOnly={!isEditing} className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm ${!isEditing ? 'bg-gray-100' : ''}`} />
                      </div>
                  </div>
                  <div>
                      <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
-                     <textarea id="description" name="description" rows={4} value={editData.description || ''} onChange={handleInputChange} readOnly={!isEditing} className={`...`} />
+                     <textarea id="description" name="description" rows={4} value={editData.description || ''} onChange={handleInputChange} readOnly={!isEditing} className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm ${!isEditing ? 'bg-gray-100' : ''}`} />
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div>
                          <label htmlFor="price" className="block text-sm font-medium text-gray-700">Base Price ($)</label>
-                         <input type="number" step="0.01" id="price" name="price" value={editData.price ?? ''} onChange={handleInputChange} readOnly={!isEditing} required className={`...`} />
+                         <input type="number" step="0.01" id="price" name="price" value={editData.price ?? ''} onChange={handleInputChange} readOnly={!isEditing} required className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm ${!isEditing ? 'bg-gray-100' : ''}`} />
                      </div>
                       <div>
                          <label htmlFor="compare_at_price" className="block text-sm font-medium text-gray-700">Compare At Price ($)</label>
-                         <input type="number" step="0.01" id="compare_at_price" name="compare_at_price" value={editData.compare_at_price ?? ''} onChange={handleInputChange} readOnly={!isEditing} className={`...`} />
+                         <input type="number" step="0.01" id="compare_at_price" name="compare_at_price" value={editData.compare_at_price ?? ''} onChange={handleInputChange} readOnly={!isEditing} className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm ${!isEditing ? 'bg-gray-100' : ''}`} />
                      </div>
                       <div>
                          <label htmlFor="strength" className="block text-sm font-medium text-gray-700">Strength (mg)</label>
-                         <input type="number" id="strength" name="strength" value={editData.strength ?? ''} onChange={handleInputChange} readOnly={!isEditing} className={`...`} />
+                         <input type="number" id="strength" name="strength" value={editData.strength ?? ''} onChange={handleInputChange} readOnly={!isEditing} className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm ${!isEditing ? 'bg-gray-100' : ''}`} />
                      </div>
                      <div className="flex items-center pt-6">
-                         <input type="checkbox" id="is_active" name="is_active" checked={editData.is_active || false} onChange={handleInputChange} disabled={!isEditing} className="h-4 w-4 rounded ..." />
+                         <input type="checkbox" id="is_active" name="is_active" checked={editData.is_active || false} onChange={handleInputChange} disabled={!isEditing} className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
                          <label htmlFor="is_active" className="ml-2 block text-sm font-medium text-gray-700">Is Active</label>
                      </div>
                  </div>
                  <div>
                     <label htmlFor="image_url" className="block text-sm font-medium text-gray-700">Image URL</label>
-                    <input type="text" id="image_url" name="image_url" value={editData.image_url || ''} onChange={handleInputChange} readOnly={!isEditing} className={`...`} />
+                    <input type="text" id="image_url" name="image_url" value={editData.image_url || ''} onChange={handleInputChange} readOnly={!isEditing} className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm ${!isEditing ? 'bg-gray-100' : ''}`} />
                  </div>
             </div>
-        </form>
-        <div className="mt-8 bg-white shadow-lg rounded-lg p-6">{/* Variations Section Placeholder */}</div>
+         </form>
+         <div className="mt-8 bg-white shadow-lg rounded-lg p-6">{/* Variations Section Placeholder */}</div>
       </div>
     </Layout>
   );
