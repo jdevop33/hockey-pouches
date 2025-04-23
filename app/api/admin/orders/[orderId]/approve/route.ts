@@ -5,9 +5,12 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export async function POST(
     request: NextRequest, 
-    { params }: { params: { orderId: string } } // Applying correct standard signature
+    context: any // Applying workaround universally
 ) {
-  const { orderId } = params;
+  const orderId = context?.params?.orderId as string | undefined;
+  if (!orderId) {
+    return NextResponse.json({ message: 'Order ID is missing.' }, { status: 400 });
+  }
 
   try {
     // --- Add Admin Authentication Verification Logic Here ---
