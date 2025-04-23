@@ -1,32 +1,23 @@
-import { NextResponse } from 'next/server'; // Only import NextResponse
+import { NextResponse, type NextRequest } from 'next/server';
 
-// Define the expected params structure for clarity, though not used directly in signature type
-interface RouteParams {
-    orderId: string;
-}
+// Explicitly force dynamic rendering for this route
+export const dynamic = 'force-dynamic'; 
 
 export async function POST(
-    request: Request, // Use standard Request
-    { params }: { params: RouteParams } // Use standard destructuring with explicit type
+    request: NextRequest, // Reverting to NextRequest as Request didn't fix it
+    { params }: { params: { orderId: string } } // Correct standard signature
 ) {
   const { orderId } = params;
 
   try {
-    // Ensure orderId was actually extracted (though type check should guarantee)
     if (!orderId) {
          return NextResponse.json({ message: 'Order ID missing in route parameters.' }, { status: 400 });
     }
     
-    // --- Add Admin Authentication Verification Logic Here (might need headers from request) ---
-    // const authHeader = request.headers.get('authorization'); // Example
-    // ... verify token ...
-
+    // --- Auth Check Logic ---
     console.log(`Admin: Approve order request for ID: ${orderId}`);
-
     // --- Approve Order Logic Here ---
-    // ...    
-    // --- Create Distributor Assignment Task ---
-    // ...
+    // --- Create Task Logic ---
 
     return NextResponse.json({ message: `Order ${orderId} approved. Assignment task created.` });
 
