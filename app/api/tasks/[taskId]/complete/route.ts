@@ -1,10 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server'; // Import NextRequest
 // import { verifyAuth } from '@/lib/auth';
 // import { completeTask } from '@/lib/taskService';
-
-interface Params {
-  taskId: string;
-}
 
 // Re-use or adapt access check logic
 async function checkTaskAccess(taskId: string, userId: string, userRole: string): Promise<boolean> {
@@ -13,16 +9,12 @@ async function checkTaskAccess(taskId: string, userId: string, userRole: string)
   return true; // Placeholder
 }
 
-export async function POST(request: Request, { params }: { params: Params }) {
+export async function POST(
+    request: NextRequest, 
+    { params }: { params: { taskId: string } } // Standard signature
+) {
   // TODO: Implement logic to mark a task as completed
-  // 1. Verify Authentication.
-  // 2. Extract User ID and Role.
-  // 3. Extract taskId from params.
-  // 4. Check Access: Ensure the user has permission to complete this task (usually assignee or admin).
-  // 5. Fetch Task & Validate Status: Ensure task is not already completed.
-  // 6. Update Task Status: Set status to 'Completed' and record completion timestamp/user.
-  // 7. Log Action (if maintaining history).
-  // 8. Return Success or Error.
+  // ... (rest of comments)
 
   const { taskId } = params;
 
@@ -44,10 +36,7 @@ export async function POST(request: Request, { params }: { params: Params }) {
     console.log(`Complete task request for ID: ${taskId}`); // Placeholder
 
     // --- Complete Task Logic Here ---
-    // const completionResult = await completeTask(taskId, userId);
-    // if (!completionResult.success) {
-    //   return NextResponse.json({ message: completionResult.message || 'Failed to complete task' }, { status: 400 }); // Or 404
-    // }
+    // ...
 
     return NextResponse.json({ message: `Task ${taskId} marked as completed.` }); // Placeholder
 

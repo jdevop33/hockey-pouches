@@ -1,22 +1,18 @@
-import { NextResponse, type NextRequest } from 'next/server'; // Import NextRequest
-// import { verifyAdmin } from '@/lib/auth';
-// import { getInventoryForProduct } from '@/lib/inventoryService';
+import { NextResponse, type NextRequest } from 'next/server'; 
 
 export async function GET(
-  request: NextRequest, // Use NextRequest
-  context: { params: { productId: string } } // Use context object signature
+  request: NextRequest, 
+  { params }: { params: { productId: string } } // Friend's suggestion: Use destructuring
 ) {
-  // Extract productId from context.params
-  const { productId } = context.params;
+  const { productId } = params; // Extract via destructuring
+
+  if (!productId) {
+    // This check is technically redundant if the signature works, but safe to keep
+    return NextResponse.json({ message: 'Product ID is missing.' }, { status: 400 });
+  }
 
   try {
-    // --- Add Admin Authentication Verification Logic Here ---
-    // ...
-
-    console.log(`Admin: Get inventory for product ID: ${productId}`); // Placeholder
-
-    // --- Fetch Inventory Logic Here ---
-    // ...
+    console.log(`Admin: Get inventory for product ID: ${productId}`);
 
     // Placeholder data
     const dummyProductInventory = [

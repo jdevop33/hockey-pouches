@@ -1,34 +1,24 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server'; // Import NextRequest
 // import { verifyAdmin } from '@/lib/auth';
 // import { getSpecificOrderAdmin, updateOrderAdmin } from '@/lib/orderAdminService';
 
-interface Params {
-  orderId: string;
-}
-
-export async function GET(request: Request, { params }: { params: Params }) {
+export async function GET(
+    request: NextRequest, 
+    { params }: { params: { orderId: string } } // Standard signature
+) {
   // TODO: Implement admin logic to get specific order details
-  // 1. Verify Admin Authentication.
-  // 2. Extract orderId from params.
-  // 3. Fetch Order: Retrieve comprehensive order details (customer info, items, history, assigned distributor if any).
-  // 4. Return Order Details.
+  // ... (rest of comments)
 
   const { orderId } = params;
 
   try {
     // --- Add Admin Authentication Verification Logic Here ---
-    // const adminCheck = await verifyAdmin(request);
-    // if (!adminCheck.isAdmin) {
-    //   return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    // }
+    // ...
 
     console.log(`Admin: Get specific order details request - Order ID: ${orderId}`); // Placeholder
 
     // --- Fetch Specific Order Logic Here ---
-    // const order = await getSpecificOrderAdmin(orderId);
-    // if (!order) {
-    //   return NextResponse.json({ message: 'Order not found' }, { status: 404 });
-    // }
+    // ...
 
     // Placeholder data
     const dummyOrder = {
@@ -45,7 +35,6 @@ export async function GET(request: Request, { params }: { params: Params }) {
       paymentStatus: 'Awaiting Confirmation',
       assignedDistributorId: null,
       orderHistory: [ { timestamp: new Date().toISOString(), status: 'Pending Approval', notes: 'Order placed.' } ]
-      // ... other details
     };
 
     return NextResponse.json(dummyOrder);
@@ -56,38 +45,33 @@ export async function GET(request: Request, { params }: { params: Params }) {
   }
 }
 
-export async function PUT(request: Request, { params }: { params: Params }) {
+export async function PUT(
+    request: NextRequest, 
+    { params }: { params: { orderId: string } } // Standard signature
+) {
   // TODO: Implement admin logic to update order details (e.g., during approval process)
-  // 1. Verify Admin Authentication.
-  // 2. Extract orderId from params.
-  // 3. Validate Request Body: What fields are editable by admin? (e.g., maybe address correction before approval? Notes?)
-  // 4. Update Order: Modify the order record in the database.
-  // 5. Log Change: Record the modification in the order history.
-  // 6. Return Updated Order or Success.
+  // ... (rest of comments)
 
   const { orderId } = params;
 
   try {
     // --- Add Admin Authentication Verification Logic Here ---
-    // const adminCheck = await verifyAdmin(request);
-    // if (!adminCheck.isAdmin) {
-    //   return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    // }
+    // ...
 
     const body = await request.json();
     console.log(`Admin: Update order request for ID: ${orderId}`, body); // Placeholder
 
     // --- Add Input Validation Logic Here (validate editable fields) ---
-
+    // ...
     // --- Update Order Logic Here ---
-    // const updateResult = await updateOrderAdmin(orderId, body, adminCheck.userId);
-    // if (!updateResult) {
-    //   return NextResponse.json({ message: 'Order not found or update failed' }, { status: 404 });
-    // }
+    // ...
 
     return NextResponse.json({ message: `Order ${orderId} updated successfully` }); // Placeholder
 
-  } catch (error) {
+  } catch (error: any) {
+     if (error instanceof SyntaxError) {
+        return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
+    }
     console.error(`Admin: Failed to update order ${orderId}:`, error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }

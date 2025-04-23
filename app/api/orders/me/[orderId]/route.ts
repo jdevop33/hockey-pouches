@@ -1,24 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server'; // Import NextRequest
 // import { verifyAuth } from '@/lib/auth';
 // import { getCustomerSpecificOrder } from '@/lib/orderService';
 
-interface Params {
-  orderId: string;
-}
-
-export async function GET(request: Request, { params }: { params: Params }) {
+export async function GET(
+    request: NextRequest, 
+    { params }: { params: { orderId: string } } // Standard signature
+) {
   // TODO: Implement logic for customer to get a specific order
-  // 1. Verify Authentication: Ensure logged-in customer.
-  // 2. Extract Customer ID.
-  // 3. Extract orderId from params.
-  // 4. Fetch Order: Retrieve the specific order, ensuring it belongs to this customer.
-  // 5. Return Order Details or Not Found/Forbidden error.
+  // ... (rest of comments)
 
   const { orderId } = params;
 
   try {
     // --- Add Authentication Verification Logic ---
-    // const authResult = await verifyAuth(request);
+    // const authResult = await verifyAuth(request); // Need to pass request or headers
     // if (!authResult.isAuthenticated) {
     //   return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     // }
@@ -26,12 +21,8 @@ export async function GET(request: Request, { params }: { params: Params }) {
 
     console.log(`Get my specific order request - Order ID: ${orderId}`); // Placeholder
 
-    // --- Fetch Specific Order Logic Here ---
-    // const order = await getCustomerSpecificOrder(customerId, orderId);
-    // if (!order) {
-    //   // Can be 404 (not found) or 403 (forbidden if order exists but isn't theirs)
-    //   return NextResponse.json({ message: 'Order not found or access denied' }, { status: 404 }); 
-    // }
+    // --- Fetch Specific Order Logic Here (check ownership: customerId === order.customerId) ---
+    // ...
 
     // Placeholder data
     const dummyOrder = {
@@ -43,10 +34,8 @@ export async function GET(request: Request, { params }: { params: Params }) {
       billingAddress: { /* ... */ },
       items: [
         { productId: 'prod-1', productName: 'Cool Mint Pouch', quantity: 2, price: 5.99 },
-        // ... more items
       ],
       trackingNumber: 'XYZ123456789',
-      // ... other details
     };
 
     return NextResponse.json(dummyOrder);
