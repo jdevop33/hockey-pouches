@@ -1,20 +1,18 @@
-import { NextResponse, type NextRequest } from 'next/server'; 
+import { NextResponse, type NextRequest } from 'next/server';
 
 export async function GET(
   request: NextRequest, 
-  { params }: { params: { productId: string } } // Friend's suggestion: Use destructuring
+  context: any // Re-applying generic 'any' as workaround for build error
 ) {
-  const { productId } = params; // Extract via destructuring
+  const productId = context?.params?.productId as string | undefined;
 
   if (!productId) {
-    // This check is technically redundant if the signature works, but safe to keep
     return NextResponse.json({ message: 'Product ID is missing.' }, { status: 400 });
   }
 
   try {
     console.log(`Admin: Get inventory for product ID: ${productId}`);
 
-    // Placeholder data
     const dummyProductInventory = [
       { inventoryId: 'inv-1', productId: productId, variationId: 'var-1', variationName: '12mg', location: 'Warehouse A', quantity: 150 },
       { inventoryId: 'inv-3', productId: productId, variationId: 'var-1', variationName: '12mg', location: 'Warehouse B', quantity: 300 },

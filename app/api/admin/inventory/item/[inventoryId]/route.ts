@@ -2,12 +2,11 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export async function PUT(
     request: NextRequest, 
-    { params }: { params: { inventoryId: string } } // Friend's suggestion: Use destructuring
+    context: any // Using generic 'any' as workaround
 ) {
-  const { inventoryId } = params; // Extract via destructuring
+  const inventoryId = context?.params?.inventoryId as string | undefined;
 
   if (!inventoryId) {
-    // This check is technically redundant if the signature works, but safe to keep
     return NextResponse.json({ message: 'Inventory ID is missing.' }, { status: 400 });
   }
 
