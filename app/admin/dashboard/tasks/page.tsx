@@ -59,21 +59,15 @@ export default function AdminTasksPage() {
         await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
         const data = { // Simulated Response
              tasks: [
-                { id: 'task-1', title: 'Approve Order #order-xyz', category: 'Order Approval', status: 'Pending', assignedUserId: 'admin-1', assignedUserName: 'Admin User', dueDate: null, relatedTo: { type: 'Order', id: 'order-xyz' }, priority: 'High', createdAt: '2023-10-28' },
-                { id: 'task-2', title: 'Assign Distributor for Order #order-abc', category: 'Distributor Assignment', status: 'Pending', assignedUserId: 'admin-1', assignedUserName: 'Admin User', dueDate: null, relatedTo: { type: 'Order', id: 'order-abc' }, priority: 'Medium', createdAt: '2023-10-27' },
-                { id: 'task-3', title: 'Verify Fulfillment for Order #order-def', category: 'Fulfillment Verification', status: 'Pending', assignedUserId: 'admin-2', assignedUserName: 'Another Admin', dueDate: null, relatedTo: { type: 'Order', id: 'order-def' }, priority: 'Medium', createdAt: '2023-10-26' },
-                { id: 'task-4', title: 'Follow up with Customer #cust-1', category: 'Customer Service', status: 'Completed', assignedUserId: 'admin-1', assignedUserName: 'Admin User', dueDate: '2023-10-25', relatedTo: { type: 'User', id: 'cust-1' }, priority: 'Low', createdAt: '2023-10-24' },
+                { id: 'task-1', title: 'Approve Order #order-xyz', category: 'Order Approval', status: 'Pending' as AdminTask['status'], assignedUserId: 'admin-1', assignedUserName: 'Admin User', dueDate: null, relatedTo: { type: 'Order', id: 'order-xyz' }, priority: 'High' as AdminTask['priority'], createdAt: '2023-10-28' },
+                { id: 'task-2', title: 'Assign Distributor for Order #order-abc', category: 'Distributor Assignment', status: 'Pending' as AdminTask['status'], assignedUserId: 'admin-1', assignedUserName: 'Admin User', dueDate: null, relatedTo: { type: 'Order', id: 'order-abc' }, priority: 'Medium' as AdminTask['priority'], createdAt: '2023-10-27' },
+                { id: 'task-3', title: 'Verify Fulfillment for Order #order-def', category: 'Fulfillment Verification', status: 'Pending' as AdminTask['status'], assignedUserId: 'admin-2', assignedUserName: 'Another Admin', dueDate: null, relatedTo: { type: 'Order', id: 'order-def' }, priority: 'Medium' as AdminTask['priority'], createdAt: '2023-10-26' },
+                { id: 'task-4', title: 'Follow up with Customer #cust-1', category: 'Customer Service', status: 'Completed' as AdminTask['status'], assignedUserId: 'admin-1', assignedUserName: 'Admin User', dueDate: '2023-10-25', relatedTo: { type: 'User', id: 'cust-1' }, priority: 'Low' as AdminTask['priority'], createdAt: '2023-10-24' },
              ],
              pagination: { page: currentPage, totalPages: 3, total: 45 }
         };
-        // Assert types for status and priority in placeholder data
-        const typedTasks = data.tasks.map(task => ({
-            ...task,
-            status: task.status as AdminTask['status'],
-            priority: task.priority as AdminTask['priority']
-        }))
-
-        setTasks(typedTasks);
+        
+        setTasks(data.tasks);
         setTotalPages(data.pagination.totalPages);
 
       } catch (err) {
