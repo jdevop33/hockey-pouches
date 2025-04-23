@@ -6,10 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import Layout from '@/components/layout/NewLayout'; 
 import { useAuth } from '@/context/AuthContext'; 
 
-// Force dynamic rendering because useSearchParams needs client-side rendering
-export const dynamic = 'force-dynamic';
-
-// Inner component to read search params, allowing Suspense boundary
+// This component uses useSearchParams, so it needs Suspense
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId'); 
@@ -58,12 +55,13 @@ function SuccessContent() {
   );
 }
 
+// Main page component - does NOT use useSearchParams directly
 export default function CheckoutSuccessPage() {
   return (
     <Layout>
       <div className="bg-gray-100 min-h-[70vh] flex items-center justify-center py-12">
-          {/* Wrap component using useSearchParams in Suspense */}
-          <Suspense fallback={<div className="text-center">Loading confirmation...</div>}>
+          {/* Wrap the component that uses the hook in Suspense */}
+          <Suspense fallback={<div className="text-center p-8">Loading confirmation...</div>}>
              <SuccessContent />
           </Suspense>
       </div>
