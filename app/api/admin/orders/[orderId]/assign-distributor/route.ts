@@ -1,13 +1,16 @@
 import { NextResponse, type NextRequest } from 'next/server';
 // import { verifyAdmin } from '@/lib/auth';
 // import { assignDistributorToOrder } from '@/lib/orderWorkflowService';
-// import { updateTaskStatus } from '@/lib/taskService'; // To potentially close assignment task
+// import { updateTaskStatus } from '@/lib/taskService'; 
 
 export async function POST(
     request: NextRequest, 
-    { params }: { params: { orderId: string } } // Applying correct standard signature
+    context: any // Applying workaround universally
 ) {
-  const { orderId } = params;
+  const orderId = context?.params?.orderId as string | undefined;
+  if (!orderId) {
+    return NextResponse.json({ message: 'Order ID is missing.' }, { status: 400 });
+  }
 
   try {
     // --- Add Admin Authentication Verification Logic Here ---
