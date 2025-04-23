@@ -4,23 +4,23 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link'; 
 import { useRouter } from 'next/navigation'; 
-import Layout from '@/components/layout/NewLayout'; 
-// import { useCart } from '@/context/CartContext'; // Temporarily comment out
+// import Layout from '@/components/layout/NewLayout'; // KEEP Layout commented out
+// import { useCart } from '@/context/CartContext'; // KEEP useCart commented out
 import { useAuth } from '@/context/AuthContext'; 
 
 console.log('--- ProductsPage: Top level, imports done ---');
 
-interface Product { /* ... */ 
-id: number; name: string; description?: string | null; flavor?: string | null; strength?: number | null; price: number; compare_at_price?: number | null; image_url?: string | null; category?: string | null; is_active: boolean;
-}
-interface PaginationState { /* ... */ 
- page: number; limit: number; total: number; totalPages: number;
-}
+// Define Product type 
+interface Product { id: number; name: string; price: number; image_url?: string | null; strength?: number; flavor?: string; description?: string; compare_at_price?: number | null; is_active?: boolean; category?: string | null;}
+interface PaginationState { page: number; limit: number; total: number; totalPages: number; }
 
 export default function ProductsPage() {
   console.log('--- ProductsPage: Component rendering START ---');
   
-  // const { addToCart } = useCart(); // Temporarily comment out
+  // Keep useCart commented out
+  // const { addToCart } = useCart(); 
+  const addToCart = (product: Product, quantity: number) => { console.log('Add to cart (disabled)', product.id); alert('Add to cart disabled during debug'); }; // Dummy function
+
   console.log('ProductsPage: Calling useAuth()...');
   const { user, token, isLoading: authLoading } = useAuth(); 
   console.log('ProductsPage: useAuth() finished.');
@@ -35,70 +35,100 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedFlavor, setSelectedFlavor] = useState<string | null>(null);
   const [selectedStrength, setSelectedStrength] = useState<number | null>(null);
-  // const [addedToCartId, setAddedToCartId] = useState<number | null>(null); // Comment out state related to cart
+  const [addedToCartId, setAddedToCartId] = useState<number | null>(null);
   const [pagination, setPagination] = useState<PaginationState>({ page: 1, limit: 12, total: 0, totalPages: 1 });
   console.log('ProductsPage: State initialized.');
 
+  // useEffect to fetch data (keep commented out API call for now)
   useEffect(() => {
-    console.log('*** Product Page useEffect Running! ***');
-    const fetchProducts = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const params = new URLSearchParams({ page: pagination.page.toString(), limit: pagination.limit.toString(), /* Add filters */ });
-        const apiUrl = `/api/products?${params.toString()}`;
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error(`Failed to fetch products (${response.status})`);
-        const data = await response.json();
-        setProducts(data.products || []);
-        setPagination(data.pagination || { page: 1, limit: 12, total: 0, totalPages: 1 });
-      } catch (err: any) { setError(err.message || 'Could not load products.'); console.error(err); }
-       finally { setIsLoading(false); }
-    };
-    fetchProducts();
-  }, [pagination.page, pagination.limit, selectedFlavor, selectedStrength]); 
+    console.log('*** Product Page useEffect Running! ***'); 
+    setIsLoading(false); 
+    // Set some dummy data to render the grid
+    setProducts([ 
+      {id: 1, name: "Test Product 1 (No Layout)", price: 9.99, image_url: "/images/products/placeholder.svg", strength: 6, flavor: "Mint"},
+      {id: 2, name: "Test Product 2 (No Layout)", price: 10.99, image_url: "/images/products/placeholder.svg", strength: 12, flavor: "Berry"},
+      ]);
+    setPagination({ page: 1, limit: 12, total: 2, totalPages: 1 });
+  }, []); 
 
-  const availableFlavors = []; // Placeholder 
-  const availableStrengths = []; // Placeholder
+  // --- Other constants and handlers ---
+  const availableFlavors = ['Mint', 'Fruit', 'Berry']; 
+  const availableStrengths = [6, 12]; 
 
-  // Comment out cart-related handlers
-  // const handleAddToCart = (product: Product) => { /* ... */ };
-  const handlePageChange = (newPage: number) => { /* ... */ };
+  const handleAddToCart = (product: Product) => {
+    // Use dummy function since useCart is commented out
+    addToCart(product, 1); 
+    setAddedToCartId(product.id);
+    setTimeout(() => setAddedToCartId(null), 2000);
+  };
+  
+  const handlePageChange = (newPage: number) => {
+      if(newPage >= 1 && newPage <= pagination.totalPages) {
+          setPagination(prev => ({ ...prev, page: newPage }));
+      }
+  };
 
-  console.log('--- ProductsPage: Render State:', { isLoading, error, productsLength: products.length }); 
+  console.log('--- ProductsPage: Render State:', { isLoading, error, productsLength: products.length });
 
+  // Render loading state
+  if (isLoading) {
+    // Render without Layout
+    return <div className="p-8">Loading Products Page (No Layout)...</div>;
+  }
+
+  // Render main content without Layout
   return (
-    <Layout>
-       <div className="bg-gray-50 py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 text-center"><h1 className="text-3xl font-bold">Our Products</h1></div>
-          <div className="mb-8 rounded-lg bg-white p-6 shadow-md">{/* Filters Placeholder */}</div>
-          {isLoading && <div className="text-center p-10">Loading products...</div>}
-          {error && <div className="text-center p-10 text-red-600 bg-red-100 rounded">Error: {error}</div>}
-          {!isLoading && !error && products.length > 0 && (
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map(product => (
-                <div key={product.id} className="flex flex-col overflow-hidden rounded-lg bg-white shadow-md">
-                   <Link href={`/products/${product.id}`} className="block group">
-                     <div className="relative h-64 bg-gray-100 group-hover:opacity-75 transition-opacity">
-                        <Image src={product.image_url || '/images/products/placeholder.svg'} alt={product.name} fill style={{ objectFit: 'contain' }} className="p-4"/> 
-                        {product.strength && <div className="absolute right-4 top-4"><span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800">{product.strength}mg</span></div>}
+    // Removed Layout wrapper
+    <div className="bg-gray-50 py-12 border-4 border-orange-500">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-12 text-center"><h1 className="text-3xl font-bold">Our Products (No Layout Debug)</h1></div>
+        <div className="mb-8 rounded-lg bg-white p-6 shadow-md">{/* Filters Placeholder */}</div>
+        
+        {error && <div className="text-center p-10 text-red-600 bg-red-100 rounded">Error: {error}</div>}
+
+        {/* Products Grid - RESTORED */} 
+        {!error && products.length > 0 && (
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {products.map(product => (
+              <div key={product.id} className="flex flex-col overflow-hidden rounded-lg bg-white shadow-md">
+                 <Link href={`/products/${product.id}`} className="block group">
+                   <div className="relative h-64 bg-gray-100 group-hover:opacity-75 transition-opacity">
+                      <Image src={product.image_url || '/images/products/placeholder.svg'} alt={product.name} fill style={{ objectFit: 'contain' }} className="p-4"/> 
+                      {product.strength && <div className="absolute right-4 top-4"><span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800">{product.strength}mg</span></div>}
+                   </div>
+                 </Link>
+                 <div className="flex-grow p-6">
+                   <h3 className="mb-2 text-lg font-medium text-gray-900"><Link href={`/products/${product.id}`} className="hover:text-primary-600">{product.name}</Link></h3>
+                   <div className="mb-4 mt-2 flex justify-between text-sm">
+                       <span className="text-gray-500">Flavor: <span className="text-gray-900">{product.flavor || 'N/A'}</span></span>
+                   </div>
+                   <div className="border-t border-gray-200 pt-4">
+                     <div className="flex items-center justify-between">
+                       <div>
+                           {product.compare_at_price && product.compare_at_price > product.price ? (
+                             <div className="flex items-center">
+                               <p className="text-lg font-medium text-red-600">${product.price.toFixed(2)}</p>
+                               <p className="ml-2 text-sm text-gray-500 line-through">${product.compare_at_price.toFixed(2)}</p>
+                             </div>
+                           ) : (
+                             <p className="text-lg font-medium text-gray-900">${product.price.toFixed(2)}</p>
+                           )}
+                       </div>
+                       <button onClick={() => handleAddToCart(product)} className={`inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm ${addedToCartId === product.id ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-primary-600 text-white hover:bg-primary-700'}`}>
+                           {addedToCartId === product.id ? 'Added!' : 'Add to Cart (Debug)'}
+                       </button>
                      </div>
-                   </Link>
-                   <div className="flex-grow p-6">
-                     <h3 className="mb-2 text-lg font-medium text-gray-900"><Link href={`/products/${product.id}`} className="hover:text-primary-600">{product.name}</Link></h3>
-                     {/* Remove Add to Cart button temporarily */}
                    </div>
                  </div>
-              ))}
-            </div>
-          )}
-          {!isLoading && !error && products.length === 0 && (
-             <div className="rounded-lg bg-white p-8 text-center shadow-md">No products found.</div>
-          )}
-          {/* Pagination Placeholder */}
-        </div>
+               </div>
+            ))}
+          </div>
+        )}
+        {!error && products.length === 0 && (
+           <div className="rounded-lg bg-white p-8 text-center shadow-md">No products loaded (Debug View). Check console.</div>
+        )}
+        {/* Pagination Placeholder */} 
       </div>
-    </Layout>
+    </div>
   );
 }
