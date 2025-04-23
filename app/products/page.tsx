@@ -6,88 +6,70 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation'; 
 // import Layout from '@/components/layout/NewLayout'; // KEEP Layout commented out
 // import { useCart } from '@/context/CartContext'; // KEEP useCart commented out
-import { useAuth } from '@/context/AuthContext'; 
+// import { useAuth } from '@/context/AuthContext'; // Temporarily comment out useAuth
 
-console.log('--- ProductsPage: Top level, imports done ---');
+console.log('--- ProductsPage: Top level, imports done (Auth commented out) ---');
 
-// Define Product type 
+// Define minimal Product type 
 interface Product { id: number; name: string; price: number; image_url?: string | null; strength?: number; flavor?: string; description?: string; compare_at_price?: number | null; is_active?: boolean; category?: string | null;}
 interface PaginationState { page: number; limit: number; total: number; totalPages: number; }
 
 export default function ProductsPage() {
-  console.log('--- ProductsPage: Component rendering START ---');
+  console.log('--- ProductsPage: Component rendering START (Auth commented out) ---');
   
   // Keep useCart commented out
   // const { addToCart } = useCart(); 
   const addToCart = (product: Product, quantity: number) => { console.log('Add to cart (disabled)', product.id); alert('Add to cart disabled during debug'); }; // Dummy function
 
-  console.log('ProductsPage: Calling useAuth()...');
-  const { user, token, isLoading: authLoading } = useAuth(); 
-  console.log('ProductsPage: useAuth() finished.');
+  // Keep useAuth commented out
+  // console.log('ProductsPage: Calling useAuth()...');
+  // const { user, token, isLoading: authLoading } = useAuth(); 
+  // console.log('ProductsPage: useAuth() finished.');
   
   console.log('ProductsPage: Calling useRouter()...');
-  const router = useRouter();
+  const router = useRouter(); // Keep useRouter for now
   console.log('ProductsPage: useRouter() finished.');
   
   console.log('ProductsPage: Initializing state...');
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedFlavor, setSelectedFlavor] = useState<string | null>(null);
-  const [selectedStrength, setSelectedStrength] = useState<number | null>(null);
-  const [addedToCartId, setAddedToCartId] = useState<number | null>(null);
+  const [addedToCartId, setAddedToCartId] = useState<number | null>(null); // Keep cart state for button
   const [pagination, setPagination] = useState<PaginationState>({ page: 1, limit: 12, total: 0, totalPages: 1 });
   console.log('ProductsPage: State initialized.');
 
-  // useEffect to fetch data (keep commented out API call for now)
   useEffect(() => {
-    console.log('*** Product Page useEffect Running! ***'); 
+    console.log('*** Product Page useEffect Running! (Auth commented out) ***'); 
     setIsLoading(false); 
-    // Set some dummy data to render the grid
     setProducts([ 
-      {id: 1, name: "Test Product 1 (No Layout)", price: 9.99, image_url: "/images/products/placeholder.svg", strength: 6, flavor: "Mint"},
-      {id: 2, name: "Test Product 2 (No Layout)", price: 10.99, image_url: "/images/products/placeholder.svg", strength: 12, flavor: "Berry"},
+      {id: 1, name: "Test Product 1 (No Layout, No Cart, No Auth)", price: 9.99, image_url: "/images/products/placeholder.svg", strength: 6, flavor: "Mint"},
+      {id: 2, name: "Test Product 2", price: 10.99, image_url: "/images/products/placeholder.svg", strength: 12, flavor: "Berry"},
       ]);
     setPagination({ page: 1, limit: 12, total: 2, totalPages: 1 });
   }, []); 
 
-  // --- Other constants and handlers ---
-  const availableFlavors = ['Mint', 'Fruit', 'Berry']; 
-  const availableStrengths = [6, 12]; 
-
   const handleAddToCart = (product: Product) => {
-    // Use dummy function since useCart is commented out
     addToCart(product, 1); 
     setAddedToCartId(product.id);
     setTimeout(() => setAddedToCartId(null), 2000);
   };
   
-  const handlePageChange = (newPage: number) => {
-      if(newPage >= 1 && newPage <= pagination.totalPages) {
-          setPagination(prev => ({ ...prev, page: newPage }));
-      }
-  };
+  const handlePageChange = (newPage: number) => { /* ... */ };
 
   console.log('--- ProductsPage: Render State:', { isLoading, error, productsLength: products.length });
 
   // Render loading state
   if (isLoading) {
-    // Render without Layout
-    return <div className="p-8">Loading Products Page (No Layout)...</div>;
+    return <div className="p-8">Loading Products Page (No Layout/Cart/Auth)...</div>;
   }
 
   // Render main content without Layout
   return (
-    // Removed Layout wrapper
-    <div className="bg-gray-50 py-12 border-4 border-orange-500">
+    <div className="bg-gray-50 py-12 border-4 border-purple-500">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 text-center"><h1 className="text-3xl font-bold">Our Products (No Layout Debug)</h1></div>
-        <div className="mb-8 rounded-lg bg-white p-6 shadow-md">{/* Filters Placeholder */}</div>
-        
+        <div className="mb-12 text-center"><h1 className="text-3xl font-bold">Our Products (No Layout/Cart/Auth Debug)</h1></div>
         {error && <div className="text-center p-10 text-red-600 bg-red-100 rounded">Error: {error}</div>}
-
-        {/* Products Grid - RESTORED */} 
-        {!error && products.length > 0 && (
+        {products.length > 0 ? (
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {products.map(product => (
               <div key={product.id} className="flex flex-col overflow-hidden rounded-lg bg-white shadow-md">
@@ -105,17 +87,10 @@ export default function ProductsPage() {
                    <div className="border-t border-gray-200 pt-4">
                      <div className="flex items-center justify-between">
                        <div>
-                           {product.compare_at_price && product.compare_at_price > product.price ? (
-                             <div className="flex items-center">
-                               <p className="text-lg font-medium text-red-600">${product.price.toFixed(2)}</p>
-                               <p className="ml-2 text-sm text-gray-500 line-through">${product.compare_at_price.toFixed(2)}</p>
-                             </div>
-                           ) : (
-                             <p className="text-lg font-medium text-gray-900">${product.price.toFixed(2)}</p>
-                           )}
+                         <p className="text-lg font-medium text-gray-900">${product.price.toFixed(2)}</p>
                        </div>
                        <button onClick={() => handleAddToCart(product)} className={`inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm ${addedToCartId === product.id ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-primary-600 text-white hover:bg-primary-700'}`}>
-                           {addedToCartId === product.id ? 'Added!' : 'Add to Cart (Debug)'}
+                         {addedToCartId === product.id ? 'Added!' : 'Add to Cart (Debug)'}
                        </button>
                      </div>
                    </div>
@@ -123,11 +98,9 @@ export default function ProductsPage() {
                </div>
             ))}
           </div>
+        ) : (
+           <div className="rounded-lg bg-white p-8 text-center shadow-md">No products loaded (Debug View - Auth commented out). Check console.</div>
         )}
-        {!error && products.length === 0 && (
-           <div className="rounded-lg bg-white p-8 text-center shadow-md">No products loaded (Debug View). Check console.</div>
-        )}
-        {/* Pagination Placeholder */} 
       </div>
     </div>
   );
