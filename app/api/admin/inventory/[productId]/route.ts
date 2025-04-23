@@ -2,10 +2,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export async function GET(
   request: NextRequest, 
-  context: any // Re-applying generic 'any' as workaround for build error
+  context: any // Applying workaround universally
 ) {
   const productId = context?.params?.productId as string | undefined;
-
   if (!productId) {
     return NextResponse.json({ message: 'Product ID is missing.' }, { status: 400 });
   }

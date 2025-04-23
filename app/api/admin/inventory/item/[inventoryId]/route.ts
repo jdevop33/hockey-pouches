@@ -1,15 +1,28 @@
 // app/api/admin/inventory/item/[inventoryId]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
+// Define the specific params type for this route as suggested
+type ContextParams = {
+  params: {
+    inventoryId: string;
+  };
+};
+
 // Ensure verifyAdmin and updateInventoryQuantity are properly defined elsewhere if used
 // import { verifyAdmin } from '@/lib/auth'; 
 // import { updateInventoryQuantity } from '@/lib/inventoryService'; 
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { inventoryId: string } } // The expected signature
+  context: ContextParams // Using the suggested typed context parameter
 ) {
-  const { inventoryId } = params;
+  // Extract inventoryId from context.params
+  const inventoryId = context.params.inventoryId;
+  
+  // Optional check (good practice even if types work)
+  if (!inventoryId) {
+     return NextResponse.json({ message: 'Inventory ID is missing.' }, { status: 400 });
+  }
 
   try {
     // --- Optional: Add Admin Authentication Verification Logic Here ---
@@ -45,3 +58,5 @@ export async function PUT(
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }
+
+// Note: If GET or other handlers exist in this file, they need the same signature: (request: NextRequest, context: ContextParams)
