@@ -1,13 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
-// TODO: Add admin auth check
+// Removed QueryResult import as it's not returned by default
+// import { QueryResult } from '@neondatabase/serverless';
 
-// Explicitly force dynamic rendering
 export const dynamic = 'force-dynamic';
 
-// Placeholder Type
 type AdminOrder = {
-  id: string;
+  id: number; // Changed to number to match SERIAL type from DB
   date: string;
   customerName: string;
   customerId: string;
@@ -17,9 +16,9 @@ type AdminOrder = {
 };
 
 export async function GET(request: NextRequest) {
-  // TODO: Add Admin Auth Check here!
   try {
-    const { searchParams } = request.nextUrl;
+    // TODO: Add Admin Auth Check here!
+    const searchParams = request.nextUrl.searchParams; 
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '15'); 
     const offset = (page - 1) * limit;
@@ -27,7 +26,6 @@ export async function GET(request: NextRequest) {
     
     console.log(`Admin GET /api/admin/orders - Page: ${page}, Limit: ${limit}, Status: ${statusFilter}`);
 
-    // Build WHERE clause dynamically (Example)
     let conditions = [];
     let queryParams: any[] = [];
     let paramIndex = 1;
@@ -35,12 +33,19 @@ export async function GET(request: NextRequest) {
         conditions.push(`status = $${paramIndex++}`);
         queryParams.push(statusFilter);
     }
-    // Add more conditions for other filters...
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     // Fetch Orders
+    // Note: Selecting specific columns and casting numeric types
     const ordersQuery = `
-        SELECT id, created_at as date, customer_name as customerName, user_id as customerId, total_amount as total, status, assigned_distributor_id as distributorId 
+        SELECT 
+            id, 
+            created_at as date, 
+            shipping_address->>'name' as customerName, -- Example: extract name from JSON
+            user_id as customerId, 
+            CAST(total_amount AS FLOAT) as total, 
+            status, 
+            assigned_distributor_id as distributorId 
         FROM orders 
         ${whereClause} 
         ORDER BY created_at DESC 
@@ -50,7 +55,7 @@ export async function GET(request: NextRequest) {
     
     // Fetch Total Count with same filters
     const countQuery = `SELECT COUNT(*) FROM orders ${whereClause}`;
-    const countQueryParams = queryParams.slice(0, conditions.length); // Only use filter params for count
+    const countQueryParams = queryParams.slice(0, conditions.length); 
 
     // Execute concurrently
     const [ordersResult, totalResult] = await Promise.all([
@@ -58,9 +63,10 @@ export async function GET(request: NextRequest) {
         sql.query(countQuery, countQueryParams)
     ]);
 
-    const totalOrders = parseInt(totalResult.rows[0]?.count || '0');
+    // Access results directly as arrays
+    const totalOrders = parseInt(totalResult[0]?.count || '0'); // Access count from the first row
     const totalPages = Math.ceil(totalOrders / limit);
-    const orders = ordersResult.rows as AdminOrder[]; 
+    const orders = ordersResult as AdminOrder[]; // Cast the array of rows
 
     return NextResponse.json({ 
       orders: orders, 
