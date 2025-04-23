@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Layout from '../../../components/layout/NewLayout'; // Corrected relative path (3 levels up)
-// import { useAuth } from '@/context/AuthContext'; // Example auth context
+import { useRouter } from 'next/navigation';
+import Layout from '../../../components/layout/NewLayout'; 
+import { useAuth } from '../../../context/AuthContext'; 
 
 // Placeholder Type
 type AdminOrder = {
@@ -12,70 +13,74 @@ type AdminOrder = {
   customerName: string;
   customerId: string;
   total: number;
-  status: string; // e.g., 'Pending Approval', 'Awaiting Fulfillment', 'Shipped', etc.
+  status: string; 
   distributorId?: string | null;
 };
 
 export default function AdminOrdersPage() {
-  // const { user, loading: authLoading } = useAuth(); // Example
+  const router = useRouter();
+  const { user, token, isLoading: authLoading, logout } = useAuth();
+
   const [orders, setOrders] = useState<AdminOrder[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // TODO: Add state for filtering (status, customer, date range) and pagination
   const [filterStatus, setFilterStatus] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // TODO: Implement proper authentication check and ensure user role is 'Admin'
-  const isAuthenticated = true; // Placeholder
-  const isAdmin = true; // Placeholder
-
+  // Auth and Role Check Effect
   useEffect(() => {
-    if (!isAuthenticated || !isAdmin) {
-      // router.push('/login'); // Redirect if not authorized
-      return;
-    }
-
-    const loadOrders = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        // TODO: Replace placeholder with actual API call to /api/admin/orders?status={filterStatus}&page={currentPage}...
-        const query = new URLSearchParams({
-           page: currentPage.toString(),
-           limit: '15', // Example limit
-           ...(filterStatus && { status: filterStatus }), // Add status if selected
-           // Add other filters like date ranges, customer search
-        }).toString();
-
-        // const response = await fetch(`/api/admin/orders?${query}`);
-        // if (!response.ok) throw new Error('Failed to fetch orders');
-        // const data = await response.json();
-
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
-        const data = { // Simulated Response
-            orders: [
-                { id: 'order-abc', date: '2023-10-27', customerName: 'Alice Smith', customerId: 'cust-1', total: 55.50, status: 'Pending Approval', distributorId: null },
-                { id: 'order-def', date: '2023-10-26', customerName: 'Bob Jones', customerId: 'cust-2', total: 120.00, status: 'Awaiting Fulfillment', distributorId: 'dist-1' },
-                { id: 'order-ghi', date: '2023-10-25', customerName: 'Charlie Brown', customerId: 'cust-3', total: 35.00, status: 'Shipped', distributorId: 'dist-2' },
-                 { id: 'order-jkl', date: '2023-10-28', customerName: 'Diana Prince', customerId: 'cust-4', total: 75.00, status: 'Pending Approval', distributorId: null },
-            ],
-            pagination: { page: currentPage, totalPages: 3, total: 40 }
-        };
-
-        setOrders(data.orders);
-        setTotalPages(data.pagination.totalPages);
-
-      } catch (err) {
-        setError('Failed to load orders.');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
+    if (!authLoading) {
+      if (!user || !token) {
+        router.push('/login?redirect=/admin/dashboard/orders');
+      } else if (user.role !== 'Admin') {
+        router.push('/dashboard'); // Redirect non-admins
       }
-    };
+    }
+  }, [user, token, authLoading, router]);
 
-    loadOrders();
-  }, [isAuthenticated, isAdmin, currentPage, filterStatus]); // Reload on page or filter change
+  // Data Fetching Effect
+  useEffect(() => {
+    if (!authLoading && user && token && user.role === 'Admin') {
+      const loadOrders = async () => {
+        setIsLoadingData(true);
+        setError(null);
+        try {
+          const query = new URLSearchParams({
+             page: currentPage.toString(),
+             limit: '15', 
+             ...(filterStatus && { status: filterStatus }),
+          }).toString();
+          
+          const response = await fetch(`/api/admin/orders?${query}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (!response.ok) {
+             if (response.status === 401) { logout(); router.push('/login'); return; }
+             throw new Error(`Failed to fetch orders (${response.status})`);
+          }
+          const data = await response.json();
+          
+          setOrders(data.orders || []);
+          setTotalPages(data.pagination?.totalPages || 1);
+
+        } catch (err: any) {
+           if (err.message?.includes('401')) { // Basic check for token errors from API
+                logout();
+                router.push('/login?redirect=/admin/dashboard/orders');
+           } else {
+               setError('Failed to load orders.');
+               console.error(err);
+           }
+        } finally {
+          setIsLoadingData(false);
+        }
+      };
+      loadOrders();
+    } else if (!authLoading) {
+         setIsLoadingData(false); // Stop loading if not authorized
+    }
+  }, [user, token, authLoading, currentPage, filterStatus, router, logout]); 
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -83,7 +88,7 @@ export default function AdminOrdersPage() {
     }
   };
 
-   const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string) => { /* ... as before ... */ 
         switch (status) {
             case 'Pending Approval': return 'bg-yellow-100 text-yellow-800';
             case 'Awaiting Fulfillment': return 'bg-blue-100 text-blue-800';
@@ -94,28 +99,24 @@ export default function AdminOrdersPage() {
         }
     };
 
-  if (isLoading) {
+  // Render Loading / Unauthorized states
+  if (authLoading || isLoadingData) {
     return <Layout><div className="p-8">Loading orders...</div></Layout>;
   }
-
-  if (!isAuthenticated || !isAdmin) {
-    return <Layout><div className="p-8">Access Denied. Redirecting...</div></Layout>;
+  if (!user || user.role !== 'Admin') {
+    return <Layout><div className="p-8">Access Denied.</div></Layout>;
   }
 
+  // Render Orders Table
   return (
     <Layout>
       <div className="bg-gray-100 min-h-screen p-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Manage Orders</h1>
-
-        {/* TODO: Add Filter controls (status, date range, customer search) */} 
+        {/* Filters */} 
         <div className="mb-6 p-4 bg-white rounded-md shadow">
-            <label htmlFor="statusFilter" className="mr-2 text-sm font-medium text-gray-700">Filter by Status:</label>
-            <select 
-                id="statusFilter" 
-                value={filterStatus} 
-                onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }} // Reset page on filter change
-                className="rounded-md border-gray-300 shadow-sm sm:text-sm"
-            >
+            {/* ... filter controls ... */} 
+             <label htmlFor="statusFilter" className="mr-2 text-sm font-medium text-gray-700">Filter by Status:</label>
+            <select id="statusFilter" value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }} className="rounded-md border-gray-300 shadow-sm sm:text-sm">
                 <option value="">All Statuses</option>
                 <option value="Pending Approval">Pending Approval</option>
                 <option value="Awaiting Fulfillment">Awaiting Fulfillment</option>
@@ -123,16 +124,13 @@ export default function AdminOrdersPage() {
                 <option value="Shipped">Shipped</option>
                 <option value="Delivered">Delivered</option>
                 <option value="Cancelled">Cancelled</option>
-                 {/* Add other relevant statuses */} 
             </select>
-             {/* Add more filters here */} 
         </div>
-
-        {error && <p className="text-red-500 mb-4">Error: {error}</p>}
-
+        {error && <p className="text-red-500 mb-4 bg-red-100 p-3 rounded">Error: {error}</p>}
         <div className="bg-white shadow-md rounded-lg overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            {/* ... table head ... */} 
+             <thead className="bg-gray-50">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
@@ -140,46 +138,29 @@ export default function AdminOrdersPage() {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Distributor</th>
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                <th scope="col" className="relative px-6 py-3">
-                  <span className="sr-only">Actions</span>
-                </th>
+                <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {orders.length > 0 ? (
                 orders.map((order) => (
                   <tr key={order.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-600 hover:text-primary-800">
-                       <Link href={`/admin/dashboard/orders/${order.id}`}>#{order.id.split('-')[1]}</Link>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.date}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <Link href={`/admin/dashboard/users/${order.customerId}`} className="hover:underline">{order.customerName}</Link>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                       {order.distributorId ? 
-                         (<Link href={`/admin/dashboard/users/${order.distributorId}`} className="hover:underline">{order.distributorId}</Link>) 
-                         : 'N/A'}
-                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900 font-medium">${order.total.toFixed(2)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link href={`/admin/dashboard/orders/${order.id}`} className="text-primary-600 hover:text-primary-900">Manage</Link>
-                    </td>
+                    {/* ... table row data ... */} 
+                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-600 hover:text-primary-800"><Link href={`/admin/dashboard/orders/${order.id}`}>#{order.id.split('-')[1]}</Link></td>
+                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(order.date).toLocaleDateString()}</td>
+                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><Link href={`/admin/dashboard/users/${order.customerId}`} className="hover:underline">{order.customerName}</Link></td>
+                       <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>{order.status}</span></td>
+                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.distributorId ? (<Link href={`/admin/dashboard/users/${order.distributorId}`} className="hover:underline">{order.distributorId}</Link>) : 'N/A'}</td>
+                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900 font-medium">${order.total.toFixed(2)}</td>
+                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"><Link href={`/admin/dashboard/orders/${order.id}`} className="text-primary-600 hover:text-primary-900">Manage</Link></td>
                   </tr>
                 ))
               ) : (
-                <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">No orders found matching criteria.</td>
-                </tr>
+                <tr><td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">No orders found matching criteria.</td></tr>
               )}
             </tbody>
           </table>
-           {/* TODO: Add Pagination Controls component */} 
+           {/* Pagination */} 
            <div className="p-4 border-t">Pagination Placeholder</div>
         </div>
       </div>
