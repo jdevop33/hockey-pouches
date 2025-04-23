@@ -1,45 +1,65 @@
-import { NextResponse } from 'next/server';
-// import { verifyAdmin } from '@/lib/auth'; // Example: custom admin verification
+import { NextResponse, type NextRequest } from 'next/server';
+import sql from '@/lib/db';
 
-export async function GET(request: Request) {
-  // TODO: Implement admin logic to list users
-  // 1. Verify Admin Authentication: Check if the user is an admin.
-  // 2. Parse Query Parameters: Handle filtering (e.g., by role, status) and pagination (page, limit).
-  // 3. Fetch Users: Retrieve users from the database based on filters/pagination, excluding sensitive data.
-  // 4. Return User List: Send the list of users and pagination metadata.
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
+// Placeholder Type
+type AdminUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Admin' | 'Distributor' | 'Retail Customer' | 'Wholesale Buyer';
+  status: 'Active' | 'Suspended' | 'Pending Verification';
+  joinDate: string;
+};
+
+export async function GET(request: NextRequest) {
+  // TODO: Add Admin Auth check
   try {
-    // --- Add Admin Authentication Verification Logic Here ---
-    // const adminCheck = await verifyAdmin(request);
-    // if (!adminCheck.isAdmin) {
-    //   return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    // }
+    const searchParams = request.nextUrl.searchParams;
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '15'); 
+    const offset = (page - 1) * limit;
+    const filterRole = searchParams.get('role');
+    const filterStatus = searchParams.get('status');
 
-    const { searchParams } = new URL(request.url);
-    const page = searchParams.get('page') || '1';
-    const limit = searchParams.get('limit') || '10';
-    // Add other filters (role, status, search query)
+    console.log(`Admin GET /api/admin/users - Page: ${page}, Limit: ${limit}, Role: ${filterRole}, Status: ${filterStatus}`);
 
-    console.log(`Admin: Get users request - Page: ${page}, Limit: ${limit}`); // Placeholder
+    // Build WHERE clause
+    let conditions = [];
+    let queryParams: any[] = [];
+    let paramIndex = 1;
+    if (filterRole) { conditions.push(`role = $${paramIndex++}`); queryParams.push(filterRole); }
+    if (filterStatus) { conditions.push(`status = $${paramIndex++}`); queryParams.push(filterStatus); }
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    // --- Fetch Users Logic Here (with filtering and pagination) ---
+    // Fetch Users
+    const usersQuery = `
+        SELECT id, name, email, role, status, created_at as joinDate 
+        FROM users 
+        ${whereClause} 
+        ORDER BY created_at DESC 
+        LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+    `;
+    queryParams.push(limit, offset);
 
-    // Replace with actual user data and pagination info
-    const dummyUsers = [
-      { id: 'user-1', name: 'Admin User', email: 'admin@example.com', role: 'Admin', status: 'Active' },
-      { id: 'user-2', name: 'Distributor User', email: 'distributor@example.com', role: 'Distributor', status: 'Active' },
-      { id: 'user-3', name: 'Retail User', email: 'customer@example.com', role: 'Retail Customer', status: 'Suspended' },
-    ];
-    const totalUsers = 15; // Example total count
+    // Fetch Count
+    const countQuery = `SELECT COUNT(*) FROM users ${whereClause}`;
+    const countQueryParams = queryParams.slice(0, conditions.length);
+
+    const [usersResult, totalResult] = await Promise.all([
+        sql.query(usersQuery, queryParams),
+        sql.query(countQuery, countQueryParams)
+    ]);
+
+    const totalUsers = parseInt(totalResult[0]?.count || '0');
+    const totalPages = Math.ceil(totalUsers / limit);
+    const users = usersResult as AdminUser[];
 
     return NextResponse.json({ 
-      users: dummyUsers, 
-      pagination: { 
-        page: parseInt(page), 
-        limit: parseInt(limit), 
-        total: totalUsers, 
-        totalPages: Math.ceil(totalUsers / parseInt(limit))
-      }
+      users: users, 
+      pagination: { page, limit, total: totalUsers, totalPages }
     });
 
   } catch (error) {
@@ -47,3 +67,5 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+// POST handler would go here if needed for creating users via admin
