@@ -1,9 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
 
-export const dynamic = 'force-dynamic';
+// TODO: Add JWT verification + Admin role check for this route
 
-// TODO: Add JWT verification + Admin role check
+export const dynamic = 'force-dynamic';
 
 export async function POST(
     request: NextRequest, 
@@ -12,7 +12,9 @@ export async function POST(
   const { orderId: orderIdString } = params;
   const orderId = parseInt(orderIdString);
 
-  if (isNaN(orderId)) return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
+  if (isNaN(orderId)) {
+      return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
+  }
 
   // TODO: Admin Auth Check
   // const adminUserId = ...
@@ -21,22 +23,25 @@ export async function POST(
 
   try {
     const orderCheck = await sql`SELECT status FROM orders WHERE id = ${orderId}`;
-    if (orderCheck.length === 0) return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
-    
+    if (orderCheck.length === 0) {
+        return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
+    }
     const currentStatus = orderCheck[0].status;
+
     if (currentStatus !== 'Pending Fulfillment Verification') {
         return NextResponse.json({ message: `Order cannot be verified. Current status: ${currentStatus}` }, { status: 400 });
     }
 
-    const newStatus = 'Awaiting Shipment'; // Or directly to Shipped if preferred
+    const newStatus = 'Awaiting Shipment'; 
     console.log(`Updating order ${orderId} status from ${currentStatus} to ${newStatus}...`);
     
     await sql`
-        UPDATE orders SET status = ${newStatus}, updated_at = CURRENT_TIMESTAMP 
+        UPDATE orders 
+        SET status = ${newStatus}, updated_at = CURRENT_TIMESTAMP 
         WHERE id = ${orderId}
     `;
     
-    // TODO: Add entry to order_history table
+    // TODO: Add entry to order_history table (e.g., "Fulfillment verified by Admin Y")
     // TODO: Update/Close the 'Fulfillment Verification' task 
     // TODO: Create Task: Generate a 'Shipping Confirmation' task
 

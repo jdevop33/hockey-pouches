@@ -1,9 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
 
-export const dynamic = 'force-dynamic';
-
 // TODO: Add JWT verification + Admin role check
+
+export const dynamic = 'force-dynamic';
 
 interface ShipBody { trackingNumber?: string | null; }
 
@@ -21,26 +21,32 @@ export async function POST(
   console.log(`POST /api/admin/orders/${orderId}/ship request`);
 
   try {
+    // Tracking number might already be on the order from fulfillment step, 
+    // but allow overriding/adding it here via optional body.
     const body: ShipBody = await request.json().catch(() => ({})); 
-    const trackingNumber = body.trackingNumber || null;
+    const trackingNumber = body.trackingNumber || null; // Use body tracking if provided
 
-    const orderCheck = await sql`SELECT status, user_id FROM orders WHERE id = ${orderId}`;
+    // Fetch order to check status and potentially get existing tracking
+    const orderCheck = await sql`SELECT status, user_id, tracking_number FROM orders WHERE id = ${orderId}`;
     if (orderCheck.length === 0) return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
     
     const currentStatus = orderCheck[0].status;
     const customerUserId = orderCheck[0].user_id;
+    const existingTracking = orderCheck[0].tracking_number;
+    const finalTrackingNumber = trackingNumber || existingTracking; // Prioritize tracking from request body
 
-    // Allow shipping from 'Awaiting Shipment' or potentially directly after verification
-    if (!['Awaiting Shipment', 'Verified - Awaiting Shipment'].includes(currentStatus)) { 
+    if (!['Awaiting Shipment'].includes(currentStatus)) { 
         return NextResponse.json({ message: `Order cannot be marked as shipped. Current status: ${currentStatus}` }, { status: 400 });
     }
 
     const newStatus = 'Shipped';
-    console.log(`Updating order ${orderId} status to ${newStatus} with tracking: ${trackingNumber || 'N/A'}`);
+    console.log(`Updating order ${orderId} status to ${newStatus} with tracking: ${finalTrackingNumber || 'N/A'}`);
     
     await sql`
         UPDATE orders 
-        SET status = ${newStatus}, tracking_number = ${trackingNumber}, updated_at = CURRENT_TIMESTAMP 
+        SET status = ${newStatus}, 
+            tracking_number = ${finalTrackingNumber},
+            updated_at = CURRENT_TIMESTAMP 
         WHERE id = ${orderId}
     `;
     

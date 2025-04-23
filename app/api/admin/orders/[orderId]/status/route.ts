@@ -54,14 +54,13 @@ export async function PUT(
     // --- CRITICAL: Handle Side Effects --- 
     if (newStatus === 'Cancelled') {
         console.warn(`SIDE EFFECT TODO: Order ${orderId} Cancelled. Need to restock inventory and potentially void commissions.`);
-        // await restockInventoryForOrder(orderId, targetLocation); // Need location
+        // await restockInventoryForOrder(orderId); // Need more info like items/location
         // await voidCommissionsForOrder(orderId);
     }
      if (newStatus === 'Refunded') {
          console.warn(`SIDE EFFECT TODO: Order ${orderId} Refunded. Need to process refund via payment gateway.`);
          // await processRefund(orderId);
      }
-    // Add other side effect logic as needed
 
     return NextResponse.json({ message: `Order ${orderId} status manually updated to ${newStatus}.` });
 
