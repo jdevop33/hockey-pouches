@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Layout from '@/components/layout/NewLayout'; // Using alias
-import { useAuth } from '@/context/AuthContext'; // Using alias
+import { useRouter } from 'next/navigation'; // Added missing import
+import Layout from '@/components/layout/NewLayout'; 
+import { useAuth } from '@/context/AuthContext'; 
 
 // Placeholder Type
 type AdminProduct = {
-  id: string; // Assuming string ID from API/DB now
+  id: string; 
   name: string;
   category: string;
   price: number;
@@ -16,8 +17,8 @@ type AdminProduct = {
 };
 
 export default function AdminProductsPage() {
-  const { user, token, isLoading: authLoading, logout } = useAuth(); // Use auth hook
-  const router = useRouter(); // Use router if needed for redirects
+  const { user, token, isLoading: authLoading, logout } = useAuth(); 
+  const router = useRouter(); // Now defined because of import
   
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -43,7 +44,6 @@ export default function AdminProductsPage() {
         setIsLoadingData(true);
         setError(null);
         try {
-          // TODO: API call to /api/admin/products?page={currentPage}...
           const response = await fetch(`/api/admin/products?page=${currentPage}&limit=15`, {
                headers: { 'Authorization': `Bearer ${token}` }
           });
@@ -53,7 +53,6 @@ export default function AdminProductsPage() {
           }
           const data = await response.json();
           
-          // Assuming API returns string IDs now
           setProducts(data.products || []);
           setTotalPages(data.pagination?.totalPages || 1);
 
@@ -71,8 +70,8 @@ export default function AdminProductsPage() {
   }, [user, token, authLoading, currentPage, router, logout]); 
 
    const handlePageChange = (newPage: number) => { /* ... */ };
-   const handleAddProduct = () => { /* ... */ };
-   const handleEditProduct = (productId: string) => { /* ... */ };
+   const handleAddProduct = () => { alert('Open Add Product Modal'); };
+   const handleEditProduct = (productId: string) => { router.push(`/admin/dashboard/products/${productId}`); }; // Navigate to detail page
    const handleDeleteProduct = async (productId: string) => { /* ... */ };
 
   // Render Loading / Unauthorized states
@@ -86,8 +85,11 @@ export default function AdminProductsPage() {
   return (
     <Layout>
       <div className="bg-gray-100 min-h-screen p-8">
-         {/* Header + Add Button */} 
-         <div className="flex justify-between items-center mb-6">{/* ... */}</div>
+         {/* Header + Add Button */}
+         <div className="flex justify-between items-center mb-6">
+             <h1 className="text-3xl font-bold text-gray-800">Manage Products</h1>
+             <button onClick={handleAddProduct} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">Add New Product</button>
+         </div>
          {/* Filters */} 
          <div className="mb-6 p-4 bg-white rounded-md shadow">Filters Placeholder</div>
          {error && <p className="text-red-500 mb-4">Error: {error}</p>}
@@ -100,7 +102,6 @@ export default function AdminProductsPage() {
                {products.length > 0 ? (
                  products.map((product) => (
                    <tr key={product.id}>
-                     {/* ... table cells ... */} 
                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.id}</td>
                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.category}</td>
