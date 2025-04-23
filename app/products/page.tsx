@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link'; 
-import Layout from '../components/layout/NewLayout';
-import { useCart } from '../context/CartContext';
+import Layout from '@/components/layout/NewLayout'; // Using Alias
+import { useCart } from '@/context/CartContext'; // Using Alias
 
+// Define Product type based on API response/DB schema
 interface Product {
     id: number;
     name: string;
@@ -14,11 +15,12 @@ interface Product {
     strength?: number | null;
     price: number; 
     compare_at_price?: number | null;
-    image_url?: string | null; // Use image_url
+    image_url?: string | null; 
     category?: string | null;
     is_active: boolean;
 }
 
+// Define pagination state type
 interface PaginationState {
     page: number;
     limit: number;
@@ -29,6 +31,7 @@ interface PaginationState {
 export default function ProductsPage() {
   const { addToCart } = useCart();
   
+  // State for products, loading, errors, filters, pagination
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +40,7 @@ export default function ProductsPage() {
   const [addedToCartId, setAddedToCartId] = useState<number | null>(null);
   const [pagination, setPagination] = useState<PaginationState>({ page: 1, limit: 12, total: 0, totalPages: 1 });
 
+  // Fetch products based on filters and pagination
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
@@ -71,7 +75,7 @@ export default function ProductsPage() {
     
   }, [pagination.page, pagination.limit, selectedFlavor, selectedStrength]); 
 
-  const availableFlavors = ['Mint', 'Fruit', 'Berry', 'Citrus', 'Apple mint', 'Cool mint', 'Peppermint', 'Cola', 'Spearmint', 'Watermelon', 'Cherry', 'Other']; // Updated placeholder
+  const availableFlavors = ['Mint', 'Fruit', 'Berry', 'Citrus', 'Apple mint', 'Cool mint', 'Peppermint', 'Cola', 'Spearmint', 'Watermelon', 'Cherry', 'Other']; 
   const availableStrengths = [6, 12, 16, 22]; 
 
   const handleAddToCart = (product: Product) => {
@@ -90,11 +94,11 @@ export default function ProductsPage() {
     <Layout>
       <div className="bg-gray-50 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 text-center">{/* ... Header ... */}</div>
-          <div className="mb-8 rounded-lg bg-white p-6 shadow-md">{/* ... Filters ... */}</div>
+          <div className="mb-12 text-center"><h1 className="text-3xl font-bold">Our Products</h1></div>
+          <div className="mb-8 rounded-lg bg-white p-6 shadow-md">{/* Filters */}</div>
           
           {isLoading && <div className="text-center p-10">Loading products...</div>}
-          {error && <div className="text-center p-10 text-red-600 bg-red-100 rounded">Error loading products: {error}</div>}
+          {error && <div className="text-center p-10 text-red-600 bg-red-100 rounded">Error: {error}</div>}
 
           {!isLoading && !error && products.length > 0 && (
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -102,20 +106,20 @@ export default function ProductsPage() {
                 <div key={product.id} className="flex flex-col overflow-hidden rounded-lg bg-white shadow-md">
                    <Link href={`/products/${product.id}`} className="block group">
                      <div className="relative h-64 bg-gray-100 group-hover:opacity-75 transition-opacity">
-                        <Image src={product.image_url || '/images/products/placeholder.svg'} alt={product.name} fill style={{ objectFit: 'contain' }} className="p-4"/> {/* Corrected: image_url */} 
+                        <Image src={product.image_url || '/images/products/placeholder.svg'} alt={product.name} fill style={{ objectFit: 'contain' }} className="p-4"/> 
                         {product.strength && <div className="absolute right-4 top-4"><span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800">{product.strength}mg</span></div>}
                      </div>
                    </Link>
-                  <div className="flex-grow p-6">{/* ... Product Info & Add to Cart ... */}</div>
+                  <div className="flex-grow p-6">{/* Product Info & Add to Cart */}</div>
                 </div>
               ))}
             </div>
           )}
           {!isLoading && !error && products.length === 0 && (
-             <div className="rounded-lg bg-white p-8 text-center shadow-md">No products found matching your criteria.</div>
+             <div className="rounded-lg bg-white p-8 text-center shadow-md">No products found.</div>
           )}
           {pagination.totalPages > 1 && (
-              <div className="mt-10 flex justify-center">{/* ... Pagination ... */}</div>
+              <div className="mt-10 flex justify-center">{/* Pagination */}</div>
            )}
         </div>
       </div>
