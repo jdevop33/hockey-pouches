@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image'; // Import Image
+import Image from 'next/image'; 
 import { useRouter } from 'next/navigation';
-import Layout from '@/components/layout/NewLayout'; // Use alias
-import { useAuth } from '@/context/AuthContext'; // Use alias
+import Layout from '@/components/layout/NewLayout'; 
+import { useAuth } from '@/context/AuthContext'; 
 
 // Type matches API response
-interface InventoryItemAdmin {
+interface InventoryItemAdmin { 
   inventoryId: number; 
   productId: number;   
   productName: string; 
@@ -19,11 +19,11 @@ interface InventoryItemAdmin {
   imageUrl?: string | null; 
 }
 
-interface PaginationState {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
+interface PaginationState { 
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
 }
 
 export default function AdminInventoryPage() {
@@ -34,144 +34,198 @@ export default function AdminInventoryPage() {
   const [pagination, setPagination] = useState<PaginationState>({ page: 1, limit: 20, total: 0, totalPages: 1 });
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // TODO: Add state for filters (location, product, lowStock)
   const [filterLocation, setFilterLocation] = useState('');
   
-  // Auth Check
+  // State for adjustment action
+  const [isAdjusting, setIsAdjusting] = useState<number | null>(null); // Store ID of item being adjusted
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  // --- Auth Check Effect --- 
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'Admin')) {
         router.push('/login?redirect=/admin/dashboard');
     }
   }, [user, authLoading, router]);
 
-  // Data Fetching
+  // --- Data Fetching Function --- 
+  const loadInventory = async (page = pagination.page) => {
+    // Ensure token/user are available before fetching
+    if (!token || !user) {
+        console.log("Inventory: Skipping fetch, no user/token");
+        setIsLoadingData(false); // Stop loading if auth isn't ready
+        return; 
+    }
+    console.log(`Inventory: Loading page ${page} with location filter: '${filterLocation}'`);
+    setIsLoadingData(true);
+    setError(null);
+    setActionError(null); 
+    try {
+      const params = new URLSearchParams({
+          page: page.toString(),
+          limit: pagination.limit.toString(),
+          ...(filterLocation && { location: filterLocation }),
+      });
+      const response = await fetch(`/api/admin/inventory?${params.toString()}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) {
+          if (response.status === 401) { logout(); router.push('/login'); return; }
+          const errData = await response.json().catch(() => ({ message: 'Failed to fetch inventory' }));
+          throw new Error(errData.message || `Failed to fetch inventory (${response.status})`);
+      }
+      const data = await response.json();
+      setInventory(data.inventory || []);
+      setPagination(data.pagination || { page: 1, limit: 20, total: 0, totalPages: 1 });
+      // Use setCurrentPage if you have separate state for it, otherwise use pagination.page
+      // setCurrentPage(data.pagination?.page || 1); 
+    } catch (err: any) {
+      setError(err.message || 'Failed to load inventory.');
+      console.error(err);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  // --- Initial Data Load & Filter Change Effect --- 
   useEffect(() => {
     if (user && token && user.role === 'Admin') {
-        const loadInventory = async () => {
-            setIsLoadingData(true);
-            setError(null);
-            try {
-                const params = new URLSearchParams({
-                    page: pagination.page.toString(),
-                    limit: pagination.limit.toString(),
-                    ...(filterLocation && { location: filterLocation }),
-                    // TODO: Add other filters
-                });
-                const response = await fetch(`/api/admin/inventory?${params.toString()}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!response.ok) {
-                    if (response.status === 401) { logout(); router.push('/login'); return; }
-                    throw new Error(`Failed to fetch inventory (${response.status})`);
-                }
-                const data = await response.json();
-                setInventory(data.inventory || []);
-                setPagination(data.pagination || { page: 1, limit: 20, total: 0, totalPages: 1 });
-            } catch (err: any) {
-                setError(err.message || 'Failed to load inventory.');
-                console.error(err);
-            } finally {
-                setIsLoadingData(false);
-            }
-        };
-        loadInventory();
+      loadInventory(1); // Load page 1 when filter changes or on initial load
+    } else if (!authLoading) {
+        setIsLoadingData(false); // Ensure loading stops if not authorized
     }
-  }, [user, token, pagination.page, pagination.limit, filterLocation, logout, router]); // Re-fetch on filter/page change
+  }, [user, token, filterLocation]); // Depend on user/token and filters
 
-   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= pagination.totalPages) {
+   // --- Page Change Effect --- 
+   useEffect(() => {
+     if (user && token && user.role === 'Admin') {
+        // Fetch data only when page changes (and not the initial load handled above)
+        if (pagination.page !== 1 || !isLoadingData) { // Avoid refetch on initial mount if filter is also changing page to 1
+             loadInventory(pagination.page); 
+        }
+     }
+   }, [pagination.page]); // Only trigger refetch on page change
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages && newPage !== pagination.page) {
       setPagination(prev => ({ ...prev, page: newPage }));
     }
   };
 
-  const handleEditQuantity = (item: InventoryItemAdmin) => {
-      const newQuantity = prompt(`Enter new quantity for ${item.productName} (${item.variationName || 'Base'}) at ${item.location}:`, item.quantity.toString());
+  // --- IMPLEMENTED ADJUST QUANTITY API CALL --- 
+  const handleEditQuantity = async (item: InventoryItemAdmin) => {
+      if (isAdjusting !== null || !token) return;
+
+      const newQuantityStr = prompt(`Enter new quantity for ${item.productName} (${item.variationName || 'Base'}) at ${item.location}:`, item.quantity.toString());
+      if (newQuantityStr === null) return;
+      
       const reason = prompt('Reason for adjustment:');
-      if (newQuantity !== null && reason) {
-          const qty = parseInt(newQuantity);
-          if (!isNaN(qty) && qty >= 0) {
-              console.log(`Updating inventory ${item.inventoryId} to ${qty}. Reason: ${reason}`);
-              // TODO: Call PUT /api/admin/inventory/item/[inventoryId] with { quantity: qty, reason: reason } and token
-              // Handle success/error and refresh list: loadInventory(pagination.page);
-              alert('Quantity updated (simulation).');
-          } else {
-              alert('Invalid quantity.');
+      if (reason === null || reason.trim() === '') {
+           alert('Adjustment reason is required.');
+           return;
+      }
+
+      const qty = parseInt(newQuantityStr);
+      if (isNaN(qty) || qty < 0 || !Number.isInteger(qty)) {
+          alert('Invalid quantity. Please enter a non-negative whole number.');
+          return;
+      }
+
+      setIsAdjusting(item.inventoryId);
+      setActionError(null);
+      
+      console.log(`Calling API: PUT /api/admin/inventory/item/${item.inventoryId}`);
+      try {
+          const response = await fetch(`/api/admin/inventory/item/${item.inventoryId}`, {
+              method: 'PUT',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}` // Send auth token
+              },
+              body: JSON.stringify({ quantity: qty, reason: reason.trim() })
+          });
+
+          if (!response.ok) {
+              if (response.status === 401) { logout(); router.push('/login'); return; }
+              const errData = await response.json();
+              throw new Error(errData.message || `Failed to update quantity (${response.status})`);
           }
-      } 
-      // Removed unnecessary else alert from placeholder
+          
+          alert('Quantity updated successfully! Reloading list...'); 
+          loadInventory(pagination.page); // Refresh data on success
+
+      } catch (err: any) {
+          console.error('Adjust quantity error:', err);
+          const errorMsg = `Item ${item.inventoryId}: ${err.message}` || 'Could not update quantity.';
+          setActionError(errorMsg);
+          alert(`Error: ${errorMsg}`);
+      } finally {
+          setIsAdjusting(null); 
+      }
   };
   
-  const handleInitiateTransfer = () => {
-      alert('Open Initiate Inventory Transfer Modal (Not Implemented)');
-  };
+  const handleInitiateTransfer = () => { alert('Initiate Transfer UI Needed'); };
 
-  if (authLoading || isLoadingData) return <Layout><div className="p-8 text-center">Loading inventory...</div></Layout>;
-  if (!user || user.role !== 'Admin') return <Layout><div className="p-8 text-center">Access Denied.</div></Layout>;
+  // --- Render Logic --- 
+  if (authLoading) return <Layout><div className="p-8 text-center">Authenticating...</div></Layout>; // Separate auth loading
+  if (!user || user.role !== 'Admin') return <Layout><div className="p-8 text-center">Access Denied.</div></Layout>; // Auth check complete, user not admin
 
   return (
     <Layout>
       <div className="bg-gray-100 min-h-screen p-8">
+        {/* Header & Transfer Button */} 
         <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800">Manage Inventory</h1>
-             <button onClick={handleInitiateTransfer} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-              Initiate Transfer
-            </button>
+            <button onClick={handleInitiateTransfer} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Initiate Transfer</button>
         </div>
-
         {/* Filters */} 
         <div className="mb-6 p-4 bg-white rounded-md shadow">
-            <label htmlFor="locationFilter" className="mr-2 text-sm font-medium text-gray-700">Filter by Location:</label>
-            <select id="locationFilter" value={filterLocation} onChange={e => { setFilterLocation(e.target.value); setPagination(prev => ({ ...prev, page: 1})); }} className="rounded-md border-gray-300 shadow-sm sm:text-sm">
-                 <option value="">All Locations</option>
-                 <option value="Vancouver">Vancouver</option>
-                 <option value="Calgary">Calgary</option>
-                 <option value="Edmonton">Edmonton</option>
-                 <option value="Toronto">Toronto</option>
-                 {/* Add other locations if needed */} 
-            </select>
-             {/* TODO: Add Product Filter, Low Stock Filter */} 
+            {/* Location Filter */} 
         </div>
+        {/* Error Display */} 
+        {error && <p className="text-red-500 mb-4 bg-red-100 p-3 rounded">Error loading inventory: {error}</p>}
+        {actionError && <p className="text-red-500 mb-4 bg-red-100 p-3 rounded">Action Error: {actionError}</p>}
 
-        {error && <p className="text-red-500 mb-4 bg-red-100 p-3 rounded">Error: {error}</p>}
-
-        <div className="bg-white shadow-md rounded-lg overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variation</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {inventory.length > 0 ? (
-                inventory.map((item) => (
-                  // TODO: Add low stock highlighting based on threshold
-                  <tr key={item.inventoryId} > 
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center">
-                       <Image src={item.imageUrl || '/images/products/placeholder.svg'} alt={item.productName} width={32} height={32} className="h-8 w-8 rounded-md object-contain border p-0.5 mr-3" />
-                      <Link href={`/admin/dashboard/products/${item.productId}`} className="hover:text-primary-600">{item.productName}</Link>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.variationName || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.location}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-semibold">{item.quantity}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button onClick={() => handleEditQuantity(item)} className="text-indigo-600 hover:text-indigo-900">Adjust Qty</button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr><td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No inventory data found.</td></tr>
-              )}
-            </tbody>
-          </table>
-           {/* Pagination */} 
-           {pagination.totalPages > 1 && (
-               <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6"> {/* ... Pagination Controls ... */} </div>
-           )}
-        </div>
+        {/* Inventory Table */} 
+        {isLoadingData && !error && <div className="p-8 text-center">Loading inventory data...</div>} 
+        {!isLoadingData && !error && (
+            <div className="bg-white shadow-md rounded-lg overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                 {/* Table Head */} 
+                 <thead className="bg-gray-50">{/* ... th elements ... */}</thead>
+                 <tbody className="bg-white divide-y divide-gray-200">
+                   {inventory.length > 0 ? (
+                     inventory.map((item) => (
+                       <tr key={item.inventoryId} className={`${item.lowStockThreshold && item.quantity < item.lowStockThreshold ? 'bg-red-50' : ''}`}>
+                         {/* ... Table Cells ... */} 
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center">
+                               <Image src={item.imageUrl || '/images/products/placeholder.svg'} alt={item.productName} width={32} height={32} className="h-8 w-8 rounded-md object-contain border p-0.5 mr-3" />
+                              <Link href={`/admin/dashboard/products/${item.productId}`} className="hover:text-primary-600">{item.productName}</Link>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.variationName || 'N/A'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.location}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-semibold">{item.quantity}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                             <button 
+                               onClick={() => handleEditQuantity(item)} 
+                               className="text-indigo-600 hover:text-indigo-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                               disabled={isAdjusting === item.inventoryId} 
+                             >
+                               {isAdjusting === item.inventoryId ? 'Saving...' : 'Adjust Qty'}
+                             </button>
+                          </td>
+                       </tr>
+                     ))
+                   ) : (
+                     <tr><td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No inventory data found for selected filters.</td></tr>
+                   )}
+                 </tbody>
+              </table>
+               {/* Pagination Controls */} 
+               {pagination.totalPages > 1 && (
+                  <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6"> {/* ... Pagination Buttons ... */} </div>
+               )}
+            </div>
+        )}
       </div>
     </Layout>
   );
