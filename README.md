@@ -2,7 +2,7 @@
 
 A Next.js e-commerce website for Hockey Puxx nicotine pouches, targeting the Canadian market. This platform includes standard e-commerce functionality along with a multi-level marketing (MLM) system for referrals and distributors, plus comprehensive admin management tools.
 
-Built with Next.js 15 and Tailwind CSS v4.
+Built with Next.js (`14.2.28`) and Tailwind CSS v4.
 
 ## Core Features
 
@@ -15,123 +15,109 @@ Built with Next.js 15 and Tailwind CSS v4.
 
 ## Tech Stack
 
-*   **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
-*   **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
-*   **Language**: [TypeScript](https://www.typescriptlang.org/)
+*   **Framework**: Next.js `14.2.28` (App Router)
+*   **Styling**: Tailwind CSS v4
+*   **Language**: TypeScript `~5.0.0`
+*   **Database**: Neon (PostgreSQL) via `@neondatabase/serverless`
+*   **Auth**: `bcrypt` for hashing, `jsonwebtoken` for tokens
 *   **Analytics**: Google Analytics (GA4), Microsoft Clarity, Vercel Analytics
-*   **Form Handling**: React Hook Form (intended), HeroTofu (current for basic forms?)
-*   **Potential Database**: MongoDB (planned/assumed, TBD)
 
-## Project Status (October 2023)
+## Project Status (Apr 22, 2025)
 
 *   **Phase 1: Scaffolding (Complete)**
-    *   Basic Next.js site structure established.
-    *   API Route placeholders (`/app/api/.../route.ts`) created for all major features (Auth, Users, Products, Inventory, Orders, Tasks, Commissions, Payments).
-    *   Frontend Page placeholders (`/app/.../page.tsx`) created for Public, Retail Customer Dashboard, Distributor Dashboard, and Admin Dashboard views.
-    *   Basic build errors resolved.
-*   **Phase 2: Implementation (Starting)**
+    *   Full project structure (API routes, Frontend pages) created based on scope.
+    *   Neon DB connection utility (`/app/lib/db.ts`) established.
+    *   `users` table created in Neon DB.
+    *   Basic Register/Login API implemented (with DB checks, hashing).
+    *   Basic Auth Context (`/app/context/AuthContext.tsx`) implemented using localStorage.
+    *   Layout updated for basic Login/Logout display.
+    *   Vercel build is stable.
+*   **Phase 2: Implementation (In Progress)**
+    *   Currently focused on solidifying the Authentication flow.
     *   Next steps involve implementing the logic within the placeholder files as detailed in the `// TODO:` comments.
-    *   Requires database setup/connection, authentication logic, UI component building, etc.
 
 ## Project Structure (Expanded)
 
 *   `/app`: Next.js App Router structure
-    *   `/api`: Backend API routes (organized by feature/entity)
-        *   `/auth`, `/users`, `/products`, `/orders`, `/tasks`, `/commissions`, `/payments`
-        *   `/admin`: Admin-specific routes for users, products, inventory, orders, tasks, commissions.
-        *   `/distributor`: Distributor-specific routes.
-    *   `/components`: Reusable React components (UI, Layout)
-        *   `/layout`: Main layout components (e.g., `NewLayout.tsx`)
-        *   `/ui`: General UI elements.
+    *   `/api`: Backend API routes (Auth, Users, Products, Orders, etc. + Admin/Distributor)
+    *   `/components`: Reusable React components (Layout, UI, Cart)
+    *   `/context`: React Context providers (AuthContext, CartContext)
+    *   `/lib`: Utility functions (e.g., `db.ts`)
     *   `/dashboard`: Retail Customer dashboard pages.
     *   `/distributor/dashboard`: Distributor dashboard pages.
     *   `/admin/dashboard`: Admin dashboard pages.
-    *   `/data`: Static data (like initial `products.ts`).
-    *   `/(public pages)`: Root pages like `page.tsx`, `products/page.tsx`, `about/page.tsx`, `faq/page.tsx`, `login/page.tsx`, `register/page.tsx`.
+    *   `/data`: Static data (initial `products.ts`).
+    *   `/(public pages)`: Root pages (`page.tsx`, `products/page.tsx`, etc.)
     *   `/_components`: Root-level client components (analytics, etc.).
-*   `/public`: Static assets (images, favicon).
+*   `/public`: Static assets.
 *   `/scripts`: Utility scripts.
-*   `README.md`: This file.
-*   `package.json`, `tsconfig.json`, `next.config.js`, etc.: Project configuration.
+*   `.github/workflows`: Contains `neon_workflow.yml` for automatic preview DB branches (if added).
+*   Config files: `README.md`, `package.json`, `tsconfig.json`, `next.config.js`, `.env.local`
 
 ## Getting Started
 
 ### Prerequisites
 
-*   Node.js 18.17.0 or later
+*   Node.js `~18.17.0` or later
 *   npm or yarn
+*   Access to the Neon project & Vercel project.
 
 ### Installation
 
-1.  Clone the repository:
-    ```bash
-    git clone https://github.com/jdevop33/hockey-pouches.git
-    cd hockey-pouches
-    ```
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  Create a `.env.local` file in the root directory with necessary variables (see original list + any new ones for database, auth secrets, payment gateways etc. as they are added):
+1.  Clone the repository.
+2.  Install dependencies: `npm install`
+3.  **Environment Variables:** Create `.env.local` file (copy from `.env.example` if available or use structure below) and populate with actual values from Vercel / Neon / Service accounts. **Ensure Vercel project environment variables are also set.**
     ```dotenv
-    NEXT_PUBLIC_BASE_URL=https://nicotinetins.com # Or your dev URL
+    # General Public Vars
+    NEXT_PUBLIC_BASE_URL=http://localhost:3000
     NEXT_PUBLIC_CONTACT_EMAIL=info@nicotinetins.com
-    NEXT_PUBLIC_SITE_NAME="Hockey Puxx"
-    NEXT_PUBLIC_GA_MEASUREMENT_ID=G-PMM01WKF05
-    # Add Database Connection Strings (e.g., MONGODB_URI)
-    # Add Authentication Secrets (e.g., JWT_SECRET, NEXTAUTH_SECRET)
-    # Add Payment Gateway Keys (e.g., STRIPE_SECRET_KEY)
+    NEXT_PUBLIC_SITE_NAME="Hockey Puxx (Dev)"
+    NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+
+    # Database (From Neon/Vercel Integration)
+    POSTGRES_URL="postgres://..."
+
+    # Authentication (Generate a strong secret!)
+    JWT_SECRET="YOUR_STRONG_RANDOM_JWT_SECRET_HERE"
+
+    # Add Payment Gateway Keys etc. as needed
     ```
-4.  Start the development server:
-    ```bash
-    npm run dev
-    ```
-5.  Open [http://localhost:3000](http://localhost:3000) in your browser.
+4.  Start the development server: `npm run dev`
+5.  Open [http://localhost:3000](http://localhost:3000).
 
 ## Development Workflow
 
-1.  **Scaffolding (Done):** Create placeholder files for structure.
+1.  **Scaffolding (Done):** Basic structure is complete.
 2.  **Implementation:**
-    *   Pick a feature or section (e.g., User Auth API, Product API, Login Page UI).
-    *   Implement the logic outlined in the `// TODO:` comments within the relevant files.
-    *   Write database interaction code.
-    *   Build required UI components.
-    *   Test the implemented feature.
-3.  **Commit & Push:** Commit changes frequently with clear messages.
-    ```bash
-    git add .
-    git commit -m "feat: Implement user login API endpoint"
-    npm run git:push 
-    ```
-4.  **Deploy (Optional but recommended):** Deploy to Vercel staging/preview environments often to catch build/runtime errors early.
-    ```bash
-    npm run deploy
-    ```
+    *   Focus on implementing features based on `// TODO:` comments.
+    *   Start with core auth (`/api/users/me`, securing pages).
+    *   Move to core e-commerce (Products, Cart, Orders).
+    *   Implement MLM features (Referrals, Commissions).
+    *   Build out Admin/Distributor dashboards.
+3.  **Testing:** Add tests as features are developed.
+4.  **Commit & Push:** Use conventional commit messages (e.g., `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
+5.  **Deploy:** Use `npm run deploy` or Vercel dashboard. Automatic preview branches should be active via GitHub Actions.
 
 ## Available Scripts
 
-*   `npm run dev` - Start development server
-*   `npm run build` - Build for production
-*   `npm run build:no-lint` - Build without linting
-*   `npm run start` - Start production server
-*   `npm run lint` - Run ESLint
-*   `npm run format` - Format code with Prettier
-*   `npm run format:check` - Check formatting
-*   `npm run typecheck` - Run TypeScript type checking (`npx tsc --noEmit`)
-*   `npm run deploy` - Deploy to Vercel
-*   `npm run git:push` - Push to GitHub
+*   `npm run dev`
+*   `npm run build`
+*   `npm run start`
+*   `npm run lint`
+*   `npm run typecheck`
+*   `npm run deploy`
+*   `npm run git:push`
 
 ## Deployment
 
-Deployed on Vercel. Production: [https://nicotinetins.com](https://nicotinetins.com) (or final URL).
+Deployed on Vercel. Automatic preview branches created via GitHub Actions workflow (`.github/workflows/neon_workflow.yml`).
 
 ## Key Next Steps (Implementation Phase)
 
-1.  **Database Setup:** Choose and configure the database (e.g., MongoDB Atlas). Add connection logic.
-2.  **Authentication:** Implement API logic (`/api/auth/...`) and frontend UI (`/login`, `/register`) for user registration, login, session/token management, and role-based access control.
-3.  **Core E-commerce Flow:** Implement Product API, Cart functionality, Order Creation API, basic Order display.
-4.  **MLM Logic:** Implement referral code tracking, commission calculation rules (Referral, Fulfillment), commission display.
-5.  **Admin Functionality:** Implement API endpoints and corresponding frontend pages for managing users, products, inventory, orders (approval, assignment, etc.), tasks, and commissions (including payouts).
-6.  **Distributor Flow:** Implement order fulfillment API endpoint and Distributor Dashboard UI.
-7.  **Payment Integration:** Integrate with chosen payment gateways (Stripe, PayPal, Manual methods like E-Transfer/BTC confirmation workflow).
+1.  **Implement `/api/users/me` Endpoint:** Verify JWT, fetch user data.
+2.  **Secure Frontend Pages:** Implement auth checks and redirects in dashboard pages.
+3.  **Secure API Routes:** Add JWT verification middleware or checks to protected API routes.
+4.  **Refine Auth Flow:** Implement logout API call, consider token refresh strategy, improve redirects.
+5.  **Implement Product Features:** API CRUD, Frontend display.
+6.  **(Continue implementing other features based on priority)**
 
