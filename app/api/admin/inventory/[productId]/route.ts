@@ -1,10 +1,14 @@
-import { NextResponse } from 'next/server'; // Use only NextResponse
+import { NextResponse, type NextRequest } from 'next/server';
 
 export async function GET(
-  request: Request, // Use standard Request type
-  { params }: { params: { productId: string } } // Keep standard param destructuring
+  request: NextRequest, 
+  context: any // Re-applying generic 'any' as workaround for build error
 ) {
-  const { productId } = params;
+  const productId = context?.params?.productId as string | undefined;
+
+  if (!productId) {
+    return NextResponse.json({ message: 'Product ID is missing.' }, { status: 400 });
+  }
 
   try {
     console.log(`Admin: Get inventory for product ID: ${productId}`);

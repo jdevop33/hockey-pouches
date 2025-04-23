@@ -2,29 +2,28 @@ import { NextResponse, type NextRequest } from 'next/server';
 // import { verifyAuth } from '@/lib/auth';
 // import { getTaskDetails, updateTask } from '@/lib/taskService';
 
-// Helper function to check task access (replace with actual logic)
 async function checkTaskAccess(taskId: string, userId: string, userRole: string): Promise<boolean> {
   console.log(`Checking access for task ${taskId} by user ${userId} (Role: ${userRole})`);
-  return true; // Placeholder: Allow access for now
+  return true; // Placeholder
 }
 
 export async function GET(
     request: NextRequest, 
-    { params }: { params: { taskId: string } } // Applying correct standard signature
+    context: any // Applying workaround
 ) {
-  const { taskId } = params;
+  const taskId = context?.params?.taskId as string | undefined;
+  if (!taskId) {
+      return NextResponse.json({ message: 'Task ID is missing.' }, { status: 400 });
+  }
 
   try {
-    // --- Add Authentication Verification Logic ---
-    const userId = 'placeholder-user'; 
-    const userRole = 'Admin'; 
-    // --- Check Access Control ---
+    const userId = 'placeholder-user';
+    const userRole = 'Admin';
     const canAccess = await checkTaskAccess(taskId, userId, userRole);
     if (!canAccess) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
     console.log(`Get task details request - Task ID: ${taskId}`);
-    // --- Fetch Specific Task Logic Here ---
     const dummyTask = {
       taskId: taskId,
       title: 'Specific Task Title',
@@ -47,23 +46,22 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest, 
-    { params }: { params: { taskId: string } } // Applying correct standard signature
+    context: any // Applying workaround
 ) {
-  const { taskId } = params;
+  const taskId = context?.params?.taskId as string | undefined;
+  if (!taskId) {
+      return NextResponse.json({ message: 'Task ID is missing.' }, { status: 400 });
+  }
 
   try {
-    // --- Add Authentication Verification Logic ---
     const userId = 'placeholder-user'; 
     const userRole = 'Admin'; 
-    // --- Check Access Control ---
     const canAccess = await checkTaskAccess(taskId, userId, userRole);
     if (!canAccess) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
     const body = await request.json();
     console.log(`Update task request for ID: ${taskId}`, body);
-    // --- Add Input Validation Logic Here ---
-    // --- Update Task Logic Here ---
     return NextResponse.json({ message: `Task ${taskId} updated successfully` });
   } catch (error: any) {
      if (error instanceof SyntaxError) {

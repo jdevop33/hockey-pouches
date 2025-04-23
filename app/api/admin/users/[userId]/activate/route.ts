@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export async function POST(
     request: NextRequest, 
-    { params }: { params: { userId: string } } // Applying correct standard signature
+    { params }: { params: { userId: string } } // Correct standard signature
 ) {
   const { userId } = params;
 
