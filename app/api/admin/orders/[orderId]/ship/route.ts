@@ -6,23 +6,30 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export async function POST(
     request: NextRequest, 
-    { params }: { params: { orderId: string } } // Applying correct standard signature
+    context: any // Applying workaround universally
 ) {
-  const { orderId } = params;
+  const orderId = context?.params?.orderId as string | undefined;
+  if (!orderId) {
+    return NextResponse.json({ message: 'Order ID is missing.' }, { status: 400 });
+  }
 
   try {
-    // --- Add Admin Authentication Verification Logic ---
+    // --- Add Admin Authentication Verification Logic Here ---
     // const adminCheck = await verifyAdmin(request);
-    // if (!adminCheck.isAdmin) { //... }
+    // if (!adminCheck.isAdmin) { // ... }
     // const adminUserId = adminCheck.userId;
     
     // const body = await request.json(); // Optional body for tracking etc.
     console.log(`Admin: Ship order request for ID: ${orderId}`);
 
-    // --- Ship Order Logic ---
+    // --- Ship Order Logic Here ---
+    // ...
     // --- Optional: Update related task ---
+    // ...
     // --- Send Email Notification ---
+    // ...
     // --- Trigger Commission Calculation/Recording ---
+    // ...
 
     return NextResponse.json({ message: `Order ${orderId} marked as shipped. Notifications sent.` });
 

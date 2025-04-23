@@ -9,7 +9,7 @@ async function checkTaskAccess(taskId: string, userId: string, userRole: string)
 
 export async function GET(
     request: NextRequest, 
-    context: any // Applying workaround
+    context: any // Applying workaround universally
 ) {
   const taskId = context?.params?.taskId as string | undefined;
   if (!taskId) {
@@ -46,7 +46,7 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest, 
-    context: any // Applying workaround
+    context: any // Applying workaround universally
 ) {
   const taskId = context?.params?.taskId as string | undefined;
   if (!taskId) {

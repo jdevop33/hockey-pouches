@@ -10,9 +10,12 @@ async function checkTaskAccess(taskId: string, userId: string, userRole: string)
 
 export async function POST(
     request: NextRequest, 
-    { params }: { params: { taskId: string } } // Applying correct standard signature
+    context: any // Applying workaround universally
 ) {
-  const { taskId } = params;
+  const taskId = context?.params?.taskId as string | undefined;
+  if (!taskId) {
+    return NextResponse.json({ message: 'Task ID is missing.' }, { status: 400 });
+  }
 
   try {
     // --- Add Authentication Verification Logic ---
