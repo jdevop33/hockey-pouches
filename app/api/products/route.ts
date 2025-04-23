@@ -1,44 +1,72 @@
-import { NextResponse } from 'next/server';
-// import { fetchActiveProducts } from '@/lib/productService'; // Example service
+import { NextResponse, type NextRequest } from 'next/server';
+import sql from '@/lib/db'; // Use path alias, ensure tsconfig is correct
 
-export async function GET(request: Request) {
-  // TODO: Implement logic to get active products
-  // 1. Parse Query Parameters: Handle filtering (category, flavor, strength), sorting, and pagination.
-  // 2. Fetch Active Products: Retrieve products marked as active/visible from the database/data source.
-  // 3. Apply Filters/Sorting/Pagination.
-  // 4. Return Product List: Send the list of products and pagination metadata.
+// Define Product type based on DB schema 
+interface Product {
+    id: number;
+    name: string;
+    description?: string | null;
+    flavor?: string | null;
+    strength?: number | null;
+    price: number; 
+    compare_at_price?: number | null;
+    image_url?: string | null;
+    category?: string | null;
+    is_active: boolean;
+}
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const page = parseInt(searchParams.get('page') || '1');
+  const limit = parseInt(searchParams.get('limit') || '12'); 
+  const offset = (page - 1) * limit;
+
+  // TODO: Implement filtering (category, flavor, strength), sorting from searchParams
+  // Example filter placeholders:
+  const categoryFilter = searchParams.get('category');
+  const flavorFilter = searchParams.get('flavor');
+  // ... add more filters and incorporate them into the WHERE clause ...
+  
+  console.log(`GET /api/products - Page: ${page}, Limit: ${limit}, Offset: ${offset}`);
 
   try {
-    const { searchParams } = new URL(request.url);
-    const page = searchParams.get('page') || '1';
-    const limit = searchParams.get('limit') || '10';
-    const category = searchParams.get('category');
-    // Add other filters (flavor, strength, sort)
+    // Fetch only active products, apply pagination
+    // NOTE: Neon driver often returns numeric types as strings, hence the CAST to FLOAT.
+    // Adjust casting based on actual return types if needed.
+    const productsQuery = sql`
+        SELECT 
+            id, name, description, flavor, strength, 
+            CAST(price AS FLOAT) as price, 
+            CAST(compare_at_price AS FLOAT) as compare_at_price, 
+            image_url, category, is_active 
+        FROM products 
+        WHERE is_active = TRUE 
+        -- TODO: Add dynamic WHERE clauses for filters here
+        ORDER BY name ASC -- TODO: Parameterize sorting
+        LIMIT ${limit} OFFSET ${offset}
+    `;
+    
+    // Fetch total count for pagination (apply same filters)
+    // TODO: Add dynamic WHERE clauses for filters here too
+    const totalQuery = sql`SELECT COUNT(*) FROM products WHERE is_active = TRUE`;
 
-    console.log(`Get products request - Page: ${page}, Limit: ${limit}, Category: ${category}`); // Placeholder
+    // Execute queries concurrently
+    const [productsResult, totalResult] = await Promise.all([productsQuery, totalQuery]);
+    
+    const totalProducts = parseInt(totalResult[0].count as string);
+    const totalPages = Math.ceil(totalProducts / limit);
 
-    // --- Fetch Products Logic Here (using filters/pagination) ---
-    // Note: Existing product data is in /app/data/products.ts. Consider how to integrate/migrate this.
-    // const { products, total } = await fetchActiveProducts({ 
-    //   page: parseInt(page), 
-    //   limit: parseInt(limit), 
-    //   category 
-    // });
+    const products = productsResult as Product[]; // Assert type
 
-    // Placeholder data
-    const dummyProducts = [
-      { id: 'prod-1', name: 'Cool Mint Pouch', category: 'Mint', price: 5.99, variations: [] },
-      { id: 'prod-2', name: 'Cherry Pouch', category: 'Fruit', price: 6.49, variations: [] },
-    ];
-    const totalProducts = 20; // Example total count
+    console.log(`Fetched ${products.length} of ${totalProducts} products.`);
 
     return NextResponse.json({ 
-      products: dummyProducts, 
+      products: products, 
       pagination: { 
-        page: parseInt(page), 
-        limit: parseInt(limit), 
+        page: page, 
+        limit: limit, 
         total: totalProducts, 
-        totalPages: Math.ceil(totalProducts / parseInt(limit))
+        totalPages: totalPages
       }
     });
 

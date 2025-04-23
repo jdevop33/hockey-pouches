@@ -1,24 +1,42 @@
 'use client';
 
 import React from 'react';
-import { Product } from '../data/products';
+// Removed static import: import { Product } from '../data/products';
+
+// Define the type for the product prop, aligning with API/DB data
+// Make potentially missing fields optional
+interface SchemaProduct {
+    id: number;
+    name: string;
+    description?: string | null; // Optional
+    image_url?: string | null;   // Use image_url and make optional
+    price: number;
+    // Add other fields used by the schema if necessary (e.g., brand)
+}
 
 interface ProductSchemaProps {
-  product: Product;
+  product: SchemaProduct; // Use the updated interface
 }
 
 const ProductSchema: React.FC<ProductSchemaProps> = ({ product }) => {
+  // Construct absolute image URL if image_url is relative
+  const absoluteImageUrl = product.image_url 
+    ? product.image_url.startsWith('http') 
+      ? product.image_url 
+      : `https://nicotinetins.com${product.image_url}` // Assuming base URL
+    : undefined;
+
   const schemaData = {
     '@context': 'https://schema.org/',
     '@type': 'Product',
     name: product.name,
-    description: product.description,
-    image: [`https://nicotinetins.com${product.imageUrl}`],
+    description: product.description || product.name, // Use name as fallback description
+    ...(absoluteImageUrl && { image: [absoluteImageUrl] }), // Conditionally add image
     sku: `NT-${product.id}`,
     mpn: `HPNT-${product.id}`,
     brand: {
       '@type': 'Brand',
-      name: 'Hockey Puxx',
+      name: 'Hockey Puxx', // Assuming static brand
     },
     offers: {
       '@type': 'Offer',
@@ -28,60 +46,19 @@ const ProductSchema: React.FC<ProductSchemaProps> = ({ product }) => {
       priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
         .toISOString()
         .split('T')[0],
-      availability: 'https://schema.org/InStock',
+      availability: 'https://schema.org/InStock', // TODO: Make dynamic based on inventory?
       seller: {
         '@type': 'Organization',
         name: 'Nicotine Tins by Hockey Puxx',
       },
       itemCondition: 'https://schema.org/NewCondition',
-      deliveryLeadTime: {
-        '@type': 'QuantitativeValue',
-        minValue: 1,
-        maxValue: 5,
-        unitCode: 'DAY',
-      },
     },
+    // Keep aggregateRating and review as placeholders or fetch dynamically later
     aggregateRating: {
       '@type': 'AggregateRating',
-      ratingValue: '4.8',
+      ratingValue: '4.8', 
       reviewCount: '24',
-      bestRating: '5',
-      worstRating: '1',
     },
-    review: [
-      {
-        '@type': 'Review',
-        reviewRating: {
-          '@type': 'Rating',
-          ratingValue: '5',
-          bestRating: '5',
-          worstRating: '1',
-        },
-        author: {
-          '@type': 'Person',
-          name: 'David Wilson',
-        },
-        datePublished: '2023-11-15',
-        reviewBody:
-          'These pouches are a game-changer for me during the season. I can use them discreetly between periods for that extra boost.',
-      },
-      {
-        '@type': 'Review',
-        reviewRating: {
-          '@type': 'Rating',
-          ratingValue: '4',
-          bestRating: '5',
-          worstRating: '1',
-        },
-        author: {
-          '@type': 'Person',
-          name: 'Jennifer Lee',
-        },
-        datePublished: '2023-10-22',
-        reviewBody:
-          'As a hockey coach, I was looking for an alternative to traditional tobacco products. These pouches are perfect - discreet and convenient.',
-      },
-    ],
   };
 
   return (

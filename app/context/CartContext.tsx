@@ -9,10 +9,27 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import { Product } from '../data/products';
+// Removed static import: import { Product } from '../data/products';
+
+// Define Product type consistently with API/DB
+// (Can also be imported from a shared types file later)
+export interface Product {
+    id: number;
+    name: string;
+    description?: string | null;
+    flavor?: string | null;
+    strength?: number | null;
+    price: number; 
+    compare_at_price?: number | null;
+    image_url?: string | null; // <--- Use image_url
+    category?: string | null;
+    is_active: boolean;
+    bulkDiscounts?: { quantity: number; discountPercentage: number }[]; // Keep bulk discounts if needed
+}
+
 
 export interface CartItem {
-  product: Product;
+  product: Product; // Uses the updated Product interface
   quantity: number;
 }
 
@@ -42,15 +59,14 @@ interface CartState {
 
 // Calculate price with discount
 const calculateDiscountedPrice = (product: Product, quantity: number): number => {
-  if (!product.bulkDiscounts) return product.price;
-
-  const applicableDiscount = product.bulkDiscounts
-    .filter(discount => quantity >= discount.quantity)
-    .sort((a, b) => b.discountPercentage - a.discountPercentage)[0];
-
-  if (!applicableDiscount) return product.price;
-
-  return product.price * (1 - applicableDiscount.discountPercentage / 100);
+  // TODO: Adapt bulk discount logic if needed based on how it's stored/fetched
+  return product.price;
+  // if (!product.bulkDiscounts) return product.price;
+  // const applicableDiscount = product.bulkDiscounts
+  //   .filter(discount => quantity >= discount.quantity)
+  //   .sort((a, b) => b.discountPercentage - a.discountPercentage)[0];
+  // if (!applicableDiscount) return product.price;
+  // return product.price * (1 - applicableDiscount.discountPercentage / 100);
 };
 
 // Calculate totals from items
@@ -75,54 +91,41 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       const { itemCount, subtotal } = calculateTotals(items);
       return { items, itemCount, subtotal };
     }
-
     case 'ADD_ITEM': {
       const { product, quantity } = action.payload;
       if (quantity <= 0) return state;
-
       const existingItemIndex = state.items.findIndex(item => item.product.id === product.id);
       let newItems: CartItem[];
-
       if (existingItemIndex >= 0) {
-        // Update existing item
         newItems = [...state.items];
         newItems[existingItemIndex] = {
           ...newItems[existingItemIndex],
           quantity: newItems[existingItemIndex].quantity + quantity,
         };
       } else {
-        // Add new item
         newItems = [...state.items, { product, quantity }];
       }
-
       const { itemCount, subtotal } = calculateTotals(newItems);
       return { items: newItems, itemCount, subtotal };
     }
-
     case 'REMOVE_ITEM': {
       const newItems = state.items.filter(item => item.product.id !== action.payload.productId);
       const { itemCount, subtotal } = calculateTotals(newItems);
       return { items: newItems, itemCount, subtotal };
     }
-
     case 'UPDATE_QUANTITY': {
       const { productId, quantity } = action.payload;
       if (quantity <= 0) {
-        // Remove item if quantity is 0 or negative
         return cartReducer(state, { type: 'REMOVE_ITEM', payload: { productId } });
       }
-
       const newItems = state.items.map(item =>
         item.product.id === productId ? { ...item, quantity } : item
       );
-
       const { itemCount, subtotal } = calculateTotals(newItems);
       return { items: newItems, itemCount, subtotal };
     }
-
     case 'CLEAR_CART':
       return { items: [], itemCount: 0, subtotal: 0 };
-
     default:
       return state;
   }
@@ -143,17 +146,13 @@ interface CartProviderProps {
 }
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
-  // Initialize state with reducer
   const [state, dispatch] = useReducer(cartReducer, {
     items: [],
     itemCount: 0,
     subtotal: 0,
   });
-
-  // Extract values from state
   const { items, itemCount, subtotal } = state;
 
-  // Load cart from localStorage on initial render
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -168,7 +167,6 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Save cart to localStorage whenever items change
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (items.length > 0) {
@@ -179,7 +177,6 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   }, [items]);
 
-  // Memoized cart operations
   const addToCart = useCallback((product: Product, quantity: number) => {
     dispatch({ type: 'ADD_ITEM', payload: { product, quantity } });
   }, []);
@@ -196,7 +193,6 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     dispatch({ type: 'CLEAR_CART' });
   }, []);
 
-  // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo(
     () => ({
       items,

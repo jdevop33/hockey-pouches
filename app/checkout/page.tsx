@@ -1,609 +1,179 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
-import Layout from '../components/layout/NewLayout';
+import { useRouter } from 'next/navigation';
+import Layout from '../components/layout/NewLayout'; 
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
-// Loading component
-function CheckoutLoading() {
-  return (
-    <Layout>
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <h1 className="mb-8 text-3xl font-extrabold text-gray-900 sm:text-4xl">Checkout</h1>
-        <div className="animate-pulse">
-          <div className="mb-8 h-8 w-1/4 rounded bg-gray-200"></div>
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-            <div className="overflow-hidden rounded-lg bg-white shadow-lg">
-              <div className="bg-primary-600 p-6 sm:p-8">
-                <div className="mb-2 h-6 w-1/3 rounded bg-white/20"></div>
-                <div className="h-4 w-1/2 rounded bg-white/20"></div>
-              </div>
-              <div className="space-y-6 p-6 sm:p-8">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-12 rounded bg-gray-200"></div>
-                ))}
-              </div>
-            </div>
-            <div className="overflow-hidden rounded-lg bg-white shadow-lg">
-              <div className="bg-primary-600 p-6 sm:p-8">
-                <div className="mb-2 h-6 w-1/3 rounded bg-white/20"></div>
-                <div className="h-4 w-1/2 rounded bg-white/20"></div>
-              </div>
-              <div className="p-6 sm:p-8">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="mb-4 h-24 rounded bg-gray-200"></div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Layout>
-  );
+interface AddressData {
+    street: string;
+    city: string;
+    province: string;
+    postalCode: string;
+    country: string;
 }
 
-// Client component that uses useSearchParams
-function CheckoutContent() {
+export default function CheckoutPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { items, subtotal, clearCart } = useCart();
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    company: '',
-    address: '',
-    city: '',
-    province: '',
-    postalCode: '',
-    notes: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const { user, token, isLoading: authLoading, logout } = useAuth();
+  const { items, itemCount, subtotal, clearCart } = useCart();
 
-  // Redirect to cart if cart is empty
-  React.useEffect(() => {
-    if (items.length === 0 && !success) {
-      router.push('/cart');
+  const [shippingAddress, setShippingAddress] = useState<Partial<AddressData>>({});
+  const [billingAddress, setBillingAddress] = useState<Partial<AddressData>>({});
+  const [useShippingForBilling, setUseShippingForBilling] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState<string>('credit-card');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user || !token) {
+        router.push('/login?redirect=/checkout'); 
+      } else if (itemCount === 0) {
+         router.push('/products'); 
+      }
     }
-  }, [items, router, success]);
+  }, [user, token, authLoading, itemCount, router]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setError('');
+    if (!user || !token || itemCount === 0) return;
+    setIsLoading(true);
+    setError(null);
+    const finalBillingAddress = useShippingForBilling ? shippingAddress : billingAddress;
+    
+    if (!shippingAddress.street || !shippingAddress.city || !shippingAddress.province || !shippingAddress.postalCode) {
+        setError('Please complete the shipping address.');
+        setIsLoading(false);
+        return;
+    }
+    if (!useShippingForBilling && (!finalBillingAddress.street || !finalBillingAddress.city)) {
+         setError('Please complete the billing address.');
+         setIsLoading(false);
+         return;
+    }
+
+    const orderData = {
+        items: items.map(item => ({ productId: item.product.id, quantity: item.quantity, price: item.product.price })),
+        shippingAddress: { ...shippingAddress, country: 'Canada' },
+        billingAddress: useShippingForBilling ? { ...shippingAddress, country: 'Canada' } : { ...finalBillingAddress, country: 'Canada' },
+        paymentMethod: paymentMethod,
+    };
+    console.log('Placing order with data:', orderData);
 
     try {
-      // Format order items for email
-      const orderItems = items.map(item => {
-        // Get the retail price from the product
-        let retailPrice = item.product.price;
-        let discountApplied = false;
-
-        // Apply bulk discounts if applicable
-        if (item.product.bulkDiscounts) {
-          // Find the highest applicable discount
-          const applicableDiscount = item.product.bulkDiscounts
-            .filter(discount => item.quantity >= discount.quantity)
-            .sort((a, b) => b.discountPercentage - a.discountPercentage)[0];
-
-          if (applicableDiscount) {
-            const discountMultiplier = 1 - applicableDiscount.discountPercentage / 100;
-            retailPrice = retailPrice * discountMultiplier;
-            discountApplied = true;
-          }
-        }
-
-        return {
-          name: item.product.name,
-          quantity: item.quantity,
-          price: retailPrice,
-          total: item.quantity * retailPrice,
-          discountApplied: discountApplied,
-        };
-      });
-
-      // Prepare data for submission
-      const orderData = {
-        customer: formData,
-        order: {
-          items: orderItems,
-          subtotal: subtotal,
-          date: new Date().toISOString(),
-        },
-      };
-
-      // Send order to the form endpoint
-      try {
-        const response = await fetch(
-          'https://public.herotofu.com/v1/3e028000-1998-11f0-ab37-9d304c3aa51c',
-          {
+       const response = await fetch('/api/orders', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify(orderData),
-          }
-        );
-
-        // Even if the response is not OK, we'll consider the order successful for demo purposes
-        // This ensures the checkout process works even if the form endpoint has issues
-        if (!response.ok) {
-          console.warn('Form endpoint returned non-OK status:', response.status);
-          // For demo purposes, we'll still proceed as if successful
-        }
-
-        // Try to parse the response, but don't fail if it's not valid JSON
-        try {
-          const responseData = await response.json();
-          console.log('Form submission response:', responseData);
-        } catch (jsonError) {
-          console.warn('Could not parse response as JSON:', jsonError);
-        }
-      } catch (fetchError) {
-        console.warn('Fetch error occurred but continuing for demo purposes:', fetchError);
-        // For demo purposes, we'll still proceed as if successful
-      }
-
-      // Order successful
-      setSuccess(true);
-      clearCart();
-
-      // Scroll to top to show success message
-      window.scrollTo(0, 0);
-    } catch (err) {
-      console.error('Error submitting order:', err);
-      setError(
-        'There was a problem submitting your order. Please try again or contact us directly.'
-      );
+            body: JSON.stringify(orderData)
+       });
+       if (!response.ok) {
+            if (response.status === 401) { logout(); router.push('/login'); return; } 
+            const errData = await response.json();
+            throw new Error(errData.message || `Failed to place order (${response.status})`);
+       }
+       const result = await response.json(); 
+       const orderId = result.orderId;
+       console.log('Order placed successfully:', result);
+       clearCart(); 
+       router.push(`/checkout/success?orderId=${orderId}`); 
+    } catch (err: any) {
+       setError(err.message || 'Failed to place order.');
+       console.error(err);
     } finally {
-      setIsSubmitting(false);
+       setIsLoading(false);
     }
   };
 
-  if (success) {
-    return (
-      <Layout>
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl rounded-lg bg-white p-8 shadow-lg">
-            <div className="text-center">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-                <svg
-                  className="h-10 w-10 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M5 13l4 4L19 7"
-                  ></path>
-                </svg>
-              </div>
-              <h1 className="mb-4 text-3xl font-extrabold text-gray-900">Order Received!</h1>
-              <p className="mb-8 text-lg text-gray-600">
-                Thank you for your order. We've received your request and will contact you shortly
-                to confirm the details and provide payment options.
-              </p>
-              <p className="text-md mb-4 text-gray-500">
-                We manually process all orders to ensure the best service. You'll receive an email
-                with payment instructions and shipping details.
-              </p>
-              <p className="text-md mb-6 text-gray-500">
-                A confirmation email has been sent to {formData.email}
-              </p>
-              <div className="mt-8">
-                <button
-                  onClick={() => router.push('/products')}
-                  className="inline-flex items-center rounded-md border border-transparent bg-primary-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-primary-700"
-                >
-                  Continue Shopping
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Layout>
-    );
+  if (authLoading || !user || itemCount === 0) {
+    return <Layout><div className="p-8 text-center">Loading checkout...</div></Layout>;
   }
 
   return (
     <Layout>
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <h1 className="mb-8 text-3xl font-extrabold text-gray-900 sm:text-4xl">Checkout</h1>
-
-        {error && (
-          <div className="mb-8 border-l-4 border-red-400 bg-red-50 p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
+      <div className="bg-gray-100 py-12">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-8">Checkout</h1>
+          <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+                 {/* Shipping Address */} 
+                 <div className="bg-white p-6 rounded-lg shadow-md">
+                     {/* ... form inputs ... */} 
+                       <h2 className="text-xl font-semibold text-gray-700 mb-4">Shipping Address</h2>
+                     <div className="space-y-4">
+                         <div><label className="text-sm">Street:</label><input type="text" required className="w-full p-2 border rounded" onChange={e => setShippingAddress(s => ({...s, street: e.target.value}))}/></div>
+                         <div><label className="text-sm">City:</label><input type="text" required className="w-full p-2 border rounded" onChange={e => setShippingAddress(s => ({...s, city: e.target.value}))}/></div>
+                         <div className="grid grid-cols-2 gap-4">
+                             <div><label className="text-sm">Province:</label><input type="text" required className="w-full p-2 border rounded" onChange={e => setShippingAddress(s => ({...s, province: e.target.value}))}/></div>
+                             <div><label className="text-sm">Postal Code:</label><input type="text" required className="w-full p-2 border rounded" onChange={e => setShippingAddress(s => ({...s, postalCode: e.target.value}))}/></div>
+                         </div>
+                     </div>
+                     <div className="mt-4 flex items-center">
+                        <input type="checkbox" id="billingSameAsShipping" checked={useShippingForBilling} onChange={(e) => setUseShippingForBilling(e.target.checked)} className="h-4 w-4 rounded"/>
+                        <label htmlFor="billingSameAsShipping" className="ml-2 text-sm text-gray-600">Billing address is the same as shipping</label>
+                     </div>
+                 </div>
+                 {!useShippingForBilling && (
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h2 className="text-xl font-semibold text-gray-700 mb-4">Billing Address</h2>
+                         <div className="space-y-4">
+                             <div><label className="text-sm">Street:</label><input type="text" required className="w-full p-2 border rounded" onChange={e => setBillingAddress(s => ({...s, street: e.target.value}))}/></div>
+                             {/* ... other fields ... */} 
+                         </div>
+                    </div>
+                 )}
+                  {/* Payment Method */} 
+                 <div className="bg-white p-6 rounded-lg shadow-md">
+                     {/* ... payment options ... */} 
+                     <h2 className="text-xl font-semibold text-gray-700 mb-4">Payment Method</h2>
+                     <div className="space-y-3">
+                         <div className="flex items-center"><input type="radio" name="paymentMethod" value="credit-card" checked={paymentMethod === 'credit-card'} onChange={(e) => setPaymentMethod(e.target.value)} className="mr-2"/><label>Credit Card (Placeholder)</label></div>
+                         <div className="flex items-center"><input type="radio" name="paymentMethod" value="etransfer" checked={paymentMethod === 'etransfer'} onChange={(e) => setPaymentMethod(e.target.value)} className="mr-2"/><label>E-Transfer (Instructions will be provided)</label></div>
+                         <div className="flex items-center"><input type="radio" name="paymentMethod" value="btc" checked={paymentMethod === 'btc'} onChange={(e) => setPaymentMethod(e.target.value)} className="mr-2"/><label>Bitcoin (Instructions will be provided)</label></div>
+                     </div>
+                     {paymentMethod === 'credit-card' && <div className="mt-4 p-4 border rounded bg-gray-50 text-gray-500">Credit Card form placeholder</div>}
+                 </div>
             </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-          {/* Checkout Form */}
-          <div>
-            <div className="overflow-hidden rounded-lg bg-white shadow-lg">
-              <div className="bg-primary-600 p-6 text-white sm:p-8">
-                <h2 className="text-xl font-bold">Shipping Information</h2>
-                <p className="text-sm opacity-80">Please enter your shipping details</p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-6 p-6 sm:p-8">
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                      First Name *
-                    </label>
-                    <input
-                      type="text"
-                      id="firstName"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                      Last Name *
-                    </label>
-                    <input
-                      type="text"
-                      id="lastName"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                      Phone *
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="company" className="block text-sm font-medium text-gray-700">
-                    Company Name <span className="text-gray-400">(Optional)</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="company"
-                    name="company"
-                    value={formData.company}
-                    onChange={handleChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-                    Address *
-                  </label>
-                  <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                  <div>
-                    <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-                      City *
-                    </label>
-                    <input
-                      type="text"
-                      id="city"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="province" className="block text-sm font-medium text-gray-700">
-                      Province *
-                    </label>
-                    <select
-                      id="province"
-                      name="province"
-                      value={formData.province}
-                      onChange={handleChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    >
-                      <option value="">Select Province</option>
-                      <option value="AB">Alberta</option>
-                      <option value="BC">British Columbia</option>
-                      <option value="MB">Manitoba</option>
-                      <option value="NB">New Brunswick</option>
-                      <option value="NL">Newfoundland and Labrador</option>
-                      <option value="NS">Nova Scotia</option>
-                      <option value="NT">Northwest Territories</option>
-                      <option value="NU">Nunavut</option>
-                      <option value="ON">Ontario</option>
-                      <option value="PE">Prince Edward Island</option>
-                      <option value="QC">Quebec</option>
-                      <option value="SK">Saskatchewan</option>
-                      <option value="YT">Yukon</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">
-                      Postal Code *
-                    </label>
-                    <input
-                      type="text"
-                      id="postalCode"
-                      name="postalCode"
-                      value={formData.postalCode}
-                      onChange={handleChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
-                    Order Notes
-                  </label>
-                  <textarea
-                    id="notes"
-                    name="notes"
-                    rows={4}
-                    value={formData.notes}
-                    onChange={handleChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    placeholder="Special instructions for your order"
-                  ></textarea>
-                </div>
-
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className={`inline-flex w-full items-center justify-center rounded-md border border-transparent bg-primary-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${isSubmitting ? 'cursor-not-allowed opacity-75' : ''}`}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <svg
-                          className="-ml-1 mr-3 h-5 w-5 animate-spin text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Processing...
-                      </>
-                    ) : (
-                      'Place Order'
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          {/* Order Summary */}
-          <div>
-            <div className="overflow-hidden rounded-lg bg-white shadow-lg">
-              <div className="bg-primary-600 p-6 text-white sm:p-8">
-                <h2 className="text-xl font-bold">Order Summary</h2>
-                <p className="text-sm opacity-80">
-                  {items.length} {items.length === 1 ? 'item' : 'items'} in your order
-                </p>
-              </div>
-
-              <div className="p-6 sm:p-8">
-                <div className="flow-root">
-                  <ul className="-my-6 divide-y divide-gray-200">
-                    {items.map(item => {
-                      // Get the retail price from the product
-                      let retailPrice = item.product.price;
-                      let discountApplied = false;
-
-                      // Apply bulk discounts if applicable
-                      if (item.product.bulkDiscounts) {
-                        // Find the highest applicable discount
-                        const applicableDiscount = item.product.bulkDiscounts
-                          .filter(discount => item.quantity >= discount.quantity)
-                          .sort((a, b) => b.discountPercentage - a.discountPercentage)[0];
-
-                        if (applicableDiscount) {
-                          const discountMultiplier =
-                            1 - applicableDiscount.discountPercentage / 100;
-                          retailPrice = retailPrice * discountMultiplier;
-                          discountApplied = true;
-                        }
-                      }
-
-                      const itemTotal = item.quantity * retailPrice;
-
-                      return (
-                        <li key={item.product.id} className="flex py-6">
-                          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md border border-gray-200">
-                            <div className="relative h-full w-full">
-                              <Image
-                                src={item.product.imageUrl}
-                                alt={item.product.name}
-                                fill
-                                style={{ objectFit: 'contain' }}
-                                className="p-2"
-                              />
+            {/* Order Summary Column */} 
+            <div className="lg:col-span-1">
+                 <div className="bg-white p-6 rounded-lg shadow-md sticky top-24">
+                     <h2 className="text-xl font-semibold text-gray-700 mb-4 border-b pb-3">Order Summary</h2>
+                     <ul role="list" className="divide-y divide-gray-200 mb-4">
+                        {items.map(({ product, quantity }) => (
+                        <li key={product.id} className="py-3 flex items-center">
+                            <Image src={product.image_url || '/images/products/placeholder.svg'} alt={product.name} width={48} height={48} className="h-12 w-12 rounded-md object-contain border p-1 mr-3" /> {/* Corrected: image_url */} 
+                            <div className="flex-1 text-sm">
+                                <p className="font-medium text-gray-800">{product.name}</p>
+                                <p className="text-gray-500">Qty: {quantity}</p>
                             </div>
-                          </div>
-                          <div className="ml-4 flex flex-1 flex-col">
-                            <div>
-                              <div className="flex justify-between text-base font-medium text-gray-900">
-                                <h3>{item.product.name}</h3>
-                                <p className="ml-4">${itemTotal.toFixed(2)}</p>
-                              </div>
-                              <p className="mt-1 text-sm text-gray-500">
-                                {item.product.flavor} | {item.product.strength}mg
-                              </p>
-                            </div>
-                            <div className="flex flex-1 items-end justify-between text-sm">
-                              <p className="text-gray-500">
-                                Qty {item.quantity} × ${retailPrice.toFixed(2)}
-                                {discountApplied && (
-                                  <span className="ml-1 text-xs font-medium text-green-600">
-                                    (
-                                    {
-                                      item.product.bulkDiscounts
-                                        .filter(discount => item.quantity >= discount.quantity)
-                                        .sort(
-                                          (a, b) => b.discountPercentage - a.discountPercentage
-                                        )[0].discountPercentage
-                                    }
-                                    % off)
-                                  </span>
-                                )}
-                              </p>
-                            </div>
-                          </div>
+                            <p className="text-sm font-medium text-gray-900">${(quantity * product.price).toFixed(2)}</p>
                         </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-
-                <div className="mt-6 border-t border-gray-200 pt-6">
-                  <div className="mb-4 flex justify-between text-base font-medium text-gray-900">
-                    <p>Subtotal</p>
-                    <p>${subtotal.toFixed(2)}</p>
-                  </div>
-                  <div className="mb-4 flex justify-between text-sm text-gray-500">
-                    <p>Shipping</p>
-                    <p>Calculated at next step</p>
-                  </div>
-                  <div className="mb-4 flex justify-between text-sm text-gray-500">
-                    <p>Taxes</p>
-                    <p>Calculated at next step</p>
-                  </div>
-                  <div className="flex justify-between border-t border-gray-200 pt-4 text-lg font-bold text-gray-900">
-                    <p>Total</p>
-                    <p>${subtotal.toFixed(2)}</p>
-                  </div>
-                </div>
-              </div>
+                        ))}
+                     </ul>
+                      {/* ... totals ... */} 
+                      <dl className="space-y-2 text-sm text-gray-600 border-t pt-4">
+                           <div className="flex justify-between"><dt>Subtotal</dt><dd className="text-gray-900 font-medium">${subtotal.toFixed(2)}</dd></div>
+                           <div className="flex justify-between"><dt>Shipping</dt><dd className="text-gray-900 font-medium">$ TBD</dd></div>
+                           <div className="flex justify-between"><dt>Taxes</dt><dd className="text-gray-900 font-medium">$ TBD</dd></div>
+                           <div className="flex justify-between border-t pt-2 mt-2 border-gray-200"><dt className="text-base font-semibold text-gray-900">Estimated Total</dt><dd className="text-base font-semibold text-gray-900">${subtotal.toFixed(2)} + Fees</dd></div>
+                      </dl>
+                      <div className="mt-6">
+                         <button type="submit" disabled={isLoading} className="w-full flex items-center justify-center rounded-md border border-transparent bg-primary-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-primary-700 disabled:opacity-50">
+                            {isLoading ? 'Placing Order...' : 'Place Order'}
+                          </button>
+                      </div>
+                      {error && <p className="text-red-600 text-sm mt-3">Error: {error}</p>}
+                 </div>
             </div>
-
-            <div className="mt-8 rounded-lg bg-gray-50 p-6">
-              <h3 className="mb-4 text-lg font-medium text-gray-900">Payment Information</h3>
-              <p className="mb-4 text-gray-600">
-                After submitting your order, our team will contact you with available payment
-                options (e-transfer, credit card, etc.). We manually process all orders to provide
-                personalized service and ensure you get the right products for your needs.
-              </p>
-              <div className="flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mr-2 h-5 w-5 text-green-500"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span className="text-gray-700">Your information is secure</span>
-              </div>
-            </div>
-          </div>
+          </form>
         </div>
       </div>
     </Layout>
-  );
-}
-
-// Main export component with Suspense boundary
-export default function CheckoutPage() {
-  return (
-    <Suspense fallback={<CheckoutLoading />}>
-      <CheckoutContent />
-    </Suspense>
   );
 }
