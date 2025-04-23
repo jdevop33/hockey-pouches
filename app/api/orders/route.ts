@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
+import sql, { pool } from '@/lib/db'; 
 import jwt from 'jsonwebtoken';
+import { PoolClient } from 'pg'; 
 
 // --- Interfaces --- 
 interface JwtPayload { userId: string; }
@@ -19,7 +20,7 @@ interface ProductInfo {
     is_active: boolean;
 }
 
-// --- Helper Functions --- 
+// --- Helper Functions (Moved outside POST handler) --- 
 async function getUserIdFromToken(request: NextRequest): Promise<string | null> { 
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.split(' ')[1];
@@ -35,154 +36,139 @@ async function getUserIdFromToken(request: NextRequest): Promise<string | null> 
     } 
 }
 
-function getTargetLocation(address: AddressInput): string {
-    // --- TODO: Implement Robust Location Logic --- 
-    // This needs to map the address (province, city, postal code ranges) 
-    // to your defined distribution centers: 'Vancouver', 'Calgary', 'Edmonton', 'Toronto'
-    // Example placeholder based on province:
-    const province = address.province?.toUpperCase() || '';
+function getTargetLocation(address: AddressInput | undefined): string { // Made address potentially undefined
+    const province = address?.province?.toUpperCase() || '';
     if (['BC'].includes(province)) return 'Vancouver';
     if (['AB', 'SK', 'MB'].includes(province)) return 'Calgary'; 
     if (['ON', 'QC'].includes(province)) return 'Toronto'; 
     console.warn(`Could not determine specific location for province: ${province}, using fallback 'Toronto'.`);
-    return 'Toronto'; // Default fallback location - VERY IMPORTANT TO FIX
+    return 'Toronto'; 
 }
 
 // --- Main POST Handler --- 
 export async function POST(request: NextRequest) {
+    // Declare variables needed across try/catch/finally
     let userId: string | null = null;
-    let orderCreated = false; // Flag to track if order record was inserted
+    let client: PoolClient | null = null; 
+    let orderCreated = false; // Moved declaration outside try
     let newOrderId: number | null = null; 
     
     try {
         userId = await getUserIdFromToken(request);
-        if (!userId) {
-            return NextResponse.json({ message: 'Unauthorized.' }, { status: 401 });
-        }
-        console.log(`POST /api/orders - User ${userId} starting order creation.`);
-
+        if (!userId) return NextResponse.json({ message: 'Unauthorized.' }, { status: 401 });
+        
         const body: CreateOrderBody = await request.json();
-        const { items, shippingAddress, billingAddress, paymentMethod } = body;
+        const { items, shippingAddress, billingAddress, paymentMethod } = body; 
 
-        // Basic Input Validation
+        // --- Input Validation --- 
         if (!items || !Array.isArray(items) || items.length === 0) return NextResponse.json({ message: 'Order must contain items.' }, { status: 400 });
-        if (!shippingAddress || !shippingAddress.street || !shippingAddress.city || !shippingAddress.province || !shippingAddress.postalCode) return NextResponse.json({ message: 'Incomplete shipping address.' }, { status: 400 });
+        if (!shippingAddress?.street || !shippingAddress?.city || !shippingAddress?.province || !shippingAddress?.postalCode) return NextResponse.json({ message: 'Incomplete shipping address.' }, { status: 400 });
         if (!paymentMethod) return NextResponse.json({ message: 'Payment method is required.' }, { status: 400 });
 
-        // --- Transaction Simulation Start --- 
+        // Get a client connection from the pool
+        client = await pool.connect();
+        console.log('DB client connected for transaction.');
 
-        // 1. Fetch Product Details & Determine Target Location
+        // --- Pre-computation & Checks --- 
         const productIds = items.map(item => item.productId);
-        if (productIds.length === 0) return NextResponse.json({ message: 'No valid product IDs in order.' }, { status: 400 });
+        if (productIds.length === 0) throw new Error('No valid product IDs in order.');
         
-        const productDetailsResult = await sql`SELECT id, name, price, is_active FROM products WHERE id = ANY(${productIds})`;
-        const productDetails = productDetailsResult as ProductInfo[];
+        const productDetailsResult = await client.query('SELECT id, name, price, is_active FROM products WHERE id = ANY($1)', [productIds]);
+        const productDetails = productDetailsResult.rows as ProductInfo[];
         const productMap = new Map(productDetails.map(p => [p.id, p]));
         const targetLocation = getTargetLocation(shippingAddress);
-        console.log(`Target fulfillment location determined as: ${targetLocation}`);
 
-        // 2. Check Availability & Prepare Order Data
         let subtotal = 0;
         const orderItemsData: { productId: number; quantity: number; pricePerItem: number; name: string }[] = [];
         
-        for (const item of items) {
+        for (const item of items) { 
             const product = productMap.get(item.productId);
-            if (!product || !product.is_active) return NextResponse.json({ message: `Product ID ${item.productId} (${product?.name || 'Unknown'}) not found or not available.` }, { status: 400 });
-            if (!item.quantity || item.quantity <= 0) return NextResponse.json({ message: `Invalid quantity for product ID ${item.productId}.` }, { status: 400 });
+            if (!product || !product.is_active) throw new Error(`Product ID ${item.productId} (${product?.name || 'Unknown'}) not found or not available.`);
+            if (!item.quantity || item.quantity <= 0) throw new Error(`Invalid quantity for product ID ${item.productId}.`);
+
+            const stockResult = await client.query('SELECT quantity FROM inventory WHERE product_id = $1 AND location = $2', [item.productId, targetLocation]);
+            const available = stockResult.rows[0]?.quantity ?? 0;
+            if (available < item.quantity) {
+                throw new Error(`Insufficient stock for product ${product.name}. Only ${available} available at ${targetLocation}.`);
+            }
             
-            // Prepare data for stock check and order items
             const pricePerItem = parseFloat(product.price);
             subtotal += pricePerItem * item.quantity;
-            orderItemsData.push({
-                productId: item.productId,
-                quantity: item.quantity,
-                pricePerItem: pricePerItem,
-                name: product.name // Include name for error messages
-            });
+            orderItemsData.push({ productId: item.productId, quantity: item.quantity, pricePerItem: pricePerItem, name: product.name });
         }
-        
-        // Perform inventory checks *before* creating the order
-        console.log(`Checking inventory at ${targetLocation} for ${orderItemsData.length} items...`);
-        const stockCheckPromises = orderItemsData.map(item => sql`
-            SELECT quantity FROM inventory WHERE product_id = ${item.productId} AND location = ${targetLocation}
-        `);
-        const stockResults = await Promise.all(stockCheckPromises);
+        console.log('Stock levels verified.');
 
-        // Validate stock levels
-        for (let i = 0; i < orderItemsData.length; i++) {
-            const item = orderItemsData[i];
-            const result = stockResults[i];
-            const available = parseInt(result[0]?.quantity as string || '0');
-            if (available < item.quantity) {
-                 const message = `Insufficient stock for product ${item.name}. Only ${available} available at your location (${targetLocation}).`;
-                 console.error(message);
-                 return NextResponse.json({ message }, { status: 400 }); // Use 400 Bad Request for stock issues
-            }
-        }
-        console.log('Stock levels verified for all items at location:', targetLocation);
-
-        // 3. Calculate Final Totals (Simplified)
         const shippingCost = 5.00; 
         const taxes = subtotal * 0.13; 
         const totalAmount = subtotal + shippingCost + taxes;
 
-        // --- Database Modification Start (Simulated Transaction) --- 
-        
+        // --- Database Transaction --- 
+        await client.query('BEGIN');
+        console.log('BEGIN Transaction');
+
         // 4. Create Order Record
-        console.log('Inserting order into database...');
         const initialStatus = 'Pending Approval';
         const initialPaymentStatus = paymentMethod === 'etransfer' || paymentMethod === 'btc' ? 'Awaiting Confirmation' : 'Pending';
         const shippingAddrJson = JSON.stringify(shippingAddress);
         const billingAddrJson = JSON.stringify(billingAddress); 
-
-        const orderResult = await sql`
-            INSERT INTO orders (user_id, status, subtotal, shipping_cost, taxes, total_amount, shipping_address, billing_address, payment_method, payment_status)
-            VALUES (${userId}, ${initialStatus}, ${subtotal.toFixed(2)}, ${shippingCost.toFixed(2)}, ${taxes.toFixed(2)}, ${totalAmount.toFixed(2)}, ${shippingAddrJson}, ${billingAddrJson}, ${paymentMethod}, ${initialPaymentStatus})
-            RETURNING id
-        `;
-        newOrderId = orderResult[0]?.id as number | undefined;
-        if (!newOrderId) throw new Error('Failed to create order record (no ID returned).');
-        orderCreated = true; // Mark order as created
-        console.log(`Order record created with ID: ${newOrderId}`);
-
-        // 5. Create Order Items
-        console.log('Inserting order items...');
-        const itemInsertPromises = orderItemsData.map(item => sql`
-            INSERT INTO order_items (order_id, product_id, quantity, price_per_item)
-            VALUES (${newOrderId}, ${item.productId}, ${item.quantity}, ${item.pricePerItem.toFixed(2)})
-        `);
-        await Promise.all(itemInsertPromises);
-        console.log(`${orderItemsData.length} order items inserted.`);
-
-        // 6. Decrement Inventory (CRITICAL - Now Implemented)
-        console.log(`Decrementing inventory for order ${newOrderId} at location ${targetLocation}...`);
-        const inventoryUpdatePromises = orderItemsData.map(item => sql`
-            UPDATE inventory 
-            SET quantity = quantity - ${item.quantity}, last_updated = CURRENT_TIMESTAMP
-            WHERE product_id = ${item.productId} AND location = ${targetLocation} AND quantity >= ${item.quantity}
-        `); 
-        await Promise.all(inventoryUpdatePromises);
-        // TODO: Check results of Promise.all for row counts if driver supports it, or re-query to verify.
-        // If any update failed (e.g., quantity < item.quantity due to race condition), we need to handle it!
-        // For now, we assume it worked if no error was thrown.
-        console.log(`Inventory decrement executed for ${orderItemsData.length} items.`);
         
-        // --- Database Modification End --- 
+        const orderInsertQuery = `INSERT INTO orders (user_id, status, subtotal, shipping_cost, taxes, total_amount, shipping_address, billing_address, payment_method, payment_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`;
+        const orderInsertParams = [userId, initialStatus, subtotal.toFixed(2), shippingCost.toFixed(2), taxes.toFixed(2), totalAmount.toFixed(2), shippingAddrJson, billingAddrJson, paymentMethod, initialPaymentStatus];
+        const orderResult = await client.query(orderInsertQuery, orderInsertParams);
+        newOrderId = orderResult.rows[0]?.id;
+        if (!newOrderId) throw new Error('Failed to create order record.');
+        console.log(`Order record inserted (ID: ${newOrderId})`);
+        
+        // 5. Create Order Items
+        const itemInsertQuery = 'INSERT INTO order_items (order_id, product_id, quantity, price_per_item) VALUES ($1, $2, $3, $4)';
+        const itemInsertPromises = orderItemsData.map(item => 
+            client.query(itemInsertQuery, [newOrderId, item.productId, item.quantity, item.pricePerItem.toFixed(2)])
+        );
+        await Promise.all(itemInsertPromises);
+        console.log(`Order items inserted for order ${newOrderId}`);
+
+        // 6. Decrement Inventory
+        const inventoryUpdateQuery = 'UPDATE inventory SET quantity = quantity - $1, last_updated = CURRENT_TIMESTAMP WHERE product_id = $2 AND location = $3 AND quantity >= $1';
+        const inventoryUpdatePromises = orderItemsData.map(item => 
+            client.query(inventoryUpdateQuery, [item.quantity, item.productId, targetLocation])
+        );
+        const updateResults = await Promise.all(inventoryUpdatePromises);
+        for(let i=0; i<updateResults.length; i++){
+            if (updateResults[i].rowCount === 0) {
+                throw new Error(`Inventory update failed for product ID ${orderItemsData[i].productId} (race condition?). Order rolled back.`);
+            }
+        }
+        console.log(`Inventory decremented for order ${newOrderId}`);
+
+        // Commit transaction
+        await client.query('COMMIT');
+        console.log('COMMIT Transaction');
+        orderCreated = true; // Set flag only AFTER successful commit
+
+        // --- Transaction End --- 
 
         // 7. TODO: Handle Payment Processing
 
-        // 8. Return Success Response
         return NextResponse.json({ 
-            message: 'Order placed successfully!', 
-            orderId: newOrderId,
-            status: initialStatus,
-            paymentStatus: initialPaymentStatus
+            message: 'Order placed successfully!', orderId: newOrderId, status: initialStatus, paymentStatus: initialPaymentStatus 
         }, { status: 201 });
 
     } catch (error: any) {
-        console.error(`POST /api/orders - Failed for user ${userId || '(unknown)'} (Order Created: ${orderCreated}, ID: ${newOrderId}):`, error);
-        // TODO: If orderCreated is true but inventory decrement failed, we have an inconsistent state!
-        // Need robust error handling/rollback or notification system here.
+        // Rollback transaction if client exists and order wasn't successfully committed
+        if (client && !orderCreated) { 
+            try {
+                await client.query('ROLLBACK');
+                console.log('ROLLBACK Transaction due to error');
+            } catch (rollbackError) {
+                console.error('Failed to rollback transaction:', rollbackError);
+            }
+        }
+        console.error(`POST /api/orders - Failed for user ${userId || '(unknown)'}:`, error);
         return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
+    } finally {
+        if (client) {
+            client.release(); // Release client back to pool
+            console.log('DB client released.');
+        }
     }
 }
