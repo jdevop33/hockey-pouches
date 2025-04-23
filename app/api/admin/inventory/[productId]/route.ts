@@ -1,21 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server'; // Import NextRequest
 // import { verifyAdmin } from '@/lib/auth';
 // import { getInventoryForProduct } from '@/lib/inventoryService';
 
-// Using a generic type for the context/params argument as a workaround
 export async function GET(
-  request: Request, 
-  context: any // Using generic 'any' to bypass build type check issue
+  request: NextRequest, // Use NextRequest
+  context: { params: { productId: string } } // Use context object signature
 ) {
-  // TODO: Implement admin logic to get inventory for a specific product
-  // ... (rest of TODO comments)
-
-  // Extract productId and ensure it's a string
-  const productId = context?.params?.productId as string | undefined;
-
-  if (!productId) {
-    return NextResponse.json({ message: 'Product ID is missing.' }, { status: 400 });
-  }
+  // Extract productId from context.params
+  const { productId } = context.params;
 
   try {
     // --- Add Admin Authentication Verification Logic Here ---

@@ -1,28 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server'; // Import NextRequest
 // import { verifyAdmin } from '@/lib/auth';
 // import { updateInventoryQuantity } from '@/lib/inventoryService';
 
-interface Params {
-  inventoryId: string;
-}
-
-export async function PUT(request: Request, { params }: { params: Params }) {
-  // TODO: Implement admin logic to update inventory quantity
-  // 1. Verify Admin Authentication.
-  // 2. Extract inventoryId from params.
-  // 3. Validate Request Body: Expects { quantity: number, reason?: string }.
-  // 4. Update Inventory: Find the inventory record and update the quantity.
-  // 5. Log Adjustment (Important!): Record the change, who made it, when, and why.
-  // 6. Return Success or Error.
-
-  const { inventoryId } = params;
+export async function PUT(
+    request: NextRequest, // Use NextRequest
+    context: { params: { inventoryId: string } } // Use context object signature
+) {
+  // Extract inventoryId from context.params
+  const { inventoryId } = context.params;
 
   try {
     // --- Add Admin Authentication Verification Logic Here ---
-    // const adminCheck = await verifyAdmin(request);
-    // if (!adminCheck.isAdmin) {
-    //   return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    // }
+    // ...
 
     const body = await request.json();
     console.log(`Admin: Update inventory quantity for ID: ${inventoryId}`, body); // Placeholder
@@ -40,7 +29,10 @@ export async function PUT(request: Request, { params }: { params: Params }) {
 
     return NextResponse.json({ message: `Inventory ${inventoryId} updated successfully` }); // Placeholder
 
-  } catch (error) {
+  } catch (error: any) {
+     if (error instanceof SyntaxError) {
+         return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
+    }
     console.error(`Admin: Failed to update inventory ${inventoryId}:`, error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
