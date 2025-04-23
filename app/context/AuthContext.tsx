@@ -34,27 +34,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Load auth state from localStorage on initial mount
   useEffect(() => {
     console.log('AuthProvider useEffect: Attempting to load state...');
-    // --- TEMPORARILY DISABLED LOCALSTORAGE --- 
-    /*
+    // --- Re-enabled LOCALSTORAGE reading --- 
     try {
       const storedToken = localStorage.getItem('authToken');
       const storedUser = localStorage.getItem('authUser');
       console.log('AuthProvider useEffect: Found in localStorage:', { storedToken: !!storedToken, storedUser: !!storedUser });
       if (storedToken && storedUser) {
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        setUser(JSON.parse(storedUser)); // Potential crash point if storedUser is invalid JSON
         console.log('AuthProvider useEffect: State set from localStorage.');
       } else {
         console.log('AuthProvider useEffect: No valid state found in localStorage.');
       }
     } catch (error) {
-      console.error("AuthProvider useEffect: Error loading auth state:", error);
+      console.error("AuthProvider useEffect: Error loading auth state (clearing stored data):", error);
+      // Clear potentially corrupted storage
       localStorage.removeItem('authToken');
       localStorage.removeItem('authUser');
+    } finally {
+        setIsLoading(false); 
     }
-    */
-    // --- END TEMPORARY DISABLE ---
-    setIsLoading(false); // Mark loading as false even if localStorage fails/is disabled
     console.log('AuthProvider useEffect: Loading finished.');
     
   }, []);
@@ -99,6 +98,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
+    // This error means useAuth was called outside of AuthProvider
+    console.error('useAuth must be used within an AuthProvider');
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
