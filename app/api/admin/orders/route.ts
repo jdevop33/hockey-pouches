@@ -1,52 +1,70 @@
-import { NextResponse } from 'next/server';
-// import { verifyAdmin } from '@/lib/auth';
-// import { getAllOrders } from '@/lib/orderAdminService';
+import { NextResponse, type NextRequest } from 'next/server';
+import sql from '@/lib/db';
+// TODO: Add admin auth check
 
-export async function GET(request: Request) {
-  // TODO: Implement admin logic to list all orders
-  // 1. Verify Admin Authentication.
-  // 2. Parse Query Parameters: Filtering (status, date range, customerId), sorting, pagination.
-  // 3. Fetch Orders: Retrieve orders based on filters/pagination.
-  // 4. Return Order List.
+// Explicitly force dynamic rendering
+export const dynamic = 'force-dynamic';
 
+// Placeholder Type
+type AdminOrder = {
+  id: string;
+  date: string;
+  customerName: string;
+  customerId: string;
+  total: number;
+  status: string; 
+  distributorId?: string | null;
+};
+
+export async function GET(request: NextRequest) {
+  // TODO: Add Admin Auth Check here!
   try {
-    // --- Add Admin Authentication Verification Logic Here ---
-    // const adminCheck = await verifyAdmin(request);
-    // if (!adminCheck.isAdmin) {
-    //   return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    // }
+    const { searchParams } = request.nextUrl;
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '15'); 
+    const offset = (page - 1) * limit;
+    const statusFilter = searchParams.get('status');
+    
+    console.log(`Admin GET /api/admin/orders - Page: ${page}, Limit: ${limit}, Status: ${statusFilter}`);
 
-    const { searchParams } = new URL(request.url);
-    const page = searchParams.get('page') || '1';
-    const limit = searchParams.get('limit') || '10';
-    const status = searchParams.get('status');
-    // Add other filters (dateFrom, dateTo, customerId, search)
+    // Build WHERE clause dynamically (Example)
+    let conditions = [];
+    let queryParams: any[] = [];
+    let paramIndex = 1;
+    if (statusFilter) {
+        conditions.push(`status = $${paramIndex++}`);
+        queryParams.push(statusFilter);
+    }
+    // Add more conditions for other filters...
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    console.log(`Admin: Get all orders request - Page: ${page}, Limit: ${limit}, Status: ${status}`); // Placeholder
+    // Fetch Orders
+    const ordersQuery = `
+        SELECT id, created_at as date, customer_name as customerName, user_id as customerId, total_amount as total, status, assigned_distributor_id as distributorId 
+        FROM orders 
+        ${whereClause} 
+        ORDER BY created_at DESC 
+        LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+    `;
+    queryParams.push(limit, offset);
+    
+    // Fetch Total Count with same filters
+    const countQuery = `SELECT COUNT(*) FROM orders ${whereClause}`;
+    const countQueryParams = queryParams.slice(0, conditions.length); // Only use filter params for count
 
-    // --- Fetch All Orders Logic Here ---
-    // const { orders, total } = await getAllOrders({ 
-    //   page: parseInt(page), 
-    //   limit: parseInt(limit), 
-    //   status 
-    // });
+    // Execute concurrently
+    const [ordersResult, totalResult] = await Promise.all([
+        sql.query(ordersQuery, queryParams),
+        sql.query(countQuery, countQueryParams)
+    ]);
 
-    // Placeholder data
-    const dummyOrders = [
-      { orderId: 'order-123', customerId: 'cust-abc', customerName: 'Alice', date: new Date().toISOString(), status: 'Shipped', total: 55.50 },
-      { orderId: 'order-456', customerId: 'cust-def', customerName: 'Bob', date: new Date().toISOString(), status: 'Pending Approval', total: 75.00 },
-      { orderId: 'order-789', customerId: 'cust-ghi', customerName: 'Charlie', date: new Date().toISOString(), status: 'Awaiting Fulfillment', total: 120.00 },
-    ];
-    const totalOrders = 50; // Example total count
+    const totalOrders = parseInt(totalResult.rows[0]?.count || '0');
+    const totalPages = Math.ceil(totalOrders / limit);
+    const orders = ordersResult.rows as AdminOrder[]; 
 
     return NextResponse.json({ 
-      orders: dummyOrders, 
-      pagination: { 
-        page: parseInt(page), 
-        limit: parseInt(limit), 
-        total: totalOrders, 
-        totalPages: Math.ceil(totalOrders / parseInt(limit))
-      }
+      orders: orders, 
+      pagination: { page, limit, total: totalOrders, totalPages }
     });
 
   } catch (error) {
