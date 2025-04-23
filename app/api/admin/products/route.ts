@@ -1,47 +1,59 @@
-import { NextResponse } from 'next/server';
-// import { verifyAdmin } from '@/lib/auth';
-// import { listAllProducts, createProduct } from '@/lib/productAdminService';
+import { NextResponse, type NextRequest } from 'next/server';
+import sql from '@/lib/db';
+// TODO: Add JWT verification for admin routes
 
-export async function GET(request: Request) {
-  // TODO: Implement admin logic to list all products
-  // 1. Verify Admin Authentication.
-  // 2. Parse Query Parameters: Handle filtering (status, category), sorting, pagination.
-  // 3. Fetch All Products: Retrieve all products (active and inactive) based on filters.
-  // 4. Return Product List.
+// We can reuse the Product interface, maybe move to a shared types file later
+interface Product {
+    id: number;
+    name: string;
+    description?: string | null;
+    flavor?: string | null;
+    strength?: number | null;
+    price: number; 
+    compare_at_price?: number | null;
+    image_url?: string | null;
+    category?: string | null;
+    is_active: boolean;
+}
+
+// Force dynamic rendering since we might check auth headers
+export const dynamic = 'force-dynamic';
+
+// --- GET Handler (List ALL Products for Admin) --- 
+export async function GET(request: NextRequest) {
+  // TODO: Add Admin Auth Check here!
+  const { searchParams } = request.nextUrl;
+  const page = parseInt(searchParams.get('page') || '1');
+  const limit = parseInt(searchParams.get('limit') || '15'); 
+  const offset = (page - 1) * limit;
+  // TODO: Add filters (status, category, search)
+
+  console.log(`Admin GET /api/admin/products - Page: ${page}, Limit: ${limit}`);
 
   try {
-    // --- Add Admin Authentication Verification Logic Here ---
-    // const adminCheck = await verifyAdmin(request);
-    // if (!adminCheck.isAdmin) {
-    //   return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    // }
+    // Fetch ALL products (including inactive) for admin view
+    const productsQuery = sql`
+        SELECT 
+            id, name, description, flavor, strength, 
+            CAST(price AS FLOAT) as price, 
+            CAST(compare_at_price AS FLOAT) as compare_at_price, 
+            image_url, category, is_active 
+        FROM products 
+        ORDER BY id ASC -- Or name, make parameterizable
+        LIMIT ${limit} OFFSET ${offset}
+    `;
+    
+    const totalQuery = sql`SELECT COUNT(*) FROM products`; // Count all
 
-    const { searchParams } = new URL(request.url);
-    const page = searchParams.get('page') || '1';
-    const limit = searchParams.get('limit') || '10';
-    // Add other filters (status, category, search)
-
-    console.log(`Admin: Get all products request - Page: ${page}, Limit: ${limit}`); // Placeholder
-
-    // --- Fetch All Products Logic Here ---
-    // const { products, total } = await listAllProducts({ page: parseInt(page), limit: parseInt(limit), ...filters });
-
-    // Placeholder data
-    const dummyProducts = [
-      { id: 'prod-1', name: 'Cool Mint Pouch', category: 'Mint', price: 5.99, isActive: true },
-      { id: 'prod-2', name: 'Cherry Pouch', category: 'Fruit', price: 6.49, isActive: true },
-      { id: 'prod-3', name: 'Old Flavor (Inactive)', category: 'Discontinued', price: 4.99, isActive: false },
-    ];
-    const totalProducts = 25; // Example total count
+    const [productsResult, totalResult] = await Promise.all([productsQuery, totalQuery]);
+    
+    const totalProducts = parseInt(totalResult[0].count as string);
+    const totalPages = Math.ceil(totalProducts / limit);
+    const products = productsResult as Product[]; 
 
     return NextResponse.json({ 
-      products: dummyProducts, 
-      pagination: { 
-        page: parseInt(page), 
-        limit: parseInt(limit), 
-        total: totalProducts, 
-        totalPages: Math.ceil(totalProducts / parseInt(limit))
-      }
+      products: products, 
+      pagination: { page, limit, total: totalProducts, totalPages }
     });
 
   } catch (error) {
@@ -50,37 +62,81 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
-  // TODO: Implement admin logic to create a new product
-  // 1. Verify Admin Authentication.
-  // 2. Validate Request Body: Ensure required fields (name, category, price, etc.) are present and valid.
-  // 3. Create Product: Add the new product to the database.
-  // 4. Handle Variations (if provided in the initial creation).
-  // 5. Return Created Product Data or Success message.
-
+// --- POST Handler (Create New Product) --- 
+export async function POST(request: NextRequest) {
+  // TODO: Add Admin Auth Check here!
+  
   try {
-    // --- Add Admin Authentication Verification Logic Here ---
-    // const adminCheck = await verifyAdmin(request);
-    // if (!adminCheck.isAdmin) {
-    //   return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    // }
-
     const body = await request.json();
-    console.log('Admin: Create product request:', body); // Placeholder
+    console.log('Admin POST /api/admin/products request:', body);
 
-    // --- Add Input Validation Logic Here ---
+    // --- Basic Input Validation --- 
+    const { name, description, flavor, strength, price, compare_at_price, image_url, category, is_active = true } = body;
+    if (!name || !price || !strength || !flavor ) { // Add other required fields as necessary
+         return NextResponse.json({ message: 'Missing required fields (name, price, strength, flavor).' }, { status: 400 });
+    }
+    if (typeof price !== 'number' || price < 0) {
+         return NextResponse.json({ message: 'Invalid price.' }, { status: 400 });
+    }
+     if (typeof strength !== 'number' || strength <= 0) {
+         return NextResponse.json({ message: 'Invalid strength.' }, { status: 400 });
+    }
+    // Add more validation (string lengths, image URL format?)
 
-    // --- Create Product Logic Here ---
-    // const newProduct = await createProduct(body);
+    // --- Insert into products table --- 
+    const insertResult = await sql`
+        INSERT INTO products (name, description, flavor, strength, price, compare_at_price, image_url, category, is_active)
+        VALUES (
+            ${name}, 
+            ${description || null}, 
+            ${flavor}, 
+            ${strength}, 
+            ${price.toFixed(2)}, 
+            ${compare_at_price || null}, 
+            ${image_url || null}, 
+            ${category || null}, 
+            ${is_active}
+        )
+        RETURNING id
+    `;
+    
+    const newProductId = insertResult[0]?.id as number | undefined;
+    if (!newProductId) {
+        throw new Error('Failed to create product, did not return ID.');
+    }
+    console.log(`Admin: Product created with ID: ${newProductId}`);
 
-    // Placeholder response
-    const createdProduct = { id: 'new-prod-' + Date.now(), ...body }; 
+    // --- TODO: Create Initial Inventory Records --- 
+    // Decide initial quantity (e.g., 0) and locations
+    const initialQuantity = 0;
+    const locations = ['Vancouver', 'Calgary', 'Edmonton', 'Toronto'];
+    const inventoryPromises = locations.map(loc => sql`
+        INSERT INTO inventory (product_id, location, quantity)
+        VALUES (${newProductId}, ${loc}, ${initialQuantity})
+        ON CONFLICT (product_id, location) DO NOTHING -- Avoid error if somehow exists
+    `);
+    await Promise.all(inventoryPromises);
+    console.log(`Admin: Initial inventory records created for product ${newProductId}`);
 
-    return NextResponse.json(createdProduct, { status: 201 });
+    // --- Return Created Product Data --- 
+    // Fetch the newly created product to return it (optional but good practice)
+    const newProduct = await sql`
+         SELECT 
+            id, name, description, flavor, strength, 
+            CAST(price AS FLOAT) as price, 
+            CAST(compare_at_price AS FLOAT) as compare_at_price, 
+            image_url, category, is_active 
+        FROM products WHERE id = ${newProductId}
+    `;
 
-  } catch (error) {
+    return NextResponse.json(newProduct[0] as Product, { status: 201 });
+
+  } catch (error: any) {
+    if (error instanceof SyntaxError) {
+        return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
+    }
+    // Handle potential unique constraint errors if any defined besides PK
     console.error('Admin: Failed to create product:', error);
-    // Add specific error handling for validation errors if needed
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
