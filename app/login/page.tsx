@@ -1,17 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Added useEffect
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // For redirecting after login
-import Layout from '../components/layout/NewLayout'; // Adjust layout import as needed
-// import { useAuth } from '../context/AuthContext'; // Example if using context for auth state
+import { useRouter } from 'next/navigation'; 
+import Layout from '../components/layout/NewLayout'; 
+import { useAuth } from '../context/AuthContext'; // Import useAuth hook
 
 export default function LoginPage() {
   const router = useRouter();
-  // const { login } = useAuth(); // Example context usage
+  const { login, user, isLoading: authLoading } = useAuth(); // Use the hook
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if already logged in (and auth state is loaded)
+  useEffect(() => {
+    if (!authLoading && user) {
+        console.log('Already logged in, redirecting...');
+        // Determine redirect path based on role
+        switch (user.role) {
+            case 'Admin':
+                router.push('/admin/dashboard');
+                break;
+            case 'Distributor':
+                 router.push('/distributor/dashboard');
+                break;
+            default: // Retail Customer
+                 router.push('/dashboard');
+                break;
+        }
+    }
+  }, [user, authLoading, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,7 +42,6 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Call the login API endpoint
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -37,21 +55,14 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      // TODO: Handle successful login:
-      // 1. Store the authentication token (e.g., in localStorage, sessionStorage, or HttpOnly cookie managed by the backend response)
-      //    localStorage.setItem('authToken', data.token); // Example
-      // 2. Update application auth state (e.g., using Context API or Zustand/Redux)
-      //    login(data.user, data.token); // Example context usage
-      // 3. Redirect the user based on their role (Admin, Distributor, Retail Customer)
-      //    - Fetch user profile (/api/users/me) to get role if not returned by login
-      //    - Example Redirects:
-      //      if (data.user.role === 'Admin') router.push('/admin/dashboard');
-      //      else if (data.user.role === 'Distributor') router.push('/distributor/dashboard');
-      //      else router.push('/dashboard'); // Retail Customer dashboard
-
-      console.log('Login successful:', data); // Placeholder
-      alert('Login successful! Redirecting...'); // Placeholder alert
-      router.push('/dashboard'); // Default redirect placeholder
+      // Call the login function from AuthContext
+      if (data.user && data.token) {
+          login(data.user, data.token);
+          console.log('Login successful, redirecting...');
+           // Redirect is handled by the useEffect hook now
+      } else {
+           throw new Error('Login response missing user data or token.');
+      }
 
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');
@@ -59,6 +70,11 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+  
+  // Don't render the form if we are loading auth state or already logged in
+   if (authLoading || user) {
+        return <Layout><div className="p-8">Loading...</div></Layout>; // Or a loading spinner
+   }
 
   return (
     <Layout>
@@ -99,7 +115,7 @@ export default function LoginPage() {
                 />
               </div>
               <div>
-                <label htmlFor="password" className="sr-only">Password</label> {/* Fixed class to className */} 
+                <label htmlFor="password" className="sr-only">Password</label> 
                 <input
                   id="password"
                   name="password"
@@ -117,21 +133,17 @@ export default function LoginPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                {/* Optional: Remember me checkbox */}
-                {/* <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">Remember me</label> */} 
+                 {/* Optional: Remember me checkbox */}
               </div>
-
               <div className="text-sm">
-                {/* Optional: Forgot password link */}
-                {/* <a href="#" className="text-primary-600 hover:text-primary-500 font-medium">Forgot your password?</a> */}
+                  {/* Optional: Forgot password link */} 
               </div>
             </div>
 
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || authLoading}
                 className="focus:ring-primary-500 group relative flex w-full justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50"
               >
                 {isLoading ? 'Signing in...' : 'Sign in'}

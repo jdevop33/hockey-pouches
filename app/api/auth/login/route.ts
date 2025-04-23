@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
-import sql from '@/lib/db'; // Using updated alias
+import jwt from 'jsonwebtoken'; // Added
+import sql from '@/lib/db';
 
 // Define expected request body
 interface LoginBody {
@@ -8,7 +9,7 @@ interface LoginBody {
   password?: string;
 }
 
-// Define expected user data from DB (including password hash)
+// Define expected user data from DB
 interface UserWithPasswordHash {
     id: string;
     email: string;
@@ -18,11 +19,14 @@ interface UserWithPasswordHash {
     password_hash: string;
 }
 
-export async function POST(request: Request) {
-  // TODO:
-  // - Generate authentication token (e.g., JWT)
-  // - Return token and user info (excluding password hash!) or error
+// Define the structure of the data we'll put in the JWT payload
+interface JwtPayload {
+  userId: string;
+  email: string;
+  role: string;
+}
 
+export async function POST(request: Request) {
   try {
     const body: LoginBody = await request.json();
     const { email, password } = body;
@@ -40,51 +44,57 @@ export async function POST(request: Request) {
     console.log('Login attempt for:', lowerCaseEmail);
 
     // --- Database & Verification Logic --- 
-
-    // 1. Find user by email
     console.log('Finding user by email...');
-    // Removed the type argument from sql tag
-    const result = await sql`
+    const result = await sql` 
         SELECT id, email, name, role, status, password_hash 
         FROM users 
         WHERE email = ${lowerCaseEmail}
     `;
-
-    // Assert the type on the result
     const users = result as UserWithPasswordHash[];
 
     if (users.length === 0) {
         console.warn('Login failed: User not found', lowerCaseEmail);
-        // Use a generic error message for security
-        return NextResponse.json({ message: 'Invalid credentials.' }, { status: 401 }); // Unauthorized
+        return NextResponse.json({ message: 'Invalid credentials.' }, { status: 401 });
     }
 
     const user = users[0];
     console.log('User found:', user.email, 'Status:', user.status);
 
-    // Optional: Check user status (e.g., prevent suspended users from logging in)
     if (user.status !== 'Active') {
         console.warn('Login failed: User status is not Active', { email: user.email, status: user.status });
-         return NextResponse.json({ message: 'Account is not active.' }, { status: 403 }); // Forbidden
+         return NextResponse.json({ message: 'Account is not active.' }, { status: 403 });
     }
 
-    // 2. Verify password
     console.log('Verifying password...');
     const passwordMatches = await bcrypt.compare(password, user.password_hash);
 
     if (!passwordMatches) {
         console.warn('Login failed: Password mismatch for', user.email);
-        // Use a generic error message for security
-        return NextResponse.json({ message: 'Invalid credentials.' }, { status: 401 }); // Unauthorized
+        return NextResponse.json({ message: 'Invalid credentials.' }, { status: 401 });
     }
 
     console.log('Password verified successfully for:', user.email);
 
-    // --- TODO: Generate JWT Token --- 
-    const token = 'dummy-jwt-token-needs-replacement'; // Replace with actual JWT generation
+    // --- Generate JWT Token --- 
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+        console.error('JWT_SECRET environment variable is not set!');
+        throw new Error('Server configuration error.'); // Don't expose details
+    }
+
+    const payload: JwtPayload = {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+    };
+
+    console.log('Generating JWT...');
+    const token = jwt.sign(payload, jwtSecret, { 
+        expiresIn: '1d' // Example: token expires in 1 day (adjust as needed)
+    });
+    console.log('JWT generated.');
 
     // --- Success Response --- 
-    // Return essential user info (NO password hash) and the token
     const userResponse = {
         id: user.id,
         name: user.name,
@@ -100,7 +110,8 @@ export async function POST(request: Request) {
     if (error instanceof SyntaxError) {
          return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
     }
-    console.error('Login failed:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    console.error('Login API error:', error);
+    // Return generic error for security
+    return NextResponse.json({ message: error.message === 'Server configuration error.' ? error.message : 'Internal Server Error' }, { status: 500 });
   }
 }

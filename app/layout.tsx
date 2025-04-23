@@ -5,6 +5,7 @@ import Script from 'next/script';
 import CartWrapper from './components/CartWrapper';
 import { Analytics } from '@vercel/analytics/react';
 import { WebVitals } from './_components/web-vitals';
+import { AuthProvider } from './context/AuthContext'; // Added AuthProvider import
 
 // Analytics tracking IDs - configured for production deployment
 const GA_TRACKING_ID = 'G-PMM01WKF05';
@@ -73,44 +74,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <link rel="canonical" href="https://nicotinetins.com" />
+        {/* ... (keep existing head content) ... */}
+         <link rel="canonical" href="https://nicotinetins.com" />
         <link rel="icon" href="/images/logo/logo3.svg" sizes="any" />
         <link rel="apple-touch-icon" href="/images/logo/logo3.svg" sizes="256x256" />
         <link rel="icon" type="image/svg+xml" sizes="64x64" href="/images/logo/logo3.svg" />
         <link rel="icon" type="image/svg+xml" sizes="48x48" href="/images/logo/logo3.svg" />
-
-        {/* Prevent iOS from auto-detecting phone numbers and emails */}
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
-
-        {/* Preconnect to external domains */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.google-analytics.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://www.clarity.ms" />
-
-        {/* Additional social media tags */}
         <meta property="og:site_name" content="Nicotine Tins by Hockey Puxx" />
         <meta property="og:type" content="website" />
         <meta property="og:locale" content="en_CA" />
-
-        {/* X (formerly Twitter) meta tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:creator" content="@nicotinetins" />
         <meta name="twitter:site" content="@nicotinetins" />
-
-        {/* Color theme */}
         <meta name="theme-color" content="#0F172A" />
         <meta name="msapplication-TileColor" content="#0F172A" />
-
-        {/* Mobile app capability */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Nicotine Tins by Hockey Puxx" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="application-name" content="Nicotine Tins by Hockey Puxx" />
-
-        {/* Google Analytics - Gtag.js */}
         <Script
           strategy="afterInteractive"
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
@@ -132,8 +120,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `,
           }}
         />
-
-        {/* Microsoft Clarity */}
         <Script
           id="clarity-init"
           strategy="afterInteractive"
@@ -147,8 +133,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `,
           }}
         />
-
-        {/* JSON-LD Structured Data */}
         <Script
           id="website-schema"
           type="application/ld+json"
@@ -183,7 +167,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }),
           }}
         />
-
         <Script
           id="organization-schema"
           type="application/ld+json"
@@ -221,14 +204,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${inter.variable} font-sans`} suppressHydrationWarning>
-        {/* Web Vitals Tracking */}
-        <WebVitals />
+        <AuthProvider> { /* Added AuthProvider wrapper */ }
+          {/* Web Vitals Tracking */}
+          <WebVitals />
 
-        {/* Vercel Analytics */}
-        <Analytics />
+          {/* Vercel Analytics */}
+          <Analytics />
 
-        {/* Main Content */}
-        <CartWrapper>{children}</CartWrapper>
+          {/* Main Content */}
+          <CartWrapper>{children}</CartWrapper>
+        </AuthProvider> { /* Closing tag */ }
       </body>
     </html>
   );
