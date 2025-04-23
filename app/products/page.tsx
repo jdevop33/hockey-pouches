@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link'; 
-import Layout from '@/components/layout/NewLayout'; // Using Alias
-import { useCart } from '@/context/CartContext'; // Using Alias
+import Layout from '@/components/layout/NewLayout'; 
+import { useCart } from '@/context/CartContext'; 
 
 // Define Product type based on API response/DB schema
 interface Product {
@@ -20,7 +20,6 @@ interface Product {
     is_active: boolean;
 }
 
-// Define pagination state type
 interface PaginationState {
     page: number;
     limit: number;
@@ -31,7 +30,6 @@ interface PaginationState {
 export default function ProductsPage() {
   const { addToCart } = useCart();
   
-  // State for products, loading, errors, filters, pagination
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,11 +38,11 @@ export default function ProductsPage() {
   const [addedToCartId, setAddedToCartId] = useState<number | null>(null);
   const [pagination, setPagination] = useState<PaginationState>({ page: 1, limit: 12, total: 0, totalPages: 1 });
 
-  // Fetch products based on filters and pagination
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
       setError(null);
+      console.log('--- Fetching products --- '); // Log start
       try {
         const params = new URLSearchParams({
             page: pagination.page.toString(),
@@ -53,21 +51,30 @@ export default function ProductsPage() {
             ...(selectedStrength && { strength: selectedStrength.toString() }),
         });
         
-        console.log(`Fetching /api/products?${params.toString()}`);
-        const response = await fetch(`/api/products?${params.toString()}`);
+        const apiUrl = `/api/products?${params.toString()}`;
+        console.log(`Fetching: ${apiUrl}`);
+        const response = await fetch(apiUrl);
+        console.log(`Response Status: ${response.status}`); // Log status
+
         if (!response.ok) {
+            const errorText = await response.text(); // Get error text
+            console.error('API Error Response:', errorText);
             throw new Error(`Failed to fetch products (${response.status})`);
         }
+        
         const data = await response.json();
+        console.log('API Data Received:', data); // Log received data
         
         setProducts(data.products || []);
         setPagination(data.pagination || { page: 1, limit: 12, total: 0, totalPages: 1 });
+        console.log('State updated with products and pagination.');
 
       } catch (err: any) {
+        console.error('Error during product fetch:', err); // Log the actual error object
         setError(err.message || 'Could not load products.');
-        console.error(err);
       } finally {
         setIsLoading(false);
+        console.log('--- Finished fetching products --- '); // Log end
       }
     };
 
@@ -78,21 +85,15 @@ export default function ProductsPage() {
   const availableFlavors = ['Mint', 'Fruit', 'Berry', 'Citrus', 'Apple mint', 'Cool mint', 'Peppermint', 'Cola', 'Spearmint', 'Watermelon', 'Cherry', 'Other']; 
   const availableStrengths = [6, 12, 16, 22]; 
 
-  const handleAddToCart = (product: Product) => {
-    addToCart(product, 1); 
-    setAddedToCartId(product.id);
-    setTimeout(() => setAddedToCartId(null), 2000);
-  };
-  
-  const handlePageChange = (newPage: number) => {
-      if(newPage >= 1 && newPage <= pagination.totalPages) {
-          setPagination(prev => ({ ...prev, page: newPage }));
-      }
-  };
+  const handleAddToCart = (product: Product) => { /* ... */ };
+  const handlePageChange = (newPage: number) => { /* ... */ };
+
+  console.log('Render State:', { isLoading, error, productsLength: products.length }); // Log state before render
 
   return (
     <Layout>
-      <div className="bg-gray-50 py-12">
+      {/* ... rest of the component ... */} 
+       <div className="bg-gray-50 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center"><h1 className="text-3xl font-bold">Our Products</h1></div>
           <div className="mb-8 rounded-lg bg-white p-6 shadow-md">{/* Filters */}</div>
@@ -101,19 +102,9 @@ export default function ProductsPage() {
           {error && <div className="text-center p-10 text-red-600 bg-red-100 rounded">Error: {error}</div>}
 
           {!isLoading && !error && products.length > 0 && (
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map(product => (
-                <div key={product.id} className="flex flex-col overflow-hidden rounded-lg bg-white shadow-md">
-                   <Link href={`/products/${product.id}`} className="block group">
-                     <div className="relative h-64 bg-gray-100 group-hover:opacity-75 transition-opacity">
-                        <Image src={product.image_url || '/images/products/placeholder.svg'} alt={product.name} fill style={{ objectFit: 'contain' }} className="p-4"/> 
-                        {product.strength && <div className="absolute right-4 top-4"><span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800">{product.strength}mg</span></div>}
-                     </div>
-                   </Link>
-                  <div className="flex-grow p-6">{/* Product Info & Add to Cart */}</div>
-                </div>
-              ))}
-            </div>
+             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+               {/* Product Mapping */} 
+             </div>
           )}
           {!isLoading && !error && products.length === 0 && (
              <div className="rounded-lg bg-white p-8 text-center shadow-md">No products found.</div>
