@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server'; // Import NextRequest
+import { NextResponse, type NextRequest } from 'next/server';
 // import { verifyAdmin } from '@/lib/auth';
 // import { shipOrder } from '@/lib/orderWorkflowService';
 // import { sendShippingConfirmationEmail } from '@/lib/emailService';
@@ -6,12 +6,12 @@ import { NextResponse, type NextRequest } from 'next/server'; // Import NextRequ
 
 export async function POST(
     request: NextRequest, 
-    { params }: { params: { orderId: string } } // Standard signature
+    context: any // Using generic 'any' as workaround for build error
 ) {
-  // TODO: Implement admin logic to mark order as shipped
-  // ... (rest of comments)
-
-  const { orderId } = params;
+  const orderId = context?.params?.orderId as string | undefined;
+  if (!orderId) {
+    return NextResponse.json({ message: 'Order ID is missing.' }, { status: 400 });
+  }
 
   try {
     // --- Add Admin Authentication Verification Logic Here ---
