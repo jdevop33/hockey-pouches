@@ -1,41 +1,78 @@
-import { NextResponse } from 'next/server';
-// import { getSession } from 'next-auth/react'; // Example: if using NextAuth.js
-// import { verifyAuth } from '@/lib/auth'; // Example: custom auth verification function
+import { NextResponse, type NextRequest } from 'next/server';
+import jwt from 'jsonwebtoken';
+import sql from '@/lib/db';
 
-export async function GET(request: Request) {
-  // TODO: Implement logic to get authenticated user's profile
-  // 1. Verify Authentication: Check if the user is logged in (e.g., validate JWT from headers/cookies).
-  // 2. Extract User ID: Get the user ID from the validated token or session.
-  // 3. Fetch User Data: Retrieve user details from the database, excluding sensitive info like password hash.
-  // 4. Return User Data: Send the user profile information back.
+// Define the structure of the JWT payload we expect
+interface JwtPayload {
+  userId: string;
+  email: string;
+  role: string;
+}
 
+// Define the user data we want to return (excluding sensitive info)
+interface UserProfile {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    status: string;
+    referral_code: string | null;
+    created_at: string; // Adjust type if needed (e.g., Date)
+}
+
+// --- GET Handler: Fetch current user profile --- 
+export async function GET(request: NextRequest) {
   try {
-    // --- Add Authentication Verification Logic Here ---
-    // Example: const session = await getSession({ req: request });
-    // Example: const authResult = await verifyAuth(request);
-    // if (!authResult.isAuthenticated) {
-    //   return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    // }
-    // const userId = authResult.userId;
+    // 1. Get token from Authorization header
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.split(' ')[1]; // Bearer <token>
 
-    console.log('Get user profile request'); // Placeholder
+    if (!token) {
+      return NextResponse.json({ message: 'Authentication token missing.' }, { status: 401 });
+    }
 
-    // --- Fetch User Data Logic Here ---
-    // const user = await db.collection('users').findOne({ _id: userId }, { projection: { password: 0 } });
-    // if (!user) {
-    //   return NextResponse.json({ message: 'User not found' }, { status: 404 });
-    // }
+    // 2. Verify JWT
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+        console.error('JWT_SECRET is not set!');
+        return NextResponse.json({ message: 'Server configuration error.' }, { status: 500 });
+    }
 
-    // Replace with actual user data
-    const dummyUser = {
-      id: 'placeholder-user-id',
-      name: 'Placeholder User',
-      email: 'user@example.com',
-      role: 'Retail Customer' // or 'Distributor', 'Admin'
-      // Add other relevant fields: referralCode, addresses, etc.
-    };
+    let decodedPayload: JwtPayload;
+    try {
+      decodedPayload = jwt.verify(token, jwtSecret) as JwtPayload;
+    } catch (error) {
+      console.warn('JWT verification failed:', error);
+      // Handle expired or invalid tokens
+      if (error instanceof jwt.TokenExpiredError) {
+        return NextResponse.json({ message: 'Token expired.' }, { status: 401 });
+      }
+      return NextResponse.json({ message: 'Invalid token.' }, { status: 401 });
+    }
 
-    return NextResponse.json(dummyUser);
+    const { userId } = decodedPayload;
+    if (!userId) {
+        return NextResponse.json({ message: 'Invalid token payload.' }, { status: 401 });
+    }
+
+    // 3. Fetch User Data from DB
+    console.log(`Fetching profile for user ID: ${userId}`);
+    const users = await sql<UserProfile[]>`
+        SELECT id, name, email, role, status, referral_code, created_at 
+        FROM users 
+        WHERE id = ${userId}
+    `;
+
+    if (users.length === 0) {
+        console.error(`User not found in DB despite valid token: ${userId}`);
+        return NextResponse.json({ message: 'User not found.' }, { status: 404 });
+    }
+
+    const userProfile = users[0];
+    console.log(`Profile fetched for: ${userProfile.email}`);
+
+    // 4. Return User Data
+    return NextResponse.json(userProfile);
 
   } catch (error) {
     console.error('Failed to get user profile:', error);
@@ -43,38 +80,37 @@ export async function GET(request: Request) {
   }
 }
 
-export async function PUT(request: Request) {
-  // TODO: Implement logic to update authenticated user's profile
-  // 1. Verify Authentication: As in GET.
-  // 2. Extract User ID: As in GET.
-  // 3. Validate Request Body: Ensure the data to update is valid (e.g., email format, allowed fields).
-  // 4. Update User Data: Update the user's information in the database.
-  // 5. Return Updated Data or Success: Send back the updated profile or a success message.
+// --- PUT Handler: Update current user profile --- 
+export async function PUT(request: NextRequest) {
+  try {
+     // TODO: Reuse the JWT verification logic from GET to get the userId
+     // 1. Verify Authentication & Extract userId
+     // ... (similar logic as GET using headers, jwt.verify) ...
+     const userId = 'placeholder-get-user-id-from-token'; // Replace with actual logic
+     if (!userId) {
+         return NextResponse.json({ message: 'Unauthorized or Invalid Token' }, { status: 401 });
+     }
 
-   try {
-    // --- Add Authentication Verification Logic Here ---
-    // const authResult = await verifyAuth(request);
-    // if (!authResult.isAuthenticated) {
-    //   return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    // }
-    // const userId = authResult.userId;
+     // 2. Get request body
+     const body = await request.json();
+     // TODO: Add input validation for fields being updated (e.g., name, email format?)
+     const { name, email /* other updatable fields */ } = body;
 
-    const body = await request.json();
-    console.log('Update user profile request:', body); // Placeholder
+     console.log(`Update user profile request for user ID: ${userId}`, body);
 
-    // --- Add Input Validation Here ---
+     // 3. Update User Data in DB
+     // TODO: Construct the SET part of the query dynamically based on provided fields
+     // Example (only updating name):
+     // await sql`UPDATE users SET name = ${name}, updated_at = CURRENT_TIMESTAMP WHERE id = ${userId}`;
 
-    // --- Update User Data Logic Here ---
-    // const updateResult = await db.collection('users').updateOne({ _id: userId }, { $set: body });
-    // if (updateResult.matchedCount === 0) {
-    //   return NextResponse.json({ message: 'User not found' }, { status: 404 });
-    // }
+     // 4. Optionally fetch and return updated profile or just success
+     return NextResponse.json({ message: 'Profile updated successfully' }); // Placeholder
 
-    // Optionally fetch and return the updated user data
-    return NextResponse.json({ message: 'Profile updated successfully' }); // Placeholder
-
-  } catch (error) {
+   } catch (error: any) {
+    if (error instanceof SyntaxError) {
+         return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
+    }
     console.error('Failed to update user profile:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-  }
+   }
 }
