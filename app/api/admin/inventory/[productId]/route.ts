@@ -2,12 +2,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export async function GET(
   request: NextRequest, 
-  context: any // Applying workaround universally
+  { params }: { params: { productId: string } } // Applying correct standard signature for v14
 ) {
-  const productId = context?.params?.productId as string | undefined;
-  if (!productId) {
-    return NextResponse.json({ message: 'Product ID is missing.' }, { status: 400 });
-  }
+  const { productId } = params;
 
   try {
     console.log(`Admin: Get inventory for product ID: ${productId}`);
