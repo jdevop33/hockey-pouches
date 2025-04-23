@@ -7,40 +7,20 @@ import Image from 'next/image';
 import Layout from '@/components/layout/NewLayout'; 
 import { useAuth } from '@/context/AuthContext'; 
 
-// --- Types --- (Should match API response structure)
+// --- Types --- 
 type OrderItemDetails = { id: number; product_id: number; product_name: string; quantity: number; price_per_item: number; image_url?: string | null };
 interface Address { street?: string; city?: string; province?: string; postalCode?: string; country?: string; name?: string; phone?: string; }
 interface OrderHistory { timestamp: string; status: string; user?: string; notes?: string; }
 interface Distributor { id: string; name: string; location?: string | null; } 
-interface AdminOrderDetails {
-    id: number;
-    created_at: string; 
-    status: string;
-    items: OrderItemDetails[];
-    subtotal: number;
-    shipping_cost: number;
-    taxes: number;
-    total_amount: number;
-    shipping_address: Address | null; 
-    billing_address: Address | null;  
-    payment_method: string | null;
-    payment_status: string | null;
-    user_id: string; 
-    customer_name: string | null;
-    customer_email: string | null;
-    assigned_distributor_id?: string | null;
-    assigned_distributor_name?: string | null; 
-    tracking_number?: string | null;
-    fulfillment_notes?: string | null;
-    fulfillment_photo_url?: string | null;
-    orderHistory?: OrderHistory[]; 
+interface AdminOrderDetails { /* ... same as before ... */ 
+id: number; created_at: string; status: string; items: OrderItemDetails[]; subtotal: number; shipping_cost: number; taxes: number; total_amount: number; shipping_address: Address | null; billing_address: Address | null; payment_method: string | null; payment_status: string | null; user_id: string; customer_name: string | null; customer_email: string | null; assigned_distributor_id?: string | null; assigned_distributor_name?: string | null; tracking_number?: string | null; fulfillment_notes?: string | null; fulfillment_photo_url?: string | null; orderHistory?: OrderHistory[]; 
 }
 
 // Helper to format Address
 const formatAddress = (addr: Address | null | undefined): ReactNode => {
     if (!addr) return <span className="text-gray-500">Not available</span>;
     return (
-        <address className="not-italic">
+        <address className="not-italic text-sm">
             {addr.name && <>{addr.name}<br/></>}
             {addr.street}<br/>
             {addr.city}, {addr.province} {addr.postalCode}<br/>
@@ -56,6 +36,7 @@ export default function AdminOrderDetailPage() {
   const { user: adminUser, token, isLoading: authLoading, logout } = useAuth(); 
   const orderId = params.orderId as string;
 
+  // --- State --- 
   const [order, setOrder] = useState<AdminOrderDetails | null>(null);
   const [availableDistributors, setAvailableDistributors] = useState<Distributor[]>([]);
   const [selectedDistributor, setSelectedDistributor] = useState<string>('');
@@ -64,43 +45,47 @@ export default function AdminOrderDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  // Auth and Role Check Effect
+  // --- Auth Check Effect --- 
   useEffect(() => {
     if (!authLoading && (!adminUser || !token || adminUser.role !== 'Admin')) {
       router.push('/login?redirect=/admin/dashboard'); 
     }
   }, [adminUser, token, authLoading, router]);
 
-  // Data Fetching Function
+  // --- Data Fetching --- 
   const loadOrderData = async () => {
-      if (!token || !adminUser || !orderId) return; // Ensure prerequisites
+      if (!token || !adminUser || !orderId) return; 
       setIsLoadingData(true);
       setError(null);
       setActionError(null);
       try {
-          // Fetch order details
+          // Fetch order details from the implemented API endpoint
+          console.log(`Fetching order details from: /api/admin/orders/${orderId}`);
           const orderResponse = await fetch(`/api/admin/orders/${orderId}`, {
               headers: { 'Authorization': `Bearer ${token}` }
           });
           if (!orderResponse.ok) {
               if (orderResponse.status === 401) { logout(); router.push('/login'); return; } 
               if (orderResponse.status === 404) { throw new Error('Order not found.'); }
-              throw new Error(`Failed to fetch order (${orderResponse.status})`);
+              const errData = await orderResponse.json();
+              throw new Error(errData.message || `Failed to fetch order (${orderResponse.status})`);
           }
           const orderData = await orderResponse.json();
+          console.log('Order data received:', orderData);
           setOrder(orderData as AdminOrderDetails); 
           setSelectedDistributor(orderData.assigned_distributor_id || '');
 
-          // Fetch available distributors
-          const distResponse = await fetch(`/api/admin/users?role=Distributor&limit=200`, { 
+          // Fetch available distributors 
+          const distResponse = await fetch(`/api/admin/users?role=Distributor&limit=200`, {
                headers: { 'Authorization': `Bearer ${token}` }
           });
            if (!distResponse.ok) {
-              console.warn('Failed to fetch distributors, assignment may not work.');
+              console.warn('Failed to fetch distributors.');
               setAvailableDistributors([]);
            } else {
               const distData = await distResponse.json();
               setAvailableDistributors(distData.users || []);
+              console.log('Distributors fetched:', distData.users?.length || 0);
            }
 
       } catch (err: any) {
@@ -116,7 +101,7 @@ export default function AdminOrderDetailPage() {
     if (adminUser && token && adminUser.role === 'Admin' && orderId) {
         loadOrderData();
     }
-  }, [adminUser, token, orderId]); // Only refetch if these core identifiers change
+  }, [adminUser, token, orderId]); // Depend on auth state and orderId
   
   // --- Action Handlers --- 
   const handleAction = async (action: 'approve' | 'assign-distributor' | 'verify-fulfillment' | 'ship' | 'update-status', payload?: any) => {
@@ -127,6 +112,7 @@ export default function AdminOrderDetailPage() {
       let method = 'POST';
       let body: any = payload;
 
+      // Prepare body/endpoint based on action
       if (action === 'assign-distributor') {
           if (!selectedDistributor) { setActionError('Please select a distributor.'); setIsActionLoading(false); return; }
           body = { distributorId: selectedDistributor };
@@ -151,8 +137,7 @@ export default function AdminOrderDetailPage() {
           const result = await response.json();
           console.log('Action successful:', result);
           alert(`Action '${action}' successful! Refreshing data...`);
-          // Refresh data after action by re-fetching order details
-          await loadOrderData(); // Call the fetch function again
+          await loadOrderData(); // Re-fetch data to update UI
 
       } catch (err: any) {
           setActionError(err.message || 'An unexpected error occurred performing action.');
@@ -174,6 +159,7 @@ export default function AdminOrderDetailPage() {
 
   const getAvailableActions = (status: string): ReactNode[] => { 
         const actions: ReactNode[] = [];
+        // Simplified status checks based on expected flow
         if (status === 'Pending Approval') {
             actions.push(<button key="approve" onClick={() => handleAction('approve')} disabled={isActionLoading} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded disabled:opacity-50">Approve Order</button>);
         }
@@ -191,7 +177,8 @@ export default function AdminOrderDetailPage() {
          if (status === 'Pending Fulfillment Verification') {
              actions.push(<button key="verify" onClick={() => handleAction('verify-fulfillment')} disabled={isActionLoading} className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded disabled:opacity-50">Verify Fulfillment</button>);
          }
-          if (status === 'Awaiting Shipment') { 
+          // Status might be different after verification, e.g., 'Verified - Awaiting Shipment'
+          if (status === 'Awaiting Shipment' || status === 'Verified - Awaiting Shipment') { 
              actions.push(<button key="ship" onClick={() => handleAction('ship')} disabled={isActionLoading} className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded disabled:opacity-50">Mark as Shipped</button>);
          }
           actions.push(<button key="manual" onClick={triggerManualStatusUpdate} disabled={isActionLoading} className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded disabled:opacity-50">Manual Status Update</button>); 
@@ -205,6 +192,18 @@ export default function AdminOrderDetailPage() {
   if (!order) return <Layout><div className="p-8 text-center">Order not found.</div></Layout>;
 
   const actionButtons = getAvailableActions(order.status);
+  const getStatusColor = (status: string): string => { 
+        switch (status) {
+            case 'Pending Approval': return 'bg-yellow-100 text-yellow-800';
+            case 'Awaiting Fulfillment': return 'bg-blue-100 text-blue-800';
+            case 'Pending Fulfillment Verification': return 'bg-purple-100 text-purple-800';
+            case 'Awaiting Shipment': return 'bg-cyan-100 text-cyan-800'; // Or Verified...
+            case 'Shipped': return 'bg-green-100 text-green-800';
+            case 'Delivered': return 'bg-emerald-100 text-emerald-800';
+            case 'Cancelled': return 'bg-red-100 text-red-800';
+            default: return 'bg-gray-100 text-gray-800';
+        }
+    };
 
   return (
     <Layout>
@@ -215,8 +214,7 @@ export default function AdminOrderDetailPage() {
                  <h1 className="text-3xl font-bold text-gray-800">Manage Order #{order.id}</h1>
                  <p className="text-gray-600">Placed on {new Date(order.created_at).toLocaleString()} by <Link href={`/admin/dashboard/users/${order.user_id}`} className="text-primary-600 hover:underline">{order.customer_name || `User (${order.user_id.substring(0,6)}...)`}</Link></p>
              </div>
-             {/* TODO: Better status badge needed */} 
-             <div><span className={`px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full`}>Status: {order.status}</span></div>
+             <div><span className={`px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>{order.status}</span></div>
          </div>
 
         {/* Action Buttons */} 
@@ -252,16 +250,18 @@ export default function AdminOrderDetailPage() {
                  {(order.assigned_distributor_id || order.tracking_number || order.fulfillment_photo_url || order.fulfillment_notes) && (
                     <div className="bg-white shadow rounded-lg p-6">
                          <h2 className="text-xl font-semibold text-gray-700 mb-4">Fulfillment Info</h2>
-                          {/* ... Render fulfillment details ... */} 
+                         <dl className="space-y-3 text-sm">
+                            {/* ... Render fulfillment details ... */} 
+                         </dl>
                     </div>
                  )}
             </div>
             {/* Right Column: Customer, Addresses, Payment, History */} 
             <div className="lg:col-span-1 space-y-6">
                  <div className="bg-white shadow rounded-lg p-6">
-                     <h2 className="text-xl font-semibold text-gray-700 mb-4">Customer</h2>
-                     <p><Link href={`/admin/dashboard/users/${order.user_id}`} className="font-medium text-primary-600 hover:underline">{order.customer_name || `User (${order.user_id.substring(0,6)}...)`}</Link></p>
-                     <p className="text-sm text-gray-600">{order.customer_email || 'No email provided'}</p>
+                    <h2 className="text-xl font-semibold text-gray-700 mb-4">Customer</h2>
+                     <p><Link href={`/admin/dashboard/users/${order.user_id}`} className="font-medium text-primary-600 hover:underline">{order.customer_name || 'N/A'}</Link></p>
+                     <p className="text-sm text-gray-600">{order.customer_email || 'N/A'}</p>
                  </div>
                  <div className="bg-white shadow rounded-lg p-6">
                       <h2 className="text-xl font-semibold text-gray-700 mb-4">Addresses</h2>
@@ -276,12 +276,27 @@ export default function AdminOrderDetailPage() {
                  </div>
                  <div className="bg-white shadow rounded-lg p-6">
                       <h2 className="text-xl font-semibold text-gray-700 mb-4">Payment</h2>
-                      {/* ... Render payment details ... */} 
+                      <dl className="space-y-1 text-sm">
+                         <div className="flex justify-between"><dt className="text-gray-500">Method:</dt><dd className="text-gray-800 font-medium">{order.payment_method || 'N/A'}</dd></div>
+                         <div className="flex justify-between"><dt className="text-gray-500">Status:</dt><dd className="text-gray-800 font-medium">{order.payment_status || 'N/A'}</dd></div>
+                         <div className="flex justify-between pt-2 border-t mt-2"><dt className="text-gray-500 font-semibold">Total:</dt><dd className="text-gray-800 font-semibold">${order.total_amount.toFixed(2)}</dd></div>
+                      </dl>
                  </div>
-                 <div className="bg-white shadow rounded-lg p-6">
-                    <h2 className="text-xl font-semibold text-gray-700 mb-4">Order History</h2>
-                     {/* TODO: Render order history from order.orderHistory */} 
-                     <p className="text-sm text-gray-500">(History rendering pending)</p>
+                 {/* History Placeholder - Requires API to return history */}
+                  <div className="bg-white shadow rounded-lg p-6">
+                     <h2 className="text-xl font-semibold text-gray-700 mb-4">Order History</h2>
+                     <p className="text-sm text-gray-500">(Order history not implemented yet)</p>
+                     {/* {order.orderHistory && order.orderHistory.length > 0 ? (
+                        <ul className="space-y-3">
+                            {order.orderHistory.map((entry, index) => (
+                                <li key={index} className="text-sm border-b pb-2 last:border-b-0">
+                                    <p className="font-medium text-gray-700">{entry.status} <span className="text-gray-400 font-normal"> - {new Date(entry.timestamp).toLocaleString()}</span></p>
+                                    {entry.user && <p className="text-xs text-gray-500">By: {entry.user}</p>}
+                                    {entry.notes && <p className="text-xs text-gray-600 mt-1">Notes: {entry.notes}</p>}
+                                </li>
+                            ))}
+                        </ul>
+                     ) : <p className="text-sm text-gray-500">No history recorded.</p>} */} 
                  </div>
             </div>
         </div>
