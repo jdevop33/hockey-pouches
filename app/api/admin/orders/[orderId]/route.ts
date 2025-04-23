@@ -1,11 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function GET(
-    request: NextRequest
-    // { params }: { params: { orderId: string } } // Temporarily commented out for build test
+    request: NextRequest,
+    context: any // Applying workaround
 ) {
-  // const { orderId } = params; // Temporarily commented out
-  const orderId = 'TEMP_BUILD_FIX'; // Hardcoded for build test
+  const orderId = context?.params?.orderId as string | undefined; // Extracting safely
 
   if (!orderId) {
     return NextResponse.json({ message: 'Order ID is missing.' }, { status: 400 });
@@ -41,9 +40,8 @@ export async function GET(
 export async function PUT(
     request: NextRequest, 
     context: any // Keep using workaround for PUT for now
-    // { params }: { params: { orderId: string } } 
 ) {
-  const orderId = context?.params?.orderId as string | undefined; // Keep using workaround
+  const orderId = context?.params?.orderId as string | undefined; 
   if (!orderId) {
     return NextResponse.json({ message: 'Order ID is missing.' }, { status: 400 });
   }
