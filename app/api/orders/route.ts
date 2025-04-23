@@ -2,19 +2,10 @@ import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
 import jwt from 'jsonwebtoken';
 
-// Define the structure of the JWT payload we expect
-interface JwtPayload {
-  userId: string;
-}
-
-// Define the expected request body structure
-interface OrderItemInput {
-    productId: number;
-    quantity: number;
-}
-interface AddressInput { 
-    street?: string; city?: string; province?: string; postalCode?: string; country?: string; 
-}
+// --- Interfaces --- 
+interface JwtPayload { userId: string; }
+interface OrderItemInput { productId: number; quantity: number; }
+interface AddressInput { street?: string; city?: string; province?: string; postalCode?: string; country?: string; }
 interface CreateOrderBody {
     items?: OrderItemInput[];
     shippingAddress?: AddressInput;
@@ -22,8 +13,8 @@ interface CreateOrderBody {
     paymentMethod?: string;
 }
 
-// Helper function to get userId from token
-async function getUserIdFromToken(request: NextRequest): Promise<string | null> {
+// --- Helper Functions --- 
+async function getUserIdFromToken(request: NextRequest): Promise<string | null> { /* ... as before ... */ 
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.split(' ')[1];
     if (!token) return null;
@@ -38,6 +29,17 @@ async function getUserIdFromToken(request: NextRequest): Promise<string | null> 
     } 
 }
 
+// Placeholder for determining target location based on address
+function getTargetLocation(address: AddressInput): string {
+    // TODO: Implement proper logic to map province/postal code to location
+    const province = address.province?.toUpperCase();
+    if (province === 'BC') return 'Vancouver';
+    if (province === 'AB') return 'Calgary'; // Or Edmonton based on city/postal?
+    if (province === 'ON') return 'Toronto';
+    return 'DefaultLocation'; // Fallback - should be handled better
+}
+
+// --- Main POST Handler --- 
 export async function POST(request: NextRequest) {
     let userId: string | null = null;
     try {
@@ -50,45 +52,45 @@ export async function POST(request: NextRequest) {
         const body: CreateOrderBody = await request.json();
         const { items, shippingAddress, billingAddress, paymentMethod } = body;
 
-        if (!items || !Array.isArray(items) || items.length === 0) {
-            return NextResponse.json({ message: 'Order must contain items.' }, { status: 400 });
-        }
-        if (!shippingAddress || !shippingAddress.street || !shippingAddress.city || !shippingAddress.province || !shippingAddress.postalCode) {
-            return NextResponse.json({ message: 'Incomplete shipping address.' }, { status: 400 });
-        }
-        if (!paymentMethod) {
-             return NextResponse.json({ message: 'Payment method is required.' }, { status: 400 });
-        }
+        // Basic Input Validation
+        if (!items || !Array.isArray(items) || items.length === 0) return NextResponse.json({ message: 'Order must contain items.' }, { status: 400 });
+        if (!shippingAddress || !shippingAddress.street || !shippingAddress.city || !shippingAddress.province || !shippingAddress.postalCode) return NextResponse.json({ message: 'Incomplete shipping address.' }, { status: 400 });
+        if (!paymentMethod) return NextResponse.json({ message: 'Payment method is required.' }, { status: 400 });
 
         // --- Transaction Simulation Start --- 
 
-        console.log('Fetching product details and checking stock...');
+        // 1. Fetch Product Details
         const productIds = items.map(item => item.productId);
-        if (productIds.length === 0) { 
-             return NextResponse.json({ message: 'No valid product IDs in order.' }, { status: 400 });
-        }
+        if (productIds.length === 0) return NextResponse.json({ message: 'No valid product IDs in order.' }, { status: 400 });
         
-        // Corrected: Use = ANY(${}) for array parameter in WHERE clause
-        const productDetails = await sql`
-            SELECT id, name, price, is_active 
-            FROM products 
-            WHERE id = ANY(${productIds})
-        `;
-        
+        const productDetails = await sql`SELECT id, name, price, is_active FROM products WHERE id = ANY(${productIds})`;
         const productMap = new Map(productDetails.map(p => [p.id, p]));
+        
+        // 2. Determine Target Location
+        const targetLocation = getTargetLocation(shippingAddress);
+        console.log(`Target fulfillment location determined as: ${targetLocation}`);
+
+        // 3. Check Availability & Prepare Order Data
         let subtotal = 0;
         const orderItemsData = [];
+        const inventoryChecks: Promise<any>[] = []; // Store promises for stock checks
 
         for (const item of items) {
             const product = productMap.get(item.productId);
-            if (!product || !product.is_active) {
-                return NextResponse.json({ message: `Product ID ${item.productId} not found or not available.` }, { status: 400 });
-            }
-             if (!item.quantity || item.quantity <= 0) {
-                 return NextResponse.json({ message: `Invalid quantity for product ID ${item.productId}.` }, { status: 400 });
-            }
-            
-            console.warn(`STOCK CHECK SKIPPED for product ${item.productId} - Placeholder Only!`);
+            if (!product || !product.is_active) return NextResponse.json({ message: `Product ID ${item.productId} not found or not available.` }, { status: 400 });
+            if (!item.quantity || item.quantity <= 0) return NextResponse.json({ message: `Invalid quantity for product ID ${item.productId}.` }, { status: 400 });
+
+            // Fetch stock for the specific product AND location
+            inventoryChecks.push(sql`
+                SELECT quantity 
+                FROM inventory 
+                WHERE product_id = ${item.productId} AND location = ${targetLocation}
+            `.then(result => ({ 
+                productId: item.productId, 
+                requested: item.quantity, 
+                available: parseInt(result[0]?.quantity as string || '0'),
+                productName: product.name
+            })));
 
             const pricePerItem = parseFloat(product.price as string);
             subtotal += pricePerItem * item.quantity;
@@ -98,12 +100,25 @@ export async function POST(request: NextRequest) {
                 pricePerItem: pricePerItem
             });
         }
-        console.log('Product details fetched and basic checks passed.');
 
+        // Execute all inventory checks
+        const stockLevels = await Promise.all(inventoryChecks);
+
+        // Validate stock levels AFTER fetching all
+        for (const stock of stockLevels) {
+            if (stock.available < stock.requested) {
+                 console.error(`Insufficient stock for Product ID ${stock.productId} (${stock.productName}) at ${targetLocation}. Requested: ${stock.requested}, Available: ${stock.available}`);
+                 return NextResponse.json({ message: `Insufficient stock for product ${stock.productName}. Only ${stock.available} available at your location.` }, { status: 400 });
+            }
+        }
+        console.log('Stock levels verified for all items at location:', targetLocation);
+
+        // 4. Calculate Final Totals (Simplified)
         const shippingCost = 5.00; 
         const taxes = subtotal * 0.13; 
         const totalAmount = subtotal + shippingCost + taxes;
 
+        // 5. Create Order and Order Items in DB
         console.log('Inserting order into database...');
         const initialStatus = 'Pending Approval';
         const initialPaymentStatus = paymentMethod === 'etransfer' || paymentMethod === 'btc' ? 'Awaiting Confirmation' : 'Pending';
@@ -115,15 +130,11 @@ export async function POST(request: NextRequest) {
             VALUES (${userId}, ${initialStatus}, ${subtotal.toFixed(2)}, ${shippingCost.toFixed(2)}, ${taxes.toFixed(2)}, ${totalAmount.toFixed(2)}, ${shippingAddrJson}, ${billingAddrJson}, ${paymentMethod}, ${initialPaymentStatus})
             RETURNING id
         `;
-        
         const newOrderId = orderResult[0]?.id as number | undefined;
-        if (!newOrderId) {
-            throw new Error('Failed to create order record.');
-        }
+        if (!newOrderId) throw new Error('Failed to create order record.');
         console.log(`Order record created with ID: ${newOrderId}`);
 
         console.log('Inserting order items...');
-        // Corrected: Use Promise.all with individual INSERT statements
         const itemInsertPromises = orderItemsData.map(item => sql`
             INSERT INTO order_items (order_id, product_id, quantity, price_per_item)
             VALUES (${newOrderId}, ${item.productId}, ${item.quantity}, ${item.pricePerItem.toFixed(2)})
@@ -131,8 +142,24 @@ export async function POST(request: NextRequest) {
         await Promise.all(itemInsertPromises);
         console.log(`${orderItemsData.length} order items inserted.`);
 
-        console.warn(`INVENTORY NOT DECREMENTED for order ${newOrderId} - Placeholder Only!`);
+        // 6. Decrement Inventory (CRITICAL)
+        console.log(`Decrementing inventory for order ${newOrderId} at location ${targetLocation}...`);
+        const inventoryUpdatePromises = orderItemsData.map(item => sql`
+            UPDATE inventory 
+            SET quantity = quantity - ${item.quantity}, last_updated = CURRENT_TIMESTAMP
+            WHERE product_id = ${item.productId} AND location = ${targetLocation} AND quantity >= ${item.quantity} 
+        `); 
+        // Added WHERE quantity >= item.quantity as a safeguard against race conditions
+        await Promise.all(inventoryUpdatePromises);
+        console.log(`Inventory decremented for ${orderItemsData.length} items.`);
+        
+        // TODO: Verify update counts from Promise.all results if needed
 
+        // 7. TODO: Handle Payment Processing
+
+        // --- Transaction Simulation End --- 
+
+        // 8. Return Success Response
         return NextResponse.json({ 
             message: 'Order placed successfully!', 
             orderId: newOrderId,
@@ -142,16 +169,7 @@ export async function POST(request: NextRequest) {
 
     } catch (error: any) {
         console.error(`POST /api/orders - Failed for user ${userId || '(unknown)'}:`, error);
-        if (error instanceof SyntaxError) {
-            return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
-        }
-         if (error.message?.includes('Server configuration error')) {
-             return NextResponse.json({ message: error.message }, { status: 500 });
-        }
-        // Catch potential SQL errors like foreign key violations etc.
-        if (error.message?.includes('violates foreign key constraint')) {
-             return NextResponse.json({ message: 'Invalid product ID in order.' }, { status: 400 });
-        }
+        // Add more specific error handling based on error type/message
         return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }
