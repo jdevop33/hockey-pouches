@@ -23,6 +23,7 @@ interface CreateOrderBody {
   shippingAddress?: AddressInput;
   billingAddress?: AddressInput;
   paymentMethod?: string;
+  discountCode?: string | null;
 }
 interface ProductInfo {
   id: number;
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
     if (!userId) return NextResponse.json({ message: 'Unauthorized.' }, { status: 401 });
 
     const body: CreateOrderBody = await request.json();
-    const { items, shippingAddress, billingAddress, paymentMethod } = body;
+    const { items, shippingAddress, billingAddress, paymentMethod, discountCode } = body;
 
     // --- Input Validation ---
     if (!items || !Array.isArray(items) || items.length === 0)
@@ -144,9 +145,63 @@ export async function POST(request: NextRequest) {
     }
     console.log('Stock levels verified.');
 
+    // Process discount code if provided
+    let discountAmount = 0;
+    let appliedDiscountCode = null;
+
+    if (discountCode) {
+      const discountResult = await client.query(
+        `SELECT
+          id, code, description, discount_type, discount_value,
+          min_order_amount, max_discount_amount
+        FROM discount_codes
+        WHERE code = $1
+          AND is_active = TRUE
+          AND start_date <= CURRENT_TIMESTAMP
+          AND (end_date IS NULL OR end_date >= CURRENT_TIMESTAMP)
+          AND (usage_limit IS NULL OR times_used < usage_limit)`,
+        [discountCode]
+      );
+
+      if (discountResult.rows.length > 0) {
+        const discount = discountResult.rows[0];
+
+        // Check minimum order amount
+        if (subtotal >= parseFloat(discount.min_order_amount)) {
+          appliedDiscountCode = discount.code;
+
+          // Calculate discount amount
+          if (discount.discount_type === 'percentage') {
+            discountAmount = subtotal * (parseFloat(discount.discount_value) / 100);
+
+            // Apply maximum discount if specified
+            if (
+              discount.max_discount_amount &&
+              discountAmount > parseFloat(discount.max_discount_amount)
+            ) {
+              discountAmount = parseFloat(discount.max_discount_amount);
+            }
+          } else if (discount.discount_type === 'fixed_amount') {
+            discountAmount = parseFloat(discount.discount_value);
+
+            // Ensure discount doesn't exceed order total
+            if (discountAmount > subtotal) {
+              discountAmount = subtotal;
+            }
+          }
+
+          // Increment usage count
+          await client.query(
+            'UPDATE discount_codes SET times_used = times_used + 1 WHERE code = $1',
+            [discountCode]
+          );
+        }
+      }
+    }
+
     const shippingCost = 5.0;
     const taxes = subtotal * 0.13;
-    const totalAmount = subtotal + shippingCost + taxes;
+    const totalAmount = subtotal - discountAmount + shippingCost + taxes;
 
     // --- Database Transaction ---
     await client.query('BEGIN');
@@ -161,11 +216,13 @@ export async function POST(request: NextRequest) {
     const shippingAddrJson = JSON.stringify(shippingAddress);
     const billingAddrJson = JSON.stringify(billingAddress);
 
-    const orderInsertQuery = `INSERT INTO orders (user_id, status, subtotal, shipping_cost, taxes, total_amount, shipping_address, billing_address, payment_method, payment_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`;
+    const orderInsertQuery = `INSERT INTO orders (user_id, status, subtotal, discount_code, discount_amount, shipping_cost, taxes, total_amount, shipping_address, billing_address, payment_method, payment_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`;
     const orderInsertParams = [
       userId,
       initialStatus,
       subtotal.toFixed(2),
+      appliedDiscountCode,
+      discountAmount.toFixed(2),
       shippingCost.toFixed(2),
       taxes.toFixed(2),
       totalAmount.toFixed(2),

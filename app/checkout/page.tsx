@@ -39,6 +39,18 @@ export default function CheckoutPage() {
   const [orderSuccess, setOrderSuccess] = useState<boolean>(false);
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
 
+  // Discount code state
+  const [discountCode, setDiscountCode] = useState('');
+  const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
+  const [discountError, setDiscountError] = useState<string | null>(null);
+  const [appliedDiscount, setAppliedDiscount] = useState<{
+    code: string;
+    discountType: string;
+    discountValue: number;
+    discountAmount: number;
+    message: string;
+  } | null>(null);
+
   useEffect(() => {
     if (!authLoading) {
       if (!user || !token) {
@@ -120,6 +132,53 @@ export default function CheckoutPage() {
     return isValid;
   };
 
+  const handleApplyDiscount = async () => {
+    if (!discountCode || isApplyingDiscount || appliedDiscount) return;
+
+    setDiscountError(null);
+    setIsApplyingDiscount(true);
+
+    try {
+      const response = await fetch(
+        `/api/discount/validate?code=${encodeURIComponent(discountCode)}&subtotal=${subtotal}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to validate discount code');
+      }
+
+      const data = await response.json();
+
+      if (!data.valid) {
+        setDiscountError(data.message || 'Invalid discount code');
+        return;
+      }
+
+      setAppliedDiscount({
+        code: data.code,
+        discountType: data.discountType,
+        discountValue: data.discountValue,
+        discountAmount: data.discountAmount,
+        message: data.message,
+      });
+    } catch (error: any) {
+      setDiscountError(error.message || 'Failed to apply discount code');
+    } finally {
+      setIsApplyingDiscount(false);
+    }
+  };
+
+  const handleRemoveDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountCode('');
+    setDiscountError(null);
+  };
+
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !token || itemCount === 0) return;
@@ -146,6 +205,7 @@ export default function CheckoutPage() {
         ? { ...shippingAddress, country: 'Canada' }
         : { ...finalBillingAddress, country: 'Canada' },
       paymentMethod: paymentMethod,
+      discountCode: appliedDiscount?.code || null,
     };
     console.log('Placing order with data:', orderData);
 
@@ -566,11 +626,71 @@ export default function CheckoutPage() {
                   ))}
                 </ul>
                 {/* ... totals ... */}
+                {/* Discount Code Input */}
+                <div className="mt-4 mb-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      id="discount-code"
+                      name="discount-code"
+                      placeholder="Discount code"
+                      value={discountCode}
+                      onChange={e => setDiscountCode(e.target.value)}
+                      className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
+                      disabled={isApplyingDiscount || !!appliedDiscount}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyDiscount}
+                      disabled={!discountCode || isApplyingDiscount || !!appliedDiscount}
+                      className="focus:ring-primary-500 inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+                    >
+                      {isApplyingDiscount ? 'Applying...' : 'Apply'}
+                    </button>
+                  </div>
+                  {discountError && <p className="mt-1 text-sm text-red-600">{discountError}</p>}
+                  {appliedDiscount && (
+                    <div className="mt-2 flex items-center justify-between rounded-md bg-green-50 px-3 py-2">
+                      <div className="flex items-center">
+                        <svg
+                          className="mr-2 h-5 w-5 text-green-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                        <span className="text-sm font-medium text-green-800">
+                          {appliedDiscount.message}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveDiscount}
+                        className="text-sm font-medium text-green-700 hover:text-green-900"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <dl className="space-y-2 border-t pt-4 text-sm text-gray-600">
                   <div className="flex justify-between">
                     <dt>Subtotal</dt>
                     <dd className="font-medium text-gray-900">${subtotal.toFixed(2)}</dd>
                   </div>
+                  {appliedDiscount && (
+                    <div className="flex justify-between text-green-700">
+                      <dt>Discount</dt>
+                      <dd className="font-medium">-${appliedDiscount.discountAmount.toFixed(2)}</dd>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <dt>Shipping</dt>
                     <dd className="font-medium text-gray-900">$ TBD</dd>
@@ -582,7 +702,7 @@ export default function CheckoutPage() {
                   <div className="mt-2 flex justify-between border-t border-gray-200 pt-2">
                     <dt className="text-base font-semibold text-gray-900">Estimated Total</dt>
                     <dd className="text-base font-semibold text-gray-900">
-                      ${subtotal.toFixed(2)} + Fees
+                      ${(subtotal - (appliedDiscount?.discountAmount || 0)).toFixed(2)} + Fees
                     </dd>
                   </div>
                 </dl>

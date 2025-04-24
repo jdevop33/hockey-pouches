@@ -1,7 +1,8 @@
 // scripts/test-api.js
 // A simple script to test the API endpoints
 
-const fetch = require('node-fetch');
+// Import fetch for Node.js v18+
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 // Configuration
 const BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
@@ -13,18 +14,18 @@ const results = {
   passed: 0,
   failed: 0,
   skipped: 0,
-  tests: []
+  tests: [],
 };
 
 // Helper functions
 async function fetchWithTimeout(url, options = {}, timeout = 10000) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
-  
+
   try {
     const response = await fetch(url, {
       ...options,
-      signal: controller.signal
+      signal: controller.signal,
     });
     clearTimeout(timeoutId);
     return response;
@@ -34,24 +35,30 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000) {
   }
 }
 
-async function testEndpoint(name, url, options = {}, expectedStatus = 200, validateResponse = null) {
+async function testEndpoint(
+  name,
+  url,
+  options = {},
+  expectedStatus = 200,
+  validateResponse = null
+) {
   console.log(`Testing ${name}...`);
-  
+
   try {
     const response = await fetchWithTimeout(`${BASE_URL}${url}`, options);
     const status = response.status;
     let data = null;
-    
+
     try {
       data = await response.json();
     } catch (e) {
       // Not JSON or empty response
     }
-    
+
     const statusPassed = status === expectedStatus;
     let validationPassed = true;
     let validationError = null;
-    
+
     if (statusPassed && validateResponse && data) {
       try {
         validationPassed = validateResponse(data);
@@ -60,9 +67,9 @@ async function testEndpoint(name, url, options = {}, expectedStatus = 200, valid
         validationError = error.message;
       }
     }
-    
+
     const passed = statusPassed && validationPassed;
-    
+
     results.tests.push({
       name,
       url,
@@ -71,9 +78,9 @@ async function testEndpoint(name, url, options = {}, expectedStatus = 200, valid
       expectedStatus,
       validationPassed,
       validationError,
-      data: passed ? null : data // Only include data if test failed
+      data: passed ? null : data, // Only include data if test failed
     });
-    
+
     if (passed) {
       results.passed++;
       console.log(`✅ ${name} - Passed`);
@@ -94,7 +101,7 @@ async function testEndpoint(name, url, options = {}, expectedStatus = 200, valid
       name,
       url,
       passed: false,
-      error: error.message
+      error: error.message,
     });
     console.log(`❌ ${name} - Error: ${error.message}`);
   }
@@ -107,14 +114,14 @@ async function login() {
     const response = await fetchWithTimeout(`${BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         email: ADMIN_EMAIL,
-        password: ADMIN_PASSWORD
-      })
+        password: ADMIN_PASSWORD,
+      }),
     });
-    
+
     if (response.status === 200) {
       const data = await response.json();
       authToken = data.token;
@@ -134,70 +141,58 @@ async function login() {
 async function runTests() {
   console.log('Starting API tests...');
   console.log(`Base URL: ${BASE_URL}`);
-  
+
   // Public endpoints
   await testEndpoint(
-    'Products API', 
+    'Products API',
     '/api/products',
     {},
     200,
-    (data) => data.products && Array.isArray(data.products)
+    data => data.products && Array.isArray(data.products)
   );
-  
+
   await testEndpoint(
-    'Product Detail API', 
+    'Product Detail API',
     '/api/products/1',
     {},
     200,
-    (data) => data.id && data.name
+    data => data.id && data.name
   );
-  
+
   // Authentication
   const isAuthenticated = await login();
-  
+
   if (isAuthenticated && authToken) {
     const authHeader = {
       headers: {
-        'Authorization': `Bearer ${authToken}`
-      }
+        Authorization: `Bearer ${authToken}`,
+      },
     };
-    
+
     // Admin endpoints
-    await testEndpoint(
-      'Admin Orders API', 
-      '/api/admin/orders',
-      authHeader,
-      200,
-      (data) => Array.isArray(data.orders)
+    await testEndpoint('Admin Orders API', '/api/admin/orders', authHeader, 200, data =>
+      Array.isArray(data.orders)
     );
-    
-    await testEndpoint(
-      'Admin Products API', 
-      '/api/admin/products',
-      authHeader,
-      200,
-      (data) => Array.isArray(data.products)
+
+    await testEndpoint('Admin Products API', '/api/admin/products', authHeader, 200, data =>
+      Array.isArray(data.products)
     );
-    
-    await testEndpoint(
-      'Admin Users API', 
-      '/api/admin/users',
-      authHeader,
-      200,
-      (data) => Array.isArray(data.users)
+
+    await testEndpoint('Admin Users API', '/api/admin/users', authHeader, 200, data =>
+      Array.isArray(data.users)
     );
   } else {
     console.log('⚠️ Skipping authenticated tests due to login failure');
     results.skipped += 3; // Skipping 3 admin endpoints
   }
-  
+
   // Print summary
   console.log('\n--- Test Summary ---');
   console.log(`Total: ${results.passed + results.failed + results.skipped}`);
   console.log(`Passed: ${results.passed}`);
   console.log(`Failed: ${results.failed}`);
   console.log(`Skipped: ${results.skipped}`);
-  
+
   if (results.failed > 0) {
     console.log('\nFailed Tests:');
     results.tests
@@ -209,7 +204,9 @@ async function runTests() {
         } else {
           console.log(`  Expected status: ${test.expectedStatus}, Got: ${test.status}`);
           if (!test.validationPassed) {
-            console.log(`  Validation failed: ${test.validationError || 'Custom validation failed'}`);
+            console.log(
+              `  Validation failed: ${test.validationError || 'Custom validation failed'}`
+            );
           }
         }
       });
