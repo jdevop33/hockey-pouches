@@ -151,36 +151,37 @@ export default function ProductDetailPage() {
           <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
             {/* Product image */}
             <div className="overflow-hidden rounded-lg bg-white shadow-md">
-              <div className="relative h-96 w-full">
+              <div className="relative h-72 w-full sm:h-80 md:h-96">
                 <Image
                   src={product.image_url || '/images/products/placeholder.svg'}
                   alt={product.name}
                   fill
                   style={{ objectFit: 'contain' }}
-                  className="p-8"
+                  className="p-4 sm:p-6 md:p-8"
+                  priority
                 />
               </div>
             </div>
             {/* Product details */}
-            <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
-              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
+            <div className="mt-6 px-2 sm:mt-10 sm:px-4 md:px-0 lg:mt-0">
+              <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">
                 {product.name}
               </h1>
 
               {/* Product badges */}
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="mt-2 flex flex-wrap gap-1.5 sm:gap-2">
                 {product.flavor && (
-                  <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-0.5 text-sm font-medium text-blue-800">
+                  <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 sm:px-3 sm:text-sm">
                     {product.flavor}
                   </span>
                 )}
                 {product.strength && (
-                  <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-0.5 text-sm font-medium text-yellow-800">
+                  <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 sm:px-3 sm:text-sm">
                     Strength: {product.strength}/5
                   </span>
                 )}
                 {product.category && (
-                  <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-0.5 text-sm font-medium text-green-800">
+                  <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 sm:px-3 sm:text-sm">
                     {product.category}
                   </span>
                 )}
@@ -188,16 +189,18 @@ export default function ProductDetailPage() {
 
               {/* Price */}
               <div className="mt-4">
-                <div className="flex items-end">
-                  <p className="text-3xl font-bold text-gray-900">${currentPrice.toFixed(2)}</p>
+                <div className="flex flex-wrap items-end gap-2">
+                  <p className="text-2xl font-bold text-gray-900 sm:text-3xl">
+                    ${currentPrice.toFixed(2)}
+                  </p>
                   {showDiscount && (
-                    <p className="ml-2 text-lg font-medium text-gray-500 line-through">
+                    <p className="text-base font-medium text-gray-500 line-through sm:text-lg">
                       ${product.compare_at_price?.toFixed(2)}
                     </p>
                   )}
                 </div>
                 {showDiscount && (
-                  <p className="mt-1 text-sm font-medium text-red-600">
+                  <p className="mt-1 text-xs font-medium text-red-600 sm:text-sm">
                     Save ${(product.compare_at_price! - product.price).toFixed(2)} (
                     {Math.round((1 - product.price / product.compare_at_price!) * 100)}% off)
                   </p>
@@ -213,14 +216,15 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Quantity selector */}
-              <div className="mt-6">
-                <div className="flex items-center">
-                  <h3 className="mr-3 text-sm font-medium text-gray-900">Quantity:</h3>
+              <div className="mt-5 sm:mt-6">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h3 className="text-sm font-medium text-gray-900">Quantity:</h3>
                   <div className="flex items-center rounded border border-gray-300">
                     <button
                       type="button"
-                      className="p-2 text-gray-500 hover:text-gray-700"
+                      className="p-1.5 text-gray-500 hover:text-gray-700 sm:p-2"
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      aria-label="Decrease quantity"
                     >
                       <svg
                         className="h-4 w-4"
@@ -236,11 +240,14 @@ export default function ProductDetailPage() {
                         />
                       </svg>
                     </button>
-                    <span className="px-4 py-2 text-gray-700">{quantity}</span>
+                    <span className="w-10 py-1.5 text-center text-gray-700 sm:py-2">
+                      {quantity}
+                    </span>
                     <button
                       type="button"
-                      className="p-2 text-gray-500 hover:text-gray-700"
+                      className="p-1.5 text-gray-500 hover:text-gray-700 sm:p-2"
                       onClick={() => setQuantity(quantity + 1)}
+                      aria-label="Increase quantity"
                     >
                       <svg
                         className="h-4 w-4"
@@ -261,11 +268,11 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Add to cart button */}
-              <div className="mt-6">
+              <div className="mt-5 sm:mt-6">
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className={`flex w-full items-center justify-center rounded-md border border-transparent px-8 py-3 text-base font-medium text-white focus:ring-2 focus:ring-offset-2 focus:outline-none ${
+                  className={`flex w-full items-center justify-center rounded-md border border-transparent px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-offset-2 focus:outline-none sm:px-8 sm:py-3 sm:text-base ${
                     addedToCart
                       ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
                       : 'bg-primary-600 hover:bg-primary-700 focus:ring-primary-500'
@@ -274,7 +281,7 @@ export default function ProductDetailPage() {
                   {addedToCart ? (
                     <>
                       <svg
-                        className="mr-2 h-5 w-5"
+                        className="mr-1.5 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -296,10 +303,10 @@ export default function ProductDetailPage() {
 
               {/* View cart button (shows when item is added) */}
               {addedToCart && (
-                <div className="mt-3">
+                <div className="mt-2 sm:mt-3">
                   <Link
                     href="/cart"
-                    className="focus:ring-primary-500 flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-8 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:outline-none"
+                    className="focus:ring-primary-500 flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:outline-none sm:px-8 sm:py-3 sm:text-base"
                   >
                     View Cart
                   </Link>
@@ -334,12 +341,12 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Product tabs */}
-          <div className="mt-16 border-t border-gray-200 pt-10">
-            <div className="border-b border-gray-200">
-              <div className="flex space-x-8">
+          <div className="mt-12 border-t border-gray-200 pt-8 sm:mt-16 sm:pt-10">
+            <div className="scrollbar-hide overflow-x-auto border-b border-gray-200">
+              <div className="flex min-w-full space-x-4 px-1 sm:space-x-8">
                 <button
                   onClick={() => setActiveTab('description')}
-                  className={`border-b-2 border-transparent px-1 py-4 text-sm font-medium whitespace-nowrap text-gray-500 ${
+                  className={`border-b-2 border-transparent px-1 py-3 text-xs font-medium whitespace-nowrap text-gray-500 sm:py-4 sm:text-sm ${
                     activeTab === 'description'
                       ? 'border-primary-600 text-primary-600'
                       : 'hover:border-gray-300 hover:text-gray-700'
@@ -349,7 +356,7 @@ export default function ProductDetailPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('details')}
-                  className={`border-b-2 border-transparent px-1 py-4 text-sm font-medium whitespace-nowrap text-gray-500 ${
+                  className={`border-b-2 border-transparent px-1 py-3 text-xs font-medium whitespace-nowrap text-gray-500 sm:py-4 sm:text-sm ${
                     activeTab === 'details'
                       ? 'border-primary-600 text-primary-600'
                       : 'hover:border-gray-300 hover:text-gray-700'
@@ -359,7 +366,7 @@ export default function ProductDetailPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('shipping')}
-                  className={`border-b-2 border-transparent px-1 py-4 text-sm font-medium whitespace-nowrap text-gray-500 ${
+                  className={`border-b-2 border-transparent px-1 py-3 text-xs font-medium whitespace-nowrap text-gray-500 sm:py-4 sm:text-sm ${
                     activeTab === 'shipping'
                       ? 'border-primary-600 text-primary-600'
                       : 'hover:border-gray-300 hover:text-gray-700'
@@ -449,16 +456,16 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Related products section */}
-          <div className="mt-16 border-t border-gray-200 pt-10">
-            <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">
+          <div className="mt-12 border-t border-gray-200 pt-8 sm:mt-16 sm:pt-10">
+            <h2 className="text-xl font-extrabold tracking-tight text-gray-900 sm:text-2xl">
               Customers also purchased
             </h2>
-            <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 sm:mt-8 sm:gap-x-6 sm:gap-y-10 md:grid-cols-3 lg:grid-cols-4">
               {/* We'll show placeholder related products for now */}
               {[1, 2, 3, 4].map(item => (
                 <div key={item} className="group relative">
-                  <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-md bg-gray-200 group-hover:opacity-75">
-                    <div className="relative h-48 w-full">
+                  <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-200 group-hover:opacity-75">
+                    <div className="relative h-full w-full">
                       <Image
                         src="/images/products/placeholder.svg"
                         alt="Related product"
@@ -468,17 +475,19 @@ export default function ProductDetailPage() {
                       />
                     </div>
                   </div>
-                  <div className="mt-4 flex justify-between">
+                  <div className="mt-3 flex flex-col sm:mt-4 sm:flex-row sm:justify-between">
                     <div>
-                      <h3 className="text-sm text-gray-700">
+                      <h3 className="text-xs text-gray-700 sm:text-sm">
                         <Link href={`/products/${item}`} className="hover:text-primary-600">
                           <span aria-hidden="true" className="absolute inset-0" />
                           Similar Product {item}
                         </Link>
                       </h3>
-                      <p className="mt-1 text-sm text-gray-500">Various flavors</p>
+                      <p className="mt-1 text-xs text-gray-500 sm:text-sm">Various flavors</p>
                     </div>
-                    <p className="text-sm font-medium text-gray-900">${(19.99).toFixed(2)}</p>
+                    <p className="mt-1 text-xs font-medium text-gray-900 sm:mt-0 sm:text-sm">
+                      ${(19.99).toFixed(2)}
+                    </p>
                   </div>
                 </div>
               ))}
