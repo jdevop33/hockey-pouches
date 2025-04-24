@@ -30,12 +30,15 @@ function RegisterFormSkeleton() {
 function RegisterForm() {
   const searchParams = useSearchParams();
 
+  // Get referral code from URL if present
+  const initialReferralCode = searchParams.get('ref') || '';
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    referralCode: searchParams.get('ref') || '',
+    referralCode: initialReferralCode,
     birthDate: '',
     agreeToTerms: false,
   });
@@ -46,28 +49,35 @@ function RegisterForm() {
 
   // Check for referral code in localStorage (from referral landing page)
   useEffect(() => {
-    const storedReferralCode = localStorage.getItem('referralCode');
-    if (storedReferralCode && !formData.referralCode) {
-      setFormData(prev => ({ ...prev, referralCode: storedReferralCode }));
+    // Use a ref to track if this is the first render
+    const isFirstRender = React.useRef(true);
 
-      // Validate the referral code and get referrer name
-      const validateReferralCode = async () => {
-        try {
-          const response = await fetch(`/api/referrals/validate?code=${storedReferralCode}`);
-          if (response.ok) {
-            const data = await response.json();
-            if (data.referrer) {
-              setReferrerName(data.referrer.name);
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+
+      const storedReferralCode = typeof window !== 'undefined' ? localStorage.getItem('referralCode') : null;
+      if (storedReferralCode && !formData.referralCode) {
+        setFormData(prev => ({ ...prev, referralCode: storedReferralCode }));
+
+        // Validate the referral code and get referrer name
+        const validateReferralCode = async () => {
+          try {
+            const response = await fetch(`/api/referrals/validate?code=${storedReferralCode}`);
+            if (response.ok) {
+              const data = await response.json();
+              if (data.referrer) {
+                setReferrerName(data.referrer.name);
+              }
             }
+          } catch (err) {
+            console.error('Error validating referral code:', err);
           }
-        } catch (err) {
-          console.error('Error validating referral code:', err);
-        }
-      };
+        };
 
-      validateReferralCode();
+        validateReferralCode();
+      }
     }
-  }, [formData.referralCode]);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
