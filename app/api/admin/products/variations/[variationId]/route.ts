@@ -163,22 +163,29 @@ export async function PUT(request: NextRequest, { params }: { params: { variatio
       return NextResponse.json({ message: 'No fields to update.' }, { status: 400 });
     }
 
-    // Build and execute the update query
-    const updateQuery = `
-      UPDATE product_variations
-      SET ${updateFields.join(', ')}
-      WHERE id = $${valueIndex}
-      RETURNING
-        id, product_id, name, flavor, strength,
-        CAST(price AS FLOAT) as price,
-        CAST(compare_at_price AS FLOAT) as compare_at_price,
-        sku, image_url, inventory_quantity, is_active,
-        created_at, updated_at
-    `;
+    // Add the variation ID to the values array
     updateValues.push(variationIdNum);
 
-    const result = await sql.query(updateQuery, updateValues);
+    // Use the pool for the parameterized query
+    const { pool } = await import('@/lib/db');
+    const result = await pool.query(
+      `UPDATE product_variations
+       SET ${updateFields.join(', ')}
+       WHERE id = $${valueIndex}
+       RETURNING
+         id, product_id, name, flavor, strength,
+         CAST(price AS FLOAT) as price,
+         CAST(compare_at_price AS FLOAT) as compare_at_price,
+         sku, image_url, inventory_quantity, is_active,
+         created_at, updated_at`,
+      updateValues
+    );
+
     const updatedVariation = result.rows[0] as ProductVariation;
+
+    if (!updatedVariation) {
+      return NextResponse.json({ message: 'Failed to update variation.' }, { status: 500 });
+    }
 
     return NextResponse.json(updatedVariation);
   } catch (error: any) {
