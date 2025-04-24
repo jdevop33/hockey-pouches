@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
+import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,21 +19,29 @@ type AdminCommission = {
 };
 
 export async function GET(request: NextRequest) {
-  // TODO: Add Admin Auth Check
   // Extract dynamic data *before* awaits
-  const authHeader = request.headers.get('authorization');
   const searchParams = request.nextUrl.searchParams;
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('limit') || '50');
   const offset = (page - 1) * limit;
   const userIdFilter = searchParams.get('userId');
 
-  console.log(
-    `Admin GET /api/admin/commissions/pending - Page: ${page}, Limit: ${limit}, User: ${userIdFilter}`
-  );
-
   try {
-    // TODO: Verify auth token
+    // Verify admin authentication
+    const authResult = await verifyAdmin(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
+    }
+
+    // Check if user is an admin
+    if (authResult.role !== 'Admin') {
+      return forbiddenResponse('Only administrators can access this resource');
+    }
+
+    const adminUserId = authResult.userId;
+    console.log(
+      `Admin GET /api/admin/commissions/pending - Admin: ${adminUserId}, Page: ${page}, Limit: ${limit}, User: ${userIdFilter}`
+    );
 
     // Build WHERE clause
     let conditions = ["status = 'Pending Payout'"]; // Always filter by Pending

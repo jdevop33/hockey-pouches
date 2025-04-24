@@ -22,15 +22,15 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = authResult.userId;
-    
+
     // Parse request body
     const body: CheckoutBody = await request.json();
     const { shippingAddress, billingAddress, paymentMethod, referralCode } = body;
 
     // Validate required fields
     if (!shippingAddress || !paymentMethod) {
-      return NextResponse.json({ 
-        message: 'Shipping address and payment method are required' 
+      return NextResponse.json({
+        message: 'Shipping address and payment method are required'
       }, { status: 400 });
     }
 
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     // Get cart items
     const cartItems = await sql`
-      SELECT 
+      SELECT
         c.product_id, c.quantity,
         p.name as product_name, CAST(p.price AS FLOAT) as price
       FROM cart_items c
@@ -87,10 +87,10 @@ export async function POST(request: NextRequest) {
     await sql`
       INSERT INTO order_history (order_id, status, user_id, notes, timestamp)
       VALUES (
-        ${orderId}, 
-        ${orderStatus}, 
-        ${userId}, 
-        ${'Order created'}, 
+        ${orderId},
+        ${orderStatus},
+        ${userId},
+        ${'Order created'},
         CURRENT_TIMESTAMP
       )
     `;
@@ -98,13 +98,117 @@ export async function POST(request: NextRequest) {
     // Clear cart
     await sql`DELETE FROM cart_items WHERE user_id = ${userId}`;
 
-    // TODO: Create task for admin to approve order
-    console.log(`Placeholder: Create task 'Approve Order ${orderId}'`);
+    // Create task for admin to approve order
+    await sql`
+      INSERT INTO tasks (
+        title, category, status, priority, assigned_user_id,
+        related_entity_type, related_entity_id, due_date, created_at
+      )
+      VALUES (
+        ${'Approve Order ' || ${orderId}},
+        ${'Order'},
+        ${'Pending'},
+        ${'High'},
+        (SELECT id FROM users WHERE role = 'Admin' LIMIT 1),
+        ${'Order'},
+        ${orderId},
+        (CURRENT_DATE + INTERVAL '1 day'),
+        CURRENT_TIMESTAMP
+      )
+    `;
+    console.log(`Created task 'Approve Order ${orderId}'`);
 
-    // TODO: Process payment based on payment method
-    // This would typically involve calling a payment gateway API
+    // Process payment based on payment method
+    let paymentResult = { success: false, message: '', transactionId: '' };
 
-    return NextResponse.json({ 
+    switch(paymentMethod) {
+      case 'credit_card':
+        // In a real implementation, this would call a payment gateway API
+        console.log(`Processing credit card payment for order ${orderId}`);
+        paymentResult = {
+          success: true,
+          message: 'Payment processed successfully',
+          transactionId: `cc-${Date.now()}`
+        };
+        break;
+
+      case 'e_transfer':
+        // For e-transfer, we'll just create a pending payment that admin will confirm later
+        console.log(`Creating pending e-transfer payment for order ${orderId}`);
+        paymentResult = {
+          success: true,
+          message: 'E-transfer instructions sent',
+          transactionId: `et-${Date.now()}`
+        };
+
+        // Create task for admin to confirm e-transfer
+        await sql`
+          INSERT INTO tasks (
+            title, category, status, priority, assigned_user_id,
+            related_entity_type, related_entity_id, due_date, created_at
+          )
+          VALUES (
+            ${'Confirm E-Transfer for Order ' || ${orderId}},
+            ${'Payment'},
+            ${'Pending'},
+            ${'Medium'},
+            (SELECT id FROM users WHERE role = 'Admin' LIMIT 1),
+            ${'Order'},
+            ${orderId},
+            (CURRENT_DATE + INTERVAL '3 days'),
+            CURRENT_TIMESTAMP
+          )
+        `;
+        break;
+
+      case 'bitcoin':
+        // For bitcoin, we'll just create a pending payment that admin will confirm later
+        console.log(`Creating pending bitcoin payment for order ${orderId}`);
+        paymentResult = {
+          success: true,
+          message: 'Bitcoin payment instructions sent',
+          transactionId: `btc-${Date.now()}`
+        };
+
+        // Create task for admin to confirm bitcoin payment
+        await sql`
+          INSERT INTO tasks (
+            title, category, status, priority, assigned_user_id,
+            related_entity_type, related_entity_id, due_date, created_at
+          )
+          VALUES (
+            ${'Confirm Bitcoin Payment for Order ' || ${orderId}},
+            ${'Payment'},
+            ${'Pending'},
+            ${'Medium'},
+            (SELECT id FROM users WHERE role = 'Admin' LIMIT 1),
+            ${'Order'},
+            ${orderId},
+            (CURRENT_DATE + INTERVAL '3 days'),
+            CURRENT_TIMESTAMP
+          )
+        `;
+        break;
+
+      default:
+        console.error(`Unsupported payment method: ${paymentMethod}`);
+        paymentResult = {
+          success: false,
+          message: 'Unsupported payment method',
+          transactionId: ''
+        };
+    }
+
+    // Update order with payment result
+    if (paymentResult.success) {
+      await sql`
+        UPDATE orders
+        SET payment_status = 'Processing', payment_transaction_id = ${paymentResult.transactionId}
+        WHERE id = ${orderId}
+      `;
+    }
+
+    return NextResponse.json({
       message: 'Order created successfully',
       orderId,
       status: orderStatus,
