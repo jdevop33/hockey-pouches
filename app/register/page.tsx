@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import Layout from '../components/layout/NewLayout'; // Adjust layout import as needed
+import Layout from '../components/layout/NewLayout';
 
 // Loading component for Suspense fallback
 function RegisterFormSkeleton() {
@@ -29,7 +29,7 @@ function RegisterFormSkeleton() {
 // Separate component that uses useSearchParams
 function RegisterForm() {
   const searchParams = useSearchParams();
-
+  
   // Get referral code from URL if present
   const initialReferralCode = searchParams.get('ref') || '';
 
@@ -51,10 +51,10 @@ function RegisterForm() {
   useEffect(() => {
     // Use a ref to track if this is the first render
     const isFirstRender = React.useRef(true);
-
+    
     if (isFirstRender.current) {
       isFirstRender.current = false;
-
+      
       const storedReferralCode = typeof window !== 'undefined' ? localStorage.getItem('referralCode') : null;
       if (storedReferralCode && !formData.referralCode) {
         setFormData(prev => ({ ...prev, referralCode: storedReferralCode }));
@@ -77,7 +77,7 @@ function RegisterForm() {
         validateReferralCode();
       }
     }
-  }, []);
+  }, [formData.referralCode]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -155,8 +155,6 @@ function RegisterForm() {
 
       // Handle successful registration
       setSuccess(true);
-      // Optionally redirect to login or dashboard after a delay
-      // setTimeout(() => router.push('/login'), 2000);
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');
     } finally {
@@ -173,7 +171,7 @@ function RegisterForm() {
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{' '}
-            <Link href="/login" className="text-primary-600 hover:text-primary-500 font-medium">
+            <Link href="/login" className="font-medium text-primary-600 hover:text-primary-500">
               sign in to your existing account
             </Link>
           </p>
@@ -185,201 +183,198 @@ function RegisterForm() {
             <p className="mt-2 text-sm text-green-700">Please proceed to login.</p>
             <Link
               href="/login"
-              className="text-primary-600 hover:text-primary-500 mt-4 inline-block font-medium"
+              className="mt-4 inline-block font-medium text-primary-600 hover:text-primary-500"
             >
               Go to Login
             </Link>
           </div>
         ) : (
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-              {error && (
-                <div className="rounded-md bg-red-50 p-4">
-                  <p className="text-sm font-medium text-red-800">{error}</p>
-                </div>
-              )}
-
-              <input type="hidden" name="remember" defaultValue="true" />
-              <div className="space-y-4 rounded-md shadow-sm">
-                <div>
-                  <label htmlFor="name" className="sr-only">
-                    Full Name
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    autoComplete="name"
-                    required
-                    className="focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm"
-                    placeholder="Full Name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="email" className="sr-only">
-                    Email address
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    className="focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm"
-                    placeholder="Email address"
-                    value={formData.email}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="password" className="sr-only">
-                    Password
-                  </label>{' '}
-                  {/* Fixed class to className */}
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    className="focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm"
-                    placeholder="Password (min 8 characters)"
-                    value={formData.password}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="confirmPassword" className="sr-only">
-                    Confirm Password
-                  </label>{' '}
-                  {/* Fixed class to className */}
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    className="focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm"
-                    placeholder="Confirm Password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="referralCode"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    Referral Code {referrerName && <span className="text-green-600">(Valid)</span>}
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="referralCode"
-                      name="referralCode"
-                      type="text"
-                      className={`focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-md border ${
-                        referrerName ? 'border-green-500 bg-green-50' : 'border-gray-300'
-                      } px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm`}
-                      placeholder="Referral Code (Optional)"
-                      value={formData.referralCode}
-                      onChange={handleChange}
-                      disabled={isLoading}
-                    />
-                    {referrerName && (
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                        <svg
-                          className="h-5 w-5 text-green-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  {referrerName && (
-                    <p className="mt-1 text-sm text-green-600">Referred by: {referrerName}</p>
-                  )}
-                  {!referrerName && formData.referralCode && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      Enter a valid referral code if you were referred by someone
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label
-                    htmlFor="birthDate"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    Date of Birth (Must be 21+ to register)
-                  </label>
-                  <input
-                    id="birthDate"
-                    name="birthDate"
-                    type="date"
-                    required
-                    className="focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:z-10 focus:outline-none sm:text-sm"
-                    value={formData.birthDate}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    max={
-                      new Date(new Date().setFullYear(new Date().getFullYear() - 21))
-                        .toISOString()
-                        .split('T')[0]
-                    }
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    You must be at least 21 years old to purchase nicotine products.
-                  </p>
-                </div>
+            {error && (
+              <div className="rounded-md bg-red-50 p-4">
+                <p className="text-sm font-medium text-red-800">{error}</p>
               </div>
+            )}
 
-              <div className="flex items-center">
+            <input type="hidden" name="remember" defaultValue="true" />
+            <div className="space-y-4 rounded-md shadow-sm">
+              <div>
+                <label htmlFor="name" className="sr-only">
+                  Full Name
+                </label>
                 <input
-                  id="agreeToTerms"
-                  name="agreeToTerms"
-                  type="checkbox"
+                  id="name"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
                   required
-                  className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
-                  checked={formData.agreeToTerms as boolean}
+                  className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
+                  placeholder="Full Name"
+                  value={formData.name}
                   onChange={handleChange}
                   disabled={isLoading}
                 />
-                <label htmlFor="agreeToTerms" className="ml-2 block text-sm text-gray-900">
-                  I agree to the{' '}
-                  <Link href="/terms" className="text-primary-600 hover:underline">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link href="/privacy" className="text-primary-600 hover:underline">
-                    Privacy Policy
-                  </Link>
-                </label>
               </div>
-
               <div>
-                <button
-                  type="submit"
+                <label htmlFor="email" className="sr-only">
+                  Email address
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
+                  placeholder="Email address"
+                  value={formData.email}
+                  onChange={handleChange}
                   disabled={isLoading}
-                  className="focus:ring-primary-500 group bg-primary-600 hover:bg-primary-700 relative flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
-                >
-                  {isLoading ? 'Registering...' : 'Create Account'}
-                </button>
+                />
               </div>
-            </form>
-          )}
-        </div>
+              <div>
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
+                  placeholder="Password (min 8 characters)"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+              </div>
+              <div>
+                <label htmlFor="confirmPassword" className="sr-only">
+                  Confirm Password
+                </label>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
+                  placeholder="Confirm Password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="referralCode"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  Referral Code {referrerName && <span className="text-green-600">(Valid)</span>}
+                </label>
+                <div className="relative">
+                  <input
+                    id="referralCode"
+                    name="referralCode"
+                    type="text"
+                    className={`relative block w-full appearance-none rounded-md border ${
+                      referrerName ? 'border-green-500 bg-green-50' : 'border-gray-300'
+                    } px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm`}
+                    placeholder="Referral Code (Optional)"
+                    value={formData.referralCode}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                  />
+                  {referrerName && (
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                      <svg
+                        className="h-5 w-5 text-green-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                {referrerName && (
+                  <p className="mt-1 text-sm text-green-600">Referred by: {referrerName}</p>
+                )}
+                {!referrerName && formData.referralCode && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Enter a valid referral code if you were referred by someone
+                  </p>
+                )}
+              </div>
+              <div>
+                <label
+                  htmlFor="birthDate"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  Date of Birth (Must be 21+ to register)
+                </label>
+                <input
+                  id="birthDate"
+                  name="birthDate"
+                  type="date"
+                  required
+                  className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:z-10 focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
+                  value={formData.birthDate}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  max={
+                    new Date(new Date().setFullYear(new Date().getFullYear() - 21))
+                      .toISOString()
+                      .split('T')[0]
+                  }
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  You must be at least 21 years old to purchase nicotine products.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center">
+              <input
+                id="agreeToTerms"
+                name="agreeToTerms"
+                type="checkbox"
+                required
+                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                checked={formData.agreeToTerms as boolean}
+                onChange={handleChange}
+                disabled={isLoading}
+              />
+              <label htmlFor="agreeToTerms" className="ml-2 block text-sm text-gray-900">
+                I agree to the{' '}
+                <Link href="/terms" className="text-primary-600 hover:underline">
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link href="/privacy" className="text-primary-600 hover:underline">
+                  Privacy Policy
+                </Link>
+              </label>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="group relative flex w-full justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50"
+              >
+                {isLoading ? 'Registering...' : 'Create Account'}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
