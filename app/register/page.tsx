@@ -8,6 +8,15 @@ import { useToast } from '../context/ToastContext';
 import Button from '../components/ui/Button';
 import FormFeedback from '../components/ui/FormFeedback';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import FormInput from '../components/ui/FormInput';
+import FormCheckbox from '../components/ui/FormCheckbox';
+import {
+  isValidEmail,
+  validatePassword,
+  passwordsMatch,
+  isValidName,
+  isMinimumAge,
+} from '../lib/validation';
 
 // Loading component for Suspense fallback
 function RegisterFormSkeleton() {
@@ -81,57 +90,55 @@ function RegisterForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setFormData({ ...formData, [e.target.name]: value });
+    setError(null); // Clear any previous error when user starts typing
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setIsLoading(true);
     setSuccess(false);
 
-    // Basic validation
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match.');
-      setIsLoading(false);
+    // Comprehensive validation
+    if (!isValidName(formData.name)) {
+      setError('Please enter a valid name.');
       return;
     }
 
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long.');
-      setIsLoading(false);
+    if (!isValidEmail(formData.email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.message);
+      return;
+    }
+
+    if (!passwordsMatch(formData.password, formData.confirmPassword)) {
+      setError('Passwords do not match.');
       return;
     }
 
     // Age verification
     if (!formData.birthDate) {
       setError('Please enter your date of birth.');
-      setIsLoading(false);
       return;
     }
 
-    // Calculate age based on birth date
-    const birthDate = new Date(formData.birthDate);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-
     // Check if user is at least 21 years old (legal age for nicotine products)
-    if (age < 21) {
+    if (!isMinimumAge(formData.birthDate, 21)) {
       setError('You must be at least 21 years old to register.');
-      setIsLoading(false);
       return;
     }
 
     // Terms of service agreement
     if (!formData.agreeToTerms) {
       setError('You must agree to the Terms of Service and Privacy Policy.');
-      setIsLoading(false);
       return;
     }
+
+    setIsLoading(true);
 
     try {
       // Call the registration API endpoint
@@ -195,75 +202,80 @@ function RegisterForm() {
             {error && <FormFeedback type="error" message={error} />}
 
             <input type="hidden" name="remember" defaultValue="true" />
-            <div className="space-y-4 rounded-md shadow-sm">
-              <div>
-                <label htmlFor="name" className="sr-only">
-                  Full Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  required
-                  className="focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm"
-                  placeholder="Full Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </div>
-              <div>
-                <label htmlFor="email" className="sr-only">
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm"
-                  placeholder="Email address"
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </div>
-              <div>
-                <label htmlFor="password" className="sr-only">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  className="focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm"
-                  placeholder="Password (min 8 characters)"
-                  value={formData.password}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </div>
-              <div>
-                <label htmlFor="confirmPassword" className="sr-only">
-                  Confirm Password
-                </label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  className="focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm"
-                  placeholder="Confirm Password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </div>
+            <div className="space-y-4">
+              <FormInput
+                id="name"
+                name="name"
+                label="Full Name"
+                type="text"
+                autoComplete="name"
+                required
+                placeholder="John Doe"
+                value={formData.name}
+                onChange={handleChange}
+                disabled={isLoading}
+                validate={value => ({
+                  isValid: isValidName(value),
+                  message: 'Please enter a valid name',
+                })}
+                validateOnBlur={true}
+                validateOnChange={false}
+              />
+
+              <FormInput
+                id="email"
+                name="email"
+                label="Email Address"
+                type="email"
+                autoComplete="email"
+                required
+                placeholder="you@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                disabled={isLoading}
+                validate={value => ({
+                  isValid: isValidEmail(value),
+                  message: 'Please enter a valid email address',
+                })}
+                validateOnBlur={true}
+                validateOnChange={false}
+              />
+
+              <FormInput
+                id="password"
+                name="password"
+                label="Password"
+                type="password"
+                autoComplete="new-password"
+                required
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+                disabled={isLoading}
+                validate={value => validatePassword(value)}
+                validateOnBlur={true}
+                validateOnChange={false}
+              />
+
+              <FormInput
+                id="confirmPassword"
+                name="confirmPassword"
+                label="Confirm Password"
+                type="password"
+                autoComplete="new-password"
+                required
+                placeholder="••••••••"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                disabled={isLoading}
+                validate={value => ({
+                  isValid: passwordsMatch(formData.password, value),
+                  message: 'Passwords do not match',
+                })}
+                validateOnBlur={true}
+                validateOnChange={true}
+              />
+
               <div>
                 <label
                   htmlFor="referralCode"
@@ -311,53 +323,56 @@ function RegisterForm() {
                   </p>
                 )}
               </div>
-              <div>
-                <label htmlFor="birthDate" className="mb-1 block text-sm font-medium text-gray-700">
-                  Date of Birth (Must be 21+ to register)
-                </label>
-                <input
-                  id="birthDate"
-                  name="birthDate"
-                  type="date"
-                  required
-                  className="focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:z-10 focus:outline-none sm:text-sm"
-                  value={formData.birthDate}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  max={
-                    new Date(new Date().setFullYear(new Date().getFullYear() - 21))
-                      .toISOString()
-                      .split('T')[0]
-                  }
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  You must be at least 21 years old to purchase nicotine products.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <input
-                id="agreeToTerms"
-                name="agreeToTerms"
-                type="checkbox"
+              <FormInput
+                id="birthDate"
+                name="birthDate"
+                label="Date of Birth (Must be 21+ to register)"
+                type="date"
                 required
-                className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
-                checked={formData.agreeToTerms as boolean}
+                value={formData.birthDate}
                 onChange={handleChange}
                 disabled={isLoading}
+                max={
+                  new Date(new Date().setFullYear(new Date().getFullYear() - 21))
+                    .toISOString()
+                    .split('T')[0]
+                }
+                validate={value => ({
+                  isValid: isMinimumAge(value, 21),
+                  message: 'You must be at least 21 years old to register',
+                })}
+                validateOnBlur={true}
+                validateOnChange={false}
               />
-              <label htmlFor="agreeToTerms" className="ml-2 block text-sm text-gray-900">
-                I agree to the{' '}
-                <Link href="/terms" className="text-primary-600 hover:underline">
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link href="/privacy" className="text-primary-600 hover:underline">
-                  Privacy Policy
-                </Link>
-              </label>
+              <p className="mt-1 text-xs text-gray-500">
+                You must be at least 21 years old to purchase nicotine products.
+              </p>
             </div>
+
+            <FormCheckbox
+              id="agreeToTerms"
+              name="agreeToTerms"
+              checked={formData.agreeToTerms as boolean}
+              onChange={handleChange}
+              disabled={isLoading}
+              required
+              validate={checked => ({
+                isValid: checked,
+                message: 'You must agree to the Terms of Service and Privacy Policy',
+              })}
+              label={
+                <span className="text-sm text-gray-900">
+                  I agree to the{' '}
+                  <Link href="/terms" className="text-primary-600 hover:underline">
+                    Terms of Service
+                  </Link>{' '}
+                  and{' '}
+                  <Link href="/privacy" className="text-primary-600 hover:underline">
+                    Privacy Policy
+                  </Link>
+                </span>
+              }
+            />
 
             <div>
               <Button

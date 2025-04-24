@@ -9,6 +9,8 @@ import { useToast } from '../context/ToastContext';
 import Button from '../components/ui/Button';
 import FormFeedback from '../components/ui/FormFeedback';
 import PageLoading from '../components/ui/PageLoading';
+import FormInput from '../components/ui/FormInput';
+import { isValidEmail } from '../lib/validation';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,11 +41,24 @@ export default function LoginPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(null); // Clear any previous error when user starts typing
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Validate form before submission
+    if (!isValidEmail(formData.email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    if (!formData.password || formData.password.length < 6) {
+      setError('Please enter a valid password');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -113,41 +128,43 @@ export default function LoginPage() {
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             {error && <FormFeedback type="error" message={error} />}
             <input type="hidden" name="remember" defaultValue="true" />
-            <div className="-space-y-px rounded-md shadow-sm">
-              <div>
-                <label htmlFor="email-address" className="sr-only">
-                  Email address
-                </label>
-                <input
-                  id="email-address"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-none rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm"
-                  placeholder="Email address"
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </div>
-              <div>
-                <label htmlFor="password" className="sr-only">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  className="focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-none rounded-b-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </div>
+            <div className="space-y-4">
+              <FormInput
+                id="email-address"
+                name="email"
+                label="Email address"
+                type="email"
+                autoComplete="email"
+                required
+                placeholder="you@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                disabled={isLoading}
+                validate={value => ({
+                  isValid: isValidEmail(value),
+                  message: 'Please enter a valid email address',
+                })}
+                validateOnBlur={true}
+                validateOnChange={false}
+              />
+              <FormInput
+                id="password"
+                name="password"
+                label="Password"
+                type="password"
+                autoComplete="current-password"
+                required
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+                disabled={isLoading}
+                validate={value => ({
+                  isValid: value.length >= 6,
+                  message: 'Password must be at least 6 characters',
+                })}
+                validateOnBlur={true}
+                validateOnChange={false}
+              />
             </div>
 
             <div className="flex items-center justify-between">
