@@ -109,6 +109,7 @@ export async function POST(request: Request) {
     const response = NextResponse.json({
       message: 'Login successful',
       user: userResponse,
+      token: token, // Include token in response body for compatibility
     });
 
     // Set secure HttpOnly cookie with the JWT token
@@ -118,12 +119,12 @@ export async function POST(request: Request) {
       value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Only send over HTTPS in production
-      sameSite: 'strict', // Prevents the cookie from being sent in cross-site requests (CSRF protection)
+      sameSite: 'lax', // Changed from 'strict' to 'lax' to allow redirects
       maxAge: 86400, // 1 day in seconds (matching JWT expiry)
       path: '/', // Cookie is available for all routes
     });
 
-    // Also send token in response body for initial authentication
+    // Also send token in Authorization header
     // The frontend should store this in memory (not localStorage) for API calls
     response.headers.set('Authorization', `Bearer ${token}`);
 
