@@ -31,11 +31,11 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 
 ### Order Management
 
-- [ ] Complete order fulfillment workflow
-- [ ] Implement order status updates
+- [x] Complete order fulfillment workflow
+- [x] Implement order status updates
+- [x] Add order history tracking
 - [ ] Add order editing capabilities
 - [ ] Implement returns and refunds processing
-- [ ] Add order notes and history tracking
 - [ ] Implement order search and filtering
 - [ ] Add order export functionality
 
