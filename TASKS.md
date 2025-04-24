@@ -116,21 +116,22 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 ### Account Management
 
 - [x] Implement basic user registration and login
+- [x] Create order tracking interface
+- [x] Add order history and reordering
 - [ ] Add saved payment methods
 - [ ] Implement address book management
-- [ ] Create order tracking interface
 - [ ] Add subscription management (if applicable)
 - [ ] Implement account settings and preferences
-- [ ] Add order history and reordering
 
 ### Checkout Process
 
 - [x] Implement basic checkout flow
 - [x] Complete payment gateway integration
+- [x] Enhance checkout UI and validation
+- [x] Implement order confirmation emails
 - [ ] Add tax calculation
 - [ ] Implement shipping options and rates
 - [ ] Add discount code functionality
-- [ ] Implement order confirmation emails
 - [ ] Add guest checkout option
 
 ## 🔗 Referral Program Tasks
@@ -210,7 +211,7 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
    - ✅ Implement enhanced product filtering and sorting
    - ✅ Distributor order fulfillment
    - ✅ Admin order management
-   - Retail customer purchase flow
+   - ✅ Retail customer purchase flow
    - Referral tracking and commissions
 
 3. **Financial Systems**
@@ -221,10 +222,10 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 
 4. **User Experience Enhancements**
 
+   - ✅ Form validation and error handling
+   - ✅ UI/UX improvements
    - Mobile responsiveness
-   - Form validation and error handling
    - Performance optimization
-   - UI/UX improvements
 
 5. **Marketing and Growth Features**
    - Referral program enhancements
