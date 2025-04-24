@@ -144,7 +144,9 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
             )
           `;
 
-          console.log(`Created commission of $${commissionAmount.toFixed(2)} for user ${referrerUserId} from order ${orderId}`);
+          console.log(
+            `Created commission of $${commissionAmount.toFixed(2)} for user ${referrerUserId} from order ${orderId}`
+          );
 
           // Create task for admin to review commission
           await sql`
@@ -153,7 +155,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
               related_entity_type, related_entity_id, due_date, created_at
             )
             VALUES (
-              ${'Review Commission for Order ' || ${orderId}},
+              ${`Review Commission for Order ${orderId}`},
               ${'Commission'},
               ${'Pending'},
               ${'Medium'},

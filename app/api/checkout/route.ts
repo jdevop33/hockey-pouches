@@ -29,9 +29,12 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!shippingAddress || !paymentMethod) {
-      return NextResponse.json({
-        message: 'Shipping address and payment method are required'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          message: 'Shipping address and payment method are required',
+        },
+        { status: 400 }
+      );
     }
 
     console.log(`POST /api/checkout - User: ${userId}, Payment Method: ${paymentMethod}`);
@@ -51,8 +54,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate order totals
-    const subtotal = cartItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
-    const shippingCost = 10.00; // Fixed shipping cost for now
+    const subtotal = cartItems.reduce(
+      (sum: number, item: any) => sum + item.price * item.quantity,
+      0
+    );
+    const shippingCost = 10.0; // Fixed shipping cost for now
     const taxRate = 0.13; // 13% tax rate for Canada
     const taxes = subtotal * taxRate;
     const totalAmount = subtotal + shippingCost + taxes;
@@ -105,7 +111,7 @@ export async function POST(request: NextRequest) {
         related_entity_type, related_entity_id, due_date, created_at
       )
       VALUES (
-        ${'Approve Order ' || ${orderId}},
+        ${`Approve Order ${orderId}`},
         ${'Order'},
         ${'Pending'},
         ${'High'},
@@ -121,14 +127,14 @@ export async function POST(request: NextRequest) {
     // Process payment based on payment method
     let paymentResult = { success: false, message: '', transactionId: '' };
 
-    switch(paymentMethod) {
+    switch (paymentMethod) {
       case 'credit_card':
         // In a real implementation, this would call a payment gateway API
         console.log(`Processing credit card payment for order ${orderId}`);
         paymentResult = {
           success: true,
           message: 'Payment processed successfully',
-          transactionId: `cc-${Date.now()}`
+          transactionId: `cc-${Date.now()}`,
         };
         break;
 
@@ -138,7 +144,7 @@ export async function POST(request: NextRequest) {
         paymentResult = {
           success: true,
           message: 'E-transfer instructions sent',
-          transactionId: `et-${Date.now()}`
+          transactionId: `et-${Date.now()}`,
         };
 
         // Create task for admin to confirm e-transfer
@@ -148,7 +154,7 @@ export async function POST(request: NextRequest) {
             related_entity_type, related_entity_id, due_date, created_at
           )
           VALUES (
-            ${'Confirm E-Transfer for Order ' || ${orderId}},
+            ${`Confirm E-Transfer for Order ${orderId}`},
             ${'Payment'},
             ${'Pending'},
             ${'Medium'},
@@ -167,7 +173,7 @@ export async function POST(request: NextRequest) {
         paymentResult = {
           success: true,
           message: 'Bitcoin payment instructions sent',
-          transactionId: `btc-${Date.now()}`
+          transactionId: `btc-${Date.now()}`,
         };
 
         // Create task for admin to confirm bitcoin payment
@@ -177,7 +183,7 @@ export async function POST(request: NextRequest) {
             related_entity_type, related_entity_id, due_date, created_at
           )
           VALUES (
-            ${'Confirm Bitcoin Payment for Order ' || ${orderId}},
+            ${`Confirm Bitcoin Payment for Order ${orderId}`},
             ${'Payment'},
             ${'Pending'},
             ${'Medium'},
@@ -195,7 +201,7 @@ export async function POST(request: NextRequest) {
         paymentResult = {
           success: false,
           message: 'Unsupported payment method',
-          transactionId: ''
+          transactionId: '',
         };
     }
 
@@ -208,13 +214,15 @@ export async function POST(request: NextRequest) {
       `;
     }
 
-    return NextResponse.json({
-      message: 'Order created successfully',
-      orderId,
-      status: orderStatus,
-      total: totalAmount
-    }, { status: 201 });
-
+    return NextResponse.json(
+      {
+        message: 'Order created successfully',
+        orderId,
+        status: orderStatus,
+        total: totalAmount,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Failed to process checkout:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
