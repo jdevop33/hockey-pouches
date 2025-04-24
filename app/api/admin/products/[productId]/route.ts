@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
-import { verifyJWT } from '@/app/lib/auth';
+import { verifyJWT } from '@/lib/auth';
 
 // Helper function to verify admin access
 async function verifyAdminAccess(request: NextRequest) {
