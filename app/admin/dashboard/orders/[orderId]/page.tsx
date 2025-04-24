@@ -28,8 +28,10 @@ interface Address {
 interface OrderHistory {
   timestamp: string;
   status: string;
-  user?: string;
   notes?: string;
+  user_id?: string;
+  user_role?: string;
+  user_name?: string;
 }
 interface Distributor {
   id: string;
