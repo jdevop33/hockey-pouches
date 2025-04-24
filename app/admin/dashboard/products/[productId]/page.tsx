@@ -3,8 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '@/components/layout/NewLayout';
 import { useAuth } from '@/context/AuthContext';
+import ImageUploader from '@/components/ImageUploader';
 
 import { Product, ProductVariation } from '@/types';
 
@@ -549,18 +551,33 @@ export default function AdminProductDetailPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="image_url" className="block text-sm font-medium text-gray-700">
-                    Image URL
-                  </label>
-                  <input
-                    type="text"
-                    name="image_url"
-                    id="image_url"
-                    value={editData.image_url || ''}
-                    onChange={handleInputChange}
-                    disabled={!isEditing || isSaving}
-                    className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100"
-                  />
+                  <label className="block text-sm font-medium text-gray-700">Product Image</label>
+                  {isEditing ? (
+                    <ImageUploader
+                      currentImageUrl={editData.image_url}
+                      onImageUpload={url => setEditData({ ...editData, image_url: url })}
+                      token={token}
+                      folder="products"
+                      disabled={isSaving}
+                    />
+                  ) : (
+                    <div className="mt-1">
+                      {editData.image_url ? (
+                        <div className="relative h-48 w-48 overflow-hidden rounded-md border border-gray-300">
+                          <Image
+                            src={editData.image_url}
+                            alt={editData.name || 'Product image'}
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex h-48 w-48 items-center justify-center rounded-md border-2 border-dashed border-gray-300 bg-gray-50">
+                          <p className="text-sm text-gray-500">No image</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center">
@@ -882,23 +899,21 @@ export default function AdminProductDetailPage() {
                         </div>
 
                         <div>
-                          <label
-                            htmlFor="variation-image"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Image URL
+                          <label className="block text-sm font-medium text-gray-700">
+                            Product Image
                           </label>
-                          <input
-                            type="text"
-                            id="variation-image"
-                            value={currentVariation.image_url || ''}
-                            onChange={e =>
+                          <ImageUploader
+                            currentImageUrl={currentVariation.image_url}
+                            onImageUpload={url =>
                               setCurrentVariation({
                                 ...currentVariation,
-                                image_url: e.target.value,
+                                image_url: url,
                               })
                             }
-                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            token={token}
+                            folder="variations"
+                            disabled={isSavingVariation}
+                            className="mt-1"
                           />
                         </div>
 
