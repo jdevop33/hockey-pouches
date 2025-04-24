@@ -6,12 +6,13 @@ import React from 'react';
 // Define the type for the product prop, aligning with API/DB data
 // Make potentially missing fields optional
 interface SchemaProduct {
-    id: number;
-    name: string;
-    description?: string | null; // Optional
-    image_url?: string | null;   // Use image_url and make optional
-    price: number;
-    // Add other fields used by the schema if necessary (e.g., brand)
+  id: number;
+  name: string;
+  description?: string | null; // Optional
+  image_url?: string | null; // Use image_url and make optional
+  price: number;
+  is_active?: boolean;
+  inventory_quantity?: number;
 }
 
 interface ProductSchemaProps {
@@ -20,9 +21,9 @@ interface ProductSchemaProps {
 
 const ProductSchema: React.FC<ProductSchemaProps> = ({ product }) => {
   // Construct absolute image URL if image_url is relative
-  const absoluteImageUrl = product.image_url 
-    ? product.image_url.startsWith('http') 
-      ? product.image_url 
+  const absoluteImageUrl = product.image_url
+    ? product.image_url.startsWith('http')
+      ? product.image_url
       : `https://nicotinetins.com${product.image_url}` // Assuming base URL
     : undefined;
 
@@ -46,7 +47,12 @@ const ProductSchema: React.FC<ProductSchemaProps> = ({ product }) => {
       priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
         .toISOString()
         .split('T')[0],
-      availability: 'https://schema.org/InStock', // TODO: Make dynamic based on inventory?
+      availability:
+        product.is_active === false
+          ? 'https://schema.org/OutOfStock'
+          : product.inventory_quantity !== undefined && product.inventory_quantity <= 0
+            ? 'https://schema.org/OutOfStock'
+            : 'https://schema.org/InStock',
       seller: {
         '@type': 'Organization',
         name: 'Nicotine Tins by Hockey Puxx',
@@ -56,7 +62,7 @@ const ProductSchema: React.FC<ProductSchemaProps> = ({ product }) => {
     // Keep aggregateRating and review as placeholders or fetch dynamically later
     aggregateRating: {
       '@type': 'AggregateRating',
-      ratingValue: '4.8', 
+      ratingValue: '4.8',
       reviewCount: '24',
     },
   };

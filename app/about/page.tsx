@@ -417,12 +417,212 @@ function AboutContent() {
               </Link>
             </div>
           </div>
-          
-          {/* --- MLM/Referral System Additions --- */}
-          {/* TODO: If applicable, add sections related to: */}
-          {/* - The Distributor program (how to join, benefits). */}
-          {/* - The Retail Customer referral program (how it works, rewards). */}
-          {/* - Company mission related to empowering distributors/partners. */}
+
+          {/* Distributor Program */}
+          <div className="mb-12 rounded-lg bg-white p-8 shadow-md">
+            <h2 className="mb-6 text-2xl font-bold">Become a Distributor</h2>
+            <div className="grid gap-8 md:grid-cols-2">
+              <div className="space-y-4">
+                <p className="text-gray-600">
+                  Join our growing network of Hockey Pouches Distributors and build your own
+                  business while sharing products you believe in. Our Distributor program is
+                  designed for entrepreneurs who are passionate about hockey and want to earn
+                  additional income.
+                </p>
+                <p className="text-gray-600">
+                  As a Distributor, you'll have access to wholesale pricing, exclusive training
+                  resources, and the ability to build your own team of referrers. Whether you're
+                  looking for a side hustle or a full-time opportunity, our program offers
+                  flexibility and support.
+                </p>
+                <div className="mt-6">
+                  <Link
+                    href="/distributor/apply"
+                    className="bg-primary-600 hover:bg-primary-700 inline-flex items-center rounded-md px-6 py-3 text-base font-medium text-white shadow-sm"
+                  >
+                    Apply to Become a Distributor
+                    <svg
+                      className="ml-2 h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
+                  </Link>
+                </div>
+              </div>
+              <div className="rounded-lg bg-gray-50 p-6">
+                <h3 className="mb-4 text-xl font-semibold">Distributor Benefits</h3>
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <svg
+                      className="text-primary-600 mr-2 h-5 w-5 flex-shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="text-gray-700">Higher commission rates (up to 25%)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <svg
+                      className="text-primary-600 mr-2 h-5 w-5 flex-shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="text-gray-700">Access to wholesale pricing</span>
+                  </li>
+                  <li className="flex items-start">
+                    <svg
+                      className="text-primary-600 mr-2 h-5 w-5 flex-shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="text-gray-700">
+                      Exclusive training and marketing materials
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <svg
+                      className="text-primary-600 mr-2 h-5 w-5 flex-shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="text-gray-700">Early access to new products</span>
+                  </li>
+                  <li className="flex items-start">
+                    <svg
+                      className="text-primary-600 mr-2 h-5 w-5 flex-shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="text-gray-700">Build your own team of referrers</span>
+                  </li>
+                  <li className="flex items-start">
+                    <svg
+                      className="text-primary-600 mr-2 h-5 w-5 flex-shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="text-gray-700">Dedicated support from our team</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Referral Program */}
+          <div className="mb-12 rounded-lg bg-white p-8 shadow-md">
+            <h2 className="mb-6 text-2xl font-bold">Referral Program</h2>
+            <div className="grid gap-8 md:grid-cols-2">
+              <div className="relative h-64 overflow-hidden rounded-lg">
+                <Image
+                  src="/images/referral-program.jpg"
+                  alt="Referral Program"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  className="rounded-lg"
+                />
+              </div>
+              <div className="space-y-4">
+                <p className="text-gray-600">
+                  Love our products? Share them with friends and earn rewards! Our referral program
+                  makes it easy to earn commissions on every purchase made through your unique
+                  referral link.
+                </p>
+                <h3 className="mt-4 text-xl font-semibold">How It Works</h3>
+                <ol className="ml-5 list-decimal space-y-2 text-gray-600">
+                  <li>Create an account on our website</li>
+                  <li>Get your unique referral link from your dashboard</li>
+                  <li>Share your link with friends, family, and followers</li>
+                  <li>Earn 10% commission on every purchase made through your link</li>
+                  <li>Withdraw your earnings or use them for future purchases</li>
+                </ol>
+                <div className="mt-6">
+                  <Link
+                    href="/register"
+                    className="bg-primary-600 hover:bg-primary-700 inline-flex items-center rounded-md px-6 py-3 text-base font-medium text-white shadow-sm"
+                  >
+                    Join Our Referral Program
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Our Mission */}
+          <div className="from-primary-700 to-primary-900 mb-12 rounded-lg bg-gradient-to-br p-8 text-white shadow-md">
+            <div className="text-center">
+              <h2 className="mb-4 text-2xl font-bold">Our Mission</h2>
+              <p className="mx-auto mb-8 max-w-3xl text-lg">
+                We're on a mission to empower hockey enthusiasts with premium nicotine products
+                while creating opportunities for entrepreneurship and community building.
+              </p>
+            </div>
+            <div className="grid gap-8 md:grid-cols-3">
+              <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm">
+                <h3 className="mb-3 text-xl font-semibold">Quality Products</h3>
+                <p>
+                  We're committed to providing the highest quality tobacco-free nicotine pouches
+                  designed specifically for the hockey community.
+                </p>
+              </div>
+              <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm">
+                <h3 className="mb-3 text-xl font-semibold">Empowering Entrepreneurs</h3>
+                <p>
+                  We believe in creating opportunities for individuals to build their own businesses
+                  and achieve financial independence through our distributor program.
+                </p>
+              </div>
+              <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm">
+                <h3 className="mb-3 text-xl font-semibold">Building Community</h3>
+                <p>
+                  We're fostering a community of hockey players, fans, and entrepreneurs who share
+                  our passion for the game and our products.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </Layout>
