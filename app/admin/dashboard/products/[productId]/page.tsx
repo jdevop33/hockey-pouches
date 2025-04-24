@@ -73,7 +73,7 @@ export default function AdminProductDetailPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
-    let finalValue: string | number | boolean | null = value;
+    let finalValue: string | number | boolean | ProductVariation[] | null = value;
     if (type === 'checkbox') {
       finalValue = (e.target as HTMLInputElement).checked;
     } else if (
@@ -84,7 +84,12 @@ export default function AdminProductDetailPage() {
     ) {
       finalValue = value === '' ? null : parseFloat(value);
       if (value !== '' && isNaN(finalValue as number)) {
-        finalValue = name in editData ? editData[name as keyof ProductDetails] : null;
+        // Handle the case where the value might be an array of variations
+        if (name === 'variations') {
+          finalValue = editData.variations || [];
+        } else {
+          finalValue = name in editData ? editData[name as keyof ProductDetails] : null;
+        }
       }
     }
     setEditData(prev => ({ ...prev, [name]: finalValue }));
@@ -131,6 +136,12 @@ export default function AdminProductDetailPage() {
             break;
           case 'is_active':
             payload[key] = editedVal as boolean;
+            break;
+          case 'variations':
+            // Skip variations as they're handled separately
+            break;
+          default:
+            // For any other fields, don't include them in the payload
             break;
         }
         hasChanges = true;
