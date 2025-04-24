@@ -98,7 +98,8 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
         if (orderItems.length > 0) {
           // Parse shipping address to determine location
           const shippingAddress = JSON.parse(orderItems[0].shipping_address);
-          const location = getTargetLocation(shippingAddress);
+          // Default to main warehouse if no specific location can be determined
+          const location = 'Main Warehouse';
 
           // Restock each item
           for (const item of orderItems) {

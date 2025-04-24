@@ -144,9 +144,17 @@ export default function ProductsPage() {
       bulkDiscounts: product.bulkDiscounts || [],
       image_url: product.image_url ?? null,
     };
+
+    // Add the product to the cart
     addToCart(productForCart, 1);
+
+    // Show "Added!" message
     setAddedToCartId(product.id);
+
+    // Reset after 2 seconds
     setTimeout(() => setAddedToCartId(null), 2000);
+
+    console.log(`Added product ${product.id} to cart`);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -282,6 +290,39 @@ export default function ProductsPage() {
           {isLoading && <div className="p-10 text-center">Loading products...</div>}
           {error && (
             <div className="rounded bg-red-100 p-10 text-center text-red-600">Error: {error}</div>
+          )}
+
+          {/* Cart notification */}
+          {itemCount > 0 && (
+            <div className="mb-6 rounded-lg bg-green-50 p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <svg
+                    className="h-6 w-6 text-green-500"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <p className="ml-3 text-sm font-medium text-green-800">
+                    You have {itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart
+                  </p>
+                </div>
+                <Link
+                  href="/cart"
+                  className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium whitespace-nowrap text-white shadow-sm hover:bg-green-700"
+                >
+                  View Cart
+                </Link>
+              </div>
+            </div>
           )}
 
           {/* Products Grid - RESTORED */}
