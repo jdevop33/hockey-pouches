@@ -1,4 +1,4 @@
-// app/lib/csrf.ts
+// app/lib/csrf-server.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { randomBytes, createHash } from 'crypto';
 import { cookies } from 'next/headers';
@@ -7,7 +7,7 @@ import { logger } from './logger';
 /**
  * CSRF token configuration
  */
-const CSRF_CONFIG = {
+export const CSRF_CONFIG = {
   // Cookie name for the CSRF token
   cookieName: 'csrf_token',
   
@@ -222,48 +222,11 @@ export function generateAndSetCsrfToken(): string {
 }
 
 /**
- * Get the current CSRF token or generate a new one
- * @returns CSRF token
+ * API route to get a CSRF token
+ * @param req Next.js request
+ * @returns Next.js response with CSRF token
  */
-export function getCsrfToken(): string {
-  const token = getCsrfTokenFromCookie();
-  if (token) {
-    return token;
-  }
-  return generateAndSetCsrfToken();
-}
-
-/**
- * CSRF form field component props
- */
-export interface CsrfFormFieldProps {
-  // Whether to use a hidden input field (default: true)
-  hidden?: boolean;
-}
-
-/**
- * CSRF token object
- */
-export interface CsrfToken {
-  // CSRF token value
-  token: string;
-  
-  // CSRF token form field name
-  formFieldName: string;
-  
-  // CSRF token header name
-  headerName: string;
-}
-
-/**
- * Get CSRF token object
- * @returns CSRF token object
- */
-export function useCsrfToken(): CsrfToken {
-  const token = getCsrfToken();
-  return {
-    token,
-    formFieldName: CSRF_CONFIG.formFieldName,
-    headerName: CSRF_CONFIG.headerName,
-  };
+export async function getCsrfTokenHandler(req: NextRequest): Promise<NextResponse> {
+  const token = generateAndSetCsrfToken();
+  return NextResponse.json({ token });
 }

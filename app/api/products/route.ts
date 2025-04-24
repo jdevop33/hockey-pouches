@@ -4,6 +4,7 @@ import { Product, Pagination } from '@/types';
 import { cachedQuery, CACHE_DURATIONS, buildPaginationQuery } from '@/lib/dbOptimization';
 import { monitoredQuery } from '@/lib/dbMonitoring';
 import { logger, withLogging } from '@/lib/logger';
+import { withRateLimit, rateLimits } from '@/lib/rateLimit';
 
 export const GET = withRateLimit(
   withLogging(async (request: NextRequest) => {
@@ -152,12 +153,12 @@ export const GET = withRateLimit(
             ]);
 
           return {
-            flavors: flavorsResult.map(row => row.flavor),
-            strengths: strengthsResult.map(row => row.strength),
-            categories: categoriesResult.map(row => row.category),
+            flavors: (flavorsResult as any[]).map(row => row.flavor),
+            strengths: (strengthsResult as any[]).map(row => row.strength),
+            categories: (categoriesResult as any[]).map(row => row.category),
             priceRange: {
-              min: parseFloat(priceRangeResult[0].min_price),
-              max: parseFloat(priceRangeResult[0].max_price),
+              min: parseFloat((priceRangeResult as any[])[0].min_price),
+              max: parseFloat((priceRangeResult as any[])[0].max_price),
             },
           };
         },

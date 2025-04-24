@@ -1,6 +1,6 @@
 // app/lib/dbOptimization.ts
 import { Pool } from '@neondatabase/serverless';
-import sql from './db';
+import sql, { pool } from './db';
 import { cache } from 'react';
 
 /**
@@ -154,11 +154,9 @@ export function buildPaginationQuery({
  * @param callback Function that executes queries within the transaction
  * @returns Result of the callback function
  */
-export async function withTransaction<T>(
-  callback: (client: Pool) => Promise<T>
-): Promise<T> {
-  const client = await sql.connect();
-  
+export async function withTransaction<T>(callback: (client: any) => Promise<T>): Promise<T> {
+  const client = await pool.connect();
+
   try {
     await client.query('BEGIN');
     const result = await callback(client);
@@ -184,12 +182,8 @@ export async function getById(
   id: number | string,
   fields: string = '*'
 ): Promise<any | null> {
-  const result = await sql`
-    SELECT ${sql.raw(fields)}
-    FROM ${sql.raw(table)}
-    WHERE id = ${id}
-    LIMIT 1
-  `;
+  const query = `SELECT ${fields} FROM ${table} WHERE id = $1 LIMIT 1`;
+  const result = await sql.query(query, [id]);
 
   return result.length > 0 ? result[0] : null;
 }
@@ -208,12 +202,11 @@ export async function getByIds(
 ): Promise<any[]> {
   if (ids.length === 0) return [];
 
-  const result = await sql`
-    SELECT ${sql.raw(fields)}
-    FROM ${sql.raw(table)}
-    WHERE id IN ${sql(ids)}
-  `;
+  // Create placeholders for the ids
+  const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+  const query = `SELECT ${fields} FROM ${table} WHERE id IN (${placeholders})`;
 
+  const result = await sql.query(query, ids);
   return result;
 }
 
@@ -223,23 +216,20 @@ export async function getByIds(
  * @param data Record data
  * @returns The inserted record
  */
-export async function insert(
-  table: string,
-  data: Record<string, any>
-): Promise<any> {
+export async function insert(table: string, data: Record<string, any>): Promise<any> {
   const keys = Object.keys(data);
   const values = Object.values(data);
-  
+
   // Build the query
   const fields = keys.join(', ');
   const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
-  
+
   const query = `
     INSERT INTO ${table} (${fields})
     VALUES (${placeholders})
     RETURNING *
   `;
-  
+
   const result = await sql.query(query, values);
   return result[0];
 }
@@ -258,17 +248,17 @@ export async function update(
 ): Promise<any> {
   const keys = Object.keys(data);
   const values = Object.values(data);
-  
+
   // Build the query
   const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(', ');
-  
+
   const query = `
     UPDATE ${table}
     SET ${setClause}
     WHERE id = $${keys.length + 1}
     RETURNING *
   `;
-  
+
   const result = await sql.query(query, [...values, id]);
   return result[0];
 }
@@ -279,10 +269,7 @@ export async function update(
  * @param id Record ID
  * @returns Boolean indicating success
  */
-export async function remove(
-  table: string,
-  id: number | string
-): Promise<boolean> {
+export async function remove(table: string, id: number | string): Promise<boolean> {
   const result = await sql.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
   return result.length > 0;
 }
@@ -291,8 +278,6 @@ export async function remove(
  * React Server Component compatible cached database query
  * Uses React's cache() for server-side caching
  */
-export const cachedServerQuery = cache(async <T>(
-  queryFn: () => Promise<T>
-): Promise<T> => {
+export const cachedServerQuery = cache(async <T>(queryFn: () => Promise<T>): Promise<T> => {
   return await queryFn();
 });

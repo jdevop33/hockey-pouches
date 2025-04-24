@@ -7,7 +7,7 @@ import {
   getCsrfTokenFromRequest,
   validateCsrfToken,
   isExcludedRoute,
-} from './lib/csrf';
+} from './lib/csrf-server';
 
 // In-memory store for rate limiting
 const rateLimitStore = new Map<string, { count: number; expires: number }>();

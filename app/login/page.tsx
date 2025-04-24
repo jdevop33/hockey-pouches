@@ -18,7 +18,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { login, user, isLoading: authLoading } = useAuth();
   const { showToast } = useToast();
-  const { token, headerName } = useCsrf();
+  const { token: csrfToken, headerName } = useCsrf();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,7 +69,7 @@ export default function LoginPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          [headerName]: token,
+          [headerName]: csrfToken,
         },
         body: JSON.stringify(formData),
       });

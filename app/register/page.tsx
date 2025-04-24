@@ -38,7 +38,7 @@ function RegisterFormSkeleton() {
 function RegisterForm() {
   const searchParams = useSearchParams();
   const { showToast } = useToast();
-  const { token, headerName } = useCsrf();
+  const { token: csrfToken, headerName } = useCsrf();
 
   // Get referral code from URL if present
   const initialReferralCode = searchParams.get('ref') || '';
@@ -149,7 +149,7 @@ function RegisterForm() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          [headerName]: token,
+          [headerName]: csrfToken,
         },
         body: JSON.stringify({
           name: formData.name,

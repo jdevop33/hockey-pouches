@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import sql from '@/lib/db'; // Using updated alias
 import { withRateLimit, rateLimits, RateLimitWindow } from '@/lib/rateLimit';
 import { logger } from '@/lib/logger';
-import { withCsrfProtection } from '@/lib/csrf';
+import { withCsrfProtection } from '@/lib/csrf-server';
 
 // Basic interface for expected registration data
 interface RegistrationBody {
@@ -129,7 +129,7 @@ export const POST = withRateLimit(
       ) {
         logger.warn(
           'Conflict during insert (user likely registered concurrently)',
-          { email: lowerCaseEmail },
+          { error: 'Duplicate email' },
           error
         );
         return NextResponse.json(
@@ -144,7 +144,7 @@ export const POST = withRateLimit(
       ) {
         logger.warn(
           'Conflict during insert (referral code collision)',
-          { referralCode: newUserReferralCode },
+          { error: 'Duplicate referral code' },
           error
         );
         // TODO: Retry with a new referral code? Or just fail for now?
@@ -154,7 +154,7 @@ export const POST = withRateLimit(
         );
       }
 
-      logger.error('Registration failed', { email: lowerCaseEmail }, error);
+      logger.error('Registration failed', {}, error);
       return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
   }),

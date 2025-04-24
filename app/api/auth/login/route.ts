@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import sql from '@/lib/db';
 import { withRateLimit, rateLimits, RateLimitWindow } from '@/lib/rateLimit';
 import { logger } from '@/lib/logger';
-import { withCsrfProtection } from '@/lib/csrf';
+import { withCsrfProtection } from '@/lib/csrf-server';
 
 // Define expected request body
 interface LoginBody {
