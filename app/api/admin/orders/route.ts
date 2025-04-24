@@ -36,20 +36,28 @@ export async function GET(request: NextRequest) {
     const customerIdFilter = searchParams.get('customerId');
     const distributorIdFilter = searchParams.get('distributorId');
 
-    console.log(`Admin GET /api/admin/orders - Admin: ${authResult.userId}, Page: ${page}, Limit: ${limit}, Status: ${statusFilter}`);
+    console.log(
+      `Admin GET /api/admin/orders - Admin: ${authResult.userId}, Page: ${page}, Limit: ${limit}, Status: ${statusFilter}`
+    );
 
     let conditions = [];
     let queryParams: any[] = [];
     let paramIndex = 1;
-    if (statusFilter) { conditions.push(`o.status = $${paramIndex++}`); queryParams.push(statusFilter); }
-    if (customerIdFilter) { conditions.push(`o.user_id = $${paramIndex++}`); queryParams.push(customerIdFilter); }
-     if (distributorIdFilter) {
-        if (distributorIdFilter === 'unassigned') {
-             conditions.push(`o.assigned_distributor_id IS NULL`);
-        } else {
-             conditions.push(`o.assigned_distributor_id = $${paramIndex++}`);
-             queryParams.push(distributorIdFilter);
-        }
+    if (statusFilter) {
+      conditions.push(`o.status = $${paramIndex++}`);
+      queryParams.push(statusFilter);
+    }
+    if (customerIdFilter) {
+      conditions.push(`o.user_id = $${paramIndex++}`);
+      queryParams.push(customerIdFilter);
+    }
+    if (distributorIdFilter) {
+      if (distributorIdFilter === 'unassigned') {
+        conditions.push(`o.assigned_distributor_id IS NULL`);
+      } else {
+        conditions.push(`o.assigned_distributor_id = $${paramIndex++}`);
+        queryParams.push(distributorIdFilter);
+      }
     }
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
@@ -63,14 +71,14 @@ export async function GET(request: NextRequest) {
         ${whereClause} ORDER BY o.created_at DESC
         LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
-    queryParams.push(limit, offset);
+    queryParams.push(limit.toString(), offset.toString());
 
     const countQuery = `SELECT COUNT(*) FROM orders o ${whereClause}`;
     const countQueryParams = queryParams.slice(0, conditions.length);
 
     const [ordersResult, totalResult] = await Promise.all([
-        sql.query(ordersQuery, queryParams),
-        sql.query(countQuery, countQueryParams)
+      sql.query(ordersQuery, queryParams),
+      sql.query(countQuery, countQueryParams),
     ]);
 
     // Corrected: Access result directly as array
@@ -80,11 +88,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       orders: orders,
-      pagination: { page, limit, total: totalOrders, totalPages }
+      pagination: { page, limit, total: totalOrders, totalPages },
     });
-
   } catch (error: any) {
     console.error('Admin: Failed to get orders:', error);
-    return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { message: error.message || 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

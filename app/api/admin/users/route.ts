@@ -36,13 +36,21 @@ export async function GET(request: NextRequest) {
     const filterRole = searchParams.get('role');
     const filterStatus = searchParams.get('status');
 
-    console.log(`Admin GET /api/admin/users - Admin: ${authResult.userId}, Page: ${page}, Limit: ${limit}, Role: ${filterRole}, Status: ${filterStatus}`);
+    console.log(
+      `Admin GET /api/admin/users - Admin: ${authResult.userId}, Page: ${page}, Limit: ${limit}, Role: ${filterRole}, Status: ${filterStatus}`
+    );
 
     let conditions = [];
     let queryParams: any[] = [];
     let paramIndex = 1;
-    if (filterRole) { conditions.push(`role = $${paramIndex++}`); queryParams.push(filterRole); }
-    if (filterStatus) { conditions.push(`status = $${paramIndex++}`); queryParams.push(filterStatus); }
+    if (filterRole) {
+      conditions.push(`role = $${paramIndex++}`);
+      queryParams.push(filterRole);
+    }
+    if (filterStatus) {
+      conditions.push(`status = $${paramIndex++}`);
+      queryParams.push(filterStatus);
+    }
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     // Fetch Users
@@ -53,7 +61,7 @@ export async function GET(request: NextRequest) {
         ORDER BY created_at DESC
         LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
-    queryParams.push(limit, offset);
+    queryParams.push(limit.toString(), offset.toString());
 
     // Fetch Count
     const countQuery = `SELECT COUNT(*) FROM users ${whereClause}`;
@@ -63,8 +71,8 @@ export async function GET(request: NextRequest) {
     console.log('Executing Admin Users Count Query:', countQuery, countQueryParams);
 
     const [usersResult, totalResult] = await Promise.all([
-        sql.query(usersQuery, queryParams),
-        sql.query(countQuery, countQueryParams)
+      sql.query(usersQuery, queryParams),
+      sql.query(countQuery, countQueryParams),
     ]);
 
     // Corrected: Access result directly as array
@@ -74,11 +82,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       users: users,
-      pagination: { page, limit, total: totalUsers, totalPages }
+      pagination: { page, limit, total: totalUsers, totalPages },
     });
-
   } catch (error: any) {
     console.error('Admin: Failed to get users:', error);
-    return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { message: error.message || 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

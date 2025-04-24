@@ -18,7 +18,9 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
     const statusFilter = searchParams.get('status');
 
-    console.log(`GET /api/users/me/commissions - User: ${userId}, Page: ${page}, Limit: ${limit}, Status: ${statusFilter}`);
+    console.log(
+      `GET /api/users/me/commissions - User: ${userId}, Page: ${page}, Limit: ${limit}, Status: ${statusFilter}`
+    );
 
     // Build query conditions
     let conditions = [`user_id = $1`];
@@ -42,14 +44,14 @@ export async function GET(request: NextRequest) {
       ORDER BY earned_date DESC
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
-    queryParams.push(limit, offset);
+    queryParams.push(limit.toString(), offset.toString());
 
     // Fetch count
     const countQuery = `SELECT COUNT(*) FROM commissions ${whereClause}`;
 
     const [commissionsResult, totalResult] = await Promise.all([
       sql.query(commissionsQuery, queryParams),
-      sql.query(countQuery, queryParams.slice(0, paramIndex - 2)) // Exclude limit/offset params
+      sql.query(countQuery, queryParams.slice(0, paramIndex - 2)), // Exclude limit/offset params
     ]);
 
     const totalCommissions = parseInt(totalResult[0]?.count || '0');
@@ -64,7 +66,7 @@ export async function GET(request: NextRequest) {
       status: row.status,
       earnedDate: row.earned_date,
       payoutDate: row.payout_date,
-      payoutBatchId: row.payout_batch_id
+      payoutBatchId: row.payout_batch_id,
     }));
 
     return NextResponse.json({
@@ -73,10 +75,9 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total: totalCommissions,
-        totalPages
-      }
+        totalPages,
+      },
     });
-
   } catch (error) {
     console.error('Failed to get user commissions:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });

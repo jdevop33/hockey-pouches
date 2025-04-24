@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 // Type for the returned inventory item
 interface InventoryItemAdmin {
   inventoryId: number; // inventory.id
-  productId: number;   // inventory.product_id
+  productId: number; // inventory.product_id
   productName: string; // products.name
   variationName?: string | null; // Placeholder if variations implemented
   location: string;
@@ -48,17 +48,17 @@ export async function GET(request: NextRequest) {
     let paramIndex = 1;
 
     if (locationFilter) {
-        conditions.push(`i.location = $${paramIndex++}`);
-        queryParams.push(locationFilter);
+      conditions.push(`i.location = $${paramIndex++}`);
+      queryParams.push(locationFilter);
     }
     if (productIdFilter) {
-        conditions.push(`i.product_id = $${paramIndex++}`);
-        queryParams.push(parseInt(productIdFilter)); // Assuming product ID is integer
+      conditions.push(`i.product_id = $${paramIndex++}`);
+      queryParams.push(parseInt(productIdFilter)); // Assuming product ID is integer
     }
     if (lowStockFilter === 'true') {
-        // Assuming a threshold exists or comparing to a fixed value like 10
-        // TODO: Implement proper low stock threshold logic if needed
-        conditions.push(`i.quantity < 10`); // Example fixed threshold
+      // Assuming a threshold exists or comparing to a fixed value like 10
+      // TODO: Implement proper low stock threshold logic if needed
+      conditions.push(`i.quantity < 10`); // Example fixed threshold
     }
     // TODO: Add search condition
 
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
         ORDER BY p.name ASC, i.location ASC
         LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
-    queryParams.push(limit, offset);
+    queryParams.push(limit.toString(), offset.toString());
 
     // Fetch Total Count with same filters
     const countQuery = `SELECT COUNT(*) FROM inventory i ${whereClause}`;
@@ -92,8 +92,8 @@ export async function GET(request: NextRequest) {
     console.log('Executing Admin Inventory Count Query:', countQuery, countQueryParams);
 
     const [inventoryResult, totalResult] = await Promise.all([
-        sql.query(inventoryQuery, queryParams),
-        sql.query(countQuery, countQueryParams)
+      sql.query(inventoryQuery, queryParams),
+      sql.query(countQuery, countQueryParams),
     ]);
 
     const totalItems = parseInt(totalResult[0]?.count || '0');
@@ -102,11 +102,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       inventory: inventory,
-      pagination: { page, limit, total: totalItems, totalPages }
+      pagination: { page, limit, total: totalItems, totalPages },
     });
-
   } catch (error: any) {
     console.error('Admin: Failed to get inventory list:', error);
-    return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { message: error.message || 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

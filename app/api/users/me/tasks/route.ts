@@ -19,7 +19,9 @@ export async function GET(request: NextRequest) {
     const statusFilter = searchParams.get('status');
     const categoryFilter = searchParams.get('category');
 
-    console.log(`GET /api/users/me/tasks - User: ${userId}, Page: ${page}, Limit: ${limit}, Status: ${statusFilter}, Category: ${categoryFilter}`);
+    console.log(
+      `GET /api/users/me/tasks - User: ${userId}, Page: ${page}, Limit: ${limit}, Status: ${statusFilter}, Category: ${categoryFilter}`
+    );
 
     // Build query conditions
     let conditions = [`assigned_user_id = $1`];
@@ -59,14 +61,14 @@ export async function GET(request: NextRequest) {
         created_at DESC
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
-    queryParams.push(limit, offset);
+    queryParams.push(limit.toString(), offset.toString());
 
     // Fetch count
     const countQuery = `SELECT COUNT(*) FROM tasks ${whereClause}`;
 
     const [tasksResult, totalResult] = await Promise.all([
       sql.query(tasksQuery, queryParams),
-      sql.query(countQuery, queryParams.slice(0, paramIndex - 2)) // Exclude limit/offset params
+      sql.query(countQuery, queryParams.slice(0, paramIndex - 2)), // Exclude limit/offset params
     ]);
 
     const totalTasks = parseInt(totalResult[0]?.count || '0');
@@ -81,10 +83,11 @@ export async function GET(request: NextRequest) {
       priority: row.priority,
       assignedUserId: row.assigned_user_id,
       dueDate: row.due_date,
-      relatedTo: row.related_entity_type && row.related_entity_id
-                ? { type: row.related_entity_type, id: row.related_entity_id }
-                : undefined,
-      createdAt: row.created_at
+      relatedTo:
+        row.related_entity_type && row.related_entity_id
+          ? { type: row.related_entity_type, id: row.related_entity_id }
+          : undefined,
+      createdAt: row.created_at,
     }));
 
     return NextResponse.json({
@@ -93,10 +96,9 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total: totalTasks,
-        totalPages
-      }
+        totalPages,
+      },
     });
-
   } catch (error) {
     console.error('Failed to get user tasks:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
