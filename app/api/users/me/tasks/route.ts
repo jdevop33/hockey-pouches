@@ -3,6 +3,8 @@ import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 import sql from '@/lib/db';
 import { Task, Pagination } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication

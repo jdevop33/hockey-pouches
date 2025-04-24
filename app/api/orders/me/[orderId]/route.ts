@@ -3,10 +3,9 @@ import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 import sql from '@/lib/db';
 import { Order, OrderItem } from '@/types';
 
-export async function GET(
-    request: NextRequest,
-    { params }: { params: { orderId: string } }
-) {
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: NextRequest, { params }: { params: { orderId: string } }) {
   const { orderId } = params;
 
   try {
@@ -47,12 +46,15 @@ export async function GET(
 
     const [orderResult, itemsResult] = await Promise.all([
       sql.query(orderQuery, [orderId, userId]),
-      sql.query(itemsQuery, [orderId])
+      sql.query(itemsQuery, [orderId]),
     ]);
 
     // Check if order exists and belongs to user
     if (orderResult.length === 0) {
-      return NextResponse.json({ message: 'Order not found or not authorized to view' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Order not found or not authorized to view' },
+        { status: 404 }
+      );
     }
 
     const orderData = orderResult[0];
@@ -65,7 +67,7 @@ export async function GET(
       quantity: item.quantity,
       pricePerItem: item.price_per_item,
       imageUrl: item.image_url,
-      subtotal: item.price_per_item * item.quantity
+      subtotal: item.price_per_item * item.quantity,
     }));
 
     // Format order for response
@@ -83,7 +85,7 @@ export async function GET(
       createdAt: orderData.created_at,
       trackingNumber: orderData.tracking_number,
       notes: orderData.notes,
-      items
+      items,
     };
 
     return NextResponse.json(order);

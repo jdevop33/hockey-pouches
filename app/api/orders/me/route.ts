@@ -3,6 +3,8 @@ import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 import sql from '@/lib/db';
 import { Order, Pagination } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication
@@ -40,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     const [ordersResult, totalResult] = await Promise.all([
       sql.query(ordersQuery, [userId, limit, offset]),
-      sql.query(countQuery, [userId])
+      sql.query(countQuery, [userId]),
     ]);
 
     const totalOrders = parseInt(totalResult[0]?.count || '0');
@@ -57,7 +59,7 @@ export async function GET(request: NextRequest) {
       paymentMethod: row.payment_method,
       paymentStatus: row.payment_status,
       createdAt: row.created_at,
-      itemCount: row.item_count
+      itemCount: row.item_count,
     }));
 
     return NextResponse.json({
@@ -66,10 +68,9 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total: totalOrders,
-        totalPages
-      }
+        totalPages,
+      },
     });
-
   } catch (error) {
     console.error('Failed to get customer orders:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
