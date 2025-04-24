@@ -273,6 +273,13 @@ export default function AdminDashboardPage() {
             <h3 className="mb-2 text-lg font-semibold text-gray-700">Reports & Analytics</h3>
             <p className="text-sm text-gray-500">View sales reports and business performance.</p>
           </Link>
+          <Link
+            href="/admin/dashboard/discount-codes"
+            className="block rounded-lg bg-white p-6 shadow-md transition-shadow hover:shadow-lg"
+          >
+            <h3 className="mb-2 text-lg font-semibold text-gray-700">Discount Codes</h3>
+            <p className="text-sm text-gray-500">Create and manage promotional discount codes.</p>
+          </Link>
         </div>
       </div>
     </Layout>

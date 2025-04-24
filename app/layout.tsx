@@ -5,7 +5,8 @@ import Script from 'next/script';
 import CartWrapper from './components/CartWrapper';
 import { Analytics } from '@vercel/analytics/react';
 import { WebVitals } from './_components/web-vitals';
-import { AuthProvider } from './context/AuthContext'; // Added AuthProvider import
+import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 
 // Analytics tracking IDs - configured for production deployment
 const GA_TRACKING_ID = 'G-PMM01WKF05';
@@ -75,7 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         {/* ... (keep existing head content) ... */}
-         <link rel="canonical" href="https://nicotinetins.com" />
+        <link rel="canonical" href="https://nicotinetins.com" />
         <link rel="icon" href="/images/logo/logo3.svg" sizes="any" />
         <link rel="apple-touch-icon" href="/images/logo/logo3.svg" sizes="256x256" />
         <link rel="icon" type="image/svg+xml" sizes="64x64" href="/images/logo/logo3.svg" />
@@ -204,16 +205,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${inter.variable} font-sans`} suppressHydrationWarning>
-        <AuthProvider> { /* Added AuthProvider wrapper */ }
-          {/* Web Vitals Tracking */}
-          <WebVitals />
-
-          {/* Vercel Analytics */}
-          <Analytics />
-
-          {/* Main Content */}
-          <CartWrapper>{children}</CartWrapper>
-        </AuthProvider> { /* Closing tag */ }
+        <AuthProvider>
+          <ToastProvider>
+            {/* Web Vitals Tracking */}
+            <WebVitals />
+            {/* Vercel Analytics */}
+            <Analytics />
+            {/* Main Content */}
+            <CartWrapper>{children}</CartWrapper>
+          </ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   );

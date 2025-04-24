@@ -1,14 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react'; // Added useEffect
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Layout from '../components/layout/NewLayout';
-import { useAuth } from '../context/AuthContext'; // Import useAuth hook
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import Button from '../components/ui/Button';
+import FormFeedback from '../components/ui/FormFeedback';
+import PageLoading from '../components/ui/PageLoading';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, user, isLoading: authLoading } = useAuth(); // Use the hook
+  const { login, user, isLoading: authLoading } = useAuth();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,6 +69,7 @@ export default function LoginPage() {
         // Use token from header if available, otherwise fall back to token in response body
         login(data.user, token || data.token);
         console.log('Login successful, redirecting...');
+        showToast('Login successful!', 'success');
         // Redirect is handled by the useEffect hook now
       } else {
         console.error('Login response:', data);
@@ -81,9 +87,9 @@ export default function LoginPage() {
   if (authLoading || user) {
     return (
       <Layout>
-        <div className="p-8">Loading...</div>
+        <PageLoading message="Checking authentication status..." />
       </Layout>
-    ); // Or a loading spinner
+    );
   }
 
   return (
@@ -105,11 +111,7 @@ export default function LoginPage() {
             </p>
           </div>
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="rounded-md bg-red-50 p-4">
-                <p className="text-sm font-medium text-red-800">{error}</p>
-              </div>
-            )}
+            {error && <FormFeedback type="error" message={error} />}
             <input type="hidden" name="remember" defaultValue="true" />
             <div className="-space-y-px rounded-md shadow-sm">
               <div>
@@ -154,13 +156,15 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <button
+              <Button
                 type="submit"
+                variant="primary"
+                isLoading={isLoading}
                 disabled={isLoading || authLoading}
-                className="focus:ring-primary-500 group bg-primary-600 hover:bg-primary-700 relative flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+                className="w-full"
               >
-                {isLoading ? 'Signing in...' : 'Sign in'}
-              </button>
+                Sign in
+              </Button>
             </div>
           </form>
         </div>
