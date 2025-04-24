@@ -73,7 +73,7 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [x] Complete order assignment system
 - [x] Implement fulfillment verification workflow
 - [x] Implement order tracking
-- [ ] Add shipping label generation
+- [x] Add shipping label/photo upload functionality
 - [ ] Add order notes and communication
 - [ ] Implement order search and filtering
 
@@ -167,6 +167,7 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [x] Add automated testing
 - [x] Implement database migrations
 - [x] Fix deployment issues
+- [x] Implement file upload functionality with Vercel Blob storage
 - [ ] Optimize database schema and indexes
 - [ ] Implement proper caching strategy
 - [ ] Add comprehensive API documentation
