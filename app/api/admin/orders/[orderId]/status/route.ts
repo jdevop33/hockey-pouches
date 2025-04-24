@@ -5,20 +5,28 @@ import { OrderStatus } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-interface StatusUpdateBody { status?: OrderStatus; reason?: string; }
+interface StatusUpdateBody {
+  status?: OrderStatus;
+  reason?: string;
+}
 
 const ALLOWED_STATUSES: OrderStatus[] = [
-    'Pending Approval', 'Awaiting Fulfillment', 'Pending Fulfillment Verification',
-    'Awaiting Shipment', 'Shipped', 'Delivered', 'Cancelled', 'Refunded', 'On Hold - Stock Issue'
+  'Pending Approval',
+  'Awaiting Fulfillment',
+  'Pending Fulfillment Verification',
+  'Awaiting Shipment',
+  'Shipped',
+  'Delivered',
+  'Cancelled',
+  'Refunded',
+  'On Hold - Stock Issue',
 ];
 
-export async function PUT(
-    request: NextRequest,
-    { params }: { params: { orderId: string } }
-) {
+export async function PUT(request: NextRequest, { params }: { params: { orderId: string } }) {
   const { orderId: orderIdString } = params;
   const orderId = parseInt(orderIdString);
-  if (isNaN(orderId)) return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
+  if (isNaN(orderId))
+    return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
 
   try {
     // Verify admin authentication
@@ -39,18 +47,30 @@ export async function PUT(
     const { status: newStatus, reason } = body;
 
     // Validation
-    if (!newStatus || !reason || typeof newStatus !== 'string' || typeof reason !== 'string' || reason.trim().length === 0) {
-       return NextResponse.json({ message: 'Missing or invalid status or reason for update.' }, { status: 400 });
+    if (
+      !newStatus ||
+      !reason ||
+      typeof newStatus !== 'string' ||
+      typeof reason !== 'string' ||
+      reason.trim().length === 0
+    ) {
+      return NextResponse.json(
+        { message: 'Missing or invalid status or reason for update.' },
+        { status: 400 }
+      );
     }
     if (!ALLOWED_STATUSES.includes(newStatus)) {
-        return NextResponse.json({ message: `Invalid status value: ${newStatus}.` }, { status: 400 });
+      return NextResponse.json({ message: `Invalid status value: ${newStatus}.` }, { status: 400 });
     }
 
     // Fetch current order (optional, but good for logging)
     const orderCheck = await sql`SELECT status FROM orders WHERE id = ${orderId}`;
-    if (orderCheck.length === 0) return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
+    if (orderCheck.length === 0)
+      return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
     const currentStatus = orderCheck[0].status;
-    console.log(`Attempting to manually update order ${orderId} from ${currentStatus} to ${newStatus}. Reason: ${reason}`);
+    console.log(
+      `Attempting to manually update order ${orderId} from ${currentStatus} to ${newStatus}. Reason: ${reason}`
+    );
 
     // Update Order Status
     await sql`
@@ -58,24 +78,170 @@ export async function PUT(
     `;
 
     // TODO: Log Action in order_history
-    console.log(`Placeholder: Log manual status change for order ${orderId} to ${newStatus} by Admin ${adminUserId} with reason: ${reason}`);
+    console.log(
+      `Placeholder: Log manual status change for order ${orderId} to ${newStatus} by Admin ${adminUserId} with reason: ${reason}`
+    );
 
     // --- CRITICAL: Handle Side Effects ---
     if (newStatus === 'Cancelled') {
-        console.warn(`SIDE EFFECT TODO: Order ${orderId} Cancelled. Need to restock inventory and potentially void commissions.`);
-        // await restockInventoryForOrder(orderId); // Need more info like items/location
-        // await voidCommissionsForOrder(orderId);
+      console.log(`Processing side effects for cancelled order ${orderId}`);
+
+      try {
+        // Restock inventory
+        const orderItems = await sql`
+                SELECT oi.product_id, oi.quantity, o.shipping_address
+                FROM order_items oi
+                JOIN orders o ON oi.order_id = o.id
+                WHERE oi.order_id = ${orderId}
+            `;
+
+        if (orderItems.length > 0) {
+          // Parse shipping address to determine location
+          const shippingAddress = JSON.parse(orderItems[0].shipping_address);
+          const location = getTargetLocation(shippingAddress);
+
+          // Restock each item
+          for (const item of orderItems) {
+            await sql`
+                        UPDATE inventory
+                        SET quantity = quantity + ${item.quantity},
+                            last_updated = CURRENT_TIMESTAMP,
+                            notes = CONCAT(COALESCE(notes, ''), ' | Restocked due to order cancellation')
+                        WHERE product_id = ${item.product_id}
+                        AND location = ${location}
+                    `;
+            console.log(`Restocked ${item.quantity} of product ${item.product_id} at ${location}`);
+          }
+        }
+
+        // Cancel commissions
+        const { cancelCommissionsForOrder } = await import('@/lib/commission');
+        const commissionResult = await cancelCommissionsForOrder(orderId);
+        console.log(`Commission cancellation result:`, commissionResult);
+      } catch (sideEffectError) {
+        console.error(
+          `Error processing side effects for cancelled order ${orderId}:`,
+          sideEffectError
+        );
+        // We don't throw here to avoid preventing the status update
+      }
     }
-     if (newStatus === 'Refunded') {
-         console.warn(`SIDE EFFECT TODO: Order ${orderId} Refunded. Need to process refund via payment gateway.`);
-         // await processRefund(orderId);
-     }
 
-    return NextResponse.json({ message: `Order ${orderId} status manually updated to ${newStatus}.` });
+    if (newStatus === 'Refunded') {
+      console.log(`Processing side effects for refunded order ${orderId}`);
 
+      try {
+        // Get payment information
+        const paymentInfo = await sql`
+                SELECT payment_method, payment_status
+                FROM orders
+                WHERE id = ${orderId}
+            `;
+
+        if (paymentInfo.length > 0) {
+          const { payment_method, payment_status } = paymentInfo[0];
+
+          // Only process refund if payment was completed
+          if (payment_status === 'Completed') {
+            // Create a task for manual refund processing
+            await sql`
+                        INSERT INTO tasks (
+                            title,
+                            description,
+                            status,
+                            priority,
+                            category,
+                            related_to,
+                            related_id
+                        ) VALUES (
+                            'Process refund',
+                            'Process refund for order #${orderId} with payment method ${payment_method}',
+                            'Pending',
+                            'High',
+                            'Payment',
+                            'Order',
+                            ${orderId}
+                        )
+                    `;
+            console.log(`Created refund task for order ${orderId}`);
+          }
+        }
+
+        // Cancel commissions (same as for cancelled orders)
+        const { cancelCommissionsForOrder } = await import('@/lib/commission');
+        const commissionResult = await cancelCommissionsForOrder(orderId);
+        console.log(`Commission cancellation result:`, commissionResult);
+      } catch (sideEffectError) {
+        console.error(
+          `Error processing side effects for refunded order ${orderId}:`,
+          sideEffectError
+        );
+        // We don't throw here to avoid preventing the status update
+      }
+    }
+
+    // Handle commission calculation for shipped orders
+    if (newStatus === 'Shipped') {
+      console.log(`Processing commissions for shipped order ${orderId}`);
+
+      try {
+        // Get order details including referral code and total amount
+        const orderDetails = await sql`
+                SELECT o.total_amount, o.user_id, u.referred_by_code
+                FROM orders o
+                JOIN users u ON o.user_id = u.id
+                WHERE o.id = ${orderId}
+            `;
+
+        if (orderDetails.length > 0) {
+          const { total_amount, referred_by_code } = orderDetails[0];
+
+          // Calculate referral commission if applicable
+          if (referred_by_code) {
+            const { calculateOrderReferralCommission } = await import('@/lib/commission');
+            const referralResult = await calculateOrderReferralCommission(
+              orderId,
+              parseFloat(total_amount),
+              referred_by_code
+            );
+            console.log(`Referral commission result:`, referralResult);
+          }
+
+          // Calculate distributor fulfillment commission if applicable
+          // First check if a distributor was assigned to this order
+          const distributorAssignment = await sql`
+                    SELECT distributor_id
+                    FROM order_assignments
+                    WHERE order_id = ${orderId}
+                    AND status = 'Completed'
+                `;
+
+          if (distributorAssignment.length > 0 && distributorAssignment[0].distributor_id) {
+            const { calculateDistributorFulfillmentCommission } = await import('@/lib/commission');
+            const fulfillmentResult = await calculateDistributorFulfillmentCommission(
+              orderId,
+              parseFloat(total_amount),
+              distributorAssignment[0].distributor_id
+            );
+            console.log(`Fulfillment commission result:`, fulfillmentResult);
+          }
+        }
+      } catch (commissionError) {
+        console.error(`Error calculating commissions for order ${orderId}:`, commissionError);
+        // We don't throw here to avoid preventing the status update
+      }
+    }
+
+    return NextResponse.json({
+      message: `Order ${orderId} status manually updated to ${newStatus}.`,
+    });
   } catch (error: any) {
-     if (error instanceof SyntaxError) return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
-     console.error(`Admin: Failed to manually update status for order ${orderId}:`, error);
-     return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
+    if (error instanceof SyntaxError)
+      return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
+    console.error(`Admin: Failed to manually update status for order ${orderId}:`, error);
+    return NextResponse.json(
+      { message: error.message || 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }
