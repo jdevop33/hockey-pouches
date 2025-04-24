@@ -1,22 +1,51 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import Layout from '../components/layout/NewLayout'; // Adjust layout import as needed
 
 export default function RegisterPage() {
+  const searchParams = useSearchParams();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    referralCode: '',
+    referralCode: searchParams.get('ref') || '',
     birthDate: '',
     agreeToTerms: false,
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [referrerName, setReferrerName] = useState<string | null>(null);
+
+  // Check for referral code in localStorage (from referral landing page)
+  useEffect(() => {
+    const storedReferralCode = localStorage.getItem('referralCode');
+    if (storedReferralCode && !formData.referralCode) {
+      setFormData(prev => ({ ...prev, referralCode: storedReferralCode }));
+
+      // Validate the referral code and get referrer name
+      const validateReferralCode = async () => {
+        try {
+          const response = await fetch(`/api/referrals/validate?code=${storedReferralCode}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.referrer) {
+              setReferrerName(data.referrer.name);
+            }
+          }
+        } catch (err) {
+          console.error('Error validating referral code:', err);
+        }
+      };
+
+      validateReferralCode();
+    }
+  }, [formData.referralCode]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -211,19 +240,51 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="referralCode" className="sr-only">
-                    Referral Code (Optional)
+                  <label
+                    htmlFor="referralCode"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    Referral Code {referrerName && <span className="text-green-600">(Valid)</span>}
                   </label>
-                  <input
-                    id="referralCode"
-                    name="referralCode"
-                    type="text"
-                    className="focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm"
-                    placeholder="Referral Code (Optional)"
-                    value={formData.referralCode}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                  />
+                  <div className="relative">
+                    <input
+                      id="referralCode"
+                      name="referralCode"
+                      type="text"
+                      className={`focus:border-primary-500 focus:ring-primary-500 relative block w-full appearance-none rounded-md border ${
+                        referrerName ? 'border-green-500 bg-green-50' : 'border-gray-300'
+                      } px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm`}
+                      placeholder="Referral Code (Optional)"
+                      value={formData.referralCode}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                    />
+                    {referrerName && (
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                        <svg
+                          className="h-5 w-5 text-green-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {referrerName && (
+                    <p className="mt-1 text-sm text-green-600">Referred by: {referrerName}</p>
+                  )}
+                  {!referrerName && formData.referralCode && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      Enter a valid referral code if you were referred by someone
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label

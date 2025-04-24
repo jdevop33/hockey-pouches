@@ -90,6 +90,36 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
         AND status = 'Pending'
     `;
 
+    // Calculate referral commissions for this order
+    try {
+      console.log(`Calculating referral commissions for order ${orderId}`);
+
+      // Call the commission calculation endpoint
+      const commissionResponse = await fetch(
+        `${request.nextUrl.origin}/api/orders/${orderId}/calculate-commission`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: request.headers.get('Authorization') || '',
+          },
+        }
+      );
+
+      if (commissionResponse.ok) {
+        const commissionResult = await commissionResponse.json();
+        console.log(`Commission calculation result:`, commissionResult);
+      } else {
+        console.error(
+          `Failed to calculate commissions for order ${orderId}:`,
+          await commissionResponse.text()
+        );
+      }
+    } catch (commissionError) {
+      console.error(`Error calculating commissions for order ${orderId}:`, commissionError);
+      // Don't throw here to avoid preventing the status update
+    }
+
     // Trigger Notifications: Send shipping confirmation email to customer
     console.log(`Sending shipping email to customer ${customerUserId} for order ${orderId}`);
     // In a real implementation, this would call an email service
