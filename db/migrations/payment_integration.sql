@@ -1,10 +1,10 @@
--- Add Stripe payment integration fields to the payments table
-ALTER TABLE payments ADD COLUMN IF NOT EXISTS payment_intent_id VARCHAR(255);
-ALTER TABLE payments ADD COLUMN IF NOT EXISTS payment_method_details JSONB;
+-- Add payment tracking fields to the payments table
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS reference_number VARCHAR(255);
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS payment_details JSONB;
 ALTER TABLE payments ADD COLUMN IF NOT EXISTS notes TEXT;
 
--- Create index on payment_intent_id for faster lookups
-CREATE INDEX IF NOT EXISTS idx_payments_payment_intent_id ON payments(payment_intent_id);
+-- Create index on reference_number for faster lookups
+CREATE INDEX IF NOT EXISTS idx_payments_reference_number ON payments(reference_number);
 
 -- Add a tasks table for tracking payment verification and order processing tasks
 CREATE TABLE IF NOT EXISTS tasks (
