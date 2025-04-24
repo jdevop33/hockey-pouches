@@ -27,7 +27,12 @@ export async function GET(request: NextRequest, { params }: { params: { productI
         WHERE id = ${productId} AND is_active = TRUE
     `;
 
-    const products = result as Product[]; // Assert type
+    // Check if result is empty
+    if (!result || result.length === 0) {
+      return NextResponse.json({ message: 'Product not found or not active.' }, { status: 404 });
+    }
+
+    const products = result; // No need for type assertion here
 
     if (products.length === 0) {
       return NextResponse.json({ message: 'Product not found or not active.' }, { status: 404 });
@@ -37,20 +42,25 @@ export async function GET(request: NextRequest, { params }: { params: { productI
     console.log(`Fetched product: ${product.name}`);
 
     // Fetch active variations for this product
-    const variationsResult = await sql`
-        SELECT
-            id, product_id, name, flavor, strength,
-            CAST(price AS FLOAT) as price,
-            CAST(compare_at_price AS FLOAT) as compare_at_price,
-            sku, image_url, inventory_quantity, is_active,
-            created_at, updated_at
-        FROM product_variations
-        WHERE product_id = ${productId} AND is_active = TRUE
-        ORDER BY id ASC
-    `;
+    try {
+      const variationsResult = await sql`
+          SELECT
+              id, product_id, name, flavor, strength,
+              CAST(price AS FLOAT) as price,
+              CAST(compare_at_price AS FLOAT) as compare_at_price,
+              sku, image_url, inventory_quantity, is_active,
+              created_at, updated_at
+          FROM product_variations
+          WHERE product_id = ${productId} AND is_active = TRUE
+          ORDER BY id ASC
+      `;
 
-    // Add variations to the product
-    product.variations = variationsResult as ProductVariation[];
+      // Add variations to the product
+      product.variations = variationsResult || [];
+    } catch (variationError) {
+      console.error(`Failed to get variations for product ${productId}:`, variationError);
+      product.variations = []; // Set empty array if variations query fails
+    }
 
     return NextResponse.json(product);
   } catch (error) {

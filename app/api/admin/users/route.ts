@@ -40,40 +40,72 @@ export async function GET(request: NextRequest) {
       `Admin GET /api/admin/users - Admin: ${authResult.userId}, Page: ${page}, Limit: ${limit}, Role: ${filterRole}, Status: ${filterStatus}`
     );
 
-    let conditions = [];
-    let queryParams: any[] = [];
-    let paramIndex = 1;
-    if (filterRole) {
-      conditions.push(`role = $${paramIndex++}`);
-      queryParams.push(filterRole);
-    }
-    if (filterStatus) {
-      conditions.push(`status = $${paramIndex++}`);
-      queryParams.push(filterStatus);
-    }
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    // Use sql tagged template instead of parameterized queries
+    let usersQuery;
+    let countQuery;
 
-    // Fetch Users
-    const usersQuery = `
-        SELECT id, name, email, role, status, created_at as joinDate, location
+    // Simple case - no filters
+    if (!filterRole && !filterStatus) {
+      usersQuery = sql`
+        SELECT id, name, email, role, status, created_at as "joinDate"
         FROM users
-        ${whereClause}
         ORDER BY created_at DESC
-        LIMIT $${paramIndex++} OFFSET $${paramIndex++}
-    `;
-    queryParams.push(limit.toString(), offset.toString());
+        LIMIT ${limit} OFFSET ${offset}
+      `;
 
-    // Fetch Count
-    const countQuery = `SELECT COUNT(*) FROM users ${whereClause}`;
-    const countQueryParams = queryParams.slice(0, conditions.length);
+      countQuery = sql`
+        SELECT COUNT(*) as count FROM users
+      `;
+    }
+    // Filter by role only
+    else if (filterRole && !filterStatus) {
+      usersQuery = sql`
+        SELECT id, name, email, role, status, created_at as "joinDate"
+        FROM users
+        WHERE role = ${filterRole}
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
 
-    console.log('Executing Admin Users Query:', usersQuery, queryParams);
-    console.log('Executing Admin Users Count Query:', countQuery, countQueryParams);
+      countQuery = sql`
+        SELECT COUNT(*) as count FROM users
+        WHERE role = ${filterRole}
+      `;
+    }
+    // Filter by status only
+    else if (!filterRole && filterStatus) {
+      usersQuery = sql`
+        SELECT id, name, email, role, status, created_at as "joinDate"
+        FROM users
+        WHERE status = ${filterStatus}
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
 
-    const [usersResult, totalResult] = await Promise.all([
-      sql.query(usersQuery, queryParams),
-      sql.query(countQuery, countQueryParams),
-    ]);
+      countQuery = sql`
+        SELECT COUNT(*) as count FROM users
+        WHERE status = ${filterStatus}
+      `;
+    }
+    // Filter by both role and status
+    else {
+      usersQuery = sql`
+        SELECT id, name, email, role, status, created_at as "joinDate"
+        FROM users
+        WHERE role = ${filterRole} AND status = ${filterStatus}
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
+
+      countQuery = sql`
+        SELECT COUNT(*) as count FROM users
+        WHERE role = ${filterRole} AND status = ${filterStatus}
+      `;
+    }
+
+    console.log('Executing Admin Users Query');
+
+    const [usersResult, totalResult] = await Promise.all([usersQuery, countQuery]);
 
     // Corrected: Access result directly as array
     const totalUsers = parseInt(totalResult[0]?.count || '0');

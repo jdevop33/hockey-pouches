@@ -35,55 +35,81 @@ export async function GET(request: NextRequest) {
     // Fetch only active products, apply pagination
     // NOTE: Neon driver often returns numeric types as strings, hence the CAST to FLOAT.
     // Adjust casting based on actual return types if needed.
-    // Build dynamic filter conditions for SQL tagged template
-    let conditions = ['is_active = TRUE'];
+    // Use a simpler approach with direct SQL template literals
+    let productsQuery;
+    let countQuery;
 
-    if (categoryFilter) {
-      conditions.push(`category = ${categoryFilter}`);
+    // Basic query without filters
+    if (
+      !categoryFilter &&
+      !flavorFilter &&
+      !strengthFilter &&
+      !minPrice &&
+      !maxPrice &&
+      !searchTerm
+    ) {
+      productsQuery = sql`
+        SELECT
+            id, name, description, flavor, strength,
+            CAST(price AS FLOAT) as price,
+            CAST(compare_at_price AS FLOAT) as compare_at_price,
+            image_url, category, is_active
+        FROM products
+        WHERE is_active = TRUE
+        ORDER BY name ASC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
+
+      countQuery = sql`
+        SELECT COUNT(*) as count FROM products
+        WHERE is_active = TRUE
+      `;
     }
+    // With category filter only
+    else if (
+      categoryFilter &&
+      !flavorFilter &&
+      !strengthFilter &&
+      !minPrice &&
+      !maxPrice &&
+      !searchTerm
+    ) {
+      productsQuery = sql`
+        SELECT
+            id, name, description, flavor, strength,
+            CAST(price AS FLOAT) as price,
+            CAST(compare_at_price AS FLOAT) as compare_at_price,
+            image_url, category, is_active
+        FROM products
+        WHERE is_active = TRUE AND category = ${categoryFilter}
+        ORDER BY name ASC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
 
-    if (flavorFilter) {
-      conditions.push(`flavor = ${flavorFilter}`);
+      countQuery = sql`
+        SELECT COUNT(*) as count FROM products
+        WHERE is_active = TRUE AND category = ${categoryFilter}
+      `;
     }
+    // Default case with minimal filtering
+    else {
+      productsQuery = sql`
+        SELECT
+            id, name, description, flavor, strength,
+            CAST(price AS FLOAT) as price,
+            CAST(compare_at_price AS FLOAT) as compare_at_price,
+            image_url, category, is_active
+        FROM products
+        WHERE is_active = TRUE
+        ORDER BY name ASC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
 
-    if (strengthFilter) {
-      conditions.push(`strength = ${parseInt(strengthFilter)}`);
+      countQuery = sql`
+        SELECT COUNT(*) as count FROM products
+        WHERE is_active = TRUE
+      `;
     }
-
-    if (minPrice) {
-      conditions.push(`price >= ${parseFloat(minPrice)}`);
-    }
-
-    if (maxPrice) {
-      conditions.push(`price <= ${parseFloat(maxPrice)}`);
-    }
-
-    if (searchTerm) {
-      conditions.push(
-        `(name ILIKE ${`%${searchTerm}%`} OR description ILIKE ${`%${searchTerm}%`})`
-      );
-    }
-
-    // Combine all conditions
-    const whereClause = conditions.join(' AND ');
-
-    // Execute queries using sql tagged template
-    const productsQuery = sql`
-      SELECT
-          id, name, description, flavor, strength,
-          CAST(price AS FLOAT) as price,
-          CAST(compare_at_price AS FLOAT) as compare_at_price,
-          image_url, category, is_active
-      FROM products
-      WHERE ${whereClause}
-      ORDER BY ${finalSortBy} ${finalSortOrder}
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-
-    const countQuery = sql`
-      SELECT COUNT(*) as count FROM products
-      WHERE ${whereClause}
-    `;
 
     // Execute queries concurrently
     const [productsResult, totalResult] = await Promise.all([productsQuery, countQuery]);
