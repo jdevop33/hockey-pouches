@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Layout from '../components/layout/NewLayout';
 import { useToast } from '../context/ToastContext';
+import { useCsrf } from '../context/CsrfContext';
 import Button from '../components/ui/Button';
 import FormFeedback from '../components/ui/FormFeedback';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import FormInput from '../components/ui/FormInput';
 import FormCheckbox from '../components/ui/FormCheckbox';
+import CsrfToken from '../components/CsrfToken';
 import {
   isValidEmail,
   validatePassword,
@@ -36,6 +38,7 @@ function RegisterFormSkeleton() {
 function RegisterForm() {
   const searchParams = useSearchParams();
   const { showToast } = useToast();
+  const { token, headerName } = useCsrf();
 
   // Get referral code from URL if present
   const initialReferralCode = searchParams.get('ref') || '';
@@ -144,7 +147,10 @@ function RegisterForm() {
       // Call the registration API endpoint
       const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          [headerName]: token,
+        },
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
@@ -202,6 +208,7 @@ function RegisterForm() {
             {error && <FormFeedback type="error" message={error} />}
 
             <input type="hidden" name="remember" defaultValue="true" />
+            <CsrfToken />
             <div className="space-y-4">
               <FormInput
                 id="name"

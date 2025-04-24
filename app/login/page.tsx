@@ -6,16 +6,19 @@ import { useRouter } from 'next/navigation';
 import Layout from '../components/layout/NewLayout';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useCsrf } from '../context/CsrfContext';
 import Button from '../components/ui/Button';
 import FormFeedback from '../components/ui/FormFeedback';
 import PageLoading from '../components/ui/PageLoading';
 import FormInput from '../components/ui/FormInput';
+import CsrfToken from '../components/CsrfToken';
 import { isValidEmail } from '../lib/validation';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login, user, isLoading: authLoading } = useAuth();
   const { showToast } = useToast();
+  const { token, headerName } = useCsrf();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,7 +67,10 @@ export default function LoginPage() {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          [headerName]: token,
+        },
         body: JSON.stringify(formData),
       });
 
@@ -128,6 +134,7 @@ export default function LoginPage() {
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             {error && <FormFeedback type="error" message={error} />}
             <input type="hidden" name="remember" defaultValue="true" />
+            <CsrfToken />
             <div className="space-y-4">
               <FormInput
                 id="email-address"

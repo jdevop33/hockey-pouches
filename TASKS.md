@@ -12,8 +12,8 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [x] Implement proper form validation across all forms
 - [x] Optimize database queries for performance
 - [x] Add proper logging for debugging and monitoring
-- [ ] Implement rate limiting for API routes
-- [ ] Add CSRF protection for all forms
+- [x] Implement rate limiting for API routes
+- [x] Add CSRF protection for all forms
 - [ ] Implement proper SEO optimization
 - [ ] Set up monitoring and error tracking
 

@@ -8,6 +8,7 @@ import { WebVitals } from './_components/web-vitals';
 import { DatabaseInit } from './_components/database-init';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { CsrfProvider } from './context/CsrfContext';
 
 // Analytics tracking IDs - configured for production deployment
 const GA_TRACKING_ID = 'G-PMM01WKF05';
@@ -208,14 +209,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.variable} font-sans`} suppressHydrationWarning>
         <AuthProvider>
           <ToastProvider>
-            {/* Web Vitals Tracking */}
-            <WebVitals />
-            {/* Vercel Analytics */}
-            <Analytics />
-            {/* Database Initialization */}
-            <DatabaseInit />
-            {/* Main Content */}
-            <CartWrapper>{children}</CartWrapper>
+            <CsrfProvider>
+              {/* Web Vitals Tracking */}
+              <WebVitals />
+              {/* Vercel Analytics */}
+              <Analytics />
+              {/* Database Initialization */}
+              <DatabaseInit />
+              {/* Main Content */}
+              <CartWrapper>{children}</CartWrapper>
+            </CsrfProvider>
           </ToastProvider>
         </AuthProvider>
       </body>
