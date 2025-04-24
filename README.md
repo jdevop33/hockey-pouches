@@ -22,7 +22,7 @@ Built with Next.js (`14.2.28`) and Tailwind CSS v4.
 *   **Auth**: `bcrypt` for hashing, `jsonwebtoken` for tokens
 *   **Analytics**: Google Analytics (GA4), Microsoft Clarity, Vercel Analytics
 
-## Project Status (Apr 22, 2025)
+## Project Status (Apr 23, 2025)
 
 *   **Phase 1: Scaffolding (Complete)**
     *   Full project structure (API routes, Frontend pages) created based on scope.
@@ -33,8 +33,11 @@ Built with Next.js (`14.2.28`) and Tailwind CSS v4.
     *   Layout updated for basic Login/Logout display.
     *   Vercel build is stable.
 *   **Phase 2: Implementation (In Progress)**
-    *   Currently focused on solidifying the Authentication flow.
-    *   Next steps involve implementing the logic within the placeholder files as detailed in the `// TODO:` comments.
+    *   Authentication flow solidified with centralized auth utility.
+    *   API routes secured with JWT verification.
+    *   Shared type definitions implemented.
+    *   User, product, order, and commission APIs implemented.
+    *   Admin routes secured with role-based access control.
 
 ## Project Structure (Expanded)
 
@@ -42,7 +45,8 @@ Built with Next.js (`14.2.28`) and Tailwind CSS v4.
     *   `/api`: Backend API routes (Auth, Users, Products, Orders, etc. + Admin/Distributor)
     *   `/components`: Reusable React components (Layout, UI, Cart)
     *   `/context`: React Context providers (AuthContext, CartContext)
-    *   `/lib`: Utility functions (e.g., `db.ts`)
+    *   `/lib`: Utility functions (e.g., `db.ts`, `auth.ts`)
+    *   `/types`: Shared TypeScript type definitions
     *   `/dashboard`: Retail Customer dashboard pages.
     *   `/distributor/dashboard`: Distributor dashboard pages.
     *   `/admin/dashboard`: Admin dashboard pages.
@@ -85,39 +89,84 @@ Built with Next.js (`14.2.28`) and Tailwind CSS v4.
 4.  Start the development server: `npm run dev`
 5.  Open [http://localhost:3000](http://localhost:3000).
 
+## Authentication System
+
+The authentication system uses JWT tokens for secure API access:
+
+1. **Login/Registration**: Users authenticate via `/api/auth/login` or `/api/auth/register`
+2. **Token Storage**: JWT tokens are stored in localStorage via AuthContext
+3. **API Authentication**: All protected routes use the centralized auth utility in `/app/lib/auth.ts`
+4. **Role-Based Access**: Different user roles (Admin, Distributor, Retail Customer, Wholesale Buyer) have different access levels
+
+### Making Authenticated Requests
+
+To make authenticated requests to the API, include the JWT token in the Authorization header:
+
+```javascript
+const response = await fetch('/api/users/me', {
+  headers: {
+    'Authorization': `Bearer ${token}`
+  }
+});
+```
+
+## API Routes
+
+### Public Routes
+- `/api/auth/login` - User login
+- `/api/auth/register` - User registration
+- `/api/products` - List all active products
+- `/api/products/[productId]` - Get specific product details
+
+### Protected User Routes
+- `/api/users/me` - Get current user profile
+- `/api/users/me/commissions` - Get user's commissions
+- `/api/users/me/tasks` - Get user's assigned tasks
+- `/api/orders/me` - Get user's orders
+- `/api/orders/me/[orderId]` - Get specific order details
+
+### Admin Routes
+- `/api/admin/users` - Manage users
+- `/api/admin/products` - Manage products
+- `/api/admin/orders` - Manage orders
+- `/api/admin/commissions` - Manage commissions
+- `/api/admin/tasks` - Manage tasks
+- `/api/admin/inventory` - Manage inventory
+
+### Distributor Routes
+- `/api/distributor/orders` - View assigned orders
+- `/api/distributor/orders/[orderId]/fulfill` - Mark order as fulfilled
+
 ## Development Workflow
 
-1.  **Scaffolding (Done):** Basic structure is complete.
-2.  **Implementation:**
-    *   Focus on implementing features based on `// TODO:` comments.
-    *   Start with core auth (`/api/users/me`, securing pages).
-    *   Move to core e-commerce (Products, Cart, Orders).
-    *   Implement MLM features (Referrals, Commissions).
+1.  **Implementation:**
+    *   Continue implementing features based on `// TODO:` comments.
+    *   Focus on frontend components and pages.
+    *   Implement remaining API routes.
     *   Build out Admin/Distributor dashboards.
-3.  **Testing:** Add tests as features are developed.
-4.  **Commit & Push:** Use conventional commit messages (e.g., `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
-5.  **Deploy:** Use `npm run deploy` or Vercel dashboard. Automatic preview branches should be active via GitHub Actions.
+2.  **Testing:** Add tests for API routes and components.
+3.  **Commit & Push:** Use conventional commit messages (e.g., `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
+4.  **Deploy:** Use `npm run deploy` or Vercel dashboard.
 
 ## Available Scripts
 
-*   `npm run dev`
-*   `npm run build`
-*   `npm run start`
-*   `npm run lint`
-*   `npm run typecheck`
-*   `npm run deploy`
-*   `npm run git:push`
+*   `npm run dev` - Start development server
+*   `npm run build` - Build for production
+*   `npm run start` - Start production server
+*   `npm run lint` - Run ESLint
+*   `npm run typecheck` - Run TypeScript type checking
+*   `npm run deploy` - Deploy to Vercel
+*   `npm run git:push` - Push to GitHub
 
 ## Deployment
 
 Deployed on Vercel. Automatic preview branches created via GitHub Actions workflow (`.github/workflows/neon_workflow.yml`).
 
-## Key Next Steps (Implementation Phase)
+## Next Steps
 
-1.  **Implement `/api/users/me` Endpoint:** Verify JWT, fetch user data.
-2.  **Secure Frontend Pages:** Implement auth checks and redirects in dashboard pages.
-3.  **Secure API Routes:** Add JWT verification middleware or checks to protected API routes.
-4.  **Refine Auth Flow:** Implement logout API call, consider token refresh strategy, improve redirects.
-5.  **Implement Product Features:** API CRUD, Frontend display.
-6.  **(Continue implementing other features based on priority)**
-
+1. **Complete Frontend Pages**: Implement remaining frontend pages and components
+2. **Implement Remaining API Routes**: Complete any remaining API routes
+3. **Add Testing**: Implement unit and integration tests
+4. **Optimize Performance**: Improve loading times and performance
+5. **Enhance Security**: Add rate limiting and additional security measures
+6. **Documentation**: Complete API documentation and user guides

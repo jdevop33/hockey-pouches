@@ -1,29 +1,42 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
+import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
+import { User, Pagination } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
+// AdminUser type for the response format
 type AdminUser = {
   id: string;
   name: string;
   email: string;
-  role: 'Admin' | 'Distributor' | 'Retail Customer' | 'Wholesale Buyer';
-  status: 'Active' | 'Suspended' | 'Pending Verification';
+  role: User['role'];
+  status: User['status'];
   joinDate: string;
   location?: string | null;
 };
 
 export async function GET(request: NextRequest) {
   try {
-    // TODO: Add Admin Auth Check here!
+    // Verify admin authentication
+    const authResult = await verifyAdmin(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
+    }
+
+    // Check if user is an admin
+    if (authResult.role !== 'Admin') {
+      return forbiddenResponse('Only administrators can access this resource');
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '15'); 
+    const limit = parseInt(searchParams.get('limit') || '15');
     const offset = (page - 1) * limit;
     const filterRole = searchParams.get('role');
     const filterStatus = searchParams.get('status');
-    
-    console.log(`Admin GET /api/admin/users - Page: ${page}, Limit: ${limit}, Role: ${filterRole}, Status: ${filterStatus}`);
+
+    console.log(`Admin GET /api/admin/users - Admin: ${authResult.userId}, Page: ${page}, Limit: ${limit}, Role: ${filterRole}, Status: ${filterStatus}`);
 
     let conditions = [];
     let queryParams: any[] = [];
@@ -34,10 +47,10 @@ export async function GET(request: NextRequest) {
 
     // Fetch Users
     const usersQuery = `
-        SELECT id, name, email, role, status, created_at as joinDate, location 
-        FROM users 
-        ${whereClause} 
-        ORDER BY created_at DESC 
+        SELECT id, name, email, role, status, created_at as joinDate, location
+        FROM users
+        ${whereClause}
+        ORDER BY created_at DESC
         LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
     queryParams.push(limit, offset);
@@ -59,8 +72,8 @@ export async function GET(request: NextRequest) {
     const totalPages = Math.ceil(totalUsers / limit);
     const users = usersResult as AdminUser[]; // Cast the array directly
 
-    return NextResponse.json({ 
-      users: users, 
+    return NextResponse.json({
+      users: users,
       pagination: { page, limit, total: totalUsers, totalPages }
     });
 

@@ -1,50 +1,60 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
-
-// TODO: Add JWT verification + Admin role check for this route
+import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
+import { Order, OrderStatus, OrderItem, Address, PaymentStatus } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-// --- Types --- 
+// --- Types ---
 type OrderItemDetails = { id: number; order_id: number; product_id: number; quantity: number; price_per_item: number; product_name: string; image_url?: string | null };
-interface Address { street?: string; city?: string; province?: string; postalCode?: string; country?: string; name?: string; phone?: string; }
 interface OrderHistory { timestamp: string; status: string; user?: string; notes?: string; }
 
 interface AdminOrderDetailResponse {
     id: number;
-    created_at: string; 
-    status: string;
+    created_at: string;
+    status: OrderStatus;
     subtotal: number;
     shipping_cost: number;
     taxes: number;
     total_amount: number;
-    shipping_address: Address | null; 
-    billing_address: Address | null;  
+    shipping_address: Address | null;
+    billing_address: Address | null;
     payment_method: string | null;
-    payment_status: string | null;
-    user_id: string; 
+    payment_status: PaymentStatus | null;
+    user_id: string;
     customer_name: string | null;
     customer_email: string | null;
     assigned_distributor_id?: string | null;
-    assigned_distributor_name?: string | null; 
+    assigned_distributor_name?: string | null;
     tracking_number?: string | null;
     fulfillment_notes?: string | null;
     fulfillment_photo_url?: string | null;
     items: OrderItemDetails[];
-    orderHistory?: OrderHistory[]; // Added missing optional property
+    orderHistory?: OrderHistory[];
 }
 
-// --- GET Handler --- 
+// --- GET Handler ---
 export async function GET(
-    request: NextRequest, 
-    { params }: { params: { orderId: string } } 
+    request: NextRequest,
+    { params }: { params: { orderId: string } }
 ) {
   const { orderId: orderIdString } = params;
   const orderId = parseInt(orderIdString);
   if (isNaN(orderId)) return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
-  
-  console.log(`GET /api/admin/orders/${orderId} request`);
+
   try {
+    // Verify admin authentication
+    const authResult = await verifyAdmin(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
+    }
+
+    // Check if user is an admin
+    if (authResult.role !== 'Admin') {
+      return forbiddenResponse('Only administrators can access this resource');
+    }
+
+    console.log(`GET /api/admin/orders/${orderId} request by admin: ${authResult.userId}`);
     // Fetch main order data + joins
     const orderQuery = sql`
         SELECT o.*, u.name as customer_name, u.email as customer_email, d.name as assigned_distributor_name
@@ -59,7 +69,7 @@ export async function GET(
     `;
     // TODO: Fetch actual history when table exists
     // const historyQuery = sql`SELECT ... FROM order_history WHERE order_id = ${orderId} ...`;
-    
+
     const [orderResult, itemsResult] = await Promise.all([orderQuery, itemsQuery]);
 
     if (orderResult.length === 0) {
@@ -67,7 +77,7 @@ export async function GET(
     }
     const orderData = orderResult[0];
     const itemsData = itemsResult as OrderItemDetails[];
-    
+
     const responseData: AdminOrderDetailResponse = {
         id: orderData.id,
         created_at: orderData.created_at,
@@ -99,16 +109,27 @@ export async function GET(
   }
 }
 
-// --- PUT Handler --- 
+// --- PUT Handler ---
 export async function PUT(request: NextRequest, { params }: { params: { orderId: string } }) {
-    // ... PUT handler remains the same ...
-     const { orderId: orderIdString } = params;
+    const { orderId: orderIdString } = params;
     const orderId = parseInt(orderIdString);
     if (isNaN(orderId)) return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
+
     try {
+        // Verify admin authentication
+        const authResult = await verifyAdmin(request);
+        if (!authResult.isAuthenticated) {
+          return unauthorizedResponse(authResult.message);
+        }
+
+        // Check if user is an admin
+        if (authResult.role !== 'Admin') {
+          return forbiddenResponse('Only administrators can access this resource');
+        }
+
         const body = await request.json();
-        console.log(`Admin PUT /api/admin/orders/${orderId} request:`, body);
-        return NextResponse.json({ message: `Order ${orderId} update placeholder successful` }); 
+        console.log(`Admin PUT /api/admin/orders/${orderId} request by admin: ${authResult.userId}`, body);
+        return NextResponse.json({ message: `Order ${orderId} update placeholder successful` });
     } catch (error: any) {
         if (error instanceof SyntaxError) return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
         console.error(`Admin: Failed to update order ${orderId}:`, error);

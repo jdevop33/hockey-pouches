@@ -1,58 +1,55 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
-// TODO: Add JWT verification for admin routes
-
-// We can reuse the Product interface, maybe move to a shared types file later
-interface Product {
-    id: number;
-    name: string;
-    description?: string | null;
-    flavor?: string | null;
-    strength?: number | null;
-    price: number; 
-    compare_at_price?: number | null;
-    image_url?: string | null;
-    category?: string | null;
-    is_active: boolean;
-}
+import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
+import { Product, Pagination } from '@/types';
 
 // Force dynamic rendering since we might check auth headers
 export const dynamic = 'force-dynamic';
 
-// --- GET Handler (List ALL Products for Admin) --- 
+// --- GET Handler (List ALL Products for Admin) ---
 export async function GET(request: NextRequest) {
-  // TODO: Add Admin Auth Check here!
-  const { searchParams } = request.nextUrl;
-  const page = parseInt(searchParams.get('page') || '1');
-  const limit = parseInt(searchParams.get('limit') || '15'); 
-  const offset = (page - 1) * limit;
-  // TODO: Add filters (status, category, search)
-
-  console.log(`Admin GET /api/admin/products - Page: ${page}, Limit: ${limit}`);
-
   try {
+    // Verify admin authentication
+    const authResult = await verifyAdmin(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
+    }
+
+    // Check if user is an admin
+    if (authResult.role !== 'Admin') {
+      return forbiddenResponse('Only administrators can access this resource');
+    }
+
+    const { searchParams } = request.nextUrl;
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '15');
+    const offset = (page - 1) * limit;
+    // TODO: Add filters (status, category, search)
+
+    console.log(`Admin GET /api/admin/products - Admin: ${authResult.userId}, Page: ${page}, Limit: ${limit}`);
+
     // Fetch ALL products (including inactive) for admin view
     const productsQuery = sql`
-        SELECT 
-            id, name, description, flavor, strength, 
-            CAST(price AS FLOAT) as price, 
-            CAST(compare_at_price AS FLOAT) as compare_at_price, 
-            image_url, category, is_active 
-        FROM products 
+        SELECT
+            id, name, description, flavor, strength,
+            CAST(price AS FLOAT) as price,
+            CAST(compare_at_price AS FLOAT) as compare_at_price,
+            image_url, category, is_active
+        FROM products
         ORDER BY id ASC -- Or name, make parameterizable
         LIMIT ${limit} OFFSET ${offset}
     `;
-    
+
     const totalQuery = sql`SELECT COUNT(*) FROM products`; // Count all
 
     const [productsResult, totalResult] = await Promise.all([productsQuery, totalQuery]);
-    
+
     const totalProducts = parseInt(totalResult[0].count as string);
     const totalPages = Math.ceil(totalProducts / limit);
-    const products = productsResult as Product[]; 
+    const products = productsResult as Product[];
 
-    return NextResponse.json({ 
-      products: products, 
+    return NextResponse.json({
+      products: products,
       pagination: { page, limit, total: totalProducts, totalPages }
     });
 
@@ -62,15 +59,24 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// --- POST Handler (Create New Product) --- 
+// --- POST Handler (Create New Product) ---
 export async function POST(request: NextRequest) {
-  // TODO: Add Admin Auth Check here!
-  
   try {
-    const body = await request.json();
-    console.log('Admin POST /api/admin/products request:', body);
+    // Verify admin authentication
+    const authResult = await verifyAdmin(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
+    }
 
-    // --- Basic Input Validation --- 
+    // Check if user is an admin
+    if (authResult.role !== 'Admin') {
+      return forbiddenResponse('Only administrators can access this resource');
+    }
+
+    const body = await request.json();
+    console.log(`Admin POST /api/admin/products request by admin: ${authResult.userId}`, body);
+
+    // --- Basic Input Validation ---
     const { name, description, flavor, strength, price, compare_at_price, image_url, category, is_active = true } = body;
     if (!name || !price || !strength || !flavor ) { // Add other required fields as necessary
          return NextResponse.json({ message: 'Missing required fields (name, price, strength, flavor).' }, { status: 400 });
@@ -83,30 +89,30 @@ export async function POST(request: NextRequest) {
     }
     // Add more validation (string lengths, image URL format?)
 
-    // --- Insert into products table --- 
+    // --- Insert into products table ---
     const insertResult = await sql`
         INSERT INTO products (name, description, flavor, strength, price, compare_at_price, image_url, category, is_active)
         VALUES (
-            ${name}, 
-            ${description || null}, 
-            ${flavor}, 
-            ${strength}, 
-            ${price.toFixed(2)}, 
-            ${compare_at_price || null}, 
-            ${image_url || null}, 
-            ${category || null}, 
+            ${name},
+            ${description || null},
+            ${flavor},
+            ${strength},
+            ${price.toFixed(2)},
+            ${compare_at_price || null},
+            ${image_url || null},
+            ${category || null},
             ${is_active}
         )
         RETURNING id
     `;
-    
+
     const newProductId = insertResult[0]?.id as number | undefined;
     if (!newProductId) {
         throw new Error('Failed to create product, did not return ID.');
     }
     console.log(`Admin: Product created with ID: ${newProductId}`);
 
-    // --- TODO: Create Initial Inventory Records --- 
+    // --- TODO: Create Initial Inventory Records ---
     // Decide initial quantity (e.g., 0) and locations
     const initialQuantity = 0;
     const locations = ['Vancouver', 'Calgary', 'Edmonton', 'Toronto'];
@@ -118,14 +124,14 @@ export async function POST(request: NextRequest) {
     await Promise.all(inventoryPromises);
     console.log(`Admin: Initial inventory records created for product ${newProductId}`);
 
-    // --- Return Created Product Data --- 
+    // --- Return Created Product Data ---
     // Fetch the newly created product to return it (optional but good practice)
     const newProduct = await sql`
-         SELECT 
-            id, name, description, flavor, strength, 
-            CAST(price AS FLOAT) as price, 
-            CAST(compare_at_price AS FLOAT) as compare_at_price, 
-            image_url, category, is_active 
+         SELECT
+            id, name, description, flavor, strength,
+            CAST(price AS FLOAT) as price,
+            CAST(compare_at_price AS FLOAT) as compare_at_price,
+            image_url, category, is_active
         FROM products WHERE id = ${newProductId}
     `;
 

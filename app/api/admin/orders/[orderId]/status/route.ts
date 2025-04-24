@@ -1,31 +1,40 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
+import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
+import { OrderStatus } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-// TODO: Add JWT verification + Admin role check
+interface StatusUpdateBody { status?: OrderStatus; reason?: string; }
 
-interface StatusUpdateBody { status?: string; reason?: string; }
-
-const ALLOWED_STATUSES = [
+const ALLOWED_STATUSES: OrderStatus[] = [
     'Pending Approval', 'Awaiting Fulfillment', 'Pending Fulfillment Verification',
     'Awaiting Shipment', 'Shipped', 'Delivered', 'Cancelled', 'Refunded', 'On Hold - Stock Issue'
 ];
 
 export async function PUT(
-    request: NextRequest, 
-    { params }: { params: { orderId: string } } 
+    request: NextRequest,
+    { params }: { params: { orderId: string } }
 ) {
   const { orderId: orderIdString } = params;
   const orderId = parseInt(orderIdString);
   if (isNaN(orderId)) return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
 
-  // TODO: Admin Auth Check
-  // const adminUserId = ...
-
-  console.log(`PUT /api/admin/orders/${orderId}/status request`);
-
   try {
+    // Verify admin authentication
+    const authResult = await verifyAdmin(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
+    }
+
+    // Check if user is an admin
+    if (authResult.role !== 'Admin') {
+      return forbiddenResponse('Only administrators can access this resource');
+    }
+
+    const adminUserId = authResult.userId;
+    console.log(`PUT /api/admin/orders/${orderId}/status request by admin: ${adminUserId}`);
+
     const body: StatusUpdateBody = await request.json();
     const { status: newStatus, reason } = body;
 
@@ -36,7 +45,7 @@ export async function PUT(
     if (!ALLOWED_STATUSES.includes(newStatus)) {
         return NextResponse.json({ message: `Invalid status value: ${newStatus}.` }, { status: 400 });
     }
-    
+
     // Fetch current order (optional, but good for logging)
     const orderCheck = await sql`SELECT status FROM orders WHERE id = ${orderId}`;
     if (orderCheck.length === 0) return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
@@ -47,11 +56,11 @@ export async function PUT(
     await sql`
         UPDATE orders SET status = ${newStatus}, updated_at = CURRENT_TIMESTAMP WHERE id = ${orderId}
     `;
-    
-    // TODO: Log Action in order_history
-    console.log(`Placeholder: Log manual status change for order ${orderId} to ${newStatus} by Admin ${/*adminUserId*/'?'} with reason: ${reason}`);
 
-    // --- CRITICAL: Handle Side Effects --- 
+    // TODO: Log Action in order_history
+    console.log(`Placeholder: Log manual status change for order ${orderId} to ${newStatus} by Admin ${adminUserId} with reason: ${reason}`);
+
+    // --- CRITICAL: Handle Side Effects ---
     if (newStatus === 'Cancelled') {
         console.warn(`SIDE EFFECT TODO: Order ${orderId} Cancelled. Need to restock inventory and potentially void commissions.`);
         // await restockInventoryForOrder(orderId); // Need more info like items/location

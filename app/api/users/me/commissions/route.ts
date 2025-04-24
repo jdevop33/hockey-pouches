@@ -1,54 +1,79 @@
-import { NextResponse } from 'next/server';
-// import { verifyAuth } from '@/lib/auth';
-// import { getUserCommissions } from '@/lib/commissionService';
+import { NextResponse, type NextRequest } from 'next/server';
+import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
+import sql from '@/lib/db';
+import { Commission, Pagination } from '@/types';
 
-export async function GET(request: Request) {
-  // TODO: Implement logic for a user to get their commissions
-  // 1. Verify Authentication.
-  // 2. Extract User ID.
-  // 3. Parse Query Parameters: Filtering (status: Pending, Paid, Cancelled), sorting, pagination.
-  // 4. Fetch Commissions: Retrieve commissions earned by this user from the database.
-  // 5. Return Commission List.
-
+export async function GET(request: NextRequest) {
   try {
-    // --- Add Authentication Verification Logic ---
-    // const authResult = await verifyAuth(request);
-    // if (!authResult.isAuthenticated) {
-    //   return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    // }
-    // const userId = authResult.userId;
-    const userId = 'placeholder-user-id'; // Placeholder
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
+    }
 
+    const userId = authResult.userId;
     const { searchParams } = new URL(request.url);
-    const page = searchParams.get('page') || '1';
-    const limit = searchParams.get('limit') || '10';
-    const status = searchParams.get('status');
-    // Add other filters/sorting
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const offset = (page - 1) * limit;
+    const statusFilter = searchParams.get('status');
 
-    console.log(`Get my commissions request - User: ${userId}, Page: ${page}, Limit: ${limit}, Status: ${status}`); // Placeholder
+    console.log(`GET /api/users/me/commissions - User: ${userId}, Page: ${page}, Limit: ${limit}, Status: ${statusFilter}`);
 
-    // --- Fetch Commissions Logic Here (for the specific userId) ---
-    // const { commissions, total } = await getUserCommissions(userId, { 
-    //   page: parseInt(page), 
-    //   limit: parseInt(limit), 
-    //   status 
-    // });
+    // Build query conditions
+    let conditions = [`user_id = $1`];
+    let queryParams = [userId];
+    let paramIndex = 2;
 
-    // Placeholder data
-    const dummyCommissions = [
-      { commissionId: 'comm-1', orderId: 'order-123', amount: 5.55, status: 'Paid', earnedDate: new Date().toISOString(), payoutDate: new Date().toISOString() },
-      { commissionId: 'comm-2', orderId: 'order-456', amount: 7.50, status: 'Pending Payout', earnedDate: new Date().toISOString(), payoutDate: null },
-      { commissionId: 'comm-3', orderId: 'order-abc', type: 'Referral Bonus', amount: 10.00, status: 'Pending Payout', earnedDate: new Date().toISOString(), payoutDate: null },
-    ];
-    const totalCommissions = 15; // Example total count
+    if (statusFilter) {
+      conditions.push(`status = $${paramIndex++}`);
+      queryParams.push(statusFilter);
+    }
 
-    return NextResponse.json({ 
-      commissions: dummyCommissions, 
-      pagination: { 
-        page: parseInt(page), 
-        limit: parseInt(limit), 
-        total: totalCommissions, 
-        totalPages: Math.ceil(totalCommissions / parseInt(limit))
+    const whereClause = `WHERE ${conditions.join(' AND ')}`;
+
+    // Fetch commissions
+    const commissionsQuery = `
+      SELECT
+        id, order_id, type, CAST(amount AS FLOAT) as amount,
+        status, earned_date, payout_date, payout_batch_id
+      FROM commissions
+      ${whereClause}
+      ORDER BY earned_date DESC
+      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+    `;
+    queryParams.push(limit, offset);
+
+    // Fetch count
+    const countQuery = `SELECT COUNT(*) FROM commissions ${whereClause}`;
+
+    const [commissionsResult, totalResult] = await Promise.all([
+      sql.query(commissionsQuery, queryParams),
+      sql.query(countQuery, queryParams.slice(0, paramIndex - 2)) // Exclude limit/offset params
+    ]);
+
+    const totalCommissions = parseInt(totalResult[0]?.count || '0');
+    const totalPages = Math.ceil(totalCommissions / limit);
+
+    // Format commissions for response
+    const commissions = commissionsResult.map((row: any) => ({
+      id: row.id,
+      orderId: row.order_id,
+      type: row.type,
+      amount: row.amount,
+      status: row.status,
+      earnedDate: row.earned_date,
+      payoutDate: row.payout_date,
+      payoutBatchId: row.payout_batch_id
+    }));
+
+    return NextResponse.json({
+      commissions,
+      pagination: {
+        page,
+        limit,
+        total: totalCommissions,
+        totalPages
       }
     });
 

@@ -1,52 +1,38 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
-import jwt from 'jsonwebtoken'; 
+import { verifyDistributor, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
+import { OrderStatus } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-interface JwtPayload { userId: string; role: string; }
 interface FulfillBody {
     trackingNumber?: string | null;
-    fulfillmentPhotoUrl?: string | null; 
+    fulfillmentPhotoUrl?: string | null;
     notes?: string | null;
 }
 
-// Helper to get Distributor ID from token
-async function getDistributorIdFromToken(request: NextRequest): Promise<string | null> {
-    const authHeader = request.headers.get('authorization');
-    const token = authHeader?.split(' ')[1];
-    if (!token) return null;
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) { throw new Error('Server configuration error: JWT_SECRET missing.'); }
-    try {
-      const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
-      if (decoded.role !== 'Distributor') {
-          console.warn(`User ${decoded.userId} attempted fulfill action but is not a Distributor.`);
-          return null; 
-      }
-      return decoded.userId;
-    } catch (error) {
-      console.warn('Token verification failed for fulfill action:', error);
-      return null;
-    } 
-}
-
 export async function POST(
-    request: NextRequest, 
-    { params }: { params: { orderId: string } } // Standard Signature
+    request: NextRequest,
+    { params }: { params: { orderId: string } }
 ) {
   const { orderId: orderIdString } = params;
   const orderId = parseInt(orderIdString);
-  let distributorId: string | null = null; 
 
   if (isNaN(orderId)) return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
 
   try {
-    // 1. Verify Authentication & Role
-    distributorId = await getDistributorIdFromToken(request);
-    if (!distributorId) {
-        return NextResponse.json({ message: 'Forbidden: Distributor access required.' }, { status: 403 });
+    // Verify distributor authentication
+    const authResult = await verifyDistributor(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
     }
+
+    // Check if user is a distributor
+    if (authResult.role !== 'Distributor') {
+      return forbiddenResponse('Only distributors can access this resource');
+    }
+
+    const distributorId = authResult.userId;
     console.log(`POST /api/distributor/orders/${orderId}/fulfill request by Distributor ${distributorId}`);
 
     // 2. Get request body
@@ -61,7 +47,7 @@ export async function POST(
         SELECT status, assigned_distributor_id FROM orders WHERE id = ${orderId}
     `;
     if (orderCheck.length === 0) return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
-    
+
     const currentStatus = orderCheck[0].status;
     const assignedDistributor = orderCheck[0].assigned_distributor_id;
 
@@ -73,7 +59,7 @@ export async function POST(
     }
 
     // 4. Update Order Status and save fulfillment details
-    const newStatus = 'Pending Fulfillment Verification';
+    const newStatus = 'Pending Fulfillment Verification' as OrderStatus;
     console.log(`Updating order ${orderId} status to ${newStatus} and saving fulfillment details...`);
 
     await sql`
@@ -85,7 +71,7 @@ export async function POST(
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ${orderId} AND assigned_distributor_id = ${distributorId}
     `;
-    
+
     // TODO: Add entry to order_history table
     // TODO: Create Task: Generate a 'Fulfillment Verification' task for admin.
     console.log(`Placeholder: Create task 'Verify fulfillment for Order ${orderId}'`);

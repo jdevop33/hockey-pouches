@@ -1,30 +1,42 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
+import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
+import { Order, OrderStatus, Pagination } from '@/types';
 
-export const dynamic = 'force-dynamic'; 
+export const dynamic = 'force-dynamic';
 
 type AdminOrderListItem = {
-  id: number; 
-  created_at: string; 
-  status: string;
+  id: number;
+  created_at: string;
+  status: OrderStatus;
   total_amount: number;
-  customer_id: string; 
-  customer_name: string | null; 
+  customer_id: string;
+  customer_name: string | null;
   assigned_distributor_id?: string | null;
 };
 
 export async function GET(request: NextRequest) {
   try {
-    // TODO: Add Admin Auth Check here!
-    const searchParams = request.nextUrl.searchParams; 
+    // Verify admin authentication
+    const authResult = await verifyAdmin(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
+    }
+
+    // Check if user is an admin
+    if (authResult.role !== 'Admin') {
+      return forbiddenResponse('Only administrators can access this resource');
+    }
+
+    const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '15'); 
+    const limit = parseInt(searchParams.get('limit') || '15');
     const offset = (page - 1) * limit;
     const statusFilter = searchParams.get('status');
     const customerIdFilter = searchParams.get('customerId');
     const distributorIdFilter = searchParams.get('distributorId');
-    
-    console.log(`Admin GET /api/admin/orders - Page: ${page}, Limit: ${limit}, Status: ${statusFilter}`);
+
+    console.log(`Admin GET /api/admin/orders - Admin: ${authResult.userId}, Page: ${page}, Limit: ${limit}, Status: ${statusFilter}`);
 
     let conditions = [];
     let queryParams: any[] = [];
@@ -42,17 +54,17 @@ export async function GET(request: NextRequest) {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const ordersQuery = `
-        SELECT 
-            o.id, o.created_at, o.status, 
-            CAST(o.total_amount AS FLOAT) as total_amount, 
-            o.user_id as customer_id, u.name as customer_name, 
+        SELECT
+            o.id, o.created_at, o.status,
+            CAST(o.total_amount AS FLOAT) as total_amount,
+            o.user_id as customer_id, u.name as customer_name,
             o.assigned_distributor_id
         FROM orders o LEFT JOIN users u ON o.user_id = u.id
-        ${whereClause} ORDER BY o.created_at DESC 
+        ${whereClause} ORDER BY o.created_at DESC
         LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
     queryParams.push(limit, offset);
-    
+
     const countQuery = `SELECT COUNT(*) FROM orders o ${whereClause}`;
     const countQueryParams = queryParams.slice(0, conditions.length);
 
@@ -62,12 +74,12 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Corrected: Access result directly as array
-    const totalOrders = parseInt(totalResult[0]?.count || '0'); 
+    const totalOrders = parseInt(totalResult[0]?.count || '0');
     const totalPages = Math.ceil(totalOrders / limit);
     const orders = ordersResult as AdminOrderListItem[]; // Corrected: Cast array directly
 
-    return NextResponse.json({ 
-      orders: orders, 
+    return NextResponse.json({
+      orders: orders,
       pagination: { page, limit, total: totalOrders, totalPages }
     });
 

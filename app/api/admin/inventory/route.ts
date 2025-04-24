@@ -1,9 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
+import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
+import { Inventory } from '@/types';
 
-// TODO: Add JWT verification + Admin role check
-
-export const dynamic = 'force-dynamic'; 
+export const dynamic = 'force-dynamic';
 
 // Type for the returned inventory item
 interface InventoryItemAdmin {
@@ -18,16 +18,26 @@ interface InventoryItemAdmin {
 }
 
 export async function GET(request: NextRequest) {
-  // TODO: Admin Auth Check
-  console.log('GET /api/admin/inventory request');
-
   try {
+    // Verify admin authentication
+    const authResult = await verifyAdmin(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
+    }
+
+    // Check if user is an admin
+    if (authResult.role !== 'Admin') {
+      return forbiddenResponse('Only administrators can access this resource');
+    }
+
+    const adminUserId = authResult.userId;
+    console.log(`GET /api/admin/inventory request by admin: ${adminUserId}`);
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20'); 
+    const limit = parseInt(searchParams.get('limit') || '20');
     const offset = (page - 1) * limit;
-    
-    // --- Filtering --- 
+
+    // --- Filtering ---
     const locationFilter = searchParams.get('location');
     const productIdFilter = searchParams.get('productId');
     const lowStockFilter = searchParams.get('lowStock'); // If 'true', show low stock
@@ -51,32 +61,32 @@ export async function GET(request: NextRequest) {
         conditions.push(`i.quantity < 10`); // Example fixed threshold
     }
     // TODO: Add search condition
-    
+
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    // --- Database Query --- 
+    // --- Database Query ---
     // Fetch inventory, joining with products for name/image
     const inventoryQuery = `
-        SELECT 
-            i.id as inventoryId, 
-            i.product_id as productId, 
-            p.name as productName, 
+        SELECT
+            i.id as inventoryId,
+            i.product_id as productId,
+            p.name as productName,
             -- TODO: Add variation name if variations exist
-            i.location, 
-            i.quantity, 
-            p.image_url as imageUrl 
+            i.location,
+            i.quantity,
+            p.image_url as imageUrl
             -- TODO: Add low_stock_threshold if needed
         FROM inventory i
         JOIN products p ON i.product_id = p.id
-        ${whereClause} 
-        ORDER BY p.name ASC, i.location ASC 
+        ${whereClause}
+        ORDER BY p.name ASC, i.location ASC
         LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
     queryParams.push(limit, offset);
 
     // Fetch Total Count with same filters
     const countQuery = `SELECT COUNT(*) FROM inventory i ${whereClause}`;
-    const countQueryParams = queryParams.slice(0, conditions.length); 
+    const countQueryParams = queryParams.slice(0, conditions.length);
 
     console.log('Executing Admin Inventory Query:', inventoryQuery, queryParams);
     console.log('Executing Admin Inventory Count Query:', countQuery, countQueryParams);
@@ -88,10 +98,10 @@ export async function GET(request: NextRequest) {
 
     const totalItems = parseInt(totalResult[0]?.count || '0');
     const totalPages = Math.ceil(totalItems / limit);
-    const inventory = inventoryResult as InventoryItemAdmin[]; 
+    const inventory = inventoryResult as InventoryItemAdmin[];
 
-    return NextResponse.json({ 
-      inventory: inventory, 
+    return NextResponse.json({
+      inventory: inventory,
       pagination: { page, limit, total: totalItems, totalPages }
     });
 

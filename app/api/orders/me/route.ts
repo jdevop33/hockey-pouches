@@ -1,49 +1,72 @@
-import { NextResponse } from 'next/server';
-// import { verifyAuth } from '@/lib/auth';
-// import { getCustomerOrders } from '@/lib/orderService';
+import { NextResponse, type NextRequest } from 'next/server';
+import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
+import sql from '@/lib/db';
+import { Order, Pagination } from '@/types';
 
-export async function GET(request: Request) {
-  // TODO: Implement logic for customer to get their orders
-  // 1. Verify Authentication: Ensure a logged-in customer.
-  // 2. Extract Customer ID.
-  // 3. Parse Query Parameters: Handle pagination.
-  // 4. Fetch Orders: Retrieve orders belonging to this customer from the database.
-  // 5. Return Order List.
-
+export async function GET(request: NextRequest) {
   try {
-    // --- Add Authentication Verification Logic ---
-    // const authResult = await verifyAuth(request);
-    // if (!authResult.isAuthenticated) {
-    //   return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    // }
-    // const customerId = authResult.userId;
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
+    }
 
+    const userId = authResult.userId;
     const { searchParams } = new URL(request.url);
-    const page = searchParams.get('page') || '1';
-    const limit = searchParams.get('limit') || '10';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const offset = (page - 1) * limit;
 
-    console.log(`Get my orders request - Page: ${page}, Limit: ${limit}`); // Placeholder
+    console.log(`GET /api/orders/me - User: ${userId}, Page: ${page}, Limit: ${limit}`);
 
-    // --- Fetch Orders Logic Here (for the specific customerId) ---
-    // const { orders, total } = await getCustomerOrders(customerId, { 
-    //   page: parseInt(page), 
-    //   limit: parseInt(limit) 
-    // });
+    // Fetch orders
+    const ordersQuery = `
+      SELECT
+        o.id, o.status,
+        CAST(o.subtotal AS FLOAT) as subtotal,
+        CAST(o.shipping_cost AS FLOAT) as shipping_cost,
+        CAST(o.taxes AS FLOAT) as taxes,
+        CAST(o.total_amount AS FLOAT) as total_amount,
+        o.payment_method, o.payment_status, o.created_at,
+        (SELECT COUNT(*) FROM order_items WHERE order_id = o.id) as item_count
+      FROM orders o
+      WHERE o.user_id = $1
+      ORDER BY o.created_at DESC
+      LIMIT $2 OFFSET $3
+    `;
 
-    // Placeholder data
-    const dummyOrders = [
-      { orderId: 'order-123', date: new Date().toISOString(), status: 'Shipped', total: 55.50 },
-      { orderId: 'order-456', date: new Date().toISOString(), status: 'Pending Approval', total: 75.00 },
-    ];
-    const totalOrders = 5; // Example total count
+    // Fetch count
+    const countQuery = `SELECT COUNT(*) FROM orders WHERE user_id = $1`;
 
-    return NextResponse.json({ 
-      orders: dummyOrders, 
-      pagination: { 
-        page: parseInt(page), 
-        limit: parseInt(limit), 
-        total: totalOrders, 
-        totalPages: Math.ceil(totalOrders / parseInt(limit))
+    const [ordersResult, totalResult] = await Promise.all([
+      sql.query(ordersQuery, [userId, limit, offset]),
+      sql.query(countQuery, [userId])
+    ]);
+
+    const totalOrders = parseInt(totalResult[0]?.count || '0');
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    // Format orders for response
+    const orders = ordersResult.map((row: any) => ({
+      id: row.id,
+      status: row.status,
+      subtotal: row.subtotal,
+      shippingCost: row.shipping_cost,
+      taxes: row.taxes,
+      totalAmount: row.total_amount,
+      paymentMethod: row.payment_method,
+      paymentStatus: row.payment_status,
+      createdAt: row.created_at,
+      itemCount: row.item_count
+    }));
+
+    return NextResponse.json({
+      orders,
+      pagination: {
+        page,
+        limit,
+        total: totalOrders,
+        totalPages
       }
     });
 

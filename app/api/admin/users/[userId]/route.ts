@@ -1,14 +1,14 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
-
-// TODO: Add JWT verification + Admin role check for all handlers in this route
+import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
+import { User, UserRole } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
 // Type for user details returned by GET
 interface AdminUserDetails {
   id: string; name: string; email: string; role: string;
-  status: string; created_at: string; lastLogin?: string | null; 
+  status: string; created_at: string; lastLogin?: string | null;
   referral_code?: string | null; referred_by_code?: string | null;
   location?: string | null;
 }
@@ -16,22 +16,34 @@ interface AdminUserDetails {
 // Type for allowed update fields in PUT request
 interface UpdateUserBody {
     name?: string;
-    role?: 'Admin' | 'Distributor' | 'Retail Customer' | 'Wholesale Buyer'; 
-    location?: string | null; 
+    role?: UserRole;
+    location?: string | null;
 }
 
 // Valid roles constant
-const VALID_ROLES: string[] = ['Admin', 'Distributor', 'Retail Customer', 'Wholesale Buyer'];
+const VALID_ROLES: UserRole[] = ['Admin', 'Distributor', 'Retail Customer', 'Wholesale Buyer'];
 
-// --- GET Handler --- 
+// --- GET Handler ---
 export async function GET(
-    request: NextRequest, 
-    { params }: { params: { userId: string } } 
+    request: NextRequest,
+    { params }: { params: { userId: string } }
 ) {
   const { userId } = params;
-  // TODO: Admin Auth Check
-  console.log(`GET /api/admin/users/${userId} request`);
+
   try {
+    // Verify admin authentication
+    const authResult = await verifyAdmin(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
+    }
+
+    // Check if user is an admin
+    if (authResult.role !== 'Admin') {
+      return forbiddenResponse('Only administrators can access this resource');
+    }
+
+    console.log(`GET /api/admin/users/${userId} request by admin: ${authResult.userId}`);
+
     const result = await sql`
         SELECT id, name, email, role, status, created_at, last_login, referral_code, referred_by_code, location
         FROM users WHERE id = ${userId}
@@ -44,25 +56,36 @@ export async function GET(
   }
 }
 
-// --- PUT Handler (Update User) --- 
+// --- PUT Handler (Update User) ---
 export async function PUT(
-    request: NextRequest, 
-    { params }: { params: { userId: string } } 
+    request: NextRequest,
+    { params }: { params: { userId: string } }
 ) {
   const { userId } = params;
-  // TODO: Add Admin Auth Check
-  console.log(`PUT /api/admin/users/${userId} request`);
 
   try {
+    // Verify admin authentication
+    const authResult = await verifyAdmin(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
+    }
+
+    // Check if user is an admin
+    if (authResult.role !== 'Admin') {
+      return forbiddenResponse('Only administrators can access this resource');
+    }
+
+    console.log(`PUT /api/admin/users/${userId} request by admin: ${authResult.userId}`);
+
     const body: UpdateUserBody = await request.json();
     console.log(`Admin request body for user ${userId}:`, body);
 
-    // --- Validation --- 
+    // --- Validation ---
     if (Object.keys(body).length === 0) return NextResponse.json({ message: 'No update data provided.' }, { status: 400 });
     if (body.name !== undefined && (typeof body.name !== 'string' || body.name.trim().length === 0)) return NextResponse.json({ message: 'Name cannot be empty.' }, { status: 400 });
     if (body.role !== undefined && !VALID_ROLES.includes(body.role)) return NextResponse.json({ message: `Invalid role specified: ${body.role}` }, { status: 400 });
-    
-    // --- Construct SET clause --- 
+
+    // --- Construct SET clause ---
     const fieldsToUpdate: string[] = [];
     const values: any[] = [];
     let valueIndex = 1;
@@ -79,16 +102,16 @@ export async function PUT(
     if (fieldsToUpdate.length === 0) return NextResponse.json({ message: 'No valid fields to update provided.' }, { status: 400 });
     fieldsToUpdate.push(`updated_at = CURRENT_TIMESTAMP`);
 
-    // --- Update user in DB --- 
+    // --- Update user in DB ---
     console.log(`Admin: Updating user ${userId} with fields: ${fieldsToUpdate.join(', ')}`);
     const updateQuery = `UPDATE users SET ${fieldsToUpdate.join(', ')} WHERE id = $${valueIndex}`;
     values.push(userId);
-    
+
     // Execute query - assume success if no error
-    await sql.query(updateQuery, values); 
+    await sql.query(updateQuery, values);
     console.log(`Admin: User ${userId} update attempted successfully.`);
-    
-    // --- Return updated user data --- 
+
+    // --- Return updated user data ---
      const updatedUserResult = await sql`
         SELECT id, name, email, role, status, created_at, last_login, referral_code, referred_by_code, location
         FROM users WHERE id = ${userId}
