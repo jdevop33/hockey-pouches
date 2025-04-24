@@ -36,7 +36,7 @@ export default function ProductsPage() {
   console.log('--- ProductsPage: Component rendering START ---');
 
   console.log('ProductsPage: Calling useCart()...');
-  const { addToCart } = useCart();
+  const { addToCart, itemCount } = useCart();
   console.log('ProductsPage: useCart() finished.');
 
   console.log('ProductsPage: Calling useAuth()...');
