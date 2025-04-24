@@ -126,7 +126,7 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 ### Checkout Process
 
 - [x] Implement basic checkout flow
-- [ ] Complete payment gateway integration
+- [x] Complete payment gateway integration
 - [ ] Add tax calculation
 - [ ] Implement shipping options and rates
 - [ ] Add discount code functionality
@@ -200,8 +200,8 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 
    - ✅ Fix authentication and redirection issues
    - ✅ Complete product variations functionality
+   - ✅ Implement payment processing
    - Finish order processing workflow
-   - Implement payment processing
 
 2. **Core User Journeys**
 
