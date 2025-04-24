@@ -1,94 +1,165 @@
-import { NextResponse } from 'next/server';
-// import { verifyAdmin } from '@/lib/auth';
-// import { listAllTasks, createTaskAdmin } from '@/lib/taskService';
+import { NextResponse, type NextRequest } from 'next/server';
+import sql from '@/lib/db';
 
-export async function GET(request: Request) {
-  // TODO: Implement admin logic to list all tasks
-  // 1. Verify Admin Authentication.
-  // 2. Parse Query Parameters: Filtering (status, category, assigned user, due date range), sorting, pagination.
-  // 3. Fetch Tasks: Retrieve tasks based on filters.
-  // 4. Return Task List.
+// TODO: Add JWT verification + Admin role check
 
-  try {
-    // --- Add Admin Authentication Verification Logic Here ---
-    // const adminCheck = await verifyAdmin(request);
-    // if (!adminCheck.isAdmin) {
-    //   return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    // }
+export const dynamic = 'force-dynamic';
 
-    const { searchParams } = new URL(request.url);
-    const page = searchParams.get('page') || '1';
-    const limit = searchParams.get('limit') || '15';
-    const status = searchParams.get('status');
-    const category = searchParams.get('category');
-    const assignedUserId = searchParams.get('assignedUserId');
-    // Add other filters/sorting
-
-    console.log(`Admin: Get all tasks request - Page: ${page}, Limit: ${limit}, Status: ${status}, Category: ${category}, AssignedTo: ${assignedUserId}`); // Placeholder
-
-    // --- Fetch Tasks Logic Here ---
-    // const { tasks, total } = await listAllTasks({ 
-    //   page: parseInt(page), 
-    //   limit: parseInt(limit), 
-    //   status, category, assignedUserId 
-    // });
-
-    // Placeholder data
-    const dummyTasks = [
-      { taskId: 'task-1', title: 'Assign distributor for Order order-789', category: 'Distributor Assignment', status: 'Pending', assignedUserId: 'admin-1', dueDate: null, relatedTo: { type: 'Order', id: 'order-789' } },
-      { taskId: 'task-2', title: 'Verify fulfillment for Order order-123', category: 'Fulfillment Verification', status: 'Pending', assignedUserId: 'admin-2', dueDate: null, relatedTo: { type: 'Order', id: 'order-123' } },
-      { taskId: 'task-3', title: 'Follow up with customer cust-abc', category: 'Customer Service', status: 'In Progress', assignedUserId: 'support-1', dueDate: new Date().toISOString(), relatedTo: { type: 'User', id: 'cust-abc' } },
-    ];
-    const totalTasks = 30; // Example total count
-
-    return NextResponse.json({ 
-      tasks: dummyTasks, 
-      pagination: { 
-        page: parseInt(page), 
-        limit: parseInt(limit), 
-        total: totalTasks, 
-        totalPages: Math.ceil(totalTasks / parseInt(limit))
-      }
-    });
-
-  } catch (error) {
-    console.error('Admin: Failed to get tasks:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-  }
+// Type for the returned task list item
+interface AdminTaskList {
+    id: number;
+    title: string;
+    category: string;
+    status: string;
+    priority?: string | null;
+    assignedUserId?: string | null;
+    assignedUserName?: string | null; // From join
+    dueDate?: string | null;
+    relatedTo?: { type: string | null; id: string | null };
+    createdAt: string; 
 }
 
-export async function POST(request: Request) {
-  // TODO: Implement admin logic to create a new task
-  // 1. Verify Admin Authentication.
-  // 2. Validate Request Body: Requires title, category. Optional: description, assignedUserId, dueDate, relatedTo { type, id }.
-  // 3. Create Task: Add the new task to the database.
-  // 4. Return Created Task Data.
+export async function GET(request: NextRequest) {
+    // TODO: Admin Auth Check
+    console.log('GET /api/admin/tasks request');
 
-  try {
-    // --- Add Admin Authentication Verification Logic Here ---
-    // const adminCheck = await verifyAdmin(request);
-    // if (!adminCheck.isAdmin) {
-    //   return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    // }
+    try {
+        const searchParams = request.nextUrl.searchParams;
+        const page = parseInt(searchParams.get('page') || '1');
+        const limit = parseInt(searchParams.get('limit') || '20'); 
+        const offset = (page - 1) * limit;
 
-    const body = await request.json();
-    console.log('Admin: Create task request:', body); // Placeholder
+        // --- Filtering --- 
+        const filterStatus = searchParams.get('status');
+        const filterCategory = searchParams.get('category');
+        const filterAssignedUserId = searchParams.get('assignedUserId');
+        // TODO: Add filters for due date range, priority, search query
 
-    // --- Add Input Validation Logic Here ---
-    if (!body.title || !body.category) {
-      return NextResponse.json({ message: 'Missing required task fields (title, category)' }, { status: 400 });
+        let conditions = [];
+        let queryParams: any[] = [];
+        let paramIndex = 1;
+
+        if (filterStatus) { conditions.push(`t.status = $${paramIndex++}`); queryParams.push(filterStatus); }
+        if (filterCategory) { conditions.push(`t.category = $${paramIndex++}`); queryParams.push(filterCategory); }
+        if (filterAssignedUserId) { 
+             if (filterAssignedUserId === 'unassigned') {
+                 conditions.push(`t.assigned_user_id IS NULL`);
+             } else {
+                 conditions.push(`t.assigned_user_id = $${paramIndex++}`); 
+                 queryParams.push(filterAssignedUserId); 
+             }
+        }
+        // TODO: Add more filter conditions
+        
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+        // --- Database Query --- 
+        const tasksQuery = `
+            SELECT 
+                t.id, t.title, t.category, t.status, t.priority, 
+                t.assigned_user_id as "assignedUserId", 
+                u.name as "assignedUserName", 
+                to_char(t.due_date, 'YYYY-MM-DD') as "dueDate", -- Format date
+                t.related_entity_type as "relatedEntityType", 
+                t.related_entity_id as "relatedEntityId", 
+                t.created_at as "createdAt"
+            FROM tasks t
+            LEFT JOIN users u ON t.assigned_user_id = u.id
+            ${whereClause} 
+            ORDER BY t.created_at DESC -- Adjust sorting as needed
+            LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+        `;
+        queryParams.push(limit, offset);
+
+        const countQuery = `SELECT COUNT(*) FROM tasks t ${whereClause}`;
+        const countQueryParams = queryParams.slice(0, conditions.length);
+
+        console.log('Executing Admin Tasks Query:', tasksQuery, queryParams);
+        console.log('Executing Admin Tasks Count Query:', countQuery, countQueryParams);
+
+        const [tasksResult, totalResult] = await Promise.all([
+            sql.query(tasksQuery, queryParams),
+            sql.query(countQuery, countQueryParams)
+        ]);
+
+        const totalTasks = parseInt(totalResult[0]?.count || '0');
+        const totalPages = Math.ceil(totalTasks / limit);
+        
+        // Map results to the frontend type, creating the relatedTo object
+        const tasks = tasksResult.map((row: any) => ({
+            id: row.id,
+            title: row.title,
+            category: row.category,
+            status: row.status,
+            priority: row.priority,
+            assignedUserId: row.assignedUserId,
+            assignedUserName: row.assignedUserName,
+            dueDate: row.dueDate,
+            relatedTo: row.relatedEntityType && row.relatedEntityId 
+                       ? { type: row.relatedEntityType, id: row.relatedEntityId } 
+                       : undefined,
+            createdAt: row.createdAt
+        })) as AdminTaskList[];
+
+        return NextResponse.json({ 
+          tasks: tasks, 
+          pagination: { page, limit, total: totalTasks, totalPages }
+        });
+
+    } catch (error: any) {
+        console.error('Admin: Failed to get tasks:', error);
+        return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
     }
+}
 
-    // --- Create Task Logic Here ---
-    // const newTask = await createTaskAdmin(body, adminCheck.userId);
+// --- POST Handler (Create New Task by Admin) --- 
+export async function POST(request: NextRequest) {
+     // TODO: Add Admin Auth Check
+     console.log('POST /api/admin/tasks request');
 
-    // Placeholder response
-    const createdTask = { taskId: 'new-task-' + Date.now(), status: 'Pending', createdBy: 'admin-placeholder' /* adminCheck.userId */, createdAt: new Date().toISOString(), ...body }; 
+    try {
+        const body = await request.json();
+        const { title, description, category, status = 'Pending', priority, assignedUserId, dueDate, relatedTo } = body;
 
-    return NextResponse.json(createdTask, { status: 201 });
+        // Validation
+        if (!title || !category) {
+            return NextResponse.json({ message: 'Title and Category are required.' }, { status: 400 });
+        }
+        // TODO: Add validation for status, priority, assignedUserId (exists?), relatedTo format, date format?
+        
+        console.log('Creating new task:', body);
 
-  } catch (error) {
-    console.error('Admin: Failed to create task:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-  }
+        // Insert new task
+        const result = await sql`
+            INSERT INTO tasks (title, description, category, status, priority, assigned_user_id, due_date, related_entity_type, related_entity_id, created_by_user_id)
+            VALUES (
+                ${title}, ${description || null}, ${category}, ${status}, ${priority || null}, 
+                ${assignedUserId || null}, 
+                ${dueDate || null}, 
+                ${relatedTo?.type || null}, 
+                ${relatedTo?.id || null},
+                ${null} -- TODO: Get actual adminUserId performing the action
+            )
+            RETURNING id
+        `;
+        
+        const newTaskId = result[0]?.id;
+        if (!newTaskId) {
+            throw new Error('Failed to create task.');
+        }
+        console.log('New task created with ID:', newTaskId);
+
+        // Fetch the created task to return it
+        // (Might need the complex query from GET handler)
+        const newTask = await sql`SELECT *, created_at as "createdAt" FROM tasks WHERE id = ${newTaskId}`;
+
+        // TODO: Re-map newTask to AdminTaskList type if necessary
+
+        return NextResponse.json(newTask[0], { status: 201 });
+
+    } catch (error: any) {
+        if (error instanceof SyntaxError) return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
+        console.error('Admin: Failed to create task:', error);
+        return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
+    }
 }

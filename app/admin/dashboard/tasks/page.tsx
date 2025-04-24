@@ -2,198 +2,185 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Layout from '../../../components/layout/NewLayout'; // Relative path (3 levels up)
-// import { useAuth } from '@/context/AuthContext'; // Example auth context
+import { useRouter } from 'next/navigation';
+import Layout from '@/components/layout/NewLayout'; 
+import { useAuth } from '@/context/AuthContext'; 
 
-// Placeholder Type
-type AdminTask = {
-  id: string;
-  title: string;
-  category: string;
-  status: 'Pending' | 'In Progress' | 'Completed' | 'Deferred';
-  assignedUserId?: string | null;
-  assignedUserName?: string | null; // Optional denormalized name
-  dueDate?: string | null;
-  relatedTo?: { type: string; id: string; };
-  priority?: 'Low' | 'Medium' | 'High';
-  createdAt: string;
-};
+// Type matches API response
+interface AdminTaskList {
+    id: number;
+    title: string;
+    category: string;
+    status: string;
+    priority?: string | null;
+    assignedUserId?: string | null;
+    assignedUserName?: string | null; 
+    dueDate?: string | null;
+    relatedTo?: { type: string | null; id: string | null };
+    createdAt: string; 
+}
+interface PaginationState { page: number; limit: number; total: number; totalPages: number; }
+interface AssignableUser { id: string; name: string; } // For filter dropdown
 
 export default function AdminTasksPage() {
-  // const { user, loading: authLoading } = useAuth(); // Example
-  const [tasks, setTasks] = useState<AdminTask[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const { user, token, isLoading: authLoading, logout } = useAuth();
+
+  // State
+  const [tasks, setTasks] = useState<AdminTaskList[]>([]);
+  const [pagination, setPagination] = useState<PaginationState>({ page: 1, limit: 15, total: 0, totalPages: 1 });
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // TODO: Add state for filtering (status, category, assigned user), sorting, search, pagination
+  const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
+  
+  // Filters State
   const [filterStatus, setFilterStatus] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [filterAssignedUser, setFilterAssignedUser] = useState(''); 
 
-  // TODO: Implement proper authentication check and ensure user role is 'Admin'
-  const isAuthenticated = true; // Placeholder
-  const isAdmin = true; // Placeholder
-
+  // Auth Check
   useEffect(() => {
-    if (!isAuthenticated || !isAdmin) {
-      // router.push('/login'); // Redirect if not authorized
-      return;
+    if (!authLoading && (!user || user.role !== 'Admin')) {
+      router.push('/login?redirect=/admin/dashboard');
     }
+  }, [user, authLoading, router]);
 
-    const loadTasks = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        // TODO: Replace placeholder with actual API call to /api/admin/tasks?status=...&page=...
-        const query = new URLSearchParams({
-           page: currentPage.toString(),
-           limit: '15',
-           ...(filterStatus && { status: filterStatus }),
-           ...(filterCategory && { category: filterCategory }),
-           // Add other filters
-        }).toString();
-        // const response = await fetch(`/api/admin/tasks?${query}`);
-        // if (!response.ok) throw new Error('Failed to fetch tasks');
-        // const data = await response.json();
-        
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
-        const data = { // Simulated Response
-             tasks: [
-                { id: 'task-1', title: 'Approve Order #order-xyz', category: 'Order Approval', status: 'Pending' as AdminTask['status'], assignedUserId: 'admin-1', assignedUserName: 'Admin User', dueDate: null, relatedTo: { type: 'Order', id: 'order-xyz' }, priority: 'High' as AdminTask['priority'], createdAt: '2023-10-28' },
-                { id: 'task-2', title: 'Assign Distributor for Order #order-abc', category: 'Distributor Assignment', status: 'Pending' as AdminTask['status'], assignedUserId: 'admin-1', assignedUserName: 'Admin User', dueDate: null, relatedTo: { type: 'Order', id: 'order-abc' }, priority: 'Medium' as AdminTask['priority'], createdAt: '2023-10-27' },
-                { id: 'task-3', title: 'Verify Fulfillment for Order #order-def', category: 'Fulfillment Verification', status: 'Pending' as AdminTask['status'], assignedUserId: 'admin-2', assignedUserName: 'Another Admin', dueDate: null, relatedTo: { type: 'Order', id: 'order-def' }, priority: 'Medium' as AdminTask['priority'], createdAt: '2023-10-26' },
-                { id: 'task-4', title: 'Follow up with Customer #cust-1', category: 'Customer Service', status: 'Completed' as AdminTask['status'], assignedUserId: 'admin-1', assignedUserName: 'Admin User', dueDate: '2023-10-25', relatedTo: { type: 'User', id: 'cust-1' }, priority: 'Low' as AdminTask['priority'], createdAt: '2023-10-24' },
-             ],
-             pagination: { page: currentPage, totalPages: 3, total: 45 }
-        };
-        
-        setTasks(data.tasks);
-        setTotalPages(data.pagination.totalPages);
-
-      } catch (err) {
-        setError('Failed to load tasks.');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
+  // Fetch Assignable Users (for filter dropdown)
+  useEffect(() => {
+      if (user && token && user.role === 'Admin') {
+          const fetchUsers = async () => {
+              try {
+                   const response = await fetch(`/api/admin/users?limit=500`, { // Fetch a good number of potential assignees
+                       headers: { 'Authorization': `Bearer ${token}` }
+                   });
+                   if (!response.ok) throw new Error('Failed to fetch users');
+                   const data = await response.json();
+                   setAssignableUsers(data.users?.map((u: any) => ({ id: u.id, name: u.name })) || []);
+              } catch (err) {
+                   console.error("Failed to fetch assignable users:", err);
+              }
+          };
+          fetchUsers();
       }
-    };
+  }, [user, token]);
 
-    loadTasks();
-  }, [isAuthenticated, isAdmin, currentPage, filterStatus, filterCategory]); // Reload on page or filter change
+  // Fetch Tasks Data
+  useEffect(() => {
+    if (user && token && user.role === 'Admin') {
+        const loadTasks = async () => {
+            setIsLoadingData(true);
+            setError(null);
+            try {
+                const params = new URLSearchParams({
+                    page: pagination.page.toString(),
+                    limit: pagination.limit.toString(),
+                    ...(filterStatus && { status: filterStatus }),
+                    ...(filterCategory && { category: filterCategory }),
+                    ...(filterAssignedUser && { assignedUserId: filterAssignedUser }),
+                });
+                const response = await fetch(`/api/admin/tasks?${params.toString()}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    if (response.status === 401) { logout(); router.push('/login'); return; }
+                    const errData = await response.json();
+                    throw new Error(errData.message || `Failed to fetch tasks (${response.status})`);
+                }
+                const data = await response.json();
+                setTasks(data.tasks || []);
+                setPagination(data.pagination || { page: 1, limit: 15, total: 0, totalPages: 1 });
+            } catch (err: any) {
+                setError(err.message || 'Failed to load tasks.');
+                console.error(err);
+            } finally {
+                setIsLoadingData(false);
+            }
+        };
+        loadTasks();
+    }
+  }, [user, token, pagination.page, pagination.limit, filterStatus, filterCategory, filterAssignedUser, logout, router]); 
 
-   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setPagination(prev => ({ ...prev, page: newPage }));
     }
   };
 
-  // TODO: Implement Add/Edit Task Modals/Forms
-  const handleAddTask = () => { alert('Open Add Task Modal'); };
-  // Edit might navigate to a detail page or open a modal
+  const handleAddTask = () => { alert('Open Add Task Modal (Not Implemented)'); };
+  const getStatusColor = (status: string) => { /* ... */ };
+  const getPriorityColor = (priority?: string | null) => { /* ... */ };
 
-   const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'Pending': return 'bg-yellow-100 text-yellow-800';
-            case 'In Progress': return 'bg-blue-100 text-blue-800';
-            case 'Completed': return 'bg-green-100 text-green-800';
-            case 'Deferred': return 'bg-gray-100 text-gray-800';
-            default: return 'bg-gray-100 text-gray-800';
-        }
-    };
-     const getPriorityColor = (priority?: string) => {
-         switch (priority) {
-            case 'High': return 'text-red-600 font-semibold';
-            case 'Medium': return 'text-orange-600';
-            case 'Low': return 'text-gray-500';
-            default: return 'text-gray-500';
-        }
-     };
-
-
-  if (isLoading) {
-    return <Layout><div className="p-8">Loading tasks...</div></Layout>;
-  }
-  if (!isAuthenticated || !isAdmin) {
-    return <Layout><div className="p-8">Access Denied.</div></Layout>;
-  }
+  if (authLoading || isLoadingData) return <Layout><div className="p-8 text-center">Loading tasks...</div></Layout>;
+  if (!user || user.role !== 'Admin') return <Layout><div className="p-8 text-center">Access Denied.</div></Layout>;
 
   return (
     <Layout>
       <div className="bg-gray-100 min-h-screen p-8">
         <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800">Manage Tasks</h1>
-            <button 
-              onClick={handleAddTask}
-              className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-            >
-              Add New Task
-            </button>
+            <button onClick={handleAddTask} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">Add New Task</button>
         </div>
 
-        {/* TODO: Add Filters (Status, Category, Assigned User), Search Bar */} 
-        <div className="mb-6 p-4 bg-white rounded-md shadow flex space-x-4">
-             Filters Placeholder (Status, Category, Assigned User, Due Date)
+        {/* Filters */} 
+        <div className="mb-6 p-4 bg-white rounded-md shadow flex flex-wrap gap-4">
+            {/* Status Filter */} 
+            <div>
+                <label htmlFor="statusFilter" className="mr-2 text-sm font-medium text-gray-700">Status:</label>
+                <select id="statusFilter" value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPagination(p => ({...p, page: 1})); }} className="rounded-md border-gray-300 shadow-sm sm:text-sm">
+                    <option value="">All</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Deferred">Deferred</option>
+                </select>
+            </div>
+            {/* Category Filter (Simple Input for now) */} 
+            <div>
+                 <label htmlFor="categoryFilter" className="mr-2 text-sm font-medium text-gray-700">Category:</label>
+                 <input type="text" id="categoryFilter" value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPagination(p => ({...p, page: 1})); }} placeholder="Enter category..." className="rounded-md border-gray-300 shadow-sm sm:text-sm"/>
+            </div>
+             {/* Assigned User Filter */} 
+            <div>
+                <label htmlFor="assigneeFilter" className="mr-2 text-sm font-medium text-gray-700">Assignee:</label>
+                <select id="assigneeFilter" value={filterAssignedUser} onChange={(e) => { setFilterAssignedUser(e.target.value); setPagination(p => ({...p, page: 1})); }} className="rounded-md border-gray-300 shadow-sm sm:text-sm">
+                    <option value="">All Users</option>
+                    <option value="unassigned">Unassigned</option>
+                    {assignableUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                </select>
+            </div>
+             {/* TODO: Add Due Date Filter, Priority Filter, Search */} 
         </div>
 
-        {error && <p className="text-red-500 mb-4">Error: {error}</p>}
+        {error && <p className="text-red-500 mb-4 bg-red-100 p-3 rounded">Error: {error}</p>}
 
         <div className="bg-white shadow-md rounded-lg overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                 {/* TODO: Add checkbox for bulk actions? */} 
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
-                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Related To</th>
-                <th scope="col" className="relative px-6 py-3">
-                  <span className="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
+            {/* Table Head */} 
+            <thead className="bg-gray-50"><tr>{/* ... th ... */}</tr></thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {tasks.length > 0 ? (
                 tasks.map((task) => (
                   <tr key={task.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        <Link href={`/admin/dashboard/tasks/${task.id}`} className="hover:text-primary-600">{task.title}</Link>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.category}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(task.status)}`}>
-                        {task.status}
-                      </span>
-                    </td>
-                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${getPriorityColor(task.priority)}`}>{task.priority || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {task.assignedUserId ? 
-                        (<Link href={`/admin/dashboard/users/${task.assignedUserId}`} className="hover:underline">{task.assignedUserName || task.assignedUserId}</Link>) 
-                        : 'Unassigned'}
-                      </td>
-                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.dueDate || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {task.relatedTo ? 
-                           (<Link href={`/admin/dashboard/${task.relatedTo.type.toLowerCase()}s/${task.relatedTo.id}`} className="hover:underline">{task.relatedTo.type} #{task.relatedTo.id.split('-')[1]}</Link>) 
-                           : '-'}
-                      </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-                      <Link href={`/admin/dashboard/tasks/${task.id}`} className="text-indigo-600 hover:text-indigo-900">View/Edit</Link>
-                       {/* TODO: Add Quick Complete/Assign actions? Delete? */} 
-                    </td>
+                    {/* Table Cells */} 
+                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                         <Link href={`/admin/dashboard/tasks/${task.id}`} className="hover:text-primary-600">{task.title}</Link>
+                     </td>
+                     {/* ... Other cells for category, status, priority, assignee, due date, relatedTo ... */} 
+                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                       <Link href={`/admin/dashboard/tasks/${task.id}`} className="text-indigo-600 hover:text-indigo-900">View/Edit</Link>
+                       {/* Quick actions? */} 
+                     </td>
                   </tr>
                 ))
               ) : (
-                <tr>
-                  <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">No tasks found matching criteria.</td>
-                </tr>
+                <tr><td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">No tasks found.</td></tr>
               )}
             </tbody>
           </table>
-           {/* TODO: Add Pagination Controls component */} 
-           <div className="p-4 border-t">Pagination Placeholder</div>
+           {/* Pagination */} 
+            {pagination.totalPages > 1 && (
+               <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6"> {/* ... Pagination Controls ... */} </div>
+           )}
         </div>
       </div>
     </Layout>
