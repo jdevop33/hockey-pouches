@@ -1,11 +1,33 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Layout from '../components/layout/NewLayout'; // Adjust layout import as needed
 
-export default function RegisterPage() {
+// Loading component for Suspense fallback
+function RegisterFormSkeleton() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12">
+      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-lg">
+        <div className="animate-pulse">
+          <div className="mx-auto h-8 w-3/4 rounded bg-gray-200"></div>
+          <div className="mx-auto mt-2 h-4 w-1/2 rounded bg-gray-200"></div>
+        </div>
+        <div className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-10 w-full rounded bg-gray-200"></div>
+          ))}
+          <div className="h-6 w-full rounded bg-gray-200"></div>
+          <div className="h-10 w-full rounded bg-gray-200"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Separate component that uses useSearchParams
+function RegisterForm() {
   const searchParams = useSearchParams();
 
   const [formData, setFormData] = useState({
@@ -133,34 +155,33 @@ export default function RegisterPage() {
   };
 
   return (
-    <Layout>
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12">
-        <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-lg">
-          <div>
-            <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900">
-              Create your Account
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Or{' '}
-              <Link href="/login" className="text-primary-600 hover:text-primary-500 font-medium">
-                sign in to your existing account
-              </Link>
-            </p>
-          </div>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12">
+      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-lg">
+        <div>
+          <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900">
+            Create your Account
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Or{' '}
+            <Link href="/login" className="text-primary-600 hover:text-primary-500 font-medium">
+              sign in to your existing account
+            </Link>
+          </p>
+        </div>
 
-          {success ? (
-            <div className="rounded-md bg-green-50 p-4 text-center">
-              <h3 className="text-lg font-medium text-green-800">Registration Successful!</h3>
-              <p className="mt-2 text-sm text-green-700">Please proceed to login.</p>
-              <Link
-                href="/login"
-                className="text-primary-600 hover:text-primary-500 mt-4 inline-block font-medium"
-              >
-                Go to Login
-              </Link>
-            </div>
-          ) : (
-            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        {success ? (
+          <div className="rounded-md bg-green-50 p-4 text-center">
+            <h3 className="text-lg font-medium text-green-800">Registration Successful!</h3>
+            <p className="mt-2 text-sm text-green-700">Please proceed to login.</p>
+            <Link
+              href="/login"
+              className="text-primary-600 hover:text-primary-500 mt-4 inline-block font-medium"
+            >
+              Go to Login
+            </Link>
+          </div>
+        ) : (
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
               {error && (
                 <div className="rounded-md bg-red-50 p-4">
                   <p className="text-sm font-medium text-red-800">{error}</p>
@@ -350,6 +371,17 @@ export default function RegisterPage() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function RegisterPage() {
+  return (
+    <Layout>
+      <Suspense fallback={<RegisterFormSkeleton />}>
+        <RegisterForm />
+      </Suspense>
     </Layout>
   );
 }
