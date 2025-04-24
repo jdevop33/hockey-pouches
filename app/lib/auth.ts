@@ -23,18 +23,25 @@ const ADMIN_ROLES = ['Admin'];
 const DISTRIBUTOR_ROLES = ['Distributor'];
 
 /**
- * Verify JWT token from request headers
+ * Verify JWT token from request headers or cookies
  * @param request NextRequest object
  * @returns AuthResult with authentication status and user info
  */
 export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
+  // Try to get token from Authorization header first
   const authHeader = request.headers.get('authorization');
-  const token = authHeader?.split(' ')[1];
-  
+  let token = authHeader?.split(' ')[1];
+
+  // If no token in header, try to get from cookies
   if (!token) {
-    return { 
-      isAuthenticated: false, 
-      message: 'Authentication token is missing' 
+    token = request.cookies.get('auth_token')?.value;
+  }
+
+  // If still no token, authentication fails
+  if (!token) {
+    return {
+      isAuthenticated: false,
+      message: 'Authentication token is missing',
     };
   }
 
@@ -46,17 +53,21 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
 
   try {
     const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
-    return {
+
+    // Create a response with the decoded user info
+    const authResult: AuthResult = {
       isAuthenticated: true,
       userId: decoded.userId,
       role: decoded.role,
-      email: decoded.email
+      email: decoded.email,
     };
+
+    return authResult;
   } catch (error) {
     console.warn('Token verification failed:', error);
-    return { 
-      isAuthenticated: false, 
-      message: 'Invalid or expired token' 
+    return {
+      isAuthenticated: false,
+      message: 'Invalid or expired token',
     };
   }
 }
@@ -68,7 +79,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
  */
 export async function verifyAdmin(request: NextRequest): Promise<AuthResult> {
   const authResult = await verifyAuth(request);
-  
+
   if (!authResult.isAuthenticated) {
     return authResult;
   }
@@ -79,13 +90,13 @@ export async function verifyAdmin(request: NextRequest): Promise<AuthResult> {
       userId: authResult.userId,
       role: authResult.role,
       message: 'User is not authorized for admin access',
-      email: authResult.email
+      email: authResult.email,
     };
   }
 
   return {
     ...authResult,
-    message: 'Admin authentication successful'
+    message: 'Admin authentication successful',
   };
 }
 
@@ -96,7 +107,7 @@ export async function verifyAdmin(request: NextRequest): Promise<AuthResult> {
  */
 export async function verifyDistributor(request: NextRequest): Promise<AuthResult> {
   const authResult = await verifyAuth(request);
-  
+
   if (!authResult.isAuthenticated) {
     return authResult;
   }
@@ -107,13 +118,13 @@ export async function verifyDistributor(request: NextRequest): Promise<AuthResul
       userId: authResult.userId,
       role: authResult.role,
       message: 'User is not authorized for distributor access',
-      email: authResult.email
+      email: authResult.email,
     };
   }
 
   return {
     ...authResult,
-    message: 'Distributor authentication successful'
+    message: 'Distributor authentication successful',
   };
 }
 
@@ -124,11 +135,11 @@ export async function verifyDistributor(request: NextRequest): Promise<AuthResul
  * @returns AuthResult with resource access status
  */
 export async function verifyResourceAccess(
-  request: NextRequest, 
+  request: NextRequest,
   resourceUserId: string
 ): Promise<AuthResult> {
   const authResult = await verifyAuth(request);
-  
+
   if (!authResult.isAuthenticated) {
     return authResult;
   }
@@ -137,7 +148,7 @@ export async function verifyResourceAccess(
   if (authResult.role && ADMIN_ROLES.includes(authResult.role)) {
     return {
       ...authResult,
-      message: 'Admin has access to this resource'
+      message: 'Admin has access to this resource',
     };
   }
 
@@ -148,13 +159,13 @@ export async function verifyResourceAccess(
       userId: authResult.userId,
       role: authResult.role,
       message: 'User does not have access to this resource',
-      email: authResult.email
+      email: authResult.email,
     };
   }
 
   return {
     ...authResult,
-    message: 'User has access to this resource'
+    message: 'User has access to this resource',
   };
 }
 

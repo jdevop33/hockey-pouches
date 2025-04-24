@@ -45,7 +45,18 @@ export async function GET(request: NextRequest) {
 
     const userProfile = users[0];
     console.log(`GET /me: Profile fetched for: ${userProfile.email}`);
-    return NextResponse.json(userProfile);
+
+    // Create response with user profile
+    const response = NextResponse.json(userProfile);
+
+    // If token was provided in Authorization header, include it in the response
+    // This helps the client maintain the token for API calls
+    const authHeader = request.headers.get('authorization');
+    if (authHeader) {
+      response.headers.set('Authorization', authHeader);
+    }
+
+    return response;
   } catch (error) {
     console.error('GET /me: Failed to get user profile:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
