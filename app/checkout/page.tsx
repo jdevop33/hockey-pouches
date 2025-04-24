@@ -7,6 +7,12 @@ import { useRouter } from 'next/navigation';
 import Layout from '../components/layout/NewLayout';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import dynamic from 'next/dynamic';
+
+// Dynamically import the Stripe payment form to avoid SSR issues
+const StripePaymentForm = dynamic(() => import('../components/payment/StripePaymentForm'), {
+  ssr: false,
+});
 
 interface AddressData {
   street: string;
@@ -37,6 +43,8 @@ export default function CheckoutPage() {
     payment: null,
   });
   const [orderSuccess, setOrderSuccess] = useState<boolean>(false);
+  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
+  const [showStripeForm, setShowStripeForm] = useState<boolean>(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -169,19 +177,47 @@ export default function CheckoutPage() {
       const result = await response.json();
       const orderId = result.orderId;
       console.log('Order placed successfully:', result);
-      clearCart();
-      setOrderSuccess(true);
 
-      // Show success message for 2 seconds before redirecting
-      setTimeout(() => {
-        router.push(`/checkout/success?orderId=${orderId}`);
-      }, 2000);
+      setCreatedOrderId(orderId);
+
+      // Handle different payment methods
+      if (paymentMethod === 'credit-card') {
+        // For credit card, show the Stripe form
+        setShowStripeForm(true);
+        setIsLoading(false);
+      } else {
+        // For other payment methods (e-transfer, bitcoin), proceed to success page
+        clearCart();
+        setOrderSuccess(true);
+
+        // Show success message for 2 seconds before redirecting
+        setTimeout(() => {
+          router.push(`/checkout/success?orderId=${orderId}`);
+        }, 2000);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to place order.');
       console.error(err);
-    } finally {
       setIsLoading(false);
     }
+  };
+
+  // Handle successful Stripe payment
+  const handlePaymentSuccess = (paymentIntentId: string) => {
+    console.log('Payment successful with ID:', paymentIntentId);
+    clearCart();
+    setOrderSuccess(true);
+
+    // Show success message for 2 seconds before redirecting
+    setTimeout(() => {
+      router.push(`/checkout/success?orderId=${createdOrderId}`);
+    }, 2000);
+  };
+
+  // Handle Stripe payment error
+  const handlePaymentError = (errorMessage: string) => {
+    setError(`Payment failed: ${errorMessage}`);
+    console.error('Payment error:', errorMessage);
   };
 
   if (authLoading || !user || itemCount === 0) {
@@ -406,9 +442,26 @@ export default function CheckoutPage() {
                     <label>Bitcoin (Instructions will be provided)</label>
                   </div>
                 </div>
-                {paymentMethod === 'credit-card' && (
-                  <div className="mt-4 rounded border bg-gray-50 p-4 text-gray-500">
-                    Credit Card form placeholder
+                {paymentMethod === 'credit-card' && orderSuccess && (
+                  <div className="mt-4 rounded border bg-green-50 p-4 text-green-700">
+                    Payment successful! Redirecting to confirmation page...
+                  </div>
+                )}
+                {paymentMethod === 'credit-card' && !orderSuccess && (
+                  <div className="mt-4 rounded border bg-gray-50 p-4">
+                    <p className="mb-2 font-medium text-gray-700">Enter your card details:</p>
+                    <p className="mb-4 text-sm text-gray-500">
+                      Your payment information is securely processed by Stripe. We do not store your
+                      card details.
+                    </p>
+                    {showStripeForm && createdOrderId && subtotal > 0 && (
+                      <StripePaymentForm
+                        orderId={createdOrderId}
+                        amount={subtotal}
+                        onPaymentSuccess={handlePaymentSuccess}
+                        onPaymentError={handlePaymentError}
+                      />
+                    )}
                   </div>
                 )}
               </div>
