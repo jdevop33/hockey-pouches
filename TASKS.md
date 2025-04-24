@@ -131,7 +131,8 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [x] Implement order confirmation emails
 - [ ] Add tax calculation
 - [ ] Implement shipping options and rates
-- [ ] Add discount code functionality
+- [x] Add discount code functionality (Backend implementation complete)
+- [ ] Add admin interface for discount code management
 - [ ] Add guest checkout option
 
 ## 🔗 Referral Program Tasks
@@ -232,5 +233,5 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 5. **Marketing and Growth Features**
    - ✅ Referral program implementation
    - Product reviews and ratings
-   - Discount codes and promotions
+   - ✅ Discount codes and promotions (Backend implementation complete)
    - Email marketing integration
