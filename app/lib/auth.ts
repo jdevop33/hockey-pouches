@@ -186,3 +186,24 @@ export function unauthorizedResponse(message = 'Unauthorized'): NextResponse {
 export function forbiddenResponse(message = 'Forbidden'): NextResponse {
   return NextResponse.json({ message }, { status: 403 });
 }
+
+/**
+ * Verify JWT token directly
+ * @param token JWT token string
+ * @returns Decoded JWT payload or null if invalid
+ */
+export async function verifyJWT(token: string): Promise<JwtPayload | null> {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    console.error('JWT_SECRET environment variable is not set!');
+    throw new Error('Server configuration error');
+  }
+
+  try {
+    const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
+    return decoded;
+  } catch (error) {
+    console.warn('Token verification failed:', error);
+    return null;
+  }
+}

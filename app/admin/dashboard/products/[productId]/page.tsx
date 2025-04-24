@@ -3,20 +3,20 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Layout from '@/components/layout/NewLayout'; 
-import { useAuth } from '@/context/AuthContext'; 
+import Layout from '@/components/layout/NewLayout';
+import { useAuth } from '@/context/AuthContext';
 
 // Define Product type for this page
 type ProductDetails = {
-  id: number; 
+  id: number;
   name: string;
   description: string | null;
   category: string | null;
-  price: number; 
+  price: number;
   compare_at_price: number | null;
   is_active: boolean;
   image_url: string | null;
-  strength: number | null; 
+  strength: number | null;
 };
 
 export default function AdminProductDetailPage() {
@@ -29,14 +29,14 @@ export default function AdminProductDetailPage() {
   const [product, setProduct] = useState<ProductDetails | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false); 
-  const [editData, setEditData] = useState<Partial<ProductDetails>>({}); 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<Partial<ProductDetails>>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  // --- Effects --- 
+  // --- Effects ---
   useEffect(() => {
     if (!authLoading && (!user || !token || user.role !== 'Admin')) {
-      router.push('/login?redirect=/admin/dashboard'); 
+      router.push('/login?redirect=/admin/dashboard');
     }
   }, [user, token, authLoading, router]);
 
@@ -47,16 +47,22 @@ export default function AdminProductDetailPage() {
         setError(null);
         try {
           const response = await fetch(`/api/admin/products/${productId}`, {
-              headers: { 'Authorization': `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
           });
           if (!response.ok) {
-             if (response.status === 401) { logout(); router.push('/login'); return; } 
-             if (response.status === 404) { throw new Error('Product not found.'); }
-             throw new Error(`Failed to fetch product (${response.status})`);
+            if (response.status === 401) {
+              logout();
+              router.push('/login');
+              return;
+            }
+            if (response.status === 404) {
+              throw new Error('Product not found.');
+            }
+            throw new Error(`Failed to fetch product (${response.status})`);
           }
           const data = await response.json();
           setProduct(data as ProductDetails);
-          setEditData(data); 
+          setEditData(data);
         } catch (err: any) {
           setError(err.message || 'Failed to load product details.');
           console.error(err);
@@ -67,130 +73,514 @@ export default function AdminProductDetailPage() {
       loadProduct();
     }
   }, [user, token, productId, router, logout]);
-  
-  // --- Handlers --- 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-      const { name, value, type } = e.target;
-      let finalValue: string | number | boolean | null = value;
-      if (type === 'checkbox') {
-          finalValue = (e.target as HTMLInputElement).checked;
-      } else if (type === 'number' || name === 'price' || name === 'compare_at_price' || name === 'strength') {
-          finalValue = value === '' ? null : parseFloat(value);
-          if (value !== '' && isNaN(finalValue as number)) {
-              finalValue = name in editData ? editData[name as keyof ProductDetails] : null;
-          }
+
+  // --- Handlers ---
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+    let finalValue: string | number | boolean | null = value;
+    if (type === 'checkbox') {
+      finalValue = (e.target as HTMLInputElement).checked;
+    } else if (
+      type === 'number' ||
+      name === 'price' ||
+      name === 'compare_at_price' ||
+      name === 'strength'
+    ) {
+      finalValue = value === '' ? null : parseFloat(value);
+      if (value !== '' && isNaN(finalValue as number)) {
+        finalValue = name in editData ? editData[name as keyof ProductDetails] : null;
       }
-      setEditData(prev => ({ ...prev, [name]: finalValue }));
+    }
+    setEditData(prev => ({ ...prev, [name]: finalValue }));
   };
-  
+
   const handleSaveChanges = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!product || !token) return;
-      setIsSaving(true);
-      setError(null);
-      
-      const payload: Partial<ProductDetails> = {}; 
-      let hasChanges = false;
-      
-      (Object.keys(editData) as Array<keyof ProductDetails>).forEach(key => {
-          if (key === 'id') return; 
-          let currentVal = product[key];
-          let editedVal = editData[key];
-          if (editedVal === '' && ['description', 'category', 'image_url', 'compare_at_price', 'strength'].includes(key)) {
-              editedVal = null;
-          }
-           if (typeof currentVal === 'number' && typeof editedVal === 'string') {
-                editedVal = parseFloat(editedVal);
-                if(isNaN(editedVal as number)) editedVal = null; 
-           }
-           if (editedVal === "") editedVal = null;
+    e.preventDefault();
+    if (!product || !token) return;
+    setIsSaving(true);
+    setError(null);
 
-          if (editedVal !== currentVal) {
-              // Explicitly type assignment based on key
-              switch (key) {
-                  case 'name':
-                  case 'description':
-                  case 'category':
-                  case 'image_url':
-                      payload[key] = editedVal as string | null;
-                      break;
-                  case 'price':
-                  case 'compare_at_price':
-                  case 'strength':
-                      payload[key] = editedVal as number | null;
-                      break;
-                  case 'is_active':
-                      payload[key] = editedVal as boolean;
-                      break;
-              }
-              hasChanges = true;
-          }
+    const payload: Partial<ProductDetails> = {};
+    let hasChanges = false;
+
+    (Object.keys(editData) as Array<keyof ProductDetails>).forEach(key => {
+      if (key === 'id') return;
+      let currentVal = product[key];
+      let editedVal = editData[key];
+      if (
+        editedVal === '' &&
+        ['description', 'category', 'image_url', 'compare_at_price', 'strength'].includes(key)
+      ) {
+        editedVal = null;
+      }
+      if (typeof currentVal === 'number' && typeof editedVal === 'string') {
+        editedVal = parseFloat(editedVal);
+        if (isNaN(editedVal as number)) editedVal = null;
+      }
+      if (editedVal === '') editedVal = null;
+
+      if (editedVal !== currentVal) {
+        // Explicitly type assignment based on key
+        switch (key) {
+          case 'name':
+          case 'description':
+          case 'category':
+          case 'image_url':
+            payload[key] = editedVal as string | null;
+            break;
+          case 'price':
+          case 'compare_at_price':
+          case 'strength':
+            payload[key] = editedVal as number | null;
+            break;
+          case 'is_active':
+            payload[key] = editedVal as boolean;
+            break;
+        }
+        hasChanges = true;
+      }
+    });
+
+    // --- Validation on the payload ---
+    if (payload.name !== undefined && !payload.name?.trim()) {
+      setError('Name cannot be empty.');
+      setIsSaving(false);
+      return;
+    }
+    if (
+      payload.price !== undefined &&
+      (payload.price === null || isNaN(payload.price) || payload.price < 0)
+    ) {
+      setError('Invalid Price.');
+      setIsSaving(false);
+      return;
+    }
+    if (
+      payload.strength !== undefined &&
+      payload.strength !== null &&
+      (isNaN(payload.strength) || payload.strength <= 0)
+    ) {
+      setError('Invalid Strength.');
+      setIsSaving(false);
+      return;
+    }
+
+    if (!hasChanges) {
+      setIsEditing(false);
+      setIsSaving(false);
+      return;
+    }
+
+    console.log('Saving changes...', payload);
+    try {
+      const response = await fetch(`/api/admin/products/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
       });
-
-      // --- Validation on the payload --- 
-      if (payload.name !== undefined && !payload.name?.trim()) {
-          setError("Name cannot be empty."); setIsSaving(false); return;
-      }
-       if (payload.price !== undefined && (payload.price === null || isNaN(payload.price) || payload.price < 0)) {
-          setError("Invalid Price."); setIsSaving(false); return;
-      }
-       if (payload.strength !== undefined && payload.strength !== null && (isNaN(payload.strength) || payload.strength <= 0)) {
-          setError("Invalid Strength."); setIsSaving(false); return;
-      }
-      
-      if (!hasChanges) {
-          setIsEditing(false); 
-          setIsSaving(false);
+      if (!response.ok) {
+        if (response.status === 401) {
+          logout();
+          router.push('/login');
           return;
+        }
+        const errData = await response.json();
+        throw new Error(errData.message || 'Failed to save changes');
       }
-      
-      console.log('Saving changes...', payload);
-      try {
-          const response = await fetch(`/api/admin/products/${productId}`, { 
-              method: 'PUT', 
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-              body: JSON.stringify(payload)
-           });
-          if (!response.ok) {
-              if (response.status === 401) { logout(); router.push('/login'); return; }
-              const errData = await response.json();
-              throw new Error(errData.message || 'Failed to save changes');
-          }
-          const updatedProductData = await response.json();
-          setProduct(updatedProductData as ProductDetails);
-          setEditData(updatedProductData);
-          setIsEditing(false);
-          alert('Changes saved!');
-      } catch (err: any) { 
-          setError(err.message || 'Failed to save changes.');
-          console.error(err);
-      } finally {
-          setIsSaving(false);
-      }
+      const updatedProductData = await response.json();
+      setProduct(updatedProductData as ProductDetails);
+      setEditData(updatedProductData);
+      setIsEditing(false);
+      alert('Changes saved!');
+    } catch (err: any) {
+      setError(err.message || 'Failed to save changes.');
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
   };
-  
-  const handleAddVariation = () => { alert('Add Variation UI Needed'); };
-  const handleEditVariation = (variationId: string) => { alert(`Edit Variation ${variationId} UI Needed`); };
-  const handleDeleteVariation = (variationId: string) => { alert(`Delete Variation ${variationId}? API Call Needed`); };
 
-  // --- Render Logic --- 
-  if (authLoading || isLoadingData) return <Layout><div className="p-8">Loading...</div></Layout>;
-  if (!user || user.role !== 'Admin') return <Layout><div className="p-8">Access Denied.</div></Layout>;
-  if (error && !product) return <Layout><div className="p-8 text-red-500">Error: {error}</div></Layout>; 
-  if (!product) return <Layout><div className="p-8">Product not found.</div></Layout>; 
+  const handleAddVariation = () => {
+    alert('Add Variation UI Needed');
+  };
+  const handleEditVariation = (variationId: string) => {
+    alert(`Edit Variation ${variationId} UI Needed`);
+  };
+  const handleDeleteVariation = (variationId: string) => {
+    alert(`Delete Variation ${variationId}? API Call Needed`);
+  };
+
+  // --- Render Logic ---
+  if (authLoading || isLoadingData)
+    return (
+      <Layout>
+        <div className="p-8">Loading...</div>
+      </Layout>
+    );
+  if (!user || user.role !== 'Admin')
+    return (
+      <Layout>
+        <div className="p-8">Access Denied.</div>
+      </Layout>
+    );
+  if (error && !product)
+    return (
+      <Layout>
+        <div className="p-8 text-red-500">Error: {error}</div>
+      </Layout>
+    );
+  if (!product)
+    return (
+      <Layout>
+        <div className="p-8">Product not found.</div>
+      </Layout>
+    );
 
   return (
     <Layout>
-      <div className="bg-gray-100 min-h-screen p-8">
-         <div className="mb-6"><Link href="/admin/dashboard/products" className="text-primary-600 hover:text-primary-700">&larr; Back to Products</Link></div>
-         <form onSubmit={handleSaveChanges}>
-            <div className="flex justify-between items-center mb-6"> {/* ... Header/Buttons ... */}</div>
-            {error && <p className="text-red-500 bg-red-100 p-3 rounded mb-4">Error: {error}</p>} 
-            <div className="bg-white shadow-lg rounded-lg p-6 space-y-6">
-                 {/* ... Form Fields using editData ... */} 
+      <div className="min-h-screen bg-gray-100 p-8">
+        <div className="mb-6">
+          <Link
+            href="/admin/dashboard/products"
+            className="text-primary-600 hover:text-primary-700"
+          >
+            &larr; Back to Products
+          </Link>
+        </div>
+        <form onSubmit={handleSaveChanges}>
+          <div className="mb-6 flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-gray-800">
+              {isEditing ? 'Edit Product' : 'Product Details'}: {product.name}
+            </h1>
+            <div className="space-x-3">
+              {isEditing ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditData(product);
+                      setIsEditing(false);
+                      setError(null);
+                    }}
+                    className="rounded bg-gray-500 px-4 py-2 font-bold text-white hover:bg-gray-600"
+                    disabled={isSaving}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-600"
+                >
+                  Edit Product
+                </button>
+              )}
             </div>
-         </form>
-         <div className="mt-8 bg-white shadow-lg rounded-lg p-6">{/* Variations Section Placeholder */}</div>
+          </div>
+
+          {error && <p className="mb-4 rounded bg-red-100 p-3 text-red-500">Error: {error}</p>}
+
+          <div className="space-y-6 rounded-lg bg-white p-6 shadow-lg">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                    Product Name*
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    id="name"
+                    value={editData.name || ''}
+                    onChange={handleInputChange}
+                    disabled={!isEditing || isSaving}
+                    className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    name="category"
+                    id="category"
+                    value={editData.category || ''}
+                    onChange={handleInputChange}
+                    disabled={!isEditing || isSaving}
+                    className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+                    Price* ($)
+                  </label>
+                  <input
+                    type="number"
+                    name="price"
+                    id="price"
+                    value={editData.price || ''}
+                    onChange={handleInputChange}
+                    disabled={!isEditing || isSaving}
+                    className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100"
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="compare_at_price"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Compare At Price ($)
+                  </label>
+                  <input
+                    type="number"
+                    name="compare_at_price"
+                    id="compare_at_price"
+                    value={editData.compare_at_price || ''}
+                    onChange={handleInputChange}
+                    disabled={!isEditing || isSaving}
+                    className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100"
+                    step="0.01"
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              {/* Additional Information */}
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <textarea
+                    name="description"
+                    id="description"
+                    value={editData.description || ''}
+                    onChange={handleInputChange}
+                    disabled={!isEditing || isSaving}
+                    rows={4}
+                    className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="strength" className="block text-sm font-medium text-gray-700">
+                    Strength
+                  </label>
+                  <input
+                    type="number"
+                    name="strength"
+                    id="strength"
+                    value={editData.strength || ''}
+                    onChange={handleInputChange}
+                    disabled={!isEditing || isSaving}
+                    className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100"
+                    min="0"
+                    max="5"
+                    step="1"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">Strength level (0-5)</p>
+                </div>
+
+                <div>
+                  <label htmlFor="image_url" className="block text-sm font-medium text-gray-700">
+                    Image URL
+                  </label>
+                  <input
+                    type="text"
+                    name="image_url"
+                    id="image_url"
+                    value={editData.image_url || ''}
+                    onChange={handleInputChange}
+                    disabled={!isEditing || isSaving}
+                    className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100"
+                  />
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="is_active"
+                    id="is_active"
+                    checked={editData.is_active || false}
+                    onChange={handleInputChange}
+                    disabled={!isEditing || isSaving}
+                    className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+                  />
+                  <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
+                    Active (visible to customers)
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+        <div className="mt-8 rounded-lg bg-white p-6 shadow-lg">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-800">Product Variations</h2>
+            <button
+              type="button"
+              onClick={handleAddVariation}
+              className="rounded bg-green-500 px-4 py-2 text-sm font-bold text-white hover:bg-green-600"
+            >
+              Add Variation
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  >
+                    Flavor
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  >
+                    Strength
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  >
+                    Price
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  >
+                    Stock
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  >
+                    Status
+                  </th>
+                  <th scope="col" className="relative px-6 py-3">
+                    <span className="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {/* Example variations - replace with actual data */}
+                <tr>
+                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">Mint</td>
+                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">3</td>
+                  <td className="px-6 py-4 text-right text-sm whitespace-nowrap text-gray-900">
+                    $19.99
+                  </td>
+                  <td className="px-6 py-4 text-center text-sm whitespace-nowrap text-gray-500">
+                    125
+                  </td>
+                  <td className="px-6 py-4 text-center whitespace-nowrap">
+                    <span className="inline-flex rounded-full bg-green-100 px-2 text-xs leading-5 font-semibold text-green-800">
+                      Active
+                    </span>
+                  </td>
+                  <td className="space-x-3 px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
+                    <button
+                      onClick={() => handleEditVariation('mint-3')}
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteVariation('mint-3')}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">Berry</td>
+                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">4</td>
+                  <td className="px-6 py-4 text-right text-sm whitespace-nowrap text-gray-900">
+                    $21.99
+                  </td>
+                  <td className="px-6 py-4 text-center text-sm whitespace-nowrap text-gray-500">
+                    87
+                  </td>
+                  <td className="px-6 py-4 text-center whitespace-nowrap">
+                    <span className="inline-flex rounded-full bg-green-100 px-2 text-xs leading-5 font-semibold text-green-800">
+                      Active
+                    </span>
+                  </td>
+                  <td className="space-x-3 px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
+                    <button
+                      onClick={() => handleEditVariation('berry-4')}
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteVariation('berry-4')}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">Citrus</td>
+                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">2</td>
+                  <td className="px-6 py-4 text-right text-sm whitespace-nowrap text-gray-900">
+                    $18.99
+                  </td>
+                  <td className="px-6 py-4 text-center text-sm whitespace-nowrap text-gray-500">
+                    0
+                  </td>
+                  <td className="px-6 py-4 text-center whitespace-nowrap">
+                    <span className="inline-flex rounded-full bg-red-100 px-2 text-xs leading-5 font-semibold text-red-800">
+                      Out of Stock
+                    </span>
+                  </td>
+                  <td className="space-x-3 px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
+                    <button
+                      onClick={() => handleEditVariation('citrus-2')}
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteVariation('citrus-2')}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-4 text-sm text-gray-500">
+            Note: Product variations functionality will be fully implemented in the next update.
+          </p>
+        </div>
       </div>
     </Layout>
   );
