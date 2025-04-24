@@ -5,6 +5,7 @@ import Script from 'next/script';
 import CartWrapper from './components/CartWrapper';
 import { Analytics } from '@vercel/analytics/react';
 import { WebVitals } from './_components/web-vitals';
+import { DatabaseInit } from './_components/database-init';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 
@@ -211,6 +212,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <WebVitals />
             {/* Vercel Analytics */}
             <Analytics />
+            {/* Database Initialization */}
+            <DatabaseInit />
             {/* Main Content */}
             <CartWrapper>{children}</CartWrapper>
           </ToastProvider>

@@ -280,6 +280,15 @@ export default function AdminDashboardPage() {
             <h3 className="mb-2 text-lg font-semibold text-gray-700">Discount Codes</h3>
             <p className="text-sm text-gray-500">Create and manage promotional discount codes.</p>
           </Link>
+          <Link
+            href="/admin/dashboard/logs"
+            className="block rounded-lg bg-white p-6 shadow-md transition-shadow hover:shadow-lg"
+          >
+            <h3 className="mb-2 text-lg font-semibold text-gray-700">System Logs</h3>
+            <p className="text-sm text-gray-500">
+              View application logs for debugging and monitoring.
+            </p>
+          </Link>
         </div>
       </div>
     </Layout>
