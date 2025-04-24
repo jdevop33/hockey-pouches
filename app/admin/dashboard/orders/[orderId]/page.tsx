@@ -475,13 +475,48 @@ export default function AdminOrderDetailPage() {
                     <div>
                       <dt className="mb-1 text-gray-500">Fulfillment Photo:</dt>
                       <dd>
-                        <Image
-                          src={order.fulfillment_photo_url}
-                          alt="Fulfillment verification"
-                          width={300}
-                          height={200}
-                          className="mt-2 rounded-md border object-cover"
-                        />
+                        <div className="mt-2 overflow-hidden rounded-md border">
+                          <a
+                            href={order.fulfillment_photo_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="relative block"
+                          >
+                            <Image
+                              src={order.fulfillment_photo_url}
+                              alt="Fulfillment verification"
+                              width={400}
+                              height={300}
+                              className="w-full object-contain transition-opacity hover:opacity-90"
+                            />
+                            <div className="bg-opacity-70 absolute right-2 bottom-2 rounded bg-black px-2 py-1 text-xs text-white">
+                              Click to view full size
+                            </div>
+                          </a>
+                          {order.fulfillment_photo_url.toLowerCase().endsWith('.pdf') ? (
+                            <div className="mt-2 text-center">
+                              <a
+                                href={order.fulfillment_photo_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary-600 hover:text-primary-700 inline-flex items-center"
+                              >
+                                <svg
+                                  className="mr-1 h-4 w-4"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                                View PDF Document
+                              </a>
+                            </div>
+                          ) : null}
+                        </div>
                       </dd>
                     </div>
                   )}
