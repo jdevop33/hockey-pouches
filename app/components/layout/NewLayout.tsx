@@ -237,7 +237,9 @@ const Navigation: React.FC = () => {
 };
 
 const Footer: React.FC = () => {
-  // ... Footer remains the same ...
+  // Get auth context for the footer
+  const { user } = useAuth();
+
   return (
     <footer className="bg-gray-800 py-8 text-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
