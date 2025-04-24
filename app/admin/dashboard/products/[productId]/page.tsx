@@ -6,17 +6,11 @@ import Link from 'next/link';
 import Layout from '@/components/layout/NewLayout';
 import { useAuth } from '@/context/AuthContext';
 
+import { Product, ProductVariation } from '@/types';
+
 // Define Product type for this page
-type ProductDetails = {
-  id: number;
-  name: string;
-  description: string | null;
-  category: string | null;
-  price: number;
-  compare_at_price: number | null;
-  is_active: boolean;
-  image_url: string | null;
-  strength: number | null;
+type ProductDetails = Product & {
+  variations?: ProductVariation[];
 };
 
 export default function AdminProductDetailPage() {
@@ -202,14 +196,156 @@ export default function AdminProductDetailPage() {
     }
   };
 
+  // Variations state
+  const [variations, setVariations] = useState<ProductVariation[]>([]);
+  const [isLoadingVariations, setIsLoadingVariations] = useState(false);
+  const [variationError, setVariationError] = useState<string | null>(null);
+  const [showVariationModal, setShowVariationModal] = useState(false);
+  const [currentVariation, setCurrentVariation] = useState<Partial<ProductVariation> | null>(null);
+  const [isSavingVariation, setIsSavingVariation] = useState(false);
+
+  // Load variations when product is loaded
+  useEffect(() => {
+    if (product?.id && token) {
+      loadVariations();
+    }
+  }, [product?.id, token]);
+
+  // Load variations from API
+  const loadVariations = async () => {
+    if (!product?.id || !token) return;
+
+    setIsLoadingVariations(true);
+    setVariationError(null);
+
+    try {
+      const response = await fetch(`/api/admin/products/${product.id}/variations`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          logout();
+          router.push('/login');
+          return;
+        }
+        throw new Error(`Failed to load variations (${response.status})`);
+      }
+
+      const data = await response.json();
+      setVariations(data as ProductVariation[]);
+    } catch (err: any) {
+      setVariationError(err.message || 'Failed to load variations.');
+      console.error(err);
+    } finally {
+      setIsLoadingVariations(false);
+    }
+  };
+
+  // Handle adding a new variation
   const handleAddVariation = () => {
-    alert('Add Variation UI Needed');
+    setCurrentVariation({
+      product_id: product?.id,
+      name: product?.name || '',
+      price: product?.price || 0,
+      inventory_quantity: 0,
+      is_active: true,
+    });
+    setShowVariationModal(true);
   };
-  const handleEditVariation = (variationId: string) => {
-    alert(`Edit Variation ${variationId} UI Needed`);
+
+  // Handle editing an existing variation
+  const handleEditVariation = (variationId: number) => {
+    const variation = variations.find(v => v.id === variationId);
+    if (variation) {
+      setCurrentVariation({ ...variation });
+      setShowVariationModal(true);
+    }
   };
-  const handleDeleteVariation = (variationId: string) => {
-    alert(`Delete Variation ${variationId}? API Call Needed`);
+
+  // Handle saving a variation (create or update)
+  const handleSaveVariation = async () => {
+    if (!currentVariation || !product?.id || !token) return;
+
+    setIsSavingVariation(true);
+    setVariationError(null);
+
+    try {
+      // Validate required fields
+      if (!currentVariation.name) {
+        throw new Error('Variation name is required.');
+      }
+
+      if (currentVariation.price === undefined || currentVariation.price < 0) {
+        throw new Error('Valid price is required.');
+      }
+
+      const isNewVariation = !currentVariation.id;
+      const url = isNewVariation
+        ? `/api/admin/products/${product.id}/variations`
+        : `/api/admin/products/variations/${currentVariation.id}`;
+
+      const response = await fetch(url, {
+        method: isNewVariation ? 'POST' : 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(currentVariation),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          logout();
+          router.push('/login');
+          return;
+        }
+
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || `Failed to ${isNewVariation ? 'create' : 'update'} variation`
+        );
+      }
+
+      // Reload variations after successful save
+      await loadVariations();
+      setShowVariationModal(false);
+      setCurrentVariation(null);
+    } catch (err: any) {
+      setVariationError(err.message || 'Failed to save variation.');
+      console.error(err);
+    } finally {
+      setIsSavingVariation(false);
+    }
+  };
+
+  // Handle deleting a variation
+  const handleDeleteVariation = async (variationId: number) => {
+    if (!confirm(`Are you sure you want to delete this variation?`)) return;
+
+    if (!token) return;
+
+    try {
+      const response = await fetch(`/api/admin/products/variations/${variationId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          logout();
+          router.push('/login');
+          return;
+        }
+        throw new Error(`Failed to delete variation (${response.status})`);
+      }
+
+      // Reload variations after successful delete
+      await loadVariations();
+    } catch (err: any) {
+      setVariationError(err.message || 'Failed to delete variation.');
+      console.error(err);
+    }
   };
 
   // --- Render Logic ---
@@ -446,141 +582,365 @@ export default function AdminProductDetailPage() {
             </button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                  >
-                    Flavor
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                  >
-                    Strength
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
-                  >
-                    Price
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 uppercase"
-                  >
-                    Stock
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 uppercase"
-                  >
-                    Status
-                  </th>
-                  <th scope="col" className="relative px-6 py-3">
-                    <span className="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
-                {/* Example variations - replace with actual data */}
-                <tr>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">Mint</td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">3</td>
-                  <td className="px-6 py-4 text-right text-sm whitespace-nowrap text-gray-900">
-                    $19.99
-                  </td>
-                  <td className="px-6 py-4 text-center text-sm whitespace-nowrap text-gray-500">
-                    125
-                  </td>
-                  <td className="px-6 py-4 text-center whitespace-nowrap">
-                    <span className="inline-flex rounded-full bg-green-100 px-2 text-xs leading-5 font-semibold text-green-800">
-                      Active
-                    </span>
-                  </td>
-                  <td className="space-x-3 px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
-                    <button
-                      onClick={() => handleEditVariation('mint-3')}
-                      className="text-indigo-600 hover:text-indigo-900"
+          {variationError && (
+            <div className="mb-4 rounded bg-red-100 p-3 text-red-500">Error: {variationError}</div>
+          )}
+
+          {isLoadingVariations ? (
+            <div className="py-4 text-center">Loading variations...</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                     >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteVariation('mint-3')}
-                      className="text-red-600 hover:text-red-900"
+                      Name
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                     >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">Berry</td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">4</td>
-                  <td className="px-6 py-4 text-right text-sm whitespace-nowrap text-gray-900">
-                    $21.99
-                  </td>
-                  <td className="px-6 py-4 text-center text-sm whitespace-nowrap text-gray-500">
-                    87
-                  </td>
-                  <td className="px-6 py-4 text-center whitespace-nowrap">
-                    <span className="inline-flex rounded-full bg-green-100 px-2 text-xs leading-5 font-semibold text-green-800">
-                      Active
-                    </span>
-                  </td>
-                  <td className="space-x-3 px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
-                    <button
-                      onClick={() => handleEditVariation('berry-4')}
-                      className="text-indigo-600 hover:text-indigo-900"
+                      Flavor
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                     >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteVariation('berry-4')}
-                      className="text-red-600 hover:text-red-900"
+                      Strength
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
                     >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">Citrus</td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">2</td>
-                  <td className="px-6 py-4 text-right text-sm whitespace-nowrap text-gray-900">
-                    $18.99
-                  </td>
-                  <td className="px-6 py-4 text-center text-sm whitespace-nowrap text-gray-500">
-                    0
-                  </td>
-                  <td className="px-6 py-4 text-center whitespace-nowrap">
-                    <span className="inline-flex rounded-full bg-red-100 px-2 text-xs leading-5 font-semibold text-red-800">
-                      Out of Stock
-                    </span>
-                  </td>
-                  <td className="space-x-3 px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
-                    <button
-                      onClick={() => handleEditVariation('citrus-2')}
-                      className="text-indigo-600 hover:text-indigo-900"
+                      Price
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 uppercase"
                     >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteVariation('citrus-2')}
-                      className="text-red-600 hover:text-red-900"
+                      Stock
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 uppercase"
                     >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <p className="mt-4 text-sm text-gray-500">
-            Note: Product variations functionality will be fully implemented in the next update.
-          </p>
+                      Status
+                    </th>
+                    <th scope="col" className="relative px-6 py-3">
+                      <span className="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {variations.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
+                        No variations found. Add your first variation!
+                      </td>
+                    </tr>
+                  ) : (
+                    variations.map(variation => (
+                      <tr key={variation.id}>
+                        <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
+                          {variation.name}
+                        </td>
+                        <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
+                          {variation.flavor || '-'}
+                        </td>
+                        <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
+                          {variation.strength || '-'}
+                        </td>
+                        <td className="px-6 py-4 text-right text-sm whitespace-nowrap text-gray-900">
+                          ${variation.price.toFixed(2)}
+                        </td>
+                        <td className="px-6 py-4 text-center text-sm whitespace-nowrap text-gray-500">
+                          {variation.inventory_quantity}
+                        </td>
+                        <td className="px-6 py-4 text-center whitespace-nowrap">
+                          <span
+                            className={`inline-flex rounded-full px-2 text-xs leading-5 font-semibold ${
+                              variation.is_active
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {variation.is_active ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right text-sm whitespace-nowrap">
+                          <button
+                            onClick={() => handleEditVariation(variation.id)}
+                            className="mr-3 text-indigo-600 hover:text-indigo-900"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteVariation(variation.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
+
+        {/* Variation Modal */}
+        {showVariationModal && currentVariation && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+              </div>
+              <span
+                className="hidden sm:inline-block sm:h-screen sm:align-middle"
+                aria-hidden="true"
+              >
+                &#8203;
+              </span>
+              <div className="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <div className="sm:flex sm:items-start">
+                    <div className="mt-3 w-full text-center sm:mt-0 sm:text-left">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                        {currentVariation.id ? 'Edit Variation' : 'Add Variation'}
+                      </h3>
+
+                      {variationError && (
+                        <div className="mt-2 rounded bg-red-100 p-2 text-red-500">
+                          {variationError}
+                        </div>
+                      )}
+
+                      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                          <label
+                            htmlFor="variation-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Name*
+                          </label>
+                          <input
+                            type="text"
+                            id="variation-name"
+                            value={currentVariation.name || ''}
+                            onChange={e =>
+                              setCurrentVariation({ ...currentVariation, name: e.target.value })
+                            }
+                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="variation-flavor"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Flavor
+                          </label>
+                          <input
+                            type="text"
+                            id="variation-flavor"
+                            value={currentVariation.flavor || ''}
+                            onChange={e =>
+                              setCurrentVariation({ ...currentVariation, flavor: e.target.value })
+                            }
+                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="variation-strength"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Strength
+                          </label>
+                          <input
+                            type="number"
+                            id="variation-strength"
+                            value={currentVariation.strength || ''}
+                            onChange={e =>
+                              setCurrentVariation({
+                                ...currentVariation,
+                                strength: e.target.value ? parseInt(e.target.value) : null,
+                              })
+                            }
+                            min="0"
+                            max="5"
+                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="variation-price"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Price* ($)
+                          </label>
+                          <input
+                            type="number"
+                            id="variation-price"
+                            value={currentVariation.price || ''}
+                            onChange={e =>
+                              setCurrentVariation({
+                                ...currentVariation,
+                                price: e.target.value ? parseFloat(e.target.value) : 0,
+                              })
+                            }
+                            step="0.01"
+                            min="0"
+                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="variation-compare-price"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Compare At Price ($)
+                          </label>
+                          <input
+                            type="number"
+                            id="variation-compare-price"
+                            value={currentVariation.compare_at_price || ''}
+                            onChange={e =>
+                              setCurrentVariation({
+                                ...currentVariation,
+                                compare_at_price: e.target.value
+                                  ? parseFloat(e.target.value)
+                                  : null,
+                              })
+                            }
+                            step="0.01"
+                            min="0"
+                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="variation-sku"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            SKU
+                          </label>
+                          <input
+                            type="text"
+                            id="variation-sku"
+                            value={currentVariation.sku || ''}
+                            onChange={e =>
+                              setCurrentVariation({ ...currentVariation, sku: e.target.value })
+                            }
+                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="variation-inventory"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Inventory Quantity
+                          </label>
+                          <input
+                            type="number"
+                            id="variation-inventory"
+                            value={currentVariation.inventory_quantity || 0}
+                            onChange={e =>
+                              setCurrentVariation({
+                                ...currentVariation,
+                                inventory_quantity: parseInt(e.target.value),
+                              })
+                            }
+                            min="0"
+                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="variation-image"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Image URL
+                          </label>
+                          <input
+                            type="text"
+                            id="variation-image"
+                            value={currentVariation.image_url || ''}
+                            onChange={e =>
+                              setCurrentVariation({
+                                ...currentVariation,
+                                image_url: e.target.value,
+                              })
+                            }
+                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                          />
+                        </div>
+
+                        <div className="col-span-2 flex items-center">
+                          <input
+                            type="checkbox"
+                            id="variation-active"
+                            checked={currentVariation.is_active || false}
+                            onChange={e =>
+                              setCurrentVariation({
+                                ...currentVariation,
+                                is_active: e.target.checked,
+                              })
+                            }
+                            className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+                          />
+                          <label
+                            htmlFor="variation-active"
+                            className="ml-2 block text-sm text-gray-900"
+                          >
+                            Active (visible to customers)
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                  <button
+                    type="button"
+                    onClick={handleSaveVariation}
+                    disabled={isSavingVariation}
+                    className="inline-flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+                  >
+                    {isSavingVariation ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowVariationModal(false);
+                      setCurrentVariation(null);
+                      setVariationError(null);
+                    }}
+                    disabled={isSavingVariation}
+                    className="focus:ring-primary-500 mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

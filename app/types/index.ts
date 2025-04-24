@@ -31,6 +31,23 @@ export interface Product {
   image_url?: string | null;
   category?: string | null;
   is_active: boolean;
+  variations?: ProductVariation[];
+}
+
+export interface ProductVariation {
+  id: number;
+  product_id: number;
+  name: string;
+  flavor?: string | null;
+  strength?: number | null;
+  price: number;
+  compare_at_price?: number | null;
+  sku?: string | null;
+  image_url?: string | null;
+  inventory_quantity: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // Order types
@@ -53,15 +70,15 @@ export interface Order {
   assigned_distributor_id?: string | null;
 }
 
-export type OrderStatus = 
-  | 'Pending Approval' 
-  | 'Awaiting Fulfillment' 
+export type OrderStatus =
+  | 'Pending Approval'
+  | 'Awaiting Fulfillment'
   | 'Pending Fulfillment Verification'
-  | 'Awaiting Shipment' 
-  | 'Shipped' 
-  | 'Delivered' 
-  | 'Cancelled' 
-  | 'Refunded' 
+  | 'Awaiting Shipment'
+  | 'Shipped'
+  | 'Delivered'
+  | 'Cancelled'
+  | 'Refunded'
   | 'On Hold - Stock Issue';
 
 export type PaymentStatus = 'Pending' | 'Paid' | 'Failed' | 'Refunded';
@@ -70,8 +87,10 @@ export interface OrderItem {
   id: string;
   order_id: string;
   product_id: number;
+  variation_id?: number | null;
   quantity: number;
   price_per_item: number;
+  item_name: string;
 }
 
 export interface Address {
