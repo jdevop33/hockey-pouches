@@ -101,9 +101,11 @@ export async function GET(request: NextRequest) {
     params.push(limit);
     params.push(offset);
 
+    // Use the pool for the parameterized query
+    const { pool } = await import('@/lib/db');
     const [productsResult, totalResult] = await Promise.all([
-      sql.query(productsQuery, params),
-      sql.query(countQuery, params.slice(0, -2)), // Exclude pagination params
+      pool.query(productsQuery, params),
+      pool.query(countQuery, params.slice(0, -2)), // Exclude pagination params
     ]);
 
     const totalProducts = parseInt(totalResult.rows[0].count as string);
@@ -115,14 +117,14 @@ export async function GET(request: NextRequest) {
 
     // Fetch available filters
     const [flavorsResult, strengthsResult, categoriesResult, priceRangeResult] = await Promise.all([
-      sql.query(`SELECT DISTINCT flavor FROM products WHERE flavor IS NOT NULL ORDER BY flavor`),
-      sql.query(
+      pool.query(`SELECT DISTINCT flavor FROM products WHERE flavor IS NOT NULL ORDER BY flavor`),
+      pool.query(
         `SELECT DISTINCT strength FROM products WHERE strength IS NOT NULL ORDER BY strength`
       ),
-      sql.query(
+      pool.query(
         `SELECT DISTINCT category FROM products WHERE category IS NOT NULL ORDER BY category`
       ),
-      sql.query(
+      pool.query(
         `SELECT MIN(price) as min_price, MAX(price) as max_price FROM products WHERE is_active = TRUE`
       ),
     ]);
