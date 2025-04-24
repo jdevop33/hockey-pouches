@@ -36,65 +36,106 @@ export async function GET(request: NextRequest) {
     // NOTE: Neon driver often returns numeric types as strings, hence the CAST to FLOAT.
     // Adjust casting based on actual return types if needed.
     // Build dynamic filter conditions for SQL tagged template
-    let conditions = [];
-    let filterParams = [];
+    let conditions = ['is_active = TRUE'];
+    let params = [];
+    let index = 1;
 
     if (categoryFilter) {
-      conditions.push(`category = ${categoryFilter}`);
+      conditions.push(`category = $${index}`);
+      params.push(categoryFilter);
+      index++;
     }
 
     if (flavorFilter) {
-      conditions.push(`flavor = ${flavorFilter}`);
+      conditions.push(`flavor = $${index}`);
+      params.push(flavorFilter);
+      index++;
     }
 
     if (strengthFilter) {
-      conditions.push(`strength = ${strengthFilter}`);
+      conditions.push(`strength = $${index}`);
+      params.push(parseInt(strengthFilter));
+      index++;
     }
 
     if (minPrice) {
-      conditions.push(`price >= ${minPrice}`);
+      conditions.push(`price >= $${index}`);
+      params.push(parseFloat(minPrice));
+      index++;
     }
 
     if (maxPrice) {
-      conditions.push(`price <= ${maxPrice}`);
+      conditions.push(`price <= $${index}`);
+      params.push(parseFloat(maxPrice));
+      index++;
     }
 
     if (searchTerm) {
-      const searchPattern = `%${searchTerm}%`;
-      conditions.push(`(name ILIKE ${searchPattern} OR description ILIKE ${searchPattern})`);
+      conditions.push(`(name ILIKE $${index} OR description ILIKE $${index})`);
+      params.push(`%${searchTerm}%`);
+      index++;
     }
 
     // Combine all conditions
-    const whereClause =
-      conditions.length > 0
-        ? `WHERE is_active = TRUE AND ${conditions.join(' AND ')}`
-        : 'WHERE is_active = TRUE';
+    const whereClause = `WHERE ${conditions.join(' AND ')}`;
 
     // Execute queries concurrently
+    const productsQuery = `
+      SELECT
+          id, name, description, flavor, strength,
+          CAST(price AS FLOAT) as price,
+          CAST(compare_at_price AS FLOAT) as compare_at_price,
+          image_url, category, is_active
+      FROM products
+      ${whereClause}
+      ORDER BY ${finalSortBy} ${finalSortOrder}
+      LIMIT $${index} OFFSET $${index + 1}
+    `;
+
+    const countQuery = `
+      SELECT COUNT(*) FROM products
+      ${whereClause}
+    `;
+
+    // Add pagination parameters
+    params.push(limit);
+    params.push(offset);
+
     const [productsResult, totalResult] = await Promise.all([
-      sql`
-        SELECT
-            id, name, description, flavor, strength,
-            CAST(price AS FLOAT) as price,
-            CAST(compare_at_price AS FLOAT) as compare_at_price,
-            image_url, category, is_active
-        FROM products
-        ${sql.unsafe(whereClause)}
-        ORDER BY ${sql.unsafe(finalSortBy)} ${sql.unsafe(finalSortOrder)}
-        LIMIT ${limit} OFFSET ${offset}
-      `,
-      sql`
-        SELECT COUNT(*) FROM products
-        ${sql.unsafe(whereClause)}
-      `,
+      sql.query(productsQuery, params),
+      sql.query(countQuery, params.slice(0, -2)), // Exclude pagination params
     ]);
 
-    const totalProducts = parseInt(totalResult[0].count as string);
+    const totalProducts = parseInt(totalResult.rows[0].count as string);
     const totalPages = Math.ceil(totalProducts / limit);
 
-    const products = productsResult as Product[]; // Assert type
+    const products = productsResult.rows as Product[]; // Assert type
 
     console.log(`Fetched ${products.length} of ${totalProducts} products.`);
+
+    // Fetch available filters
+    const [flavorsResult, strengthsResult, categoriesResult, priceRangeResult] = await Promise.all([
+      sql.query(`SELECT DISTINCT flavor FROM products WHERE flavor IS NOT NULL ORDER BY flavor`),
+      sql.query(
+        `SELECT DISTINCT strength FROM products WHERE strength IS NOT NULL ORDER BY strength`
+      ),
+      sql.query(
+        `SELECT DISTINCT category FROM products WHERE category IS NOT NULL ORDER BY category`
+      ),
+      sql.query(
+        `SELECT MIN(price) as min_price, MAX(price) as max_price FROM products WHERE is_active = TRUE`
+      ),
+    ]);
+
+    const availableFilters = {
+      flavors: flavorsResult.rows.map(row => row.flavor),
+      strengths: strengthsResult.rows.map(row => row.strength),
+      categories: categoriesResult.rows.map(row => row.category),
+      priceRange: {
+        min: parseFloat(priceRangeResult.rows[0].min_price),
+        max: parseFloat(priceRangeResult.rows[0].max_price),
+      },
+    };
 
     return NextResponse.json({
       products: products,
@@ -107,11 +148,12 @@ export async function GET(request: NextRequest) {
       filters: {
         category: categoryFilter || null,
         flavor: flavorFilter || null,
-        strength: strengthFilter || null,
-        minPrice: minPrice || null,
-        maxPrice: maxPrice || null,
+        strength: strengthFilter ? parseInt(strengthFilter) : null,
+        minPrice: minPrice ? parseFloat(minPrice) : null,
+        maxPrice: maxPrice ? parseFloat(maxPrice) : null,
         search: searchTerm || null,
       },
+      availableFilters: availableFilters,
       sorting: {
         sortBy: finalSortBy,
         sortOrder: finalSortOrder,

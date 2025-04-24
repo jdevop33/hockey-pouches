@@ -53,6 +53,9 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedFlavor, setSelectedFlavor] = useState<string | null>(null);
   const [selectedStrength, setSelectedStrength] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [minPriceFilter, setMinPriceFilter] = useState<string | null>(null);
+  const [maxPriceFilter, setMaxPriceFilter] = useState<string | null>(null);
   const [addedToCartId, setAddedToCartId] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<string>('name');
   const [sortOrder, setSortOrder] = useState<string>('asc');
@@ -78,6 +81,9 @@ export default function ProductsPage() {
           sortOrder: sortOrder,
           ...(selectedFlavor && { flavor: selectedFlavor }),
           ...(selectedStrength && { strength: selectedStrength.toString() }),
+          ...(selectedCategory && { category: selectedCategory }),
+          ...(minPriceFilter && { minPrice: minPriceFilter }),
+          ...(maxPriceFilter && { maxPrice: maxPriceFilter }),
         });
         const apiUrl = `/api/products?${params.toString()}`;
         console.log(`Fetching: ${apiUrl}`);
@@ -94,9 +100,17 @@ export default function ProductsPage() {
           total: 0,
           totalPages: 1,
         };
+        const fetchedFilters = data.availableFilters || {
+          flavors: [],
+          strengths: [],
+          categories: [],
+          priceRange: { min: 0, max: 100 },
+        };
 
         setProducts(fetchedProducts);
         setPagination(fetchedPagination);
+        setAvailableFilters(fetchedFilters);
+
         console.log(`State updated. ${fetchedProducts.length} products loaded.`);
         // Log the first product structure after setting state (async nature means state might not be updated yet)
         if (fetchedProducts.length > 0) {
@@ -114,24 +128,30 @@ export default function ProductsPage() {
       }
     };
     fetchProducts();
-  }, [pagination.page, pagination.limit, selectedFlavor, selectedStrength, sortBy, sortOrder]);
+  }, [
+    pagination.page,
+    pagination.limit,
+    selectedFlavor,
+    selectedStrength,
+    selectedCategory,
+    minPriceFilter,
+    maxPriceFilter,
+    sortBy,
+    sortOrder,
+  ]);
 
-  // Placeholder filter options (Ideally fetch from API)
-  const availableFlavors = [
-    'Mint',
-    'Fruit',
-    'Berry',
-    'Citrus',
-    'Apple mint',
-    'Cool mint',
-    'Peppermint',
-    'Cola',
-    'Spearmint',
-    'Watermelon',
-    'Cherry',
-    'Other',
-  ];
-  const availableStrengths = [6, 12, 16, 22];
+  // State for available filters
+  const [availableFilters, setAvailableFilters] = useState<{
+    flavors: string[];
+    strengths: number[];
+    categories: string[];
+    priceRange: { min: number; max: number };
+  }>({
+    flavors: [],
+    strengths: [],
+    categories: [],
+    priceRange: { min: 0, max: 100 },
+  });
 
   const handleAddToCart = (product: Product) => {
     // Ensure product object matches CartProduct interface
@@ -185,6 +205,30 @@ export default function ProductsPage() {
               <h2 className="mb-4 text-lg font-medium text-gray-900 sm:mb-0">Filters</h2>
               <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6">
                 <div>
+                  <label
+                    htmlFor="category"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    Category
+                  </label>
+                  <select
+                    id="category"
+                    value={selectedCategory || ''}
+                    onChange={e => {
+                      setSelectedCategory(e.target.value || null);
+                      setPagination(p => ({ ...p, page: 1 }));
+                    }}
+                    className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:outline-none sm:text-sm"
+                  >
+                    <option value="">All Categories</option>
+                    {availableFilters.categories.map(category => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <label htmlFor="flavor" className="mb-1 block text-sm font-medium text-gray-700">
                     Flavor
                   </label>
@@ -198,7 +242,7 @@ export default function ProductsPage() {
                     className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:outline-none sm:text-sm"
                   >
                     <option value="">All Flavors</option>
-                    {availableFlavors.map(flavor => (
+                    {availableFilters.flavors.map(flavor => (
                       <option key={flavor} value={flavor}>
                         {flavor}
                       </option>
@@ -222,12 +266,49 @@ export default function ProductsPage() {
                     className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:outline-none sm:text-sm"
                   >
                     <option value="">All Strengths</option>
-                    {availableStrengths.map(strength => (
+                    {availableFilters.strengths.map(strength => (
                       <option key={strength} value={strength}>
                         {strength}mg
                       </option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <label
+                    htmlFor="price-range"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    Price Range
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      id="min-price"
+                      placeholder="Min"
+                      value={minPriceFilter || ''}
+                      onChange={e => {
+                        setMinPriceFilter(e.target.value || null);
+                        setPagination(p => ({ ...p, page: 1 }));
+                      }}
+                      className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border-gray-300 py-2 text-base focus:outline-none sm:text-sm"
+                      min={availableFilters.priceRange.min}
+                      max={availableFilters.priceRange.max}
+                    />
+                    <span>-</span>
+                    <input
+                      type="number"
+                      id="max-price"
+                      placeholder="Max"
+                      value={maxPriceFilter || ''}
+                      onChange={e => {
+                        setMaxPriceFilter(e.target.value || null);
+                        setPagination(p => ({ ...p, page: 1 }));
+                      }}
+                      className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border-gray-300 py-2 text-base focus:outline-none sm:text-sm"
+                      min={availableFilters.priceRange.min}
+                      max={availableFilters.priceRange.max}
+                    />
+                  </div>
                 </div>
                 <div>
                   <label htmlFor="sortBy" className="mb-1 block text-sm font-medium text-gray-700">
@@ -273,8 +354,11 @@ export default function ProductsPage() {
                 <div className="flex items-end">
                   <button
                     onClick={() => {
+                      setSelectedCategory(null);
                       setSelectedFlavor(null);
                       setSelectedStrength(null);
+                      setMinPriceFilter(null);
+                      setMaxPriceFilter(null);
                       setSortBy('name');
                       setSortOrder('asc');
                       setPagination(p => ({ ...p, page: 1 }));
