@@ -37,105 +37,79 @@ export async function GET(request: NextRequest) {
     // Adjust casting based on actual return types if needed.
     // Build dynamic filter conditions for SQL tagged template
     let conditions = ['is_active = TRUE'];
-    let params = [];
-    let index = 1;
 
     if (categoryFilter) {
-      conditions.push(`category = $${index}`);
-      params.push(categoryFilter);
-      index++;
+      conditions.push(`category = ${categoryFilter}`);
     }
 
     if (flavorFilter) {
-      conditions.push(`flavor = $${index}`);
-      params.push(flavorFilter);
-      index++;
+      conditions.push(`flavor = ${flavorFilter}`);
     }
 
     if (strengthFilter) {
-      conditions.push(`strength = $${index}`);
-      params.push(parseInt(strengthFilter));
-      index++;
+      conditions.push(`strength = ${parseInt(strengthFilter)}`);
     }
 
     if (minPrice) {
-      conditions.push(`price >= $${index}`);
-      params.push(parseFloat(minPrice));
-      index++;
+      conditions.push(`price >= ${parseFloat(minPrice)}`);
     }
 
     if (maxPrice) {
-      conditions.push(`price <= $${index}`);
-      params.push(parseFloat(maxPrice));
-      index++;
+      conditions.push(`price <= ${parseFloat(maxPrice)}`);
     }
 
     if (searchTerm) {
-      conditions.push(`(name ILIKE $${index} OR description ILIKE $${index})`);
-      params.push(`%${searchTerm}%`);
-      index++;
+      conditions.push(
+        `(name ILIKE ${`%${searchTerm}%`} OR description ILIKE ${`%${searchTerm}%`})`
+      );
     }
 
     // Combine all conditions
-    const whereClause = `WHERE ${conditions.join(' AND ')}`;
+    const whereClause = conditions.join(' AND ');
 
-    // Execute queries concurrently
-    const productsQuery = `
+    // Execute queries using sql tagged template
+    const productsQuery = sql`
       SELECT
           id, name, description, flavor, strength,
           CAST(price AS FLOAT) as price,
           CAST(compare_at_price AS FLOAT) as compare_at_price,
           image_url, category, is_active
       FROM products
-      ${whereClause}
+      WHERE ${whereClause}
       ORDER BY ${finalSortBy} ${finalSortOrder}
-      LIMIT $${index} OFFSET $${index + 1}
+      LIMIT ${limit} OFFSET ${offset}
     `;
 
-    const countQuery = `
-      SELECT COUNT(*) FROM products
-      ${whereClause}
+    const countQuery = sql`
+      SELECT COUNT(*) as count FROM products
+      WHERE ${whereClause}
     `;
 
-    // Add pagination parameters
-    params.push(limit);
-    params.push(offset);
+    // Execute queries concurrently
+    const [productsResult, totalResult] = await Promise.all([productsQuery, countQuery]);
 
-    // Use the pool for the parameterized query
-    const { pool } = await import('@/lib/db');
-    const [productsResult, totalResult] = await Promise.all([
-      pool.query(productsQuery, params),
-      pool.query(countQuery, params.slice(0, -2)), // Exclude pagination params
-    ]);
-
-    const totalProducts = parseInt(totalResult.rows[0].count as string);
+    const totalProducts = parseInt(totalResult[0].count as string);
     const totalPages = Math.ceil(totalProducts / limit);
 
-    const products = productsResult.rows as Product[]; // Assert type
+    const products = productsResult as Product[]; // Assert type
 
     console.log(`Fetched ${products.length} of ${totalProducts} products.`);
 
     // Fetch available filters
     const [flavorsResult, strengthsResult, categoriesResult, priceRangeResult] = await Promise.all([
-      pool.query(`SELECT DISTINCT flavor FROM products WHERE flavor IS NOT NULL ORDER BY flavor`),
-      pool.query(
-        `SELECT DISTINCT strength FROM products WHERE strength IS NOT NULL ORDER BY strength`
-      ),
-      pool.query(
-        `SELECT DISTINCT category FROM products WHERE category IS NOT NULL ORDER BY category`
-      ),
-      pool.query(
-        `SELECT MIN(price) as min_price, MAX(price) as max_price FROM products WHERE is_active = TRUE`
-      ),
+      sql`SELECT DISTINCT flavor FROM products WHERE flavor IS NOT NULL ORDER BY flavor`,
+      sql`SELECT DISTINCT strength FROM products WHERE strength IS NOT NULL ORDER BY strength`,
+      sql`SELECT DISTINCT category FROM products WHERE category IS NOT NULL ORDER BY category`,
+      sql`SELECT MIN(price) as min_price, MAX(price) as max_price FROM products WHERE is_active = TRUE`,
     ]);
 
     const availableFilters = {
-      flavors: flavorsResult.rows.map(row => row.flavor),
-      strengths: strengthsResult.rows.map(row => row.strength),
-      categories: categoriesResult.rows.map(row => row.category),
+      flavors: flavorsResult.map(row => row.flavor),
+      strengths: strengthsResult.map(row => row.strength),
+      categories: categoriesResult.map(row => row.category),
       priceRange: {
-        min: parseFloat(priceRangeResult.rows[0].min_price),
-        max: parseFloat(priceRangeResult.rows[0].max_price),
+        min: parseFloat(priceRangeResult[0].min_price),
+        max: parseFloat(priceRangeResult[0].max_price),
       },
     };
 
