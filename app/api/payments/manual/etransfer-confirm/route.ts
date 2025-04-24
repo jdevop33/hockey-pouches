@@ -1,34 +1,61 @@
-import { NextResponse } from 'next/server';
-// import { verifyAdmin } from '@/lib/auth';
-// import { confirmManualPayment } from '@/lib/paymentManualService';
+import { NextResponse, type NextRequest } from 'next/server';
+import { verifyAdmin, unauthorizedResponse, forbiddenResponse } from '@/lib/auth';
+import { confirmManualPayment } from '@/lib/payment';
 
-export async function POST(request: Request) {
-  // TODO: Implement admin logic for manual E-Transfer payment confirmation
-  // ... (rest of the comments)
+interface ConfirmPaymentBody {
+  orderId?: number;
+  transactionId?: string;
+  notes?: string;
+  senderName?: string;
+}
 
+export async function POST(request: NextRequest) {
   let orderIdForErrorLog: string | null = null; // Variable to hold orderId for logging
 
   try {
-    // --- Add Admin Authentication Verification Logic Here ---
-    // const adminCheck = await verifyAdmin(request);
-    // if (!adminCheck.isAdmin) { // ... }
-    // const adminUserId = adminCheck.userId;
-
-    const body = await request.json();
-    orderIdForErrorLog = body.orderId; // Assign orderId after parsing body
-    console.log('Admin: Confirm E-Transfer payment request:', body); // Placeholder
-
-    // --- Add Input Validation (orderId) ---
-    if (!body.orderId) {
-      return NextResponse.json({ message: 'Missing order ID' }, { status: 400 });
+    // Verify admin authentication
+    const authResult = await verifyAdmin(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
     }
 
-    // --- Confirm Payment Logic Here ---
-    // const confirmationResult = await confirmManualPayment(body.orderId, 'E-Transfer', adminUserId, body.referenceNumber, body.notes, body.senderName);
-    // if (!confirmationResult.success) { // ... }
+    if (!authResult.role || authResult.role !== 'Admin') {
+      return forbiddenResponse('Only administrators can confirm payments');
+    }
 
-    return NextResponse.json({ message: `E-Transfer payment confirmed for order ${body.orderId}. Status updated.` }); // Placeholder
+    // Parse request body
+    const body: ConfirmPaymentBody = await request.json();
+    orderIdForErrorLog = body.orderId?.toString() || null;
+    console.log('Admin: Confirm E-Transfer payment request:', body);
 
+    // Validate input
+    if (!body.orderId || typeof body.orderId !== 'number') {
+      return NextResponse.json({ message: 'Valid order ID is required' }, { status: 400 });
+    }
+
+    if (!body.transactionId || typeof body.transactionId !== 'string') {
+      return NextResponse.json({ message: 'Valid transaction ID is required' }, { status: 400 });
+    }
+
+    // Confirm the payment
+    const result = await confirmManualPayment(body.orderId, body.transactionId, authResult.userId!);
+
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          message: 'Payment confirmation failed',
+          error: result.message,
+        },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({
+      message: `E-Transfer payment confirmed for order ${body.orderId}. Status updated.`,
+      orderId: body.orderId,
+      transactionId: body.transactionId,
+      status: result.status,
+    });
   } catch (error) {
     const orderInfo = orderIdForErrorLog ? `for order ${orderIdForErrorLog}` : '';
     console.error(`Admin: Failed to confirm E-Transfer payment ${orderInfo}:`, error);
