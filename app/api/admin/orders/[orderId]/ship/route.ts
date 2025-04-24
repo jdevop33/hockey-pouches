@@ -67,23 +67,26 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
 
     // Add entry to order_history table
     await sql`
-      INSERT INTO order_history (order_id, status, user_id, notes, timestamp)
+      INSERT INTO order_history (order_id, status, notes, user_id, user_role, user_name)
       VALUES (
         ${orderId},
         ${newStatus},
-        ${adminUserId},
         ${`Order shipped with tracking number: ${finalTrackingNumber || 'N/A'}`},
-        CURRENT_TIMESTAMP
+        ${adminUserId},
+        'Admin',
+        (SELECT name FROM users WHERE id = ${adminUserId})
       )
     `;
 
-    // Update/Close the 'Shipping' task
+    // Update/Close the 'Ship order' task
     await sql`
       UPDATE tasks
-      SET status = 'Completed', completed_at = CURRENT_TIMESTAMP
-      WHERE related_entity_type = 'Order'
-        AND related_entity_id = ${orderId}
-        AND category = 'Shipping'
+      SET status = 'Completed',
+          updated_at = CURRENT_TIMESTAMP,
+          notes = CONCAT(COALESCE(notes, ''), ' | Completed by admin ${adminUserId}')
+      WHERE related_to = 'Order'
+        AND related_id = ${orderId}
+        AND title = 'Ship order'
         AND status = 'Pending'
     `;
 
@@ -151,19 +154,24 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
           // Create task for admin to review commission
           await sql`
             INSERT INTO tasks (
-              title, category, status, priority, assigned_user_id,
-              related_entity_type, related_entity_id, due_date, created_at
+              title,
+              description,
+              status,
+              priority,
+              category,
+              related_to,
+              related_id,
+              assigned_to
             )
             VALUES (
-              ${`Review Commission for Order ${orderId}`},
-              ${'Commission'},
-              ${'Pending'},
-              ${'Medium'},
-              (SELECT id FROM users WHERE role = 'Admin' LIMIT 1),
-              ${'Order'},
+              'Review Commission',
+              ${`Review commission of $${commissionAmount.toFixed(2)} for order #${orderId}`},
+              'Pending',
+              'Medium',
+              'Commission',
+              'Order',
               ${orderId},
-              (CURRENT_DATE + INTERVAL '7 days'),
-              CURRENT_TIMESTAMP
+              (SELECT id FROM users WHERE role = 'Admin' LIMIT 1)
             )
           `;
         }

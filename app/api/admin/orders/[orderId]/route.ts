@@ -6,41 +6,52 @@ import { Order, OrderStatus, OrderItem, Address, PaymentStatus } from '@/types';
 export const dynamic = 'force-dynamic';
 
 // --- Types ---
-type OrderItemDetails = { id: number; order_id: number; product_id: number; quantity: number; price_per_item: number; product_name: string; image_url?: string | null };
-interface OrderHistory { timestamp: string; status: string; user?: string; notes?: string; }
+type OrderItemDetails = {
+  id: number;
+  order_id: number;
+  product_id: number;
+  quantity: number;
+  price_per_item: number;
+  product_name: string;
+  image_url?: string | null;
+};
+interface OrderHistory {
+  timestamp: string;
+  status: string;
+  user?: string;
+  notes?: string;
+}
 
 interface AdminOrderDetailResponse {
-    id: number;
-    created_at: string;
-    status: OrderStatus;
-    subtotal: number;
-    shipping_cost: number;
-    taxes: number;
-    total_amount: number;
-    shipping_address: Address | null;
-    billing_address: Address | null;
-    payment_method: string | null;
-    payment_status: PaymentStatus | null;
-    user_id: string;
-    customer_name: string | null;
-    customer_email: string | null;
-    assigned_distributor_id?: string | null;
-    assigned_distributor_name?: string | null;
-    tracking_number?: string | null;
-    fulfillment_notes?: string | null;
-    fulfillment_photo_url?: string | null;
-    items: OrderItemDetails[];
-    orderHistory?: OrderHistory[];
+  id: number;
+  created_at: string;
+  status: OrderStatus;
+  subtotal: number;
+  shipping_cost: number;
+  taxes: number;
+  total_amount: number;
+  shipping_address: Address | null;
+  billing_address: Address | null;
+  payment_method: string | null;
+  payment_status: PaymentStatus | null;
+  user_id: string;
+  customer_name: string | null;
+  customer_email: string | null;
+  assigned_distributor_id?: string | null;
+  assigned_distributor_name?: string | null;
+  tracking_number?: string | null;
+  fulfillment_notes?: string | null;
+  fulfillment_photo_url?: string | null;
+  items: OrderItemDetails[];
+  orderHistory?: OrderHistory[];
 }
 
 // --- GET Handler ---
-export async function GET(
-    request: NextRequest,
-    { params }: { params: { orderId: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { orderId: string } }) {
   const { orderId: orderIdString } = params;
   const orderId = parseInt(orderIdString);
-  if (isNaN(orderId)) return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
+  if (isNaN(orderId))
+    return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
 
   try {
     // Verify admin authentication
@@ -67,72 +78,95 @@ export async function GET(
         FROM order_items oi JOIN products p ON oi.product_id = p.id
         WHERE oi.order_id = ${orderId}
     `;
-    // TODO: Fetch actual history when table exists
-    // const historyQuery = sql`SELECT ... FROM order_history WHERE order_id = ${orderId} ...`;
+    // Fetch order history
+    const historyQuery = sql`
+        SELECT
+            oh.status,
+            oh.notes,
+            oh.user_id,
+            oh.user_role,
+            oh.user_name,
+            oh.created_at as timestamp
+        FROM order_history oh
+        WHERE oh.order_id = ${orderId}
+        ORDER BY oh.created_at DESC
+    `;
 
-    const [orderResult, itemsResult] = await Promise.all([orderQuery, itemsQuery]);
+    const [orderResult, itemsResult, historyResult] = await Promise.all([
+      orderQuery,
+      itemsQuery,
+      historyQuery,
+    ]);
 
     if (orderResult.length === 0) {
-        return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
+      return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
     }
     const orderData = orderResult[0];
     const itemsData = itemsResult as OrderItemDetails[];
+    const historyData = historyResult as OrderHistory[];
 
     const responseData: AdminOrderDetailResponse = {
-        id: orderData.id,
-        created_at: orderData.created_at,
-        status: orderData.status,
-        subtotal: parseFloat(orderData.subtotal as string),
-        shipping_cost: parseFloat(orderData.shipping_cost as string),
-        taxes: parseFloat(orderData.taxes as string),
-        total_amount: parseFloat(orderData.total_amount as string),
-        shipping_address: orderData.shipping_address as Address | null,
-        billing_address: orderData.billing_address as Address | null,
-        payment_method: orderData.payment_method,
-        payment_status: orderData.payment_status,
-        user_id: orderData.user_id,
-        customer_name: orderData.customer_name,
-        customer_email: orderData.customer_email,
-        assigned_distributor_id: orderData.assigned_distributor_id,
-        assigned_distributor_name: orderData.assigned_distributor_name,
-        tracking_number: orderData.tracking_number,
-        fulfillment_notes: orderData.fulfillment_notes,
-        fulfillment_photo_url: orderData.fulfillment_photo_url,
-        items: itemsData,
-        orderHistory: [] // Assign placeholder empty array
+      id: orderData.id,
+      created_at: orderData.created_at,
+      status: orderData.status,
+      subtotal: parseFloat(orderData.subtotal as string),
+      shipping_cost: parseFloat(orderData.shipping_cost as string),
+      taxes: parseFloat(orderData.taxes as string),
+      total_amount: parseFloat(orderData.total_amount as string),
+      shipping_address: orderData.shipping_address as Address | null,
+      billing_address: orderData.billing_address as Address | null,
+      payment_method: orderData.payment_method,
+      payment_status: orderData.payment_status,
+      user_id: orderData.user_id,
+      customer_name: orderData.customer_name,
+      customer_email: orderData.customer_email,
+      assigned_distributor_id: orderData.assigned_distributor_id,
+      assigned_distributor_name: orderData.assigned_distributor_name,
+      tracking_number: orderData.tracking_number,
+      fulfillment_notes: orderData.fulfillment_notes,
+      fulfillment_photo_url: orderData.fulfillment_photo_url,
+      items: itemsData,
+      orderHistory: historyData,
     };
     return NextResponse.json(responseData);
-
   } catch (error: any) {
     console.error(`Admin: Failed to get order ${orderId}:`, error);
-    return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { message: error.message || 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }
 
 // --- PUT Handler ---
 export async function PUT(request: NextRequest, { params }: { params: { orderId: string } }) {
-    const { orderId: orderIdString } = params;
-    const orderId = parseInt(orderIdString);
-    if (isNaN(orderId)) return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
+  const { orderId: orderIdString } = params;
+  const orderId = parseInt(orderIdString);
+  if (isNaN(orderId))
+    return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
 
-    try {
-        // Verify admin authentication
-        const authResult = await verifyAdmin(request);
-        if (!authResult.isAuthenticated) {
-          return unauthorizedResponse(authResult.message);
-        }
-
-        // Check if user is an admin
-        if (authResult.role !== 'Admin') {
-          return forbiddenResponse('Only administrators can access this resource');
-        }
-
-        const body = await request.json();
-        console.log(`Admin PUT /api/admin/orders/${orderId} request by admin: ${authResult.userId}`, body);
-        return NextResponse.json({ message: `Order ${orderId} update placeholder successful` });
-    } catch (error: any) {
-        if (error instanceof SyntaxError) return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
-        console.error(`Admin: Failed to update order ${orderId}:`, error);
-        return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+  try {
+    // Verify admin authentication
+    const authResult = await verifyAdmin(request);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.message);
     }
+
+    // Check if user is an admin
+    if (authResult.role !== 'Admin') {
+      return forbiddenResponse('Only administrators can access this resource');
+    }
+
+    const body = await request.json();
+    console.log(
+      `Admin PUT /api/admin/orders/${orderId} request by admin: ${authResult.userId}`,
+      body
+    );
+    return NextResponse.json({ message: `Order ${orderId} update placeholder successful` });
+  } catch (error: any) {
+    if (error instanceof SyntaxError)
+      return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
+    console.error(`Admin: Failed to update order ${orderId}:`, error);
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+  }
 }
