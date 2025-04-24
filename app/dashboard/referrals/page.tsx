@@ -45,11 +45,11 @@ export default function ReferralsPage() {
   const [commissionSummary, setCommissionSummary] = useState<CommissionSummary>({
     totalEarned: 0,
     totalPaid: 0,
-    totalPending: 0
+    totalPending: 0,
   });
   const [referralSummary, setReferralSummary] = useState<ReferralSummary>({
     totalReferrals: 0,
-    totalCommission: 0
+    totalCommission: 0,
   });
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [referralLink, setReferralLink] = useState<string | null>(null);
@@ -78,7 +78,7 @@ export default function ReferralsPage() {
       try {
         // Fetch referral link
         const linkResponse = await fetch('/api/users/me/referral-link', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!linkResponse.ok) {
@@ -95,9 +95,12 @@ export default function ReferralsPage() {
         setReferralLink(linkData.referralLink);
 
         // Fetch commissions
-        const commissionsResponse = await fetch(`/api/users/me/commissions?page=${currentPage}&limit=10`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const commissionsResponse = await fetch(
+          `/api/users/me/commissions?page=${currentPage}&limit=10`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         if (!commissionsResponse.ok) {
           if (commissionsResponse.status === 401) {
@@ -110,16 +113,18 @@ export default function ReferralsPage() {
 
         const commissionsData = await commissionsResponse.json();
         setCommissions(commissionsData.commissions);
-        setCommissionSummary(commissionsData.summary || {
-          totalEarned: 0,
-          totalPaid: 0,
-          totalPending: 0
-        });
+        setCommissionSummary(
+          commissionsData.summary || {
+            totalEarned: 0,
+            totalPaid: 0,
+            totalPending: 0,
+          }
+        );
         setTotalPages(commissionsData.pagination?.totalPages || 1);
 
         // Fetch referrals
         const referralsResponse = await fetch('/api/users/me/referrals', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!referralsResponse.ok) {
@@ -133,11 +138,12 @@ export default function ReferralsPage() {
 
         const referralsData = await referralsResponse.json();
         setReferrals(referralsData.referrals);
-        setReferralSummary(referralsData.summary || {
-          totalReferrals: 0,
-          totalCommission: 0
-        });
-
+        setReferralSummary(
+          referralsData.summary || {
+            totalReferrals: 0,
+            totalCommission: 0,
+          }
+        );
       } catch (err: any) {
         console.error('Error loading referral data:', err);
         setError(err.message || 'Failed to load referral and commission data.');
@@ -173,7 +179,7 @@ export default function ReferralsPage() {
       <Layout>
         <div className="flex h-screen items-center justify-center">
           <div className="text-center">
-            <div className="mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-primary-600 mx-auto"></div>
+            <div className="border-primary-600 mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
             <p>Loading referral data...</p>
           </div>
         </div>
@@ -190,7 +196,11 @@ export default function ReferralsPage() {
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <div className="ml-3">
@@ -208,6 +218,7 @@ export default function ReferralsPage() {
         </div>
       </Layout>
     );
+  }
 
   return (
     <Layout>
@@ -220,7 +231,11 @@ export default function ReferralsPage() {
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <div className="ml-3">
@@ -237,14 +252,21 @@ export default function ReferralsPage() {
             {referralCode ? (
               <div>
                 <div className="mb-3 flex items-center">
-                  <p className="inline-block rounded bg-gray-100 p-3 font-mono text-lg">{referralCode}</p>
+                  <p className="inline-block rounded bg-gray-100 p-3 font-mono text-lg">
+                    {referralCode}
+                  </p>
                   <button
                     onClick={() => copyToClipboard(referralCode, 'code')}
                     className="ml-2 rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                     aria-label="Copy referral code"
                   >
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -259,8 +281,18 @@ export default function ReferralsPage() {
                         className="rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                         aria-label="Copy referral link"
                       >
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -276,11 +308,15 @@ export default function ReferralsPage() {
                   <div className="mt-2 grid grid-cols-2 gap-2">
                     <div className="rounded-md bg-gray-50 p-2 text-center">
                       <p className="text-xs text-gray-500">Total Referrals</p>
-                      <p className="text-lg font-semibold text-gray-800">{referralSummary.totalReferrals}</p>
+                      <p className="text-lg font-semibold text-gray-800">
+                        {referralSummary.totalReferrals}
+                      </p>
                     </div>
                     <div className="rounded-md bg-gray-50 p-2 text-center">
                       <p className="text-xs text-gray-500">Total Commission</p>
-                      <p className="text-lg font-semibold text-green-600">${referralSummary.totalCommission.toFixed(2)}</p>
+                      <p className="text-lg font-semibold text-green-600">
+                        ${referralSummary.totalCommission.toFixed(2)}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -295,20 +331,27 @@ export default function ReferralsPage() {
             <div className="grid grid-cols-3 gap-4">
               <div className="rounded-md bg-gray-50 p-4 text-center">
                 <p className="text-sm text-gray-500 uppercase">Total Earned</p>
-                <p className="text-2xl font-bold text-gray-800">${commissionSummary.totalEarned.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  ${commissionSummary.totalEarned.toFixed(2)}
+                </p>
               </div>
               <div className="rounded-md bg-green-50 p-4 text-center">
                 <p className="text-sm text-gray-500 uppercase">Pending Payout</p>
-                <p className="text-2xl font-bold text-green-600">${commissionSummary.totalPending.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">
+                  ${commissionSummary.totalPending.toFixed(2)}
+                </p>
               </div>
               <div className="rounded-md bg-blue-50 p-4 text-center">
                 <p className="text-sm text-gray-500 uppercase">Paid Out</p>
-                <p className="text-2xl font-bold text-blue-600">${commissionSummary.totalPaid.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  ${commissionSummary.totalPaid.toFixed(2)}
+                </p>
               </div>
             </div>
             <div className="mt-4 rounded-md bg-gray-50 p-3">
               <p className="text-sm text-gray-600">
-                <span className="font-medium">Payout Schedule:</span> Commissions are processed monthly and paid via e-Transfer to your registered email address.
+                <span className="font-medium">Payout Schedule:</span> Commissions are processed
+                monthly and paid via e-Transfer to your registered email address.
               </p>
             </div>
           </div>
@@ -321,42 +364,72 @@ export default function ReferralsPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Date</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Type</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Details</th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Amount</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  >
+                    Date
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  >
+                    Type
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  >
+                    Details
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  >
+                    Amount
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  >
+                    Status
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {commissions.length > 0 ? (
-                  commissions.map((comm) => (
+                  commissions.map(comm => (
                     <tr key={comm.id}>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
                         {new Date(comm.earnedDate).toLocaleDateString()}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{comm.type}</td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
+                        {comm.type}
+                      </td>
+                      <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
                         {comm.orderId && (
-                          <Link href={`/dashboard/orders/${comm.orderId}`} className="hover:underline">
+                          <Link
+                            href={`/dashboard/orders/${comm.orderId}`}
+                            className="hover:underline"
+                          >
                             Order #{comm.orderId.toString().split('-')[0]}
                           </Link>
                         )}
                         {comm.customerName && ` (Customer: ${comm.customerName})`}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-green-600">
+                      <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap text-green-600">
                         +${comm.amount.toFixed(2)}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4">
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                          className={`inline-flex rounded-full px-2 text-xs leading-5 font-semibold ${
                             comm.status === 'Paid'
                               ? 'bg-green-100 text-green-800'
                               : comm.status === 'Cancelled'
-                              ? 'bg-red-100 text-red-800'
-                              : comm.status === 'Approved'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-yellow-100 text-yellow-800'
+                                ? 'bg-red-100 text-red-800'
+                                : comm.status === 'Approved'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-yellow-100 text-yellow-800'
                           }`}
                         >
                           {comm.status}
@@ -407,7 +480,10 @@ export default function ReferralsPage() {
                   </p>
                 </div>
                 <div>
-                  <nav className="relative z-0 inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                  <nav
+                    className="relative z-0 inline-flex -space-x-px rounded-md shadow-sm"
+                    aria-label="Pagination"
+                  >
                     <button
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
@@ -435,7 +511,7 @@ export default function ReferralsPage() {
                           onClick={() => handlePageChange(pageNum)}
                           className={`relative inline-flex items-center border px-4 py-2 text-sm font-medium ${
                             currentPage === pageNum
-                              ? 'z-10 border-primary-500 bg-primary-50 text-primary-600'
+                              ? 'border-primary-500 bg-primary-50 text-primary-600 z-10'
                               : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'
                           }`}
                         >
@@ -462,7 +538,7 @@ export default function ReferralsPage() {
         <div className="overflow-hidden rounded-lg bg-white shadow-md">
           <div className="flex items-center justify-between border-b p-6">
             <h2 className="text-xl font-semibold text-gray-700">Your Referrals</h2>
-            <span className="rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-800">
+            <span className="bg-primary-100 text-primary-800 rounded-full px-3 py-1 text-sm font-medium">
               {referralSummary.totalReferrals} Total
             </span>
           </div>
@@ -470,20 +546,37 @@ export default function ReferralsPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Join Date</th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Total Sales</th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  >
+                    Name
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  >
+                    Join Date
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  >
+                    Total Sales
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {referrals.length > 0 ? (
-                  referrals.map((ref) => (
+                  referrals.map(ref => (
                     <tr key={ref.id}>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">{ref.name}</td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">
+                        {ref.name}
+                      </td>
+                      <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
                         {new Date(ref.joinDate).toLocaleDateString()}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm text-gray-500">
+                      <td className="px-6 py-4 text-right text-sm whitespace-nowrap text-gray-500">
                         ${ref.totalSales.toFixed(2)}
                       </td>
                     </tr>
@@ -491,7 +584,8 @@ export default function ReferralsPage() {
                 ) : (
                   <tr>
                     <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">
-                      You haven't referred anyone yet. Share your referral code to start earning commissions!
+                      You haven't referred anyone yet. Share your referral code to start earning
+                      commissions!
                     </td>
                   </tr>
                 )}
