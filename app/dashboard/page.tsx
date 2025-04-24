@@ -42,8 +42,16 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (authLoading) return;
+
+    // Prevent redirection loops by checking the current URL
+    const currentUrl = window.location.pathname;
+    const isDashboardPage = currentUrl === '/dashboard';
+
     if (!authUser || !token) {
-      router.push('/login');
+      // Only redirect if we're on the dashboard page
+      if (isDashboardPage) {
+        router.push('/login');
+      }
       return;
     }
 

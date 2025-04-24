@@ -105,27 +105,14 @@ export async function POST(request: Request) {
       role: user.role,
     };
 
-    // Set JWT token in an HttpOnly cookie for better security
+    // Return the token in the response body for the client to store in localStorage
     const response = NextResponse.json({
       message: 'Login successful',
       user: userResponse,
-      token: token, // Include token in response body for compatibility
+      token: token, // Include token in response body
     });
 
-    // Set secure HttpOnly cookie with the JWT token
-    // This prevents client-side JavaScript from accessing the token (XSS protection)
-    response.cookies.set({
-      name: 'auth_token',
-      value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Only send over HTTPS in production
-      sameSite: 'lax', // Changed from 'strict' to 'lax' to allow redirects
-      maxAge: 86400, // 1 day in seconds (matching JWT expiry)
-      path: '/', // Cookie is available for all routes
-    });
-
-    // Also send token in Authorization header
-    // The frontend should store this in memory (not localStorage) for API calls
+    // Also send token in Authorization header for immediate use
     response.headers.set('Authorization', `Bearer ${token}`);
 
     return response;

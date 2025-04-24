@@ -30,71 +30,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check authentication status on mount
+  // Check authentication status on mount - SIMPLIFIED VERSION
   useEffect(() => {
     console.log('AuthProvider useEffect: Checking authentication status...');
 
     const checkAuthStatus = async () => {
       try {
-        // Try to get user data from the server using the HttpOnly cookie
-        const response = await fetch('/api/users/me', {
-          method: 'GET',
-          credentials: 'include', // Important: includes cookies in the request
-        });
+        // Try to get user from localStorage first
+        const storedUser = localStorage.getItem('authUser');
+        const storedToken = localStorage.getItem('authToken');
 
-        if (response.ok) {
-          const userData = await response.json();
-          console.log('AuthProvider: User authenticated via cookie');
-
-          // Get token from Authorization header if available
-          const authHeader = response.headers.get('Authorization');
-          const tokenFromHeader = authHeader ? authHeader.replace('Bearer ', '') : null;
+        if (storedUser && storedToken) {
+          const userData = JSON.parse(storedUser);
+          console.log('AuthProvider: User found in localStorage');
 
           setUser(userData);
-          setToken(tokenFromHeader);
+          setToken(storedToken);
           setIsAuthenticated(true);
 
-          // Store user data in memory (not token)
-          try {
-            localStorage.setItem('authUser', JSON.stringify(userData));
-          } catch (error) {
-            console.error('Failed to save user data to localStorage:', error);
-          }
-        } else {
-          console.log('AuthProvider: User not authenticated');
-
-          // Try to get user from localStorage as fallback
-          try {
-            const storedUser = localStorage.getItem('authUser');
-            if (storedUser) {
-              const userData = JSON.parse(storedUser);
-
-              // Verify the stored user data with a server request
-              const verifyResponse = await fetch('/api/auth/verify', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ userId: userData.id }),
-                credentials: 'include',
-              });
-
-              if (verifyResponse.ok) {
-                console.log('AuthProvider: User verified from localStorage');
-                setUser(userData);
-                setIsAuthenticated(true);
-              } else {
-                console.log('AuthProvider: Stored user data invalid, clearing');
-                localStorage.removeItem('authUser');
-              }
-            }
-          } catch (error) {
-            console.error('Error checking localStorage user:', error);
-            localStorage.removeItem('authUser');
-          }
+          // Optionally verify with server in background, but don't block UI
+          fetch('/api/auth/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${storedToken}`,
+            },
+            body: JSON.stringify({ userId: userData.id }),
+          }).catch(err => {
+            console.warn('Background token verification failed:', err);
+            // We don't logout here to prevent disrupting the user experience
+            // The next API call that fails with 401 will trigger a logout
+          });
         }
       } catch (error) {
         console.error('Error checking authentication status:', error);
+        // Clear potentially corrupted storage
+        localStorage.removeItem('authUser');
+        localStorage.removeItem('authToken');
       } finally {
         setIsLoading(false);
       }
@@ -110,39 +82,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsAuthenticated(true);
 
     try {
-      // Only store user data, not the token (which is in HttpOnly cookie)
+      // Store both user data and token in localStorage
       localStorage.setItem('authUser', JSON.stringify(userData));
+      localStorage.setItem('authToken', token);
     } catch (error) {
-      console.error('Failed to save user data to localStorage:', error);
+      console.error('Failed to save auth data to localStorage:', error);
     }
   };
 
   const logout = async () => {
     console.log('AuthProvider logout: Clearing authentication state');
 
-    try {
-      // Call the logout API to clear the HttpOnly cookie
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        console.error('Error during logout API call:', await response.text());
-      }
-    } catch (error) {
-      console.error('Failed to call logout API:', error);
-    }
-
-    // Clear state regardless of API success
+    // Clear state immediately for better UX
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
 
     try {
+      // Clear localStorage
       localStorage.removeItem('authUser');
+      localStorage.removeItem('authToken');
     } catch (error) {
-      console.error('Failed to clear user data from localStorage:', error);
+      console.error('Failed to clear auth data from localStorage:', error);
+    }
+
+    // Call the logout API in the background
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Failed to call logout API:', error);
+      // Non-critical error, user is already logged out in the UI
     }
   };
 
@@ -153,6 +125,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const newUser = { ...prevUser, ...updatedData };
 
       try {
+        // Only update the user data in localStorage, keep the token as is
         localStorage.setItem('authUser', JSON.stringify(newUser));
       } catch (error) {
         console.error('Failed to update user in localStorage:', error);

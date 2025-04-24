@@ -5,7 +5,7 @@ export async function POST(request: Request) {
   // This endpoint exists mainly to potentially:
   // 1. Invalidate a refresh token if you implement a refresh token strategy.
   // 2. Add the JWT to a blacklist if you implement server-side revocation (more complex).
-  // 3. Clear HttpOnly cookies if the token is stored there.
+  // 3. Log the logout event for security auditing.
 
   try {
     console.log('Logout request received.');
@@ -13,17 +13,6 @@ export async function POST(request: Request) {
     // Create a response
     const response = NextResponse.json({
       message: 'Logged out successfully',
-    });
-
-    // Clear the auth token cookie
-    response.cookies.set({
-      name: 'auth_token',
-      value: '',
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 0, // Expire immediately
-      path: '/',
     });
 
     return response;

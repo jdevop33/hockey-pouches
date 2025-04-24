@@ -23,21 +23,16 @@ const ADMIN_ROLES = ['Admin'];
 const DISTRIBUTOR_ROLES = ['Distributor'];
 
 /**
- * Verify JWT token from request headers or cookies
+ * Verify JWT token from Authorization header
  * @param request NextRequest object
  * @returns AuthResult with authentication status and user info
  */
 export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
-  // Try to get token from Authorization header first
+  // Get token from Authorization header
   const authHeader = request.headers.get('authorization');
-  let token = authHeader?.split(' ')[1];
+  const token = authHeader?.split(' ')[1];
 
-  // If no token in header, try to get from cookies
-  if (!token) {
-    token = request.cookies.get('auth_token')?.value;
-  }
-
-  // If still no token, authentication fails
+  // If no token, authentication fails
   if (!token) {
     return {
       isAuthenticated: false,
