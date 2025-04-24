@@ -35,77 +35,64 @@ export async function GET(request: NextRequest) {
     // Fetch only active products, apply pagination
     // NOTE: Neon driver often returns numeric types as strings, hence the CAST to FLOAT.
     // Adjust casting based on actual return types if needed.
-    // Build the WHERE clause dynamically
-    let whereClause = 'WHERE is_active = TRUE';
-    const queryParams = [];
-    let paramIndex = 1;
+    // Build dynamic filter conditions for SQL tagged template
+    let conditions = [];
+    let filterParams = [];
 
     if (categoryFilter) {
-      whereClause += ` AND category = $${paramIndex++}`;
-      queryParams.push(categoryFilter);
+      conditions.push(`category = ${categoryFilter}`);
     }
 
     if (flavorFilter) {
-      whereClause += ` AND flavor = $${paramIndex++}`;
-      queryParams.push(flavorFilter);
+      conditions.push(`flavor = ${flavorFilter}`);
     }
 
     if (strengthFilter) {
-      whereClause += ` AND strength = $${paramIndex++}`;
-      queryParams.push(strengthFilter);
+      conditions.push(`strength = ${strengthFilter}`);
     }
 
     if (minPrice) {
-      whereClause += ` AND price >= $${paramIndex++}`;
-      queryParams.push(minPrice);
+      conditions.push(`price >= ${minPrice}`);
     }
 
     if (maxPrice) {
-      whereClause += ` AND price <= $${paramIndex++}`;
-      queryParams.push(maxPrice);
+      conditions.push(`price <= ${maxPrice}`);
     }
 
     if (searchTerm) {
-      whereClause += ` AND (name ILIKE $${paramIndex++} OR description ILIKE $${paramIndex++})`;
       const searchPattern = `%${searchTerm}%`;
-      queryParams.push(searchPattern, searchPattern);
+      conditions.push(`(name ILIKE ${searchPattern} OR description ILIKE ${searchPattern})`);
     }
 
-    // Build the ORDER BY clause
-    const orderClause = `ORDER BY ${finalSortBy} ${finalSortOrder}`;
+    // Combine all conditions
+    const whereClause =
+      conditions.length > 0
+        ? `WHERE is_active = TRUE AND ${conditions.join(' AND ')}`
+        : 'WHERE is_active = TRUE';
 
-    // Construct the full query
-    const productsQuery = {
-      text: `
+    // Execute queries concurrently
+    const [productsResult, totalResult] = await Promise.all([
+      sql`
         SELECT
             id, name, description, flavor, strength,
             CAST(price AS FLOAT) as price,
             CAST(compare_at_price AS FLOAT) as compare_at_price,
             image_url, category, is_active
         FROM products
-        ${whereClause}
-        ${orderClause}
-        LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+        ${sql.unsafe(whereClause)}
+        ORDER BY ${sql.unsafe(finalSortBy)} ${sql.unsafe(finalSortOrder)}
+        LIMIT ${limit} OFFSET ${offset}
       `,
-      values: [...queryParams, limit.toString(), offset.toString()],
-    };
-
-    // Fetch total count for pagination (apply same filters)
-    const totalQuery = {
-      text: `SELECT COUNT(*) FROM products ${whereClause}`,
-      values: queryParams,
-    };
-
-    // Execute queries concurrently
-    const [productsResult, totalResult] = await Promise.all([
-      sql.query(productsQuery),
-      sql.query(totalQuery),
+      sql`
+        SELECT COUNT(*) FROM products
+        ${sql.unsafe(whereClause)}
+      `,
     ]);
 
-    const totalProducts = parseInt(totalResult.rows[0].count as string);
+    const totalProducts = parseInt(totalResult[0].count as string);
     const totalPages = Math.ceil(totalProducts / limit);
 
-    const products = productsResult.rows as Product[]; // Assert type
+    const products = productsResult as Product[]; // Assert type
 
     console.log(`Fetched ${products.length} of ${totalProducts} products.`);
 
