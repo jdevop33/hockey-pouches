@@ -29,6 +29,14 @@ type CommissionSummary = {
   lastPayoutDate: string | null;
 };
 
+// Define commission type
+interface Commission {
+  id: string;
+  amount: string;
+  status: string;
+  updated_at: string;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const { user: authUser, token, isLoading: authLoading, logout } = useAuth();
@@ -111,25 +119,27 @@ export default function DashboardPage() {
 
             // Calculate total earned and pending payout
             const totalEarned = commissions.reduce(
-              (sum: number, commission: any) =>
+              (sum: number, commission: Commission) =>
                 commission.status !== 'Cancelled' ? sum + parseFloat(commission.amount) : sum,
               0
             );
 
             const pendingPayout = commissions.reduce(
-              (sum: number, commission: any) =>
+              (sum: number, commission: Commission) =>
                 commission.status === 'Pending' ? sum + parseFloat(commission.amount) : sum,
               0
             );
 
             // Find the most recent payout date
             const paidCommissions = commissions.filter(
-              (commission: any) => commission.status === 'Paid'
+              (commission: Commission) => commission.status === 'Paid'
             );
             const lastPayoutDate =
               paidCommissions.length > 0
                 ? new Date(
-                    Math.max(...paidCommissions.map((c: any) => new Date(c.updated_at).getTime()))
+                    Math.max(
+                      ...paidCommissions.map((c: Commission) => new Date(c.updated_at).getTime())
+                    )
                   )
                     .toISOString()
                     .split('T')[0]
@@ -146,7 +156,7 @@ export default function DashboardPage() {
           // Set default values if commission fetch fails
           setCommissions({ totalEarned: 0, pendingPayout: 0, lastPayoutDate: null });
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError('Failed to load dashboard data.');
         console.error(err);
       } finally {
@@ -216,7 +226,7 @@ export default function DashboardPage() {
             )}
             <Link
               href="/dashboard/orders"
-              className="text-primary-600 hover:text-primary-700 mt-4 inline-block font-medium"
+              className="mt-4 inline-block font-medium text-primary-600 hover:text-primary-700"
             >
               View All Orders &rarr;
             </Link>
@@ -260,13 +270,16 @@ export default function DashboardPage() {
                   </button>
                 </div>
 
-                <p className="mt-4 mb-1 text-gray-600">Your Referral Link:</p>
+                <p className="mb-1 mt-4 text-gray-600">Your Referral Link:</p>
                 <div className="flex items-center">
                   <input
                     type="text"
                     readOnly
                     value={`${typeof window !== 'undefined' ? window.location.origin : ''}/register?ref=${profile.referral_code}`}
                     className="w-full rounded-l bg-gray-100 p-2 text-sm text-gray-800"
+                    aria-label="Your referral link"
+                    title="Your personal referral link"
+                    placeholder="Your referral link"
                   />
                   <button
                     onClick={() => {
@@ -322,7 +335,7 @@ export default function DashboardPage() {
             )}
             <Link
               href="/dashboard/referrals"
-              className="text-primary-600 hover:text-primary-700 mt-4 inline-block font-medium"
+              className="mt-4 inline-block font-medium text-primary-600 hover:text-primary-700"
             >
               View Commission Details &rarr;
             </Link>
@@ -335,7 +348,7 @@ export default function DashboardPage() {
               <li>
                 <Link
                   href="/dashboard/profile"
-                  className="text-primary-600 hover:text-primary-700 font-medium"
+                  className="font-medium text-primary-600 hover:text-primary-700"
                 >
                   Manage Profile
                 </Link>
@@ -343,7 +356,7 @@ export default function DashboardPage() {
               <li>
                 <Link
                   href="/dashboard/profile#addresses"
-                  className="text-primary-600 hover:text-primary-700 font-medium"
+                  className="font-medium text-primary-600 hover:text-primary-700"
                 >
                   Manage Addresses
                 </Link>

@@ -1,0 +1,4 @@
+# Ignore CommonJS files
+*.cjs
+node_modules
+.next 

@@ -97,8 +97,10 @@ export default function LoginPage() {
         console.error('Auth header:', authHeader);
         throw new Error('Login response missing user data or token.');
       }
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred.');
+    } catch (err: unknown) {
+      // Type guard to handle the error safely
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -115,18 +117,15 @@ export default function LoginPage() {
 
   return (
     <Layout>
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12">
-        <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-lg">
+      <div className="flex min-h-screen items-center justify-center py-12">
+        <div className="border-gold-subtle w-full max-w-md space-y-8 rounded-lg border bg-secondary-900 p-8 shadow-lg">
           <div>
-            <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900">
+            <h2 className="text-center text-3xl font-bold tracking-tight text-gold-500">
               Sign in to your Account
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
+            <p className="mt-2 text-center text-sm text-gray-300">
               Or{' '}
-              <Link
-                href="/register"
-                className="text-primary-600 hover:text-primary-500 font-medium"
-              >
+              <Link href="/register" className="font-medium text-gold-500 hover:text-gold-400">
                 create a new account
               </Link>
             </p>
@@ -176,7 +175,11 @@ export default function LoginPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center">{/* Optional: Remember me checkbox */}</div>
-              <div className="text-sm">{/* Optional: Forgot password link */}</div>
+              <div className="text-sm">
+                <Link href="/reset-password" className="text-gold-500 hover:text-gold-400">
+                  Forgot your password?
+                </Link>
+              </div>
             </div>
 
             <div>

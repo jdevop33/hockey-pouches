@@ -89,7 +89,7 @@ export default function AccountPage() {
                       id="email"
                       name="email"
                       type="email"
-                      autoComplete="email"
+                      autoComplete="username email"
                       required
                       value={email}
                       onChange={e => setEmail(e.target.value)}
@@ -191,6 +191,8 @@ export default function AccountPage() {
                       <a
                         href="#"
                         className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 shadow-sm hover:bg-gray-50"
+                        aria-label="Sign in with Twitter"
+                        title="Sign in with Twitter"
                       >
                         <svg
                           className="h-5 w-5"
@@ -207,6 +209,8 @@ export default function AccountPage() {
                       <a
                         href="#"
                         className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 shadow-sm hover:bg-gray-50"
+                        aria-label="Sign in with GitHub"
+                        title="Sign in with GitHub"
                       >
                         <svg
                           className="h-5 w-5"

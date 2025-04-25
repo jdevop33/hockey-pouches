@@ -31,6 +31,14 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://nicotinetins.com',
   },
+  icons: {
+    icon: [
+      { url: '/images/logo/logo3.svg', sizes: 'any' },
+      { url: '/images/logo/logo3.svg', sizes: '64x64', type: 'image/svg+xml' },
+      { url: '/images/logo/logo3.svg', sizes: '48x48', type: 'image/svg+xml' },
+    ],
+    apple: [{ url: '/images/logo/logo3.svg', sizes: '256x256' }],
+  },
   openGraph: {
     title: 'Nicotine Tins - Premium Nicotine Pouches by Hockey Puxx | Best in Canada',
     description:
@@ -78,12 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* ... (keep existing head content) ... */}
         <link rel="canonical" href="https://nicotinetins.com" />
-        <link rel="icon" href="/images/logo/logo3.svg" sizes="any" />
-        <link rel="apple-touch-icon" href="/images/logo/logo3.svg" sizes="256x256" />
-        <link rel="icon" type="image/svg+xml" sizes="64x64" href="/images/logo/logo3.svg" />
-        <link rel="icon" type="image/svg+xml" sizes="48x48" href="/images/logo/logo3.svg" />
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -96,7 +99,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:creator" content="@nicotinetins" />
         <meta name="twitter:site" content="@nicotinetins" />
-        <meta name="theme-color" content="#0F172A" />
         <meta name="msapplication-TileColor" content="#0F172A" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -207,8 +209,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className={`${inter.variable} font-sans`} suppressHydrationWarning>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <body
+        className={`${inter.variable} bg-[#05050f] font-sans text-white`}
+        suppressHydrationWarning
+      >
+        <ThemeProvider>
           <AuthProvider>
             <ToastProvider>
               <CsrfProvider>

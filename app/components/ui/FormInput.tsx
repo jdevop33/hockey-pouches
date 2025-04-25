@@ -60,7 +60,7 @@ const FormInput: React.FC<FormInputProps> = ({
     if (!validate) return;
 
     const result = validate(inputValue);
-    
+
     if (typeof result === 'boolean') {
       setLocalError(result ? '' : 'Invalid input');
     } else {
@@ -72,7 +72,7 @@ const FormInput: React.FC<FormInputProps> = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsDirty(true);
     onChange(e);
-    
+
     if (validateOnChange && touched) {
       validateInput(e.target.value);
     }
@@ -81,11 +81,11 @@ const FormInput: React.FC<FormInputProps> = ({
   // Handle input blur
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setTouched(true);
-    
+
     if (validateOnBlur) {
       validateInput(e.target.value);
     }
-    
+
     if (onBlur) {
       onBlur(e);
     }
@@ -100,15 +100,21 @@ const FormInput: React.FC<FormInputProps> = ({
 
   return (
     <div className={`mb-4 ${className}`}>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={id} className="mb-1 block text-sm font-medium text-gold-500">
         {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
+        {required && <span className="ml-1 text-red-500">*</span>}
       </label>
       <input
         id={id}
         name={name}
         type={type}
-        value={value}
+        className={`${
+          displayError
+            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/25'
+            : 'border-gold-subtle focus:border-gold focus:ring-gold-500/20'
+        } ${
+          disabled ? 'cursor-not-allowed' : ''
+        } w-full rounded-md bg-slate-900 text-white shadow-sm focus:ring-2 focus:ring-opacity-20 sm:text-sm`}
         onChange={handleChange}
         onBlur={handleBlur}
         placeholder={placeholder}
@@ -119,16 +125,9 @@ const FormInput: React.FC<FormInputProps> = ({
         max={max}
         step={step}
         pattern={pattern}
-        className={`w-full rounded-md shadow-sm ${
-          displayError
-            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-            : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
-        } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
         {...props}
       />
-      {displayError && (
-        <p className="mt-1 text-sm text-red-600">{displayError}</p>
-      )}
+      {displayError && <p className="mt-1 text-sm text-red-400">{displayError}</p>}
     </div>
   );
 };

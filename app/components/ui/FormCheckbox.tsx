@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface FormCheckboxProps {
   id: string;
@@ -42,23 +42,26 @@ const FormCheckbox: React.FC<FormCheckboxProps> = ({
   const displayError = error || localError;
 
   // Validate the checkbox state
-  const validateCheckbox = (isChecked: boolean) => {
-    if (!validate) return;
+  const validateCheckbox = useCallback(
+    (isChecked: boolean) => {
+      if (!validate) return;
 
-    const result = validate(isChecked);
-    
-    if (typeof result === 'boolean') {
-      setLocalError(result ? '' : required ? 'This field is required' : 'Invalid selection');
-    } else {
-      setLocalError(result.isValid ? '' : result.message);
-    }
-  };
+      const result = validate(isChecked);
+
+      if (typeof result === 'boolean') {
+        setLocalError(result ? '' : required ? 'This field is required' : 'Invalid selection');
+      } else {
+        setLocalError(result.isValid ? '' : result.message);
+      }
+    },
+    [validate, required, setLocalError]
+  );
 
   // Handle checkbox change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsDirty(true);
     onChange(e);
-    
+
     if (validateOnChange && touched) {
       validateCheckbox(e.target.checked);
     }
@@ -67,11 +70,11 @@ const FormCheckbox: React.FC<FormCheckboxProps> = ({
   // Handle checkbox blur
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setTouched(true);
-    
+
     if (validateOnBlur) {
       validateCheckbox(e.target.checked);
     }
-    
+
     if (onBlur) {
       onBlur(e);
     }
@@ -82,12 +85,12 @@ const FormCheckbox: React.FC<FormCheckboxProps> = ({
     if (touched && isDirty && validateOnChange) {
       validateCheckbox(checked);
     }
-  }, [checked, touched, isDirty, validateOnChange]);
+  }, [checked, touched, isDirty, validateOnChange, validateCheckbox]);
 
   return (
     <div className={`mb-4 ${className}`}>
       <div className="flex items-start">
-        <div className="flex items-center h-5">
+        <div className="flex h-5 items-center">
           <input
             id={id}
             name={name}
@@ -99,22 +102,23 @@ const FormCheckbox: React.FC<FormCheckboxProps> = ({
             disabled={disabled}
             className={`h-4 w-4 rounded ${
               displayError
-                ? 'border-red-300 text-red-600 focus:ring-red-500'
-                : 'border-gray-300 text-indigo-600 focus:ring-indigo-500'
-            } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                ? 'border-red-500 text-red-600 focus:ring-red-500'
+                : 'border-gold-subtle text-gold-500 focus:ring-gold-500/20'
+            } ${disabled ? 'cursor-not-allowed bg-secondary-800' : 'bg-secondary-900'}`}
             {...props}
           />
         </div>
         <div className="ml-3 text-sm">
-          <label htmlFor={id} className={`font-medium ${displayError ? 'text-red-700' : 'text-gray-700'}`}>
+          <label
+            htmlFor={id}
+            className={`font-medium ${displayError ? 'text-red-400' : 'text-gold-500'}`}
+          >
             {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
+            {required && <span className="ml-1 text-red-500">*</span>}
           </label>
         </div>
       </div>
-      {displayError && (
-        <p className="mt-1 text-sm text-red-600">{displayError}</p>
-      )}
+      {displayError && <p className="mt-1 text-sm text-red-400">{displayError}</p>}
     </div>
   );
 };

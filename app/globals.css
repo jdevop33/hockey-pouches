@@ -1,10 +1,16 @@
-@import 'tailwindcss';
-@import 'tailwindcss/preflight';
-@import 'tailwindcss/utilities';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
+  --foreground-rgb: 255, 255, 255;
+  --background-rgb: 5, 5, 15;
+  --primary-gold: 212, 175, 55; /* Classic gold - d4af37 */
+  --accent-gold: 255, 215, 0; /* Pure gold - ffd700 */
+  --luxury-gold: 184, 134, 11; /* Darker gold - b8860b */
+  --dark-blue: 15, 23, 42;
+  --dark-bg: 5, 5, 15;
+  --gold-glow: 0 0 10px rgba(212, 175, 55, 0.3);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -14,35 +20,347 @@
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
-}
-
-/* Mobile optimizations */
-@media (max-width: 640px) {
-  html {
-    font-size: 14px;
+@layer base {
+  /* Apply dark theme by default to html and body elements */
+  html,
+  body {
+    color: rgb(var(--foreground-rgb));
+    background: rgb(var(--background-rgb));
+    min-height: 100vh;
   }
 
-  /* Improve tap targets */
+  /* Fix the scrollbar to match the dark theme */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgb(var(--dark-bg));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(var(--primary-gold), 0.5);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--primary-gold), 0.7);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: rgb(var(--primary-gold));
+    font-weight: 600;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-size: 2rem;
+    line-height: 1.3;
+    margin-bottom: 0.75rem;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+  }
+}
+
+@layer components {
+  /* Premium container with subtle gold border */
+  .luxury-container {
+    background-color: rgba(15, 15, 25, 0.8);
+    border: 1px solid rgba(var(--primary-gold), 0.3);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.25),
+      inset 0 0 0 1px rgba(var(--primary-gold), 0.05);
+  }
+
+  /* For all buttons, add a gold hover effect */
   button,
-  a,
-  input[type='button'],
-  input[type='submit'] {
-    min-height: 44px;
-    min-width: 44px;
+  .button,
+  a.button,
+  [type='button'],
+  [type='submit'] {
+    @apply border text-white;
+    border-color: rgba(var(--primary-gold), 0.5);
+    background-color: #1e293b; /* secondary-900 equivalent */
+    transition: all 0.2s ease-in-out;
   }
 
-  /* Prevent zoom on form inputs in iOS */
+  button:hover,
+  .button:hover,
+  a.button:hover,
+  [type='button']:hover,
+  [type='submit']:hover {
+    background-color: rgba(var(--dark-bg), 0.9);
+    box-shadow: var(--gold-glow);
+    border-color: rgb(var(--accent-gold));
+    transform: translateY(-1px);
+  }
+
+  button:active,
+  .button:active,
+  a.button:active,
+  [type='button']:active,
+  [type='submit']:active {
+    transform: translateY(0);
+  }
+
+  /* Gold accents for links */
+  a:not(.button) {
+    color: rgb(var(--primary-gold));
+    transition: all 0.2s ease-in-out;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+
+  a:not(.button):hover {
+    color: rgb(var(--accent-gold));
+    text-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
+  }
+
+  /* Gold borders and inputs */
   input,
-  select,
+  textarea,
+  select {
+    @apply border text-white;
+    border-color: rgba(var(--primary-gold), 0.3);
+    background-color: #1e293b; /* secondary-900 equivalent */
+  }
+
+  /* Ensure input placeholder text is visible */
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-gray-400;
+  }
+
+  /* Ensure inputs have proper contrast */
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  input[type='number'],
+  input[type='search'],
+  input[type='tel'],
+  input[type='url'],
   textarea {
-    font-size: 16px;
+    @apply border text-white;
+    border-color: rgba(var(--primary-gold), 0.3);
+    background-color: #1e293b; /* secondary-900 equivalent */
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: rgb(var(--primary-gold));
+    box-shadow: var(--gold-glow);
+    outline: none;
+  }
+
+  /* Card styling */
+  .card {
+    background-color: #1e293b; /* secondary-900 equivalent */
+    border: 1px solid rgba(var(--primary-gold), 0.2);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow:
+      0 10px 25px -5px rgba(0, 0, 0, 0.3),
+      0 0 10px rgba(var(--primary-gold), 0.2);
+  }
+
+  /* Gold highlight text */
+  .gold-text {
+    color: rgb(var(--primary-gold));
+  }
+
+  .accent-gold-text {
+    color: rgb(var(--accent-gold));
+  }
+
+  /* Loading spinner with gold accents */
+  .loader {
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-left: 4px solid rgb(var(--primary-gold));
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+  }
+
+  /* Cart badge animation */
+  .cart-badge-added {
+    animation: pulse 0.5s ease-in-out;
+  }
+
+  /* Gold pulse effect */
+  .gold-pulse {
+    animation: goldPulse 2s infinite;
+  }
+
+  /* Gold text gradient effect */
+  .gold-gradient-text {
+    background: linear-gradient(45deg, #d4af37, #ffd700, #b8860b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: goldShift 5s ease infinite;
+  }
+
+  /* Custom text shadows */
+  .text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .text-shadow-xs {
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  }
+
+  .text-shadow-gold {
+    text-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
   }
 }
 
-/* Cart badge animation */
+@layer utilities {
+  /* Mobile optimizations */
+  @media (max-width: 640px) {
+    html {
+      font-size: 14px;
+    }
+
+    /* Improve tap targets */
+    button,
+    a,
+    input[type='button'],
+    input[type='submit'] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* Prevent zoom on form inputs in iOS */
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
+
+  /* Gold border utilities */
+  .border-gold {
+    border-color: rgb(var(--primary-gold));
+  }
+
+  .border-gold-light {
+    border-color: rgba(var(--primary-gold), 0.5);
+  }
+
+  .border-gold-subtle {
+    border-color: rgba(var(--primary-gold), 0.2);
+  }
+
+  /* Additional gold opacity variants */
+  .border-gold-500\/10 {
+    border-color: rgba(var(--primary-gold), 0.1);
+  }
+
+  .border-gold-500\/20 {
+    border-color: rgba(var(--primary-gold), 0.2);
+  }
+
+  .border-gold-500\/30 {
+    border-color: rgba(var(--primary-gold), 0.3);
+  }
+
+  .border-gold-500\/40 {
+    border-color: rgba(var(--primary-gold), 0.4);
+  }
+
+  .border-gold-500\/50 {
+    border-color: rgba(var(--primary-gold), 0.5);
+  }
+
+  .border-gold-500\/60 {
+    border-color: rgba(var(--primary-gold), 0.6);
+  }
+
+  .focus\:border-gold-500:focus {
+    border-color: rgb(var(--primary-gold));
+  }
+
+  .focus\:ring-gold-500\/20:focus {
+    --tw-ring-color: rgba(var(--primary-gold), 0.2);
+  }
+
+  .hover\:border-gold-500:hover {
+    border-color: rgb(var(--primary-gold));
+  }
+
+  .hover\:border-gold-500\/60:hover {
+    border-color: rgba(var(--primary-gold), 0.6);
+  }
+
+  /* Add additional utility classes for theme support */
+  .hover\:text-primary-600:hover {
+    color: rgb(var(--primary-gold));
+  }
+
+  .hover\:bg-primary-700:hover {
+    background-color: rgb(184, 134, 11); /* luxury-gold */
+  }
+
+  .text-primary-600 {
+    color: rgb(var(--primary-gold));
+  }
+
+  .dark\:text-primary-400 {
+    color: rgb(var(--accent-gold));
+  }
+
+  .dark\:bg-primary-700 {
+    background-color: rgb(184, 134, 11); /* luxury-gold */
+  }
+
+  .dark\:hover\:text-primary-400:hover {
+    color: rgb(var(--accent-gold));
+  }
+
+  .dark\:hover\:bg-primary-600:hover {
+    background-color: rgb(var(--primary-gold));
+  }
+
+  .bg-primary-600 {
+    background-color: rgb(var(--primary-gold));
+  }
+}
+
+/* Animations */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes pulse {
   0% {
     transform: scale(1);
@@ -55,15 +373,26 @@ body {
   }
 }
 
-.cart-badge-added {
-  animation: pulse 0.5s ease-in-out;
+@keyframes goldPulse {
+  0% {
+    box-shadow: 0 0 5px rgba(212, 175, 55, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(212, 175, 55, 0.2);
+  }
 }
 
-/* Text shadow utilities */
-.text-shadow-sm {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.text-shadow-xs {
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+@keyframes goldShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }

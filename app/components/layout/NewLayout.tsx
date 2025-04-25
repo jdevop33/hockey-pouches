@@ -1,8 +1,7 @@
 'use client';
 
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation'; // Added useRouter
 import CartIcon from '../cart/CartIcon';
 import Logo from '../ui/Logo';
@@ -21,6 +20,12 @@ const Navigation: React.FC = () => {
   const router = useRouter(); // For redirect after logout
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, logout, isLoading: authIsLoading } = useAuth(); // Get auth state and functions
+  const [mounted, setMounted] = useState(false);
+
+  // Add useEffect to handle client-side rendering
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -38,7 +43,7 @@ const Navigation: React.FC = () => {
     { href: '/contact', label: 'Contact' },
   ];
 
-  let dynamicNavItems: NavItem[] = [...baseNavItems];
+  const dynamicNavItems: NavItem[] = [...baseNavItems];
   if (user) {
     // Add dashboard links based on role
     if (user.role === 'Admin') {
@@ -73,6 +78,44 @@ const Navigation: React.FC = () => {
     return true;
   });
 
+  // Only render dynamic content after component is mounted
+  if (!mounted) {
+    return (
+      <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-28 items-center justify-between">
+            <div className="flex-shrink-0">
+              <Logo size="large" />
+            </div>
+            <div className="hidden md:block">
+              <div className="ml-10 flex items-center space-x-4">
+                {/* Static placeholder links with consistent styling */}
+                {baseNavItems.map(item => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+                <div className="ml-4 flex items-center space-x-4">
+                  {/* Placeholder for ThemeToggle and CartIcon */}
+                  <div className="h-6 w-6"></div>
+                  <div className="h-6 w-6"></div>
+                </div>
+              </div>
+            </div>
+            <div className="flex md:hidden">
+              {/* Placeholder for mobile menu toggle */}
+              <div className="h-6 w-6"></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
   return (
     <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
       {/* Desktop navigation */}
@@ -94,8 +137,8 @@ const Navigation: React.FC = () => {
                     // Handle potential dashboard parent paths for active state
                     pathname === item.href ||
                     (item.href.includes('dashboard') && pathname.startsWith(item.href))
-                      ? 'text-primary-600 dark:text-primary-400 font-semibold'
-                      : 'hover:text-primary-600 dark:hover:text-primary-400 text-gray-700 dark:text-gray-300'
+                      ? 'font-semibold text-primary-600 dark:text-primary-400'
+                      : 'text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400'
                   }`}
                 >
                   {item.label}
@@ -115,7 +158,7 @@ const Navigation: React.FC = () => {
                     </span>
                     <button
                       onClick={handleLogout}
-                      className="hover:text-primary-600 dark:hover:text-primary-400 rounded-md px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+                      className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400"
                     >
                       Logout
                     </button>
@@ -123,7 +166,7 @@ const Navigation: React.FC = () => {
                 ) : (
                   <Link
                     href="/login" // Changed from /account to /login
-                    className="bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 flex items-center rounded-md px-3 py-2 text-sm font-medium text-white"
+                    className="flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -150,7 +193,7 @@ const Navigation: React.FC = () => {
             <CartIcon />
             <button
               type="button"
-              className="focus:ring-primary-500 ml-4 inline-flex items-center justify-center rounded-md bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 focus:ring-2 focus:outline-none dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              className="ml-4 inline-flex items-center justify-center rounded-md bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {/* ... menu icon ... */}
@@ -196,7 +239,7 @@ const Navigation: React.FC = () => {
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden">
-          <div className="space-y-1 border-t border-gray-200 bg-white px-2 pt-2 pb-3 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+          <div className="space-y-1 border-t border-gray-200 bg-white px-2 pb-3 pt-2 shadow-lg dark:border-gray-700 dark:bg-gray-900">
             {visibleNavItems.map(item => (
               <Link
                 key={item.href}
@@ -204,8 +247,8 @@ const Navigation: React.FC = () => {
                 className={`block rounded-md px-3 py-2 text-base font-medium ${
                   pathname === item.href ||
                   (item.href.includes('dashboard') && pathname.startsWith(item.href))
-                    ? 'text-primary-600 dark:text-primary-400 bg-gray-100 font-semibold dark:bg-gray-800'
-                    : 'hover:text-primary-600 dark:hover:text-primary-400 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+                    ? 'bg-gray-100 font-semibold text-primary-600 dark:bg-gray-800 dark:text-primary-400'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-primary-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-primary-400'
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -232,7 +275,7 @@ const Navigation: React.FC = () => {
               ) : (
                 <Link
                   href="/login"
-                  className="bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 block w-full rounded-md px-3 py-2 text-center text-base font-medium text-white"
+                  className="block w-full rounded-md bg-primary-600 px-3 py-2 text-center text-base font-medium text-white hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Sign In
@@ -249,6 +292,33 @@ const Navigation: React.FC = () => {
 const Footer: React.FC = () => {
   // Get auth context for the footer
   const { user } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  // Add useEffect to handle client-side rendering
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Use a simplified footer for server rendering to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <footer className="bg-gray-800 py-8 text-white dark:bg-gray-950">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div>
+              <h3 className="mb-4 text-lg font-semibold">Nicotine Tins</h3>
+            </div>
+            <div>
+              <h3 className="mb-4 text-lg font-semibold">Quick Links</h3>
+            </div>
+            <div>
+              <h3 className="mb-4 text-lg font-semibold">Contact Us</h3>
+            </div>
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer className="bg-gray-800 py-8 text-white dark:bg-gray-950">
@@ -340,6 +410,7 @@ const Footer: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-white"
+                aria-label="Follow us on Facebook"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path
@@ -354,6 +425,7 @@ const Footer: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-white"
+                aria-label="Follow us on Instagram"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path

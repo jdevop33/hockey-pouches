@@ -8,7 +8,7 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "noEmit": true,
     "incremental": true,
     "module": "esnext",
@@ -22,18 +22,21 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".", 
-    "paths": {       
-      "@/*": ["app/*"] // Changed: Maps @/ to the app directory
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "app/*"
+      ] // Changed: Maps @/ to the app directory
     }
   },
   "include": [
-    "next-env.d.ts",
-    ".next/types/**/*.ts",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "next-env.d.ts",
+    ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next"
   ]
 }

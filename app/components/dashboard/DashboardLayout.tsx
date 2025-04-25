@@ -255,7 +255,10 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       {/* Mobile header */}
       <div className="flex items-center justify-between border-b bg-white p-4 md:hidden">
         <span className="text-xl font-semibold">Hockey Puxx</span>
-        <button className="rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500">
+        <button
+          className="rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
+          aria-label="Toggle mobile menu"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-6 w-6"

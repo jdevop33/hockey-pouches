@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface Option {
   value: string;
@@ -51,23 +51,26 @@ const FormSelect: React.FC<FormSelectProps> = ({
   const displayError = error || localError;
 
   // Validate the select value
-  const validateSelect = (selectValue: string) => {
-    if (!validate) return;
+  const validateSelect = useCallback(
+    (selectValue: string) => {
+      if (!validate) return;
 
-    const result = validate(selectValue);
-    
-    if (typeof result === 'boolean') {
-      setLocalError(result ? '' : 'Please select a valid option');
-    } else {
-      setLocalError(result.isValid ? '' : result.message);
-    }
-  };
+      const result = validate(selectValue);
+
+      if (typeof result === 'boolean') {
+        setLocalError(result ? '' : 'Please select a valid option');
+      } else {
+        setLocalError(result.isValid ? '' : result.message);
+      }
+    },
+    [validate, setLocalError]
+  );
 
   // Handle select change
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setIsDirty(true);
     onChange(e);
-    
+
     if (validateOnChange && touched) {
       validateSelect(e.target.value);
     }
@@ -76,11 +79,11 @@ const FormSelect: React.FC<FormSelectProps> = ({
   // Handle select blur
   const handleBlur = (e: React.FocusEvent<HTMLSelectElement>) => {
     setTouched(true);
-    
+
     if (validateOnBlur) {
       validateSelect(e.target.value);
     }
-    
+
     if (onBlur) {
       onBlur(e);
     }
@@ -91,13 +94,13 @@ const FormSelect: React.FC<FormSelectProps> = ({
     if (touched && isDirty && validateOnChange) {
       validateSelect(value);
     }
-  }, [value, touched, isDirty, validateOnChange]);
+  }, [value, touched, isDirty, validateOnChange, validateSelect]);
 
   return (
     <div className={`mb-4 ${className}`}>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={id} className="mb-1 block text-sm font-medium text-gray-700">
         {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
+        {required && <span className="ml-1 text-red-500">*</span>}
       </label>
       <select
         id={id}
@@ -109,9 +112,9 @@ const FormSelect: React.FC<FormSelectProps> = ({
         disabled={disabled}
         className={`w-full rounded-md shadow-sm ${
           displayError
-            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-            : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
-        } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/25'
+            : 'border-gold-500 focus:border-gold-500 focus:ring-gold-500/20'
+        } ${disabled ? 'cursor-not-allowed' : ''} bg-slate-900 text-white focus:ring-2 focus:ring-opacity-20 sm:text-sm`}
         {...props}
       >
         {placeholder && (
@@ -119,14 +122,16 @@ const FormSelect: React.FC<FormSelectProps> = ({
             {placeholder}
           </option>
         )}
-        {options.map((option) => (
+        {options.map(option => (
           <option key={option.value} value={option.value}>
             {option.label}
           </option>
         ))}
       </select>
       {displayError && (
-        <p className="mt-1 text-sm text-red-600">{displayError}</p>
+        <p className="mt-1 text-sm text-red-400" id={`${id}-error`}>
+          {displayError}
+        </p>
       )}
     </div>
   );

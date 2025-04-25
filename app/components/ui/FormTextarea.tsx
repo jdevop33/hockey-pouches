@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface FormTextareaProps {
   id: string;
@@ -43,34 +43,33 @@ const FormTextarea: React.FC<FormTextareaProps> = ({
   const [localError, setLocalError] = useState<string>('');
   const [touched, setTouched] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
-  const [charCount, setCharCount] = useState(0);
+  const [charCount, setCharCount] = useState(value.length);
 
   // Use provided error or local validation error
   const displayError = error || localError;
 
-  // Update character count when value changes
-  useEffect(() => {
-    setCharCount(value.length);
-  }, [value]);
-
   // Validate the textarea value
-  const validateTextarea = (textareaValue: string) => {
-    if (!validate) return;
+  const validateTextarea = useCallback(
+    (textValue: string) => {
+      if (!validate) return;
 
-    const result = validate(textareaValue);
-    
-    if (typeof result === 'boolean') {
-      setLocalError(result ? '' : 'Invalid input');
-    } else {
-      setLocalError(result.isValid ? '' : result.message);
-    }
-  };
+      const result = validate(textValue);
+
+      if (typeof result === 'boolean') {
+        setLocalError(result ? '' : 'Invalid input');
+      } else {
+        setLocalError(result.isValid ? '' : result.message);
+      }
+    },
+    [validate, setLocalError]
+  );
 
   // Handle textarea change
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setIsDirty(true);
+    setCharCount(e.target.value.length);
     onChange(e);
-    
+
     if (validateOnChange && touched) {
       validateTextarea(e.target.value);
     }
@@ -79,11 +78,11 @@ const FormTextarea: React.FC<FormTextareaProps> = ({
   // Handle textarea blur
   const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
     setTouched(true);
-    
+
     if (validateOnBlur) {
       validateTextarea(e.target.value);
     }
-    
+
     if (onBlur) {
       onBlur(e);
     }
@@ -94,17 +93,18 @@ const FormTextarea: React.FC<FormTextareaProps> = ({
     if (touched && isDirty && validateOnChange) {
       validateTextarea(value);
     }
-  }, [value, touched, isDirty, validateOnChange]);
+    setCharCount(value.length);
+  }, [value, touched, isDirty, validateOnChange, validateTextarea]);
 
   return (
     <div className={`mb-4 ${className}`}>
-      <div className="flex justify-between items-center mb-1">
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+      <div className="mb-1 flex items-center justify-between">
+        <label htmlFor={id} className="block text-sm font-medium text-gold-500">
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="ml-1 text-red-500">*</span>}
         </label>
         {maxLength && (
-          <span className={`text-xs ${charCount > maxLength ? 'text-red-500' : 'text-gray-500'}`}>
+          <span className={`text-xs ${charCount > maxLength ? 'text-red-400' : 'text-gray-400'}`}>
             {charCount}/{maxLength}
           </span>
         )}
@@ -112,6 +112,11 @@ const FormTextarea: React.FC<FormTextareaProps> = ({
       <textarea
         id={id}
         name={name}
+        className={`${
+          error
+            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+            : 'border-gray-300 focus:border-gold-500 focus:ring-gold-500'
+        } block w-full rounded-md bg-slate-900 text-white shadow-sm focus:ring-2 focus:ring-opacity-20 sm:text-sm`}
         value={value}
         onChange={handleChange}
         onBlur={handleBlur}
@@ -120,16 +125,9 @@ const FormTextarea: React.FC<FormTextareaProps> = ({
         disabled={disabled}
         rows={rows}
         maxLength={maxLength}
-        className={`w-full rounded-md shadow-sm ${
-          displayError
-            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-            : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
-        } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
         {...props}
       />
-      {displayError && (
-        <p className="mt-1 text-sm text-red-600">{displayError}</p>
-      )}
+      {displayError && <p className="mt-1 text-sm text-red-400">{displayError}</p>}
     </div>
   );
 };

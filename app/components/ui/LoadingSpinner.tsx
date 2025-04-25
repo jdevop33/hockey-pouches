@@ -4,7 +4,7 @@ import React from 'react';
 
 interface LoadingSpinnerProps {
   size?: 'small' | 'medium' | 'large';
-  color?: 'primary' | 'white' | 'gray';
+  color?: 'primary' | 'white' | 'gray' | 'gold' | 'dark';
   className?: string;
 }
 
@@ -25,6 +25,8 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     primary: 'border-primary-500 border-t-transparent',
     white: 'border-white border-t-transparent',
     gray: 'border-gray-300 border-t-transparent',
+    gold: 'border-gold-500 border-t-transparent',
+    dark: 'border-secondary-950 border-t-transparent',
   }[color];
 
   return (

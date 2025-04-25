@@ -12,10 +12,10 @@ const FormFeedback: React.FC<FormFeedbackProps> = ({ type, message, className = 
   if (!message) return null;
 
   const typeClasses = {
-    success: 'bg-green-50 text-green-800 border-green-200',
-    error: 'bg-red-50 text-red-800 border-red-200',
-    warning: 'bg-yellow-50 text-yellow-800 border-yellow-200',
-    info: 'bg-blue-50 text-blue-800 border-blue-200',
+    success: 'bg-green-900/30 text-green-300 border-green-800',
+    error: 'bg-red-900/30 text-red-300 border-red-800',
+    warning: 'bg-yellow-900/30 text-yellow-300 border-yellow-800',
+    info: 'bg-blue-900/30 text-blue-300 border-blue-800',
   }[type];
 
   const iconByType = {
