@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Layout from '../../../components/layout/NewLayout';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../context/ToastContext';
-import Button from '../../../components/ui/button';
+import { Button } from '../../../components/ui/button-shadcn';
 import { LogEntry, LogLevel } from '../../../lib/logger';
 
 export default function LogsPage() {

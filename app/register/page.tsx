@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import Layout from '../components/layout/NewLayout';
 import { useToast } from '../context/ToastContext';
 import { useCsrf } from '../context/CsrfContext';
-import Button from '../components/ui/Button';
+import { Button } from '../components/ui/button-shadcn';
 import FormFeedback from '../components/ui/FormFeedback';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import FormInput from '../components/ui/FormInput';

@@ -7,7 +7,7 @@ import Layout from '../components/layout/NewLayout';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useCsrf } from '../context/CsrfContext';
-import Button from '../components/ui/Button';
+import { Button } from '../components/ui/button-shadcn';
 import FormFeedback from '../components/ui/FormFeedback';
 import PageLoading from '../components/ui/PageLoading';
 import FormInput from '../components/ui/FormInput';

@@ -226,6 +226,163 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Wholesale Section */}
+      <section className="bg-cream-100 dark:bg-rich-900 py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2">
+            <div className="relative">
+              <div className="bg-navy-600 absolute -top-6 -left-6 h-24 w-24 rounded-full opacity-20"></div>
+              <div className="from-cream-50 dark:from-rich-800 dark:to-rich-900 relative rounded-2xl bg-gradient-to-br to-white p-8 shadow-lg">
+                <div className="bg-navy-600 absolute top-4 right-4 rounded-full px-3 py-1 text-xs font-bold text-white">
+                  EXCLUSIVE
+                </div>
+                <h2 className="text-rich-950 dark:text-cream-50 mb-6 text-3xl font-bold">
+                  Premium Wholesale <span className="text-navy-500">Program</span>
+                </h2>
+                <p className="text-rich-700 dark:text-cream-300 mb-8">
+                  Join our exclusive network of premium retailers and distributors. Offer your
+                  customers the finest tobacco-free nicotine experience with significant margins and
+                  dedicated support.
+                </p>
+
+                <div className="mb-8 space-y-6">
+                  <div className="flex items-start">
+                    <div className="bg-anzac-400 mr-4 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full font-bold text-white">
+                      01
+                    </div>
+                    <div>
+                      <h4 className="text-rich-950 dark:text-cream-50 mb-1 font-bold">
+                        Competitive Pricing
+                      </h4>
+                      <p className="text-rich-700 dark:text-cream-300 text-sm">
+                        Volume discounts starting at just 100 units with significant savings at
+                        higher quantities.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <div className="bg-navy-600 mr-4 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full font-bold text-white">
+                      02
+                    </div>
+                    <div>
+                      <h4 className="text-rich-950 dark:text-cream-50 mb-1 font-bold">
+                        Premium Quality
+                      </h4>
+                      <p className="text-rich-700 dark:text-cream-300 text-sm">
+                        Globally-sourced, highest quality tobacco-free nicotine pouches with
+                        consistent quality control.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <div className="bg-forest-600 mr-4 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full font-bold text-white">
+                      03
+                    </div>
+                    <div>
+                      <h4 className="text-rich-950 dark:text-cream-50 mb-1 font-bold">
+                        Hassle-Free Importing
+                      </h4>
+                      <p className="text-rich-700 dark:text-cream-300 text-sm">
+                        We handle all import risks and logistics so you can focus on selling to your
+                        customers.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-4 sm:flex-row">
+                  <Button className="bg-navy-600 hover:bg-navy-700 border-none text-white">
+                    <Link href="/wholesale">Wholesale Calculator</Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-navy-400 text-navy-600 dark:text-navy-400 hover:bg-navy-50 dark:hover:bg-rich-800"
+                  >
+                    <Link href="/contact">Contact Sales</Link>
+                  </Button>
+                </div>
+              </div>
+              <div className="bg-anzac-400 absolute -right-6 -bottom-6 h-24 w-24 rounded-full opacity-20"></div>
+            </div>
+
+            <div className="relative">
+              <div className="bg-forest-600 absolute -top-6 -right-6 h-24 w-24 rounded-full opacity-20"></div>
+              <div className="from-cream-50 dark:from-rich-800 dark:to-rich-900 relative rounded-2xl bg-gradient-to-br to-white p-8 shadow-lg">
+                <div className="bg-forest-600 absolute top-4 right-4 rounded-full px-3 py-1 text-xs font-bold text-white">
+                  FREE
+                </div>
+                <h2 className="text-rich-950 dark:text-cream-50 mb-6 text-3xl font-bold">
+                  Request <span className="text-forest-500">Samples</span>
+                </h2>
+                <p className="text-rich-700 dark:text-cream-300 mb-8">
+                  Experience the PUXX Premium difference firsthand. Request complimentary samples
+                  for your business and discover why our products stand apart from the competition.
+                </p>
+
+                <form className="mb-6 space-y-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="text-rich-700 dark:text-cream-300 mb-1 block text-sm font-medium">
+                        Business Name
+                      </label>
+                      <input
+                        type="text"
+                        className="border-cream-300 dark:border-rich-700 dark:bg-rich-800 text-rich-900 dark:text-cream-50 focus:ring-forest-400 w-full rounded-md border bg-white px-4 py-2 focus:ring-2 focus:outline-none"
+                        placeholder="Your business name"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-rich-700 dark:text-cream-300 mb-1 block text-sm font-medium">
+                        Business Type
+                      </label>
+                      <select className="border-cream-300 dark:border-rich-700 dark:bg-rich-800 text-rich-900 dark:text-cream-50 focus:ring-forest-400 w-full rounded-md border bg-white px-4 py-2 focus:ring-2 focus:outline-none">
+                        <option>Retail Store</option>
+                        <option>Online Shop</option>
+                        <option>Distributor</option>
+                        <option>Other</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-rich-700 dark:text-cream-300 mb-1 block text-sm font-medium">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      className="border-cream-300 dark:border-rich-700 dark:bg-rich-800 text-rich-900 dark:text-cream-50 focus:ring-forest-400 w-full rounded-md border bg-white px-4 py-2 focus:ring-2 focus:outline-none"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-rich-700 dark:text-cream-300 mb-1 block text-sm font-medium">
+                      Sample Preferences
+                    </label>
+                    <textarea
+                      className="border-cream-300 dark:border-rich-700 dark:bg-rich-800 text-rich-900 dark:text-cream-50 focus:ring-forest-400 w-full rounded-md border bg-white px-4 py-2 focus:ring-2 focus:outline-none"
+                      placeholder="Tell us which flavors and strengths you're interested in"
+                      rows={3}
+                    ></textarea>
+                  </div>
+                </form>
+
+                <Button className="bg-forest-600 hover:bg-forest-700 w-full border-none text-white">
+                  <Link href="/request-samples">Request Samples</Link>
+                </Button>
+
+                <p className="text-rich-600 dark:text-cream-400 mt-4 text-center text-sm">
+                  Samples available for verified businesses only. Age verification (21+) required.
+                </p>
+              </div>
+              <div className="bg-anzac-400 absolute -bottom-6 -left-6 h-24 w-24 rounded-full opacity-20"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="from-anzac-500 to-anzac-600 bg-gradient-to-br py-20 text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
