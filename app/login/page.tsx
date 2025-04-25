@@ -182,11 +182,13 @@ export default function LoginPage() {
             <div>
               <Button
                 type="submit"
-                variant="primary"
-                isLoading={isLoading}
+                variant="default"
+                className="flex w-full items-center justify-center gap-2"
                 disabled={isLoading || authLoading}
-                className="w-full"
               >
+                {isLoading && (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                )}
                 Sign in
               </Button>
             </div>

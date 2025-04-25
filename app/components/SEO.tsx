@@ -1,6 +1,33 @@
 import React from 'react';
 import Head from 'next/head';
-import { Metadata } from 'next';
+// Import custom Metadata type to avoid conflicts with Next.js types
+interface CustomMetadata {
+  title: string;
+  description?: string;
+  keywords?: string;
+  robots?: string;
+  openGraph?: {
+    title: string;
+    description?: string;
+    images?: Array<{
+      url: string;
+      width?: number;
+      height?: number;
+      alt?: string;
+    }>;
+    type: 'website' | 'article';
+    siteName?: string;
+  };
+  twitter?: {
+    card?: string;
+    title?: string;
+    description?: string;
+    images?: string[];
+  };
+  alternates?: {
+    canonical?: string;
+  };
+}
 
 export interface SEOProps {
   title?: string;
@@ -9,7 +36,7 @@ export interface SEOProps {
   ogImage?: string;
   noindex?: boolean;
   keywords?: string[];
-  ogType?: 'website' | 'article' | 'product';
+  ogType?: 'website' | 'article';
   children?: React.ReactNode;
 }
 
@@ -18,9 +45,16 @@ export interface SEOProps {
  */
 export const defaultSEO = {
   title: 'Hockey Pouches - Premium Nicotine Pouches',
-  description: 'Discover premium nicotine pouches from Hockey Pouches. Enjoy a variety of flavors and strengths for a satisfying nicotine experience without tobacco.',
+  description:
+    'Discover premium nicotine pouches from Hockey Pouches. Enjoy a variety of flavors and strengths for a satisfying nicotine experience without tobacco.',
   ogImage: '/images/og-image.jpg',
-  keywords: ['nicotine pouches', 'tobacco-free', 'hockey pouches', 'nicotine products', 'oral nicotine'],
+  keywords: [
+    'nicotine pouches',
+    'tobacco-free',
+    'hockey pouches',
+    'nicotine products',
+    'oral nicotine',
+  ],
   ogType: 'website' as const,
 };
 
@@ -35,10 +69,10 @@ export function generateMetadata({
   ogType = defaultSEO.ogType,
   noindex = false,
   canonical,
-}: SEOProps): Metadata {
+}: SEOProps): CustomMetadata {
   // Construct full title with brand name
   const fullTitle = title === defaultSEO.title ? title : `${title} | Hockey Pouches`;
-  
+
   return {
     title: fullTitle,
     description,
@@ -64,9 +98,11 @@ export function generateMetadata({
       description,
       images: [ogImage],
     },
-    alternates: canonical ? {
-      canonical,
-    } : undefined,
+    alternates: canonical
+      ? {
+          canonical,
+        }
+      : undefined,
   };
 }
 
@@ -85,37 +121,35 @@ export default function SEO({
 }: SEOProps) {
   // Construct full title with brand name
   const fullTitle = title === defaultSEO.title ? title : `${title} | Hockey Pouches`;
-  
+
   // Construct canonical URL
-  const canonicalUrl = canonical 
-    ? `https://hockeypouches.com${canonical}` 
-    : undefined;
-  
+  const canonicalUrl = canonical ? `https://hockeypouches.com${canonical}` : undefined;
+
   return (
     <Head>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords.join(', ')} />
-      
+
       {/* Robots meta tag */}
       {noindex && <meta name="robots" content="noindex, nofollow" />}
-      
+
       {/* Canonical URL */}
       {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
-      
+
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={ogType} />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={ogImage} />
       <meta property="og:site_name" content="Hockey Pouches" />
-      
+
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
-      
+
       {/* Additional SEO elements */}
       {children}
     </Head>

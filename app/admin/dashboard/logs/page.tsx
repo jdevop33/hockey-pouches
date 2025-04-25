@@ -138,14 +138,21 @@ export default function LogsPage() {
           <h1 className="text-3xl font-bold text-gray-800">Application Logs</h1>
           <div className="flex space-x-4">
             <Button
-              variant="primary"
+              variant="default"
               onClick={fetchLogs}
-              isLoading={isLoading}
               disabled={isLoading}
+              className="flex items-center gap-2"
             >
+              {isLoading && (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+              )}
               Refresh Logs
             </Button>
-            <Button variant="danger" onClick={clearLogs} disabled={isLoading || logs.length === 0}>
+            <Button
+              variant="destructive"
+              onClick={clearLogs}
+              disabled={isLoading || logs.length === 0}
+            >
               Clear Logs
             </Button>
           </div>

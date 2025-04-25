@@ -27,7 +27,7 @@ export default function Home() {
               </p>
               <div className="flex flex-col gap-4 sm:flex-row">
                 <Button
-                  variant="primary"
+                  variant="default"
                   className="inline-block rounded-md px-6 py-3 text-base font-medium shadow-sm transition-all"
                 >
                   <Link href="/products">Shop Now</Link>

@@ -196,7 +196,7 @@ function RegisterForm() {
             <FormFeedback type="success" message="Registration Successful!" />
             <p className="mt-2 text-sm text-gray-700">Please proceed to login.</p>
             <Button
-              variant="primary"
+              variant="default"
               className="mt-4"
               onClick={() => (window.location.href = '/login')}
             >
@@ -384,11 +384,13 @@ function RegisterForm() {
             <div>
               <Button
                 type="submit"
-                variant="primary"
-                isLoading={isLoading}
+                variant="default"
+                className="flex w-full items-center justify-center gap-2"
                 disabled={isLoading}
-                className="w-full"
               >
+                {isLoading && (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                )}
                 Create Account
               </Button>
             </div>
