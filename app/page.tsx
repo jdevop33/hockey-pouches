@@ -16,7 +16,8 @@ export default function Home() {
               <div className="bg-primary-50 text-primary-600 mb-6 inline-block rounded-full px-3 py-1 text-sm font-medium">
                 FOR HOCKEY PLAYERS
               </div>
-              <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 text-shadow-sm sm:text-5xl lg:text-6xl">
+              {/* --- ADDED TEST CLASSES HERE --- */}
+              <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 text-shadow-sm sm:text-5xl lg:text-6xl bg-red-500 text-white p-10">
                 Stay in the Game with Hockey Puxx
               </h1>
               <p className="mb-10 max-w-xl text-xl leading-relaxed text-gray-600">
