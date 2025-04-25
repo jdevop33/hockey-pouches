@@ -104,7 +104,7 @@ const nextConfig = {
         ],
       },
       {
-        source: '/(.*)\\.(jpg|jpeg|png|webp|avif|svg|ico|css|js)',
+        source: '/(.*)\.(jpg|jpeg|png|webp|avif|svg|ico|css|js)',
         headers: [
           {
             key: 'Cache-Control',
@@ -114,12 +114,10 @@ const nextConfig = {
       },
     ];
   },
-  // Enable experimental features for Next.js 15
+  // Enable experimental features - adjust if needed for Next.js 14
   experimental: {
-    // Enable server actions (as an object with properties)
-    serverActions: {
-      allowedOrigins: ['localhost:3000', 'nicotinetins.com'],
-    },
+    // Server actions were generally available in 14, configuration might differ slightly
+    // Check Next.js 14 docs if server actions cause issues
   },
 };
 
