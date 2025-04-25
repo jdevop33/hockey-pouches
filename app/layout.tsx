@@ -13,6 +13,7 @@ import { CsrfProvider } from './context/CsrfContext';
 import './components/SEO';
 import './components/JsonLd';
 import { ThemeProvider } from './components/theme-provider';
+import { BrandingProvider } from './components/BrandingContext';
 
 // Analytics tracking IDs - configured for production deployment
 const GA_TRACKING_ID = 'G-PMM01WKF05';
@@ -211,22 +212,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${inter.variable} font-sans`} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light">
-          <AuthProvider>
-            <ToastProvider>
-              <CsrfProvider>
-                {/* Web Vitals Tracking */}
-                <WebVitals />
-                {/* Performance Monitoring */}
-                <PerformanceMonitoring />
-                {/* Vercel Analytics */}
-                <Analytics />
-                {/* Database Initialization */}
-                <DatabaseInit />
-                {/* Main Content */}
-                <CartWrapper>{children}</CartWrapper>
-              </CsrfProvider>
-            </ToastProvider>
-          </AuthProvider>
+          <BrandingProvider branding="new">
+            <AuthProvider>
+              <ToastProvider>
+                <CsrfProvider>
+                  {/* Web Vitals Tracking */}
+                  <WebVitals />
+                  {/* Performance Monitoring */}
+                  <PerformanceMonitoring />
+                  {/* Vercel Analytics */}
+                  <Analytics />
+                  {/* Database Initialization */}
+                  <DatabaseInit />
+                  {/* Main Content */}
+                  <CartWrapper>{children}</CartWrapper>
+                </CsrfProvider>
+              </ToastProvider>
+            </AuthProvider>
+          </BrandingProvider>
         </ThemeProvider>
       </body>
     </html>
