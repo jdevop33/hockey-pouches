@@ -1,9 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-import forms from '@tailwindcss/forms';
-import typography from '@tailwindcss/typography';
-import aspectRatio from '@tailwindcss/aspect-ratio';
-
-export default {
+module.exports = {
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -78,5 +74,12 @@ export default {
       },
     },
   },
-  plugins: [forms, typography, aspectRatio],
-};
+  plugins: [
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require('@tailwindcss/forms'),
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require('@tailwindcss/typography'),
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require('@tailwindcss/aspect-ratio'),
+  ],
+}
