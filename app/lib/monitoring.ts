@@ -1,8 +1,6 @@
-// app/lib/monitoring.ts
-import * as Sentry from '@sentry/nextjs';
-
 /**
- * Monitoring utility for tracking performance and errors
+ * Simple monitoring utility for tracking errors and performance
+ * This is a lightweight replacement for Sentry
  */
 export const monitoring = {
   /**
@@ -12,15 +10,14 @@ export const monitoring = {
    */
   trackError: (error: Error | string, context?: Record<string, any>) => {
     console.error('Error:', error, context);
-
-    if (typeof error === 'string') {
-      Sentry.captureMessage(error, {
-        level: 'error',
-        extra: context,
-      });
-    } else {
-      Sentry.captureException(error, {
-        extra: context,
+    
+    // Send to Google Analytics if available
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'error', {
+        'event_category': 'error',
+        'event_label': typeof error === 'string' ? error : error.message,
+        'non_interaction': true,
+        ...context
       });
     }
   },
@@ -38,40 +35,18 @@ export const monitoring = {
     unit: 'millisecond' | 'second' | 'byte' | 'kilobyte' | 'megabyte' | 'count',
     tags?: Record<string, string>
   ) => {
-    // Use console for development, Sentry would use metrics.distribution in production
     console.log(`Performance metric: ${name} = ${value} ${unit}`, tags);
-
-    // In production, this would use Sentry metrics
-    // Sentry.metrics is not available in the current version
-  },
-
-  /**
-   * Start a performance transaction
-   * @param name Transaction name
-   * @param op Operation type
-   * @returns Transaction
-   */
-  startTransaction: (name: string, op: string) => {
-    // Create a simple transaction object for development
-    console.log(`Starting transaction: ${name} (${op})`);
-
-    // Return a mock transaction object
-    const startTime = Date.now();
-    return {
-      name,
-      op,
-      startTimestamp: startTime,
-      finish: () => {
-        const duration = Date.now() - startTime;
-        console.log(`Finished transaction: ${name} (${op}) - Duration: ${duration}ms`);
-      },
-      setTag: (key: string, value: string) => {
-        console.log(`Transaction tag: ${key}=${value}`);
-      },
-      setData: (key: string, value: any) => {
-        console.log(`Transaction data: ${key}=${JSON.stringify(value)}`);
-      },
-    };
+    
+    // Send to Google Analytics if available
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'performance', {
+        'event_category': 'performance',
+        'event_label': name,
+        'value': value,
+        'metric_unit': unit,
+        ...tags
+      });
+    }
   },
 
   /**
@@ -79,14 +54,24 @@ export const monitoring = {
    * @param user User information
    */
   setUser: (user: { id: string; email?: string; username?: string }) => {
-    Sentry.setUser(user);
+    console.log('Set user:', user);
+    
+    // Set user ID in Google Analytics if available
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('set', { 'user_id': user.id });
+    }
   },
 
   /**
    * Clear user information
    */
   clearUser: () => {
-    Sentry.setUser(null);
+    console.log('Clear user');
+    
+    // Clear user ID in Google Analytics if available
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('set', { 'user_id': undefined });
+    }
   },
 
   /**
@@ -95,7 +80,12 @@ export const monitoring = {
    * @param value Tag value
    */
   setTag: (key: string, value: string) => {
-    Sentry.setTag(key, value);
+    console.log(`Set tag: ${key}=${value}`);
+    
+    // Set custom dimension in Google Analytics if available
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('set', { [key]: value });
+    }
   },
 
   /**
@@ -104,78 +94,6 @@ export const monitoring = {
    * @param value Context value
    */
   setExtra: (key: string, value: any) => {
-    Sentry.setExtra(key, value);
+    console.log(`Set extra: ${key}=${JSON.stringify(value)}`);
   },
 };
-
-/**
- * Higher-order function to monitor a function's performance and errors
- * @param fn Function to monitor
- * @param name Function name
- * @returns Monitored function
- */
-export function withMonitoring<T extends (...args: any[]) => any>(
-  fn: T,
-  name: string
-): (...args: Parameters<T>) => ReturnType<T> {
-  return (...args: Parameters<T>): ReturnType<T> => {
-    const transaction = monitoring.startTransaction(name, 'function');
-
-    try {
-      const result = fn(...args);
-
-      // Handle promises
-      if (result instanceof Promise) {
-        return result
-          .then(value => {
-            transaction.finish();
-            return value;
-          })
-          .catch(error => {
-            monitoring.trackError(error, { name, args });
-            transaction.finish();
-            throw error;
-          }) as ReturnType<T>;
-      }
-
-      transaction.finish();
-      return result;
-    } catch (error) {
-      monitoring.trackError(error as Error, { name, args });
-      transaction.finish();
-      throw error;
-    }
-  };
-}
-
-/**
- * Monitor API routes
- */
-export function monitorApiRoute(handler: Function, routeName: string) {
-  return async (req: Request, ...rest: any[]) => {
-    const transaction = monitoring.startTransaction(`api.${routeName}`, 'http.server');
-    const method = req.method;
-    const url = new URL(req.url);
-
-    monitoring.setTag('http.method', method);
-    monitoring.setTag('http.url', url.pathname);
-
-    try {
-      const response = await handler(req, ...rest);
-
-      monitoring.setTag('http.status_code', response.status.toString());
-      transaction.finish();
-
-      return response;
-    } catch (error) {
-      monitoring.trackError(error as Error, {
-        routeName,
-        method,
-        url: url.pathname,
-      });
-
-      transaction.finish();
-      throw error;
-    }
-  };
-}

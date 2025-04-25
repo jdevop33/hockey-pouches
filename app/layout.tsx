@@ -5,7 +5,6 @@ import Script from 'next/script';
 import CartWrapper from './components/CartWrapper';
 import { Analytics } from '@vercel/analytics/react';
 import { WebVitals } from './_components/web-vitals';
-import PerformanceMonitoring from './components/PerformanceMonitoring';
 import { DatabaseInit } from './_components/database-init';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
@@ -219,8 +218,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <CsrfProvider>
                   {/* Web Vitals Tracking */}
                   <WebVitals />
-                  {/* Performance Monitoring */}
-                  <PerformanceMonitoring />
                   {/* Vercel Analytics */}
                   <Analytics />
                   {/* Database Initialization */}
