@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, ReactNode } from 'react';
+import React, { useEffect, useState, ReactNode, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -111,7 +111,7 @@ export default function AdminOrderDetailPage() {
   }, [adminUser, token, authLoading, router]);
 
   // --- Data Fetching ---
-  const loadOrderData = async () => {
+  const loadOrderData = useCallback(async () => {
     if (!token || !adminUser || !orderId) return;
     setIsLoadingData(true);
     setError(null);
@@ -151,32 +151,32 @@ export default function AdminOrderDetailPage() {
         setAvailableDistributors(distData.users || []);
         console.log('Distributors fetched:', distData.users?.length || 0);
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to load order data.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load order data.');
       console.error(err);
     } finally {
       setIsLoadingData(false);
     }
-  };
+  }, [token, adminUser, orderId, logout, router]);
 
   // Initial Data Load Effect
   useEffect(() => {
     if (adminUser && token && adminUser.role === 'Admin' && orderId) {
       loadOrderData();
     }
-  }, [adminUser, token, orderId]); // Depend on auth state and orderId
+  }, [adminUser, token, orderId, loadOrderData]); // Depend on auth state and orderId
 
   // --- Action Handlers ---
   const handleAction = async (
     action: 'approve' | 'assign-distributor' | 'verify-fulfillment' | 'ship' | 'update-status',
-    payload?: any
+    payload?: Record<string, unknown>
   ) => {
     if (!order || !token) return;
     setIsActionLoading(true);
     setActionError(null);
-    let endpoint = `/api/admin/orders/${orderId}/${action}`;
+    const endpoint = `/api/admin/orders/${orderId}/${action}`;
     let method = 'POST';
-    let body: any = payload;
+    let body: Record<string, unknown> = payload || {};
 
     // Prepare body/endpoint based on action
     if (action === 'assign-distributor') {
@@ -216,8 +216,10 @@ export default function AdminOrderDetailPage() {
       console.log('Action successful:', result);
       alert(`Action '${action}' successful! Refreshing data...`);
       await loadOrderData(); // Re-fetch data to update UI
-    } catch (err: any) {
-      setActionError(err.message || 'An unexpected error occurred performing action.');
+    } catch (err: unknown) {
+      setActionError(
+        err instanceof Error ? err.message : 'An unexpected error occurred performing action.'
+      );
       console.error('Action failed:', err);
     } finally {
       setIsActionLoading(false);
@@ -256,6 +258,7 @@ export default function AdminOrderDetailPage() {
             value={selectedDistributor}
             onChange={e => setSelectedDistributor(e.target.value)}
             className="rounded-md border-gray-300 shadow-sm sm:text-sm"
+            aria-label="Select distributor"
           >
             <option value="">Select Distributor...</option>
             {availableDistributors.map(d => (
@@ -383,7 +386,7 @@ export default function AdminOrderDetailPage() {
           </div>
           <div>
             <span
-              className={`inline-flex rounded-full px-3 py-1 text-sm leading-5 font-semibold ${getStatusColor(order.status)}`}
+              className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold leading-5 ${getStatusColor(order.status)}`}
             >
               {order.status}
             </span>
@@ -425,7 +428,7 @@ export default function AdminOrderDetailPage() {
                     <div className="flex-1">
                       <Link
                         href={`/admin/dashboard/products/${item.product_id}`}
-                        className="hover:text-primary-600 font-medium text-gray-900"
+                        className="font-medium text-gray-900 hover:text-primary-600"
                       >
                         {item.product_name}
                       </Link>
@@ -489,7 +492,7 @@ export default function AdminOrderDetailPage() {
                               height={300}
                               className="w-full object-contain transition-opacity hover:opacity-90"
                             />
-                            <div className="bg-opacity-70 absolute right-2 bottom-2 rounded bg-black px-2 py-1 text-xs text-white">
+                            <div className="absolute bottom-2 right-2 rounded bg-black bg-opacity-70 px-2 py-1 text-xs text-white">
                               Click to view full size
                             </div>
                           </a>
@@ -499,7 +502,7 @@ export default function AdminOrderDetailPage() {
                                 href={order.fulfillment_photo_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-primary-600 hover:text-primary-700 inline-flex items-center"
+                                className="inline-flex items-center text-primary-600 hover:text-primary-700"
                               >
                                 <svg
                                   className="mr-1 h-4 w-4"
@@ -531,7 +534,7 @@ export default function AdminOrderDetailPage() {
               <p>
                 <Link
                   href={`/admin/dashboard/users/${order.user_id}`}
-                  className="text-primary-600 font-medium hover:underline"
+                  className="font-medium text-primary-600 hover:underline"
                 >
                   {order.customer_name || 'N/A'}
                 </Link>

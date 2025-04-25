@@ -1,12 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import Layout from '@/components/layout/NewLayout';
 import { useCart, Product as CartProduct } from '@/context/CartContext';
-import { useAuth } from '@/context/AuthContext';
 
 console.log('--- ProductsPage: Top level, imports done ---');
 
@@ -39,14 +37,6 @@ export default function ProductsPage() {
   const { addToCart, itemCount } = useCart();
   console.log('ProductsPage: useCart() finished.');
 
-  console.log('ProductsPage: Calling useAuth()...');
-  const { user, token, isLoading: authLoading } = useAuth();
-  console.log('ProductsPage: useAuth() finished.');
-
-  console.log('ProductsPage: Calling useRouter()...');
-  const router = useRouter();
-  console.log('ProductsPage: useRouter() finished.');
-
   console.log('ProductsPage: Initializing state...');
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,61 +57,131 @@ export default function ProductsPage() {
   });
   console.log('ProductsPage: State initialized.');
 
+  // Mock data wrapped in useMemo to prevent re-creation on every render
+  const mockProducts = useMemo<Product[]>(
+    () => [
+      {
+        id: 1,
+        name: 'Mint Fresh Nicotine Pouch',
+        flavor: 'Mint',
+        strength: 6,
+        price: 14.99,
+        image_url: '/images/products/mint.jpg',
+        category: 'Regular Strength',
+        description: 'Cool and refreshing mint flavor.',
+      },
+      {
+        id: 2,
+        name: 'Berry Blast Nicotine Pouch',
+        flavor: 'Berry',
+        strength: 8,
+        price: 15.99,
+        image_url: '/images/products/berry.jpg',
+        category: 'Strong',
+        description: 'Sweet and tangy mixed berry flavor.',
+      },
+      {
+        id: 3,
+        name: 'Citrus Chill Nicotine Pouch',
+        flavor: 'Citrus',
+        strength: 4,
+        price: 13.99,
+        image_url: '/images/products/citrus.jpg',
+        category: 'Mild',
+        description: 'Refreshing citrus flavor with a hint of coolness.',
+      },
+    ],
+    []
+  );
+
   // useEffect for Data Fetching
   useEffect(() => {
     console.log('*** Product Page useEffect Running! ***');
     const fetchProducts = async () => {
       setIsLoading(true);
-      setError(null);
+      console.log('--- Fetching products --- ');
       try {
         const params = new URLSearchParams({
           page: pagination.page.toString(),
           limit: pagination.limit.toString(),
-          sortBy: sortBy,
-          sortOrder: sortOrder,
+          sortBy,
+          sortOrder,
+          ...(selectedCategory && { category: selectedCategory }),
           ...(selectedFlavor && { flavor: selectedFlavor }),
           ...(selectedStrength && { strength: selectedStrength.toString() }),
-          ...(selectedCategory && { category: selectedCategory }),
           ...(minPriceFilter && { minPrice: minPriceFilter }),
           ...(maxPriceFilter && { maxPrice: maxPriceFilter }),
         });
         const apiUrl = `/api/products?${params.toString()}`;
         console.log(`Fetching: ${apiUrl}`);
-        const response = await fetch(apiUrl);
-        console.log(`Response Status: ${response.status}`);
-        if (!response.ok) throw new Error(`Failed to fetch products (${response.status})`);
-        const data = await response.json();
-        console.log('API Data Received:', JSON.stringify(data, null, 2)); // Log received data structure
 
-        const fetchedProducts = data.products || [];
-        const fetchedPagination = data.pagination || {
-          page: 1,
-          limit: 12,
-          total: 0,
-          totalPages: 1,
-        };
-        const fetchedFilters = data.availableFilters || {
-          flavors: [],
-          strengths: [],
-          categories: [],
-          priceRange: { min: 0, max: 100 },
-        };
+        try {
+          const response = await fetch(apiUrl);
+          console.log(`Response Status: ${response.status}`);
 
-        setProducts(fetchedProducts);
-        setPagination(fetchedPagination);
-        setAvailableFilters(fetchedFilters);
+          // Handle different status codes appropriately
+          if (!response.ok) {
+            if (response.status === 500) {
+              console.error('Server error when fetching products');
+              setError('The server encountered an error. Using mock data instead.');
+              // Set mock data
+              setProducts(mockProducts);
+              setPagination({
+                page: 1,
+                limit: 12,
+                total: mockProducts.length,
+                totalPages: Math.ceil(mockProducts.length / 12),
+              });
+              return;
+            } else {
+              throw new Error(`Failed to fetch products (${response.status})`);
+            }
+          }
 
-        console.log(`State updated. ${fetchedProducts.length} products loaded.`);
-        // Log the first product structure after setting state (async nature means state might not be updated yet)
-        if (fetchedProducts.length > 0) {
-          console.log(
-            'First product sample in state:',
-            JSON.stringify(fetchedProducts[0], null, 2)
-          );
+          const data = await response.json();
+          console.log('API Data Received:', JSON.stringify(data, null, 2));
+
+          const fetchedProducts = data.products || [];
+          const fetchedPagination = data.pagination || {
+            page: 1,
+            limit: 12,
+            total: 0,
+            totalPages: 1,
+          };
+          const fetchedFilters = data.availableFilters || {
+            flavors: [],
+            strengths: [],
+            categories: [],
+            priceRange: { min: 0, max: 100 },
+          };
+
+          setProducts(fetchedProducts);
+          setPagination(fetchedPagination);
+          setAvailableFilters(fetchedFilters);
+
+          console.log(`State updated. ${fetchedProducts.length} products loaded.`);
+          // Log the first product structure after setting state
+          if (fetchedProducts.length > 0) {
+            console.log(
+              'First product sample in state:',
+              JSON.stringify(fetchedProducts[0], null, 2)
+            );
+          }
+        } catch (fetchError) {
+          console.error('Fetch error:', fetchError);
+          setError('Could not load products from the server. Using fallback data.');
+          // Use mock data as fallback
+          setProducts(mockProducts);
+          setPagination({
+            page: 1,
+            limit: 12,
+            total: mockProducts.length,
+            totalPages: Math.ceil(mockProducts.length / 12),
+          });
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error during product fetch:', err);
-        setError(err.message || 'Could not load products.');
+        setError(err instanceof Error ? err.message : 'Could not load products.');
       } finally {
         setIsLoading(false);
         console.log('--- Finished fetching products --- ');
@@ -138,6 +198,7 @@ export default function ProductsPage() {
     maxPriceFilter,
     sortBy,
     sortOrder,
+    mockProducts,
   ]);
 
   // State for available filters
@@ -203,7 +264,7 @@ export default function ProductsPage() {
           <div className="mb-8 rounded-lg bg-white p-6 shadow-md">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <h2 className="mb-4 text-lg font-medium text-gray-900 sm:mb-0">Filters</h2>
-              <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6">
+              <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-6 sm:space-y-0">
                 <div>
                   <label
                     htmlFor="category"
@@ -218,7 +279,7 @@ export default function ProductsPage() {
                       setSelectedCategory(e.target.value || null);
                       setPagination(p => ({ ...p, page: 1 }));
                     }}
-                    className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:outline-none sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
                   >
                     <option value="">All Categories</option>
                     {availableFilters.categories.map(category => (
@@ -239,7 +300,7 @@ export default function ProductsPage() {
                       setSelectedFlavor(e.target.value || null);
                       setPagination(p => ({ ...p, page: 1 }));
                     }}
-                    className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:outline-none sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
                   >
                     <option value="">All Flavors</option>
                     {availableFilters.flavors.map(flavor => (
@@ -263,7 +324,7 @@ export default function ProductsPage() {
                       setSelectedStrength(e.target.value ? parseInt(e.target.value) : null);
                       setPagination(p => ({ ...p, page: 1 }));
                     }}
-                    className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:outline-none sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
                   >
                     <option value="">All Strengths</option>
                     {availableFilters.strengths.map(strength => (
@@ -290,7 +351,7 @@ export default function ProductsPage() {
                         setMinPriceFilter(e.target.value || null);
                         setPagination(p => ({ ...p, page: 1 }));
                       }}
-                      className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border-gray-300 py-2 text-base focus:outline-none sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 py-2 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
                       min={availableFilters.priceRange.min}
                       max={availableFilters.priceRange.max}
                     />
@@ -304,7 +365,7 @@ export default function ProductsPage() {
                         setMaxPriceFilter(e.target.value || null);
                         setPagination(p => ({ ...p, page: 1 }));
                       }}
-                      className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border-gray-300 py-2 text-base focus:outline-none sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 py-2 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
                       min={availableFilters.priceRange.min}
                       max={availableFilters.priceRange.max}
                     />
@@ -321,7 +382,7 @@ export default function ProductsPage() {
                       setSortBy(e.target.value);
                       setPagination(p => ({ ...p, page: 1 }));
                     }}
-                    className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:outline-none sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
                   >
                     <option value="name">Name</option>
                     <option value="price">Price</option>
@@ -344,7 +405,7 @@ export default function ProductsPage() {
                       setSortOrder(e.target.value);
                       setPagination(p => ({ ...p, page: 1 }));
                     }}
-                    className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:outline-none sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
                   >
                     <option value="asc">Ascending</option>
                     <option value="desc">Descending</option>
@@ -363,7 +424,7 @@ export default function ProductsPage() {
                       setSortOrder('asc');
                       setPagination(p => ({ ...p, page: 1 }));
                     }}
-                    className="focus:ring-primary-500 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:outline-none"
+                    className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                   >
                     Reset All
                   </button>
@@ -401,7 +462,7 @@ export default function ProductsPage() {
                 </div>
                 <Link
                   href="/cart"
-                  className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium whitespace-nowrap text-white shadow-sm hover:bg-green-700"
+                  className="whitespace-nowrap rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700"
                 >
                   View Cart
                 </Link>
@@ -427,8 +488,8 @@ export default function ProductsPage() {
                         className="p-4"
                       />
                       {product.strength && (
-                        <div className="absolute top-4 right-4">
-                          <span className="bg-primary-100 text-primary-800 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
+                        <div className="absolute right-4 top-4">
+                          <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800">
                             {product.strength}mg
                           </span>
                         </div>
@@ -441,7 +502,7 @@ export default function ProductsPage() {
                         {product.name}
                       </Link>
                     </h3>
-                    <div className="mt-2 mb-4 flex justify-between text-sm">
+                    <div className="mb-4 mt-2 flex justify-between text-sm">
                       <span className="text-gray-500">
                         Flavor: <span className="text-gray-900">{product.flavor || 'N/A'}</span>
                       </span>
@@ -468,7 +529,7 @@ export default function ProductsPage() {
                         {/* Add to Cart Button */}
                         <button
                           onClick={() => handleAddToCart(product)}
-                          className={`inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm ${addedToCartId === product.id ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-primary-600 hover:bg-primary-700 text-white'}`}
+                          className={`inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm ${addedToCartId === product.id ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-primary-600 text-white hover:bg-primary-700'}`}
                         >
                           {addedToCartId === product.id ? 'Added!' : 'Add to Cart'}
                         </button>
@@ -545,7 +606,7 @@ export default function ProductsPage() {
                       onClick={() => handlePageChange(pageNum)}
                       className={`relative inline-flex items-center border px-4 py-2 text-sm font-medium ${
                         pagination.page === pageNum
-                          ? 'border-primary-500 bg-primary-50 text-primary-600 z-10'
+                          ? 'z-10 border-primary-500 bg-primary-50 text-primary-600'
                           : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'
                       }`}
                     >

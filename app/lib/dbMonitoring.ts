@@ -1,5 +1,6 @@
 // app/lib/dbMonitoring.ts
 import sql from './db';
+import { logger } from './logger';
 
 /**
  * Interface for query performance data
@@ -27,54 +28,75 @@ const MAX_LOG_SIZE = 1000;
 /**
  * Slow query threshold in milliseconds
  */
-const SLOW_QUERY_THRESHOLD = 500;
+const SLOW_QUERY_THRESHOLD = 200;
+
+let totalQueries = 0;
+let failedQueries = 0;
+let slowQueries = 0;
 
 /**
- * Executes a query and logs its performance
- * @param query SQL query string
+ * Executes a SQL query with monitoring
+ * @param query SQL query
  * @param params Query parameters
- * @returns Query result
+ * @returns Query results
  */
-export async function monitoredQuery<T>(
-  query: string,
-  params?: any[]
-): Promise<T> {
+export async function monitoredQuery(query: string, params: any[] = []): Promise<any> {
+  totalQueries++;
   const startTime = Date.now();
-  let success = false;
-  let error: any;
-  let result: any;
 
   try {
-    result = await sql.query(query, params);
-    success = true;
-    return result as T;
-  } catch (err) {
-    error = err;
-    throw err;
-  } finally {
-    const endTime = Date.now();
-    const duration = endTime - startTime;
-    
-    // Log query performance
-    const performanceData: QueryPerformance = {
+    console.log(`[DB] Executing query: ${query.replace(/\s+/g, ' ').trim()}`);
+    console.log(`[DB] With parameters:`, params);
+
+    const result = await sql.query(query, params);
+
+    const duration = Date.now() - startTime;
+
+    if (duration > SLOW_QUERY_THRESHOLD) {
+      slowQueries++;
+      logger.warn(`Slow query (${duration}ms): ${query}`, { duration, params });
+    }
+
+    console.log(`[DB] Query completed in ${duration}ms, returned ${result.length} rows`);
+    return result;
+  } catch (error: any) {
+    failedQueries++;
+
+    console.error('[DB] Query error:', error);
+    console.error('[DB] Failed query:', query);
+    console.error('[DB] Parameters:', params);
+
+    // Check for common database error types
+    if (error.code) {
+      switch (error.code) {
+        case '08001':
+        case '08006':
+        case 'ECONNREFUSED':
+          console.error('[DB] Connection error detected. Check database connectivity.');
+          break;
+        case '42P01':
+          console.error('[DB] Table does not exist. Check your schema.');
+          break;
+        case '42703':
+          console.error('[DB] Column does not exist. Check your column names.');
+          break;
+        case '23505':
+          console.error('[DB] Unique violation. A record with this key already exists.');
+          break;
+        default:
+          console.error(`[DB] Database error code: ${error.code}`);
+      }
+    }
+
+    logger.error('Query error', {
       query,
       params,
-      startTime,
-      endTime,
-      duration,
-      success,
-      error,
-    };
-    
-    logQueryPerformance(performanceData);
-    
-    // Log slow queries to console
-    if (duration > SLOW_QUERY_THRESHOLD) {
-      console.warn(`Slow query detected (${duration}ms):`, {
-        query,
-        params,
-      });
-    }
+      error: error.message,
+      stack: error.stack,
+      code: error.code,
+    });
+
+    throw error;
   }
 }
 
@@ -84,7 +106,7 @@ export async function monitoredQuery<T>(
  */
 function logQueryPerformance(data: QueryPerformance): void {
   queryPerformanceLog.unshift(data);
-  
+
   // Trim log if it exceeds maximum size
   if (queryPerformanceLog.length > MAX_LOG_SIZE) {
     queryPerformanceLog.length = MAX_LOG_SIZE;
@@ -110,59 +132,64 @@ export function getSlowQueries(
   threshold: number = SLOW_QUERY_THRESHOLD,
   limit: number = 100
 ): QueryPerformance[] {
-  return queryPerformanceLog
-    .filter(data => data.duration > threshold)
-    .slice(0, limit);
+  return queryPerformanceLog.filter(data => data.duration > threshold).slice(0, limit);
 }
 
 /**
- * Gets query performance statistics
- * @returns Query performance statistics
+ * Resets query monitoring statistics
  */
-export function getQueryStats(): {
-  totalQueries: number;
-  averageDuration: number;
-  slowQueries: number;
-  errors: number;
-  fastestQuery: number;
-  slowestQuery: number;
-} {
-  const totalQueries = queryPerformanceLog.length;
-  
-  if (totalQueries === 0) {
-    return {
-      totalQueries: 0,
-      averageDuration: 0,
-      slowQueries: 0,
-      errors: 0,
-      fastestQuery: 0,
-      slowestQuery: 0,
-    };
-  }
-  
-  const durations = queryPerformanceLog.map(data => data.duration);
-  const totalDuration = durations.reduce((sum, duration) => sum + duration, 0);
-  const averageDuration = totalDuration / totalQueries;
-  const slowQueries = queryPerformanceLog.filter(data => data.duration > SLOW_QUERY_THRESHOLD).length;
-  const errors = queryPerformanceLog.filter(data => !data.success).length;
-  const fastestQuery = Math.min(...durations);
-  const slowestQuery = Math.max(...durations);
-  
+export function resetQueryStats(): void {
+  totalQueries = 0;
+  failedQueries = 0;
+  slowQueries = 0;
+}
+
+/**
+ * Gets query monitoring statistics
+ */
+export function getQueryStats(): { total: number; failed: number; slow: number } {
   return {
-    totalQueries,
-    averageDuration,
-    slowQueries,
-    errors,
-    fastestQuery,
-    slowestQuery,
+    total: totalQueries,
+    failed: failedQueries,
+    slow: slowQueries,
   };
 }
 
 /**
- * Clears the query performance log
+ * Checks database connectivity
+ * @returns True if database is connected
  */
-export function clearQueryLog(): void {
-  queryPerformanceLog.length = 0;
+export async function checkDatabaseConnectivity(): Promise<{
+  connected: boolean;
+  error?: string;
+  metadata?: any;
+}> {
+  try {
+    const startTime = Date.now();
+    const result = await sql.query(
+      'SELECT NOW() as time, current_database() as db, version() as version'
+    );
+    const duration = Date.now() - startTime;
+
+    return {
+      connected: true,
+      metadata: {
+        time: result[0]?.time,
+        database: result[0]?.db,
+        version: result[0]?.version,
+        latency: duration,
+      },
+    };
+  } catch (error: any) {
+    return {
+      connected: false,
+      error: error.message,
+      metadata: {
+        code: error.code,
+        details: error.details,
+      },
+    };
+  }
 }
 
 /**
@@ -171,12 +198,9 @@ export function clearQueryLog(): void {
  * @param params Query parameters
  * @returns Execution plan
  */
-export async function explainQuery(
-  query: string,
-  params?: any[]
-): Promise<string[]> {
+export async function explainQuery(query: string, params?: any[]): Promise<string[]> {
   const explainQuery = `EXPLAIN ANALYZE ${query}`;
-  
+
   try {
     const result = await sql.query(explainQuery, params);
     return result.map((row: any) => row.QUERY_PLAN);

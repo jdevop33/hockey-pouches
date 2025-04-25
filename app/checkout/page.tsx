@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Layout from '../components/layout/NewLayout';
-import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
 
 interface AddressData {
   street: string;
@@ -21,10 +20,22 @@ export default function CheckoutPage() {
   const { user, token, isLoading: authLoading, logout } = useAuth();
   const { items, itemCount, subtotal, clearCart } = useCart();
 
-  const [shippingAddress, setShippingAddress] = useState<Partial<AddressData>>({});
-  const [billingAddress, setBillingAddress] = useState<Partial<AddressData>>({});
+  const [shippingAddress, setShippingAddress] = useState<AddressData>({
+    street: '',
+    city: '',
+    province: '',
+    postalCode: '',
+    country: 'Canada',
+  });
+  const [billingAddress, setBillingAddress] = useState<AddressData>({
+    street: '',
+    city: '',
+    province: '',
+    postalCode: '',
+    country: 'Canada',
+  });
   const [useShippingForBilling, setUseShippingForBilling] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState<string>('credit-card');
+  const [paymentMethod, setPaymentMethod] = useState<string>('etransfer');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{
@@ -37,7 +48,6 @@ export default function CheckoutPage() {
     payment: null,
   });
   const [orderSuccess, setOrderSuccess] = useState<boolean>(false);
-  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
 
   // Discount code state
   const [discountCode, setDiscountCode] = useState('');
@@ -166,8 +176,8 @@ export default function CheckoutPage() {
         discountAmount: data.discountAmount,
         message: data.message,
       });
-    } catch (error: any) {
-      setDiscountError(error.message || 'Failed to apply discount code');
+    } catch (error: unknown) {
+      setDiscountError(error instanceof Error ? error.message : 'Failed to apply discount code');
     } finally {
       setIsApplyingDiscount(false);
     }
@@ -231,7 +241,6 @@ export default function CheckoutPage() {
       const orderId = result.orderId;
       console.log('Order placed successfully:', result);
 
-      setCreatedOrderId(orderId);
       clearCart();
       setOrderSuccess(true);
 
@@ -239,8 +248,8 @@ export default function CheckoutPage() {
       setTimeout(() => {
         router.push(`/checkout/success?orderId=${orderId}&method=${paymentMethod}`);
       }, 2000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to place order.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to place order.');
       console.error(err);
       setIsLoading(false);
     }
@@ -268,7 +277,7 @@ export default function CheckoutPage() {
               </div>
               <ol className="relative flex justify-between">
                 <li className="flex items-center">
-                  <span className="bg-primary-600 flex h-8 w-8 items-center justify-center rounded-full text-white">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-white">
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
@@ -281,7 +290,7 @@ export default function CheckoutPage() {
                   <span className="ml-2 text-sm font-medium text-gray-900">Cart</span>
                 </li>
                 <li className="flex items-center">
-                  <span className="bg-primary-600 flex h-8 w-8 items-center justify-center rounded-full text-white">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-white">
                     <span>2</span>
                   </span>
                   <span className="ml-2 text-sm font-medium text-gray-900">Shipping & Payment</span>
@@ -303,8 +312,11 @@ export default function CheckoutPage() {
                 <h2 className="mb-4 text-xl font-semibold text-gray-700">Shipping Address</h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm">Street:</label>
+                    <label htmlFor="shipping-street" className="text-sm">
+                      Street:
+                    </label>
                     <input
+                      id="shipping-street"
                       type="text"
                       value={shippingAddress.street || ''}
                       className={`w-full rounded border p-2 ${formErrors.shipping.street ? 'border-red-500' : ''}`}
@@ -315,8 +327,11 @@ export default function CheckoutPage() {
                     )}
                   </div>
                   <div>
-                    <label className="text-sm">City:</label>
+                    <label htmlFor="shipping-city" className="text-sm">
+                      City:
+                    </label>
                     <input
+                      id="shipping-city"
                       type="text"
                       value={shippingAddress.city || ''}
                       className={`w-full rounded border p-2 ${formErrors.shipping.city ? 'border-red-500' : ''}`}
@@ -328,13 +343,17 @@ export default function CheckoutPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm">Province:</label>
+                      <label htmlFor="shipping-province" className="text-sm">
+                        Province:
+                      </label>
                       <select
+                        id="shipping-province"
                         value={shippingAddress.province || ''}
                         className={`w-full rounded border p-2 ${formErrors.shipping.province ? 'border-red-500' : ''}`}
                         onChange={e =>
                           setShippingAddress(s => ({ ...s, province: e.target.value }))
                         }
+                        aria-label="Province"
                       >
                         <option value="">Select Province</option>
                         <option value="AB">Alberta</option>
@@ -356,8 +375,11 @@ export default function CheckoutPage() {
                       )}
                     </div>
                     <div>
-                      <label className="text-sm">Postal Code:</label>
+                      <label htmlFor="shipping-postalCode" className="text-sm">
+                        Postal Code:
+                      </label>
                       <input
+                        id="shipping-postalCode"
                         type="text"
                         value={shippingAddress.postalCode || ''}
                         placeholder="A1A 1A1"
@@ -392,8 +414,11 @@ export default function CheckoutPage() {
                   <h2 className="mb-4 text-xl font-semibold text-gray-700">Billing Address</h2>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm">Street:</label>
+                      <label htmlFor="billing-street" className="text-sm">
+                        Street:
+                      </label>
                       <input
+                        id="billing-street"
                         type="text"
                         value={billingAddress.street || ''}
                         className={`w-full rounded border p-2 ${formErrors.billing.street ? 'border-red-500' : ''}`}
@@ -404,8 +429,11 @@ export default function CheckoutPage() {
                       )}
                     </div>
                     <div>
-                      <label className="text-sm">City:</label>
+                      <label htmlFor="billing-city" className="text-sm">
+                        City:
+                      </label>
                       <input
+                        id="billing-city"
                         type="text"
                         value={billingAddress.city || ''}
                         className={`w-full rounded border p-2 ${formErrors.billing.city ? 'border-red-500' : ''}`}
@@ -417,13 +445,17 @@ export default function CheckoutPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm">Province:</label>
+                        <label htmlFor="billing-province" className="text-sm">
+                          Province:
+                        </label>
                         <select
+                          id="billing-province"
                           value={billingAddress.province || ''}
                           className={`w-full rounded border p-2 ${formErrors.billing.province ? 'border-red-500' : ''}`}
                           onChange={e =>
                             setBillingAddress(s => ({ ...s, province: e.target.value }))
                           }
+                          aria-label="Billing Province"
                         >
                           <option value="">Select Province</option>
                           <option value="AB">Alberta</option>
@@ -445,8 +477,11 @@ export default function CheckoutPage() {
                         )}
                       </div>
                       <div>
-                        <label className="text-sm">Postal Code:</label>
+                        <label htmlFor="billing-postalCode" className="text-sm">
+                          Postal Code:
+                        </label>
                         <input
+                          id="billing-postalCode"
                           type="text"
                           value={billingAddress.postalCode || ''}
                           placeholder="A1A 1A1"
@@ -486,7 +521,7 @@ export default function CheckoutPage() {
                         value="etransfer"
                         checked={paymentMethod === 'etransfer'}
                         onChange={e => setPaymentMethod(e.target.value)}
-                        className="text-primary-600 focus:ring-primary-500 h-4 w-4"
+                        className="h-4 w-4 text-primary-600 focus:ring-primary-500"
                       />
                       <label
                         htmlFor="etransfer"
@@ -526,7 +561,7 @@ export default function CheckoutPage() {
                         value="btc"
                         checked={paymentMethod === 'btc'}
                         onChange={e => setPaymentMethod(e.target.value)}
-                        className="text-primary-600 focus:ring-primary-500 h-4 w-4"
+                        className="h-4 w-4 text-primary-600 focus:ring-primary-500"
                       />
                       <label
                         htmlFor="btc"
@@ -566,7 +601,7 @@ export default function CheckoutPage() {
                         value="credit-card"
                         checked={paymentMethod === 'credit-card'}
                         onChange={e => setPaymentMethod(e.target.value)}
-                        className="text-primary-600 focus:ring-primary-500 h-4 w-4"
+                        className="h-4 w-4 text-primary-600 focus:ring-primary-500"
                       />
                       <label
                         htmlFor="credit-card"
@@ -627,7 +662,7 @@ export default function CheckoutPage() {
                 </ul>
                 {/* ... totals ... */}
                 {/* Discount Code Input */}
-                <div className="mt-4 mb-4">
+                <div className="mb-4 mt-4">
                   <div className="flex items-center space-x-2">
                     <input
                       type="text"
@@ -636,14 +671,14 @@ export default function CheckoutPage() {
                       placeholder="Discount code"
                       value={discountCode}
                       onChange={e => setDiscountCode(e.target.value)}
-                      className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                       disabled={isApplyingDiscount || !!appliedDiscount}
                     />
                     <button
                       type="button"
                       onClick={handleApplyDiscount}
                       disabled={!discountCode || isApplyingDiscount || !!appliedDiscount}
-                      className="focus:ring-primary-500 inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+                      className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50"
                     >
                       {isApplyingDiscount ? 'Applying...' : 'Apply'}
                     </button>
@@ -710,7 +745,7 @@ export default function CheckoutPage() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="bg-primary-600 hover:bg-primary-700 flex w-full items-center justify-center rounded-md border border-transparent px-6 py-3 text-base font-medium text-white shadow-sm disabled:opacity-50"
+                    className="flex w-full items-center justify-center rounded-md border border-transparent bg-primary-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-primary-700 disabled:opacity-50"
                   >
                     {isLoading ? 'Placing Order...' : 'Place Order'}
                   </button>

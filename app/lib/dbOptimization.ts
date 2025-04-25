@@ -95,57 +95,58 @@ export function invalidateCacheByPrefix(prefix: string): void {
  */
 export function buildPaginationQuery({
   table,
-  selectFields = '*',
-  countField = '*',
+  selectFields,
   whereConditions = [],
   whereParams = [],
-  joinClauses = [],
-  orderBy = 'id ASC',
+  orderBy = '',
   page = 1,
   limit = 10,
-  groupBy = '',
 }: {
   table: string;
-  selectFields?: string;
-  countField?: string;
+  selectFields: string;
   whereConditions?: string[];
   whereParams?: any[];
-  joinClauses?: string[];
   orderBy?: string;
   page?: number;
   limit?: number;
-  groupBy?: string;
 }) {
-  const offset = (page - 1) * limit;
-  const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
-  const joins = joinClauses.length > 0 ? joinClauses.join(' ') : '';
-  const groupByClause = groupBy ? `GROUP BY ${groupBy}` : '';
+  // Ensure page and limit are valid
+  const validPage = Math.max(1, page);
+  const validLimit = Math.max(1, Math.min(100, limit));
+  const offset = (validPage - 1) * validLimit;
 
-  // Main query with pagination
+  // Build where clause if any conditions are provided
+  const whereClause = whereConditions.length ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+  // Build query string
   const query = `
     SELECT ${selectFields}
     FROM ${table}
-    ${joins}
     ${whereClause}
-    ${groupByClause}
-    ORDER BY ${orderBy}
-    LIMIT ${limit} OFFSET ${offset}
+    ${orderBy ? `ORDER BY ${orderBy}` : ''}
+    LIMIT ${validLimit} OFFSET ${offset}
   `;
 
-  // Count query for pagination
+  // Build count query
   const countQuery = `
-    SELECT COUNT(${countField}) as total
+    SELECT COUNT(*) as total
     FROM ${table}
-    ${joins}
     ${whereClause}
-    ${groupByClause}
   `;
+
+  // Debug logging
+  console.log('Building Pagination Query:');
+  console.log('- Table:', table);
+  console.log('- Where Conditions:', whereConditions);
+  console.log('- Parameter Count:', whereParams.length);
+  console.log('- Order By:', orderBy);
+  console.log('- Page:', validPage, 'Limit:', validLimit, 'Offset:', offset);
 
   return {
     query,
     countQuery,
-    params: [...whereParams, limit, offset],
-    countParams: [...whereParams],
+    params: whereParams,
+    countParams: whereParams,
   };
 }
 

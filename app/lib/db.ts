@@ -20,6 +20,17 @@ if (connectionString) {
     pool = new Pool({ connectionString });
     sql = neon(connectionString);
     console.log('Database connection initialized with real implementation');
+    console.log('Connection URL format:', connectionString.substring(0, 20) + '...');
+
+    // Test the connection
+    pool
+      .query('SELECT 1')
+      .then(() => {
+        console.log('✅ Database connection test successful');
+      })
+      .catch((error: any) => {
+        console.error('❌ Database connection test failed:', error);
+      });
   } catch (error) {
     // Fallback to mock if error occurs
     console.error('Error initializing database connection:', error);
@@ -29,7 +40,13 @@ if (connectionString) {
   }
 } else {
   // Use mock database
-  console.warn('POSTGRES_URL environment variable is not set. Using mock database.');
+  console.warn('POSTGRES_URL environment variable is not set or empty. Using mock database.');
+  console.log(
+    'Available env vars:',
+    Object.keys(process.env)
+      .filter(key => key.includes('PG') || key.includes('POSTGRES'))
+      .join(', ')
+  );
   pool = mockPool;
   sql = mockSql;
 }
