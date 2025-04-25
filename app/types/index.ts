@@ -50,6 +50,23 @@ export interface ProductVariation {
   updated_at?: string;
 }
 
+// Cart Item type (as used in CartContext and Product Detail Page)
+export interface CartItem {
+  id: number; // Can be product ID or variation ID
+  product_id: number; // Always the base product ID
+  name: string;
+  price: number;
+  quantity: number;
+  image_url?: string | null;
+  variation_id?: number | null;
+  flavor?: string | null;
+  strength?: number | null;
+  sku?: string | null;
+  is_active: boolean; // Added based on product detail page usage
+  // Add any other fields expected by CartContext or displayed in Cart
+}
+
+
 // Order types
 export interface Order {
   id: string;
@@ -125,7 +142,7 @@ export interface Task {
   category: string;
   status: TaskStatus;
   priority?: TaskPriority | null;
-  assigned_user_id: string;
+  assigned_user_id?: string | null; // Allow null for unassigned
   due_date?: string | null;
   related_entity_type?: string | null;
   related_entity_id?: string | null;
@@ -133,9 +150,12 @@ export interface Task {
   created_by_user_id?: string | null;
   completed_at?: string | null;
   completed_by_user_id?: string | null;
+  updated_at?: string; // Added updated_at
+  // Optional relatedTo object formatted by API response
+  relatedTo?: { type: string; id: string; } | null;
 }
 
-export type TaskStatus = 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
+export type TaskStatus = 'Pending' | 'In Progress' | 'Completed' | 'Deferred' | 'Cancelled'; // Added Deferred
 export type TaskPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
 
 // Inventory types
