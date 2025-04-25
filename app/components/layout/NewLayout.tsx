@@ -1,13 +1,23 @@
 'use client';
 
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { Sun, Moon, ShoppingBag, Search, Menu, X } from 'lucide-react';
+import {
+  Sun,
+  Moon,
+  Search,
+  Menu,
+  X,
+  User,
+  ChevronDown,
+  Settings,
+  LogOut,
+  ShoppingBag,
+  CreditCard,
+} from 'lucide-react';
 import CartIcon from '../cart/CartIcon';
-import Logo from '../ui/Logo';
 import { useAuth } from '../../context/AuthContext';
 
 interface NavItem {
@@ -21,8 +31,25 @@ const Navigation: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const { user, logout, isLoading: authIsLoading } = useAuth();
   const { theme, setTheme } = useTheme();
+
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside to close profile dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -77,13 +104,13 @@ const Navigation: React.FC = () => {
   });
 
   return (
-    <nav className="border-anzac-200 dark:border-rich-800 bg-cream-50/95 dark:bg-rich-950/95 sticky top-0 z-50 border-b backdrop-blur-sm">
+    <nav className="border-primary-200 dark:border-secondary-800 dark:bg-secondary-950/95 sticky top-0 z-50 border-b bg-white/95 backdrop-blur-sm">
       {/* Desktop navigation */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between md:h-20">
           {/* Logo */}
           <div className="flex items-center">
-            <span className="text-rich-950 dark:text-cream-50 text-3xl font-bold">PUXX</span>
+            <span className="text-secondary-950 text-3xl font-bold dark:text-white">PUXX</span>
           </div>
 
           {/* Desktop menu */}
@@ -97,8 +124,8 @@ const Navigation: React.FC = () => {
                     // Handle potential dashboard parent paths for active state
                     pathname === item.href ||
                     (item.href.includes('dashboard') && pathname.startsWith(item.href))
-                      ? 'text-anzac-500 dark:text-anzac-400 font-semibold'
-                      : 'text-rich-800 dark:text-cream-100 hover:text-anzac-500 dark:hover:text-anzac-400 transition-colors'
+                      ? 'text-primary-500 dark:text-primary-400 font-semibold'
+                      : 'text-secondary-800 hover:text-primary-500 dark:hover:text-primary-400 transition-colors dark:text-white'
                   }`}
                 >
                   {item.label}
@@ -109,33 +136,123 @@ const Navigation: React.FC = () => {
               <div className="ml-4 flex items-center space-x-4">
                 <button
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  className="text-rich-800 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-rich-800 rounded-full p-2 transition-colors"
+                  className="text-secondary-800 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-full p-2 transition-colors dark:text-white"
                   aria-label="Toggle theme"
                 >
                   {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                 </button>
-                <button className="text-rich-800 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-rich-800 rounded-full p-2 transition-colors">
+                <button className="text-secondary-800 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-full p-2 transition-colors dark:text-white">
                   <Search size={20} />
                 </button>
                 <CartIcon />
                 {authIsLoading ? (
-                  <span className="text-rich-500 dark:text-cream-300 text-sm">Loading...</span>
+                  <span className="text-secondary-500 dark:text-secondary-300 text-sm">
+                    Loading...
+                  </span>
                 ) : user ? (
-                  <>
-                    <span className="text-rich-700 dark:text-cream-200 text-sm">
-                      Hi, {user.name.split(' ')[0]}
-                    </span>
+                  <div className="relative" ref={profileMenuRef}>
                     <button
-                      onClick={handleLogout}
-                      className="text-rich-700 dark:text-cream-200 hover:text-anzac-500 dark:hover:text-anzac-400 rounded-md px-3 py-2 text-sm font-medium transition-colors"
+                      onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                      className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors"
                     >
-                      Logout
+                      <div className="bg-primary-100 dark:bg-secondary-800 text-primary-600 dark:text-primary-400 flex h-8 w-8 items-center justify-center rounded-full">
+                        <User size={16} />
+                      </div>
+                      <span>Hi, {user.name.split(' ')[0]}</span>
+                      <ChevronDown
+                        size={16}
+                        className={`transition-transform ${profileMenuOpen ? 'rotate-180' : ''}`}
+                      />
                     </button>
-                  </>
+
+                    {/* Profile Dropdown Menu */}
+                    {profileMenuOpen && (
+                      <div className="border-secondary-200 dark:border-secondary-700 dark:bg-secondary-900 ring-opacity-5 absolute right-0 mt-2 w-56 origin-top-right rounded-md border bg-white shadow-lg ring-1 ring-black focus:outline-none">
+                        <div className="border-secondary-200 dark:border-secondary-700 border-b px-4 py-3">
+                          <p className="text-secondary-900 text-sm font-medium dark:text-white">
+                            {user.name}
+                          </p>
+                          <p className="text-secondary-500 dark:text-secondary-400 text-xs">
+                            {user.email}
+                          </p>
+                        </div>
+                        <div className="py-1">
+                          {user.role === 'Admin' ? (
+                            <Link
+                              href="/admin/dashboard"
+                              className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex w-full items-center px-4 py-2 text-sm"
+                              onClick={() => setProfileMenuOpen(false)}
+                            >
+                              <Settings size={16} className="mr-2" />
+                              Admin Dashboard
+                            </Link>
+                          ) : user.role === 'Distributor' ? (
+                            <Link
+                              href="/distributor/dashboard"
+                              className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex w-full items-center px-4 py-2 text-sm"
+                              onClick={() => setProfileMenuOpen(false)}
+                            >
+                              <Settings size={16} className="mr-2" />
+                              Distributor Dashboard
+                            </Link>
+                          ) : (
+                            <Link
+                              href="/dashboard"
+                              className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex w-full items-center px-4 py-2 text-sm"
+                              onClick={() => setProfileMenuOpen(false)}
+                            >
+                              <Settings size={16} className="mr-2" />
+                              My Dashboard
+                            </Link>
+                          )}
+
+                          <Link
+                            href="/dashboard/profile"
+                            className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex w-full items-center px-4 py-2 text-sm"
+                            onClick={() => setProfileMenuOpen(false)}
+                          >
+                            <User size={16} className="mr-2" />
+                            Profile Settings
+                          </Link>
+
+                          <Link
+                            href="/dashboard/orders"
+                            className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex w-full items-center px-4 py-2 text-sm"
+                            onClick={() => setProfileMenuOpen(false)}
+                          >
+                            <ShoppingBag size={16} className="mr-2" />
+                            My Orders
+                          </Link>
+
+                          {user.role === 'Referrer' && (
+                            <Link
+                              href="/dashboard/referrals"
+                              className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex w-full items-center px-4 py-2 text-sm"
+                              onClick={() => setProfileMenuOpen(false)}
+                            >
+                              <CreditCard size={16} className="mr-2" />
+                              My Commissions
+                            </Link>
+                          )}
+
+                          <button
+                            onClick={() => {
+                              handleLogout();
+                              setProfileMenuOpen(false);
+                            }}
+                            className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex w-full items-center px-4 py-2 text-sm"
+                          >
+                            <LogOut size={16} className="mr-2" />
+                            Logout
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <Link
                     href="/login"
-                    className="bg-anzac-500 hover:bg-anzac-600 flex items-center rounded-md px-3 py-2 text-sm font-medium text-white"
+                    className="bg-primary-500 hover:bg-primary-600 flex items-center rounded-md px-3 py-2 text-sm font-medium text-white"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -160,19 +277,19 @@ const Navigation: React.FC = () => {
           <div className="flex md:hidden">
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="text-rich-800 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-rich-800 rounded-full p-2 transition-colors"
+              className="text-secondary-800 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-full p-2 transition-colors dark:text-white"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <button className="text-rich-800 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-rich-800 ml-2 rounded-full p-2 transition-colors">
+            <button className="text-secondary-800 hover:bg-secondary-100 dark:hover:bg-secondary-800 ml-2 rounded-full p-2 transition-colors dark:text-white">
               <Search size={20} />
             </button>
             {/* Cart icon for mobile */}
             <CartIcon />
             <button
               type="button"
-              className="text-rich-800 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-rich-800 ml-4 inline-flex items-center justify-center rounded-full p-2 transition-colors focus:outline-none"
+              className="text-secondary-800 hover:bg-secondary-100 dark:hover:bg-secondary-800 ml-4 inline-flex items-center justify-center rounded-full p-2 transition-colors focus:outline-none dark:text-white"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               <span className="sr-only">{mobileMenuOpen ? 'Close menu' : 'Open menu'}</span>
@@ -185,7 +302,7 @@ const Navigation: React.FC = () => {
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden">
-          <div className="border-anzac-200 dark:border-rich-800 bg-cream-50 dark:bg-rich-900 space-y-1 border-t px-2 pt-2 pb-3 shadow-lg">
+          <div className="border-primary-200 dark:border-secondary-800 dark:bg-secondary-900 space-y-1 border-t bg-white px-2 pt-2 pb-3 shadow-lg">
             {visibleNavItems.map(item => (
               <Link
                 key={item.href}
@@ -193,8 +310,8 @@ const Navigation: React.FC = () => {
                 className={`block px-3 py-2 text-base font-medium ${
                   pathname === item.href ||
                   (item.href.includes('dashboard') && pathname.startsWith(item.href))
-                    ? 'text-anzac-500 dark:text-anzac-400 font-semibold'
-                    : 'text-rich-800 dark:text-cream-100 hover:text-anzac-500 dark:hover:text-anzac-400 transition-colors'
+                    ? 'text-primary-500 dark:text-primary-400 font-semibold'
+                    : 'text-secondary-800 hover:text-primary-500 dark:hover:text-primary-400 transition-colors dark:text-white'
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -202,22 +319,103 @@ const Navigation: React.FC = () => {
               </Link>
             ))}
             {/* Mobile Auth Button/Logout */}
-            <div className="border-anzac-200 dark:border-rich-800 mt-4 border-t px-3 pt-4">
+            <div className="border-primary-200 dark:border-secondary-800 mt-4 border-t px-3 pt-4">
               {authIsLoading ? (
-                <span className="text-rich-500 dark:text-cream-300 block text-base font-medium">
+                <span className="text-secondary-500 dark:text-secondary-300 block text-base font-medium">
                   Loading...
                 </span>
               ) : user ? (
-                <button
-                  onClick={handleLogout}
-                  className="bg-anzac-50 dark:bg-rich-800 text-anzac-700 dark:text-anzac-400 hover:bg-anzac-100 dark:hover:bg-rich-700 block w-full rounded-md px-3 py-2 text-left text-base font-medium transition-colors"
-                >
-                  Logout
-                </button>
+                <div className="space-y-2">
+                  {/* User info */}
+                  <div className="flex items-center gap-3 px-2 py-2">
+                    <div className="bg-primary-100 dark:bg-secondary-800 text-primary-600 dark:text-primary-400 flex h-10 w-10 items-center justify-center rounded-full">
+                      <User size={18} />
+                    </div>
+                    <div>
+                      <p className="text-secondary-900 text-sm font-medium dark:text-white">
+                        {user.name}
+                      </p>
+                      <p className="text-secondary-500 dark:text-secondary-400 text-xs">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Dashboard link based on role */}
+                  {user.role === 'Admin' ? (
+                    <Link
+                      href="/admin/dashboard"
+                      className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex w-full items-center rounded px-2 py-2 text-sm"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Settings size={16} className="mr-2" />
+                      Admin Dashboard
+                    </Link>
+                  ) : user.role === 'Distributor' ? (
+                    <Link
+                      href="/distributor/dashboard"
+                      className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex w-full items-center rounded px-2 py-2 text-sm"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Settings size={16} className="mr-2" />
+                      Distributor Dashboard
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/dashboard"
+                      className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex w-full items-center rounded px-2 py-2 text-sm"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Settings size={16} className="mr-2" />
+                      My Dashboard
+                    </Link>
+                  )}
+
+                  {/* Profile settings */}
+                  <Link
+                    href="/dashboard/profile"
+                    className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex w-full items-center rounded px-2 py-2 text-sm"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <User size={16} className="mr-2" />
+                    Profile Settings
+                  </Link>
+
+                  {/* Orders */}
+                  <Link
+                    href="/dashboard/orders"
+                    className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex w-full items-center rounded px-2 py-2 text-sm"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <ShoppingBag size={16} className="mr-2" />
+                    My Orders
+                  </Link>
+
+                  {/* Referrals if applicable */}
+                  {user.role === 'Referrer' && (
+                    <Link
+                      href="/dashboard/referrals"
+                      className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex w-full items-center rounded px-2 py-2 text-sm"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <CreditCard size={16} className="mr-2" />
+                      My Commissions
+                    </Link>
+                  )}
+
+                  {/* Logout button */}
+                  <button
+                    onClick={handleLogout}
+                    className="text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-800 flex w-full items-center rounded px-2 py-2 text-sm"
+                  >
+                    <LogOut size={16} className="mr-2" />
+                    Logout
+                  </button>
+                </div>
               ) : (
                 <Link
                   href="/login"
-                  className="bg-anzac-500 hover:bg-anzac-600 block w-full rounded-md px-3 py-2 text-center text-base font-medium text-white"
+                  className="bg-primary-500 hover:bg-primary-600 block w-full rounded-md px-3 py-2 text-center text-base font-medium text-white"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Sign In
@@ -236,12 +434,12 @@ const Footer: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <footer className="bg-rich-950 text-cream-100 py-12">
+    <footer className="bg-secondary-950 py-12 text-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div>
             <h3 className="mb-4 text-xl font-bold">PUXX</h3>
-            <p className="text-cream-300">
+            <p className="text-secondary-300">
               Premium tobacco-free nicotine pouches meticulously crafted for those who demand
               excellence. Discreet, convenient, and perfect for your lifestyle.
             </p>
@@ -252,7 +450,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   href="/products"
-                  className="text-cream-300 hover:text-anzac-400 transition-colors"
+                  className="text-secondary-300 hover:text-primary-400 transition-colors"
                 >
                   All Products
                 </Link>
@@ -260,7 +458,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   href="/products/classic"
-                  className="text-cream-300 hover:text-anzac-400 transition-colors"
+                  className="text-secondary-300 hover:text-primary-400 transition-colors"
                 >
                   Classic Collection
                 </Link>
@@ -268,7 +466,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   href="/products/intense"
-                  className="text-cream-300 hover:text-anzac-400 transition-colors"
+                  className="text-secondary-300 hover:text-primary-400 transition-colors"
                 >
                   Intense Collection
                 </Link>
@@ -276,7 +474,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   href="/products/light"
-                  className="text-cream-300 hover:text-anzac-400 transition-colors"
+                  className="text-secondary-300 hover:text-primary-400 transition-colors"
                 >
                   Light Collection
                 </Link>
@@ -412,7 +610,7 @@ const Footer: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="border-rich-800 text-cream-400 mt-8 border-t pt-8 text-center">
+        <div className="border-secondary-800 text-secondary-400 mt-8 border-t pt-8 text-center">
           <p>&copy; {new Date().getFullYear()} PUXX Premium. All rights reserved.</p>
           <p className="mt-2 text-xs">
             These products contain nicotine. Nicotine is an addictive chemical. For adult use only.

@@ -170,6 +170,13 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [x] Fix deployment issues
 - [x] Implement file upload functionality with Vercel Blob storage
 - [x] Fix client-side rendering issues with Suspense boundaries
+- [x] Fix styling issues with Tailwind CSS v4 configuration
+- [x] Implement user profile dropdown menu with proper navigation
+- [x] Fix theme toggle functionality and dark mode support
+- [ ] Fix favicon 404 errors (missing favicon-16x16.png and favicon-32x32.png)
+- [ ] Fix placeholder SVG 404 errors
+- [ ] Fix shadcn/ui Button component integration
+- [ ] Address Sentry/OpenTelemetry warnings (non-critical)
 - [ ] Optimize database schema and indexes
 - [ ] Implement proper caching strategy
 - [ ] Add comprehensive API documentation
@@ -177,6 +184,13 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [ ] Set up staging environment
 - [ ] Add backup and recovery procedures
 - [ ] Implement proper logging and monitoring
+
+### Styling and UI Notes
+
+- The project uses Tailwind CSS v4 with both .css and .js configuration files
+- The project has two layout files: app/layout.tsx (root layout) and app/components/layout/NewLayout.tsx (component layout)
+- The BrandingProvider in app/layout.tsx controls the overall branding theme (set to "old" for blue styling)
+- Shadcn/ui components need to be properly integrated with the project's styling
 
 ## 📱 Mobile Responsiveness
 
