@@ -1,14 +1,75 @@
-@import 'tailwindcss';
-@import '../tailwind.config.css';
+@import 'tailwindcss/preflight';
+@tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
+@layer base {
+  :root {
+    /* Light theme */
+    --background: 60 33% 99%;
+    --foreground: 240 10% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 42 60% 52%; /* Anzac-400 */
+    --primary-foreground: 355.7 100% 97.3%;
+
+    --secondary: 210 64% 51%; /* Navy-500 */
+    --secondary-foreground: 240 5.9% 10%;
+
+    --accent: 142 49% 42%; /* Forest-600 */
+    --accent-foreground: 0 0% 98%;
+
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+
+    --ring: 42 60% 52%; /* Anzac-400 */
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark theme */
+    --background: 240 10% 7%; /* rich-950 */
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 10%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 8%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 42 60% 52%; /* Anzac-400 */
+    --primary-foreground: 240 5.9% 10%;
+
+    --secondary: 210 64% 51%; /* Navy-500 */
+    --secondary-foreground: 0 0% 98%;
+
+    --accent: 142 49% 42%; /* Forest-600 */
+    --accent-foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+
+    --ring: 42 60% 52%; /* Anzac-400 */
+  }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
 /* Mobile optimizations */

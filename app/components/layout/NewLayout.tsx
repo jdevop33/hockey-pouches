@@ -3,10 +3,12 @@
 import React, { ReactNode, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation'; // Added useRouter
+import { usePathname, useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import { Sun, Moon, ShoppingBag, Search, Menu, X } from 'lucide-react';
 import CartIcon from '../cart/CartIcon';
 import Logo from '../ui/Logo';
-import { useAuth } from '../../context/AuthContext'; // Import useAuth
+import { useAuth } from '../../context/AuthContext';
 
 interface NavItem {
   href: string;
@@ -17,9 +19,10 @@ interface NavItem {
 
 const Navigation: React.FC = () => {
   const pathname = usePathname();
-  const router = useRouter(); // For redirect after logout
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, logout, isLoading: authIsLoading } = useAuth(); // Get auth state and functions
+  const { user, logout, isLoading: authIsLoading } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const handleLogout = () => {
     logout();
@@ -32,12 +35,13 @@ const Navigation: React.FC = () => {
   const baseNavItems: NavItem[] = [
     { href: '/', label: 'Home' },
     { href: '/products', label: 'Shop' },
-    { href: '/research', label: 'Benefits' },
-    { href: '/about', label: 'Our Story' },
+    { href: '/craftsmanship', label: 'Craftsmanship' },
+    { href: '/experience', label: 'Experience' },
+    { href: '/testimonials', label: 'Testimonials' },
     { href: '/contact', label: 'Contact' },
   ];
 
-  let dynamicNavItems: NavItem[] = [...baseNavItems];
+  const dynamicNavItems: NavItem[] = [...baseNavItems];
   if (user) {
     // Add dashboard links based on role
     if (user.role === 'Admin') {
@@ -73,53 +77,65 @@ const Navigation: React.FC = () => {
   });
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
+    <nav className="border-anzac-200 dark:border-rich-800 bg-cream-50/95 dark:bg-rich-950/95 sticky top-0 z-50 border-b backdrop-blur-sm">
       {/* Desktop navigation */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-28 items-center justify-between">
+        <div className="flex h-16 items-center justify-between md:h-20">
           {/* Logo */}
-          <div className="flex-shrink-0">
-            <Logo size="large" />
+          <div className="flex items-center">
+            <span className="text-rich-950 dark:text-cream-50 text-3xl font-bold">PUXX</span>
           </div>
 
           {/* Desktop menu */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-center space-x-4">
+            <div className="ml-10 flex items-center space-x-8">
               {visibleNavItems.map(item => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-md px-3 py-2 text-sm font-medium ${
+                  className={`text-sm font-medium ${
                     // Handle potential dashboard parent paths for active state
                     pathname === item.href ||
                     (item.href.includes('dashboard') && pathname.startsWith(item.href))
-                      ? 'text-primary-600 font-semibold'
-                      : 'hover:text-primary-600 text-gray-700'
+                      ? 'text-anzac-500 dark:text-anzac-400 font-semibold'
+                      : 'text-rich-800 dark:text-cream-100 hover:text-anzac-500 dark:hover:text-anzac-400 transition-colors'
                   }`}
                 >
                   {item.label}
                 </Link>
               ))}
 
-              {/* Auth Buttons / User Info */}
+              {/* Actions */}
               <div className="ml-4 flex items-center space-x-4">
+                <button
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className="text-rich-800 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-rich-800 rounded-full p-2 transition-colors"
+                  aria-label="Toggle theme"
+                >
+                  {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                </button>
+                <button className="text-rich-800 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-rich-800 rounded-full p-2 transition-colors">
+                  <Search size={20} />
+                </button>
                 <CartIcon />
                 {authIsLoading ? (
-                  <span className="text-sm text-gray-500">Loading...</span>
+                  <span className="text-rich-500 dark:text-cream-300 text-sm">Loading...</span>
                 ) : user ? (
                   <>
-                    <span className="text-sm text-gray-700">Hi, {user.name.split(' ')[0]}</span>
+                    <span className="text-rich-700 dark:text-cream-200 text-sm">
+                      Hi, {user.name.split(' ')[0]}
+                    </span>
                     <button
                       onClick={handleLogout}
-                      className="hover:text-primary-600 rounded-md px-3 py-2 text-sm font-medium text-gray-700"
+                      className="text-rich-700 dark:text-cream-200 hover:text-anzac-500 dark:hover:text-anzac-400 rounded-md px-3 py-2 text-sm font-medium transition-colors"
                     >
                       Logout
                     </button>
                   </>
                 ) : (
                   <Link
-                    href="/login" // Changed from /account to /login
-                    className="bg-primary-600 hover:bg-primary-700 flex items-center rounded-md px-3 py-2 text-sm font-medium text-white"
+                    href="/login"
+                    className="bg-anzac-500 hover:bg-anzac-600 flex items-center rounded-md px-3 py-2 text-sm font-medium text-white"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -142,48 +158,25 @@ const Navigation: React.FC = () => {
 
           {/* Mobile menu button */}
           <div className="flex md:hidden">
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="text-rich-800 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-rich-800 rounded-full p-2 transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            <button className="text-rich-800 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-rich-800 ml-2 rounded-full p-2 transition-colors">
+              <Search size={20} />
+            </button>
             {/* Cart icon for mobile */}
             <CartIcon />
             <button
               type="button"
-              className="focus:ring-primary-500 ml-4 inline-flex items-center justify-center rounded-md bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 focus:ring-2 focus:outline-none"
+              className="text-rich-800 dark:text-cream-100 hover:bg-cream-100 dark:hover:bg-rich-800 ml-4 inline-flex items-center justify-center rounded-full p-2 transition-colors focus:outline-none"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {/* ... menu icon ... */}
               <span className="sr-only">{mobileMenuOpen ? 'Close menu' : 'Open menu'}</span>
-              {mobileMenuOpen ? (
-                <svg
-                  className="h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              )}
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
@@ -192,16 +185,16 @@ const Navigation: React.FC = () => {
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden">
-          <div className="space-y-1 border-t border-gray-200 bg-white px-2 pt-2 pb-3 shadow-lg">
+          <div className="border-anzac-200 dark:border-rich-800 bg-cream-50 dark:bg-rich-900 space-y-1 border-t px-2 pt-2 pb-3 shadow-lg">
             {visibleNavItems.map(item => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`block rounded-md px-3 py-2 text-base font-medium ${
+                className={`block px-3 py-2 text-base font-medium ${
                   pathname === item.href ||
                   (item.href.includes('dashboard') && pathname.startsWith(item.href))
-                    ? 'text-primary-600 bg-gray-100 font-semibold'
-                    : 'hover:text-primary-600 text-gray-700 hover:bg-gray-100'
+                    ? 'text-anzac-500 dark:text-anzac-400 font-semibold'
+                    : 'text-rich-800 dark:text-cream-100 hover:text-anzac-500 dark:hover:text-anzac-400 transition-colors'
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -209,20 +202,22 @@ const Navigation: React.FC = () => {
               </Link>
             ))}
             {/* Mobile Auth Button/Logout */}
-            <div className="mt-4 border-t border-gray-200 px-3 pt-4">
+            <div className="border-anzac-200 dark:border-rich-800 mt-4 border-t px-3 pt-4">
               {authIsLoading ? (
-                <span className="block text-base font-medium text-gray-500">Loading...</span>
+                <span className="text-rich-500 dark:text-cream-300 block text-base font-medium">
+                  Loading...
+                </span>
               ) : user ? (
                 <button
                   onClick={handleLogout}
-                  className="block w-full rounded-md bg-red-50 px-3 py-2 text-left text-base font-medium text-red-700 hover:bg-red-100"
+                  className="bg-anzac-50 dark:bg-rich-800 text-anzac-700 dark:text-anzac-400 hover:bg-anzac-100 dark:hover:bg-rich-700 block w-full rounded-md px-3 py-2 text-left text-base font-medium transition-colors"
                 >
                   Logout
                 </button>
               ) : (
                 <Link
                   href="/login"
-                  className="bg-primary-600 hover:bg-primary-700 block w-full rounded-md px-3 py-2 text-center text-base font-medium text-white"
+                  className="bg-anzac-500 hover:bg-anzac-600 block w-full rounded-md px-3 py-2 text-center text-base font-medium text-white"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Sign In
@@ -241,63 +236,124 @@ const Footer: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <footer className="bg-gray-800 py-8 text-white">
+    <footer className="bg-rich-950 text-cream-100 py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div>
-            <h3 className="mb-4 text-lg font-semibold">Nicotine Tins</h3>
-            <p className="text-gray-300">
-              Premium tobacco-free nicotine pouches by Hockey Puxx, designed for hockey players and
-              fans across Canada.
+            <h3 className="mb-4 text-xl font-bold">PUXX</h3>
+            <p className="text-cream-300">
+              Premium tobacco-free nicotine pouches meticulously crafted for those who demand
+              excellence. Discreet, convenient, and perfect for your lifestyle.
             </p>
           </div>
           <div>
-            <h3 className="mb-4 text-lg font-semibold">Quick Links</h3>
+            <h3 className="mb-4 text-xl font-bold">Shop</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/products" className="text-gray-300 hover:text-white">
-                  Shop
+                <Link
+                  href="/products"
+                  className="text-cream-300 hover:text-anzac-400 transition-colors"
+                >
+                  All Products
                 </Link>
               </li>
               <li>
-                <Link href="/cart" className="text-gray-300 hover:text-white">
-                  Cart
+                <Link
+                  href="/products/classic"
+                  className="text-cream-300 hover:text-anzac-400 transition-colors"
+                >
+                  Classic Collection
                 </Link>
               </li>
               <li>
-                <Link href="/research" className="text-gray-300 hover:text-white">
-                  Benefits
+                <Link
+                  href="/products/intense"
+                  className="text-cream-300 hover:text-anzac-400 transition-colors"
+                >
+                  Intense Collection
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="text-gray-300 hover:text-white">
-                  Our Story
+                <Link
+                  href="/products/light"
+                  className="text-cream-300 hover:text-anzac-400 transition-colors"
+                >
+                  Light Collection
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="mb-4 text-xl font-bold">Company</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link
+                  href="/craftsmanship"
+                  className="text-cream-300 hover:text-anzac-400 transition-colors"
+                >
+                  Craftsmanship
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/experience"
+                  className="text-cream-300 hover:text-anzac-400 transition-colors"
+                >
+                  Experience
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/testimonials"
+                  className="text-cream-300 hover:text-anzac-400 transition-colors"
+                >
+                  Testimonials
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/contact"
+                  className="text-cream-300 hover:text-anzac-400 transition-colors"
+                >
+                  Contact
                 </Link>
               </li>
               {/* Dynamic account link based on user role */}
               {user ? (
                 user.role === 'Admin' ? (
                   <li>
-                    <Link href="/admin/dashboard" className="text-gray-300 hover:text-white">
+                    <Link
+                      href="/admin/dashboard"
+                      className="text-cream-300 hover:text-anzac-400 transition-colors"
+                    >
                       Admin Dashboard
                     </Link>
                   </li>
                 ) : user.role === 'Distributor' ? (
                   <li>
-                    <Link href="/distributor/dashboard" className="text-gray-300 hover:text-white">
+                    <Link
+                      href="/distributor/dashboard"
+                      className="text-cream-300 hover:text-anzac-400 transition-colors"
+                    >
                       Distributor Dashboard
                     </Link>
                   </li>
                 ) : (
                   <li>
-                    <Link href="/dashboard" className="text-gray-300 hover:text-white">
+                    <Link
+                      href="/dashboard"
+                      className="text-cream-300 hover:text-anzac-400 transition-colors"
+                    >
                       My Account
                     </Link>
                   </li>
                 )
               ) : (
                 <li>
-                  <Link href="/login" className="text-gray-300 hover:text-white">
+                  <Link
+                    href="/login"
+                    className="text-cream-300 hover:text-anzac-400 transition-colors"
+                  >
                     Sign In
                   </Link>
                 </li>
@@ -305,11 +361,11 @@ const Footer: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-lg font-semibold">Contact Us</h3>
-            <p className="text-gray-300">
-              Email: {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@nicotinetins.com'}
+            <h3 className="mb-4 text-xl font-bold">Contact Us</h3>
+            <p className="text-cream-300">
+              Email: {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@puxxpremium.com'}
             </p>
-            <p className="text-gray-300">
+            <p className="text-cream-300">
               Phone: {process.env.NEXT_PUBLIC_CONTACT_PHONE || '(250) 415-5678'}
             </p>
             <div className="mt-4 flex space-x-4">
@@ -318,7 +374,7 @@ const Footer: React.FC = () => {
                 href={process.env.NEXT_PUBLIC_SOCIAL_TWITTER || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white"
+                className="text-cream-300 hover:text-anzac-400 transition-colors"
                 aria-label="Follow us on X (formerly Twitter)"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -329,7 +385,7 @@ const Footer: React.FC = () => {
                 href={process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white"
+                className="text-cream-300 hover:text-anzac-400 transition-colors"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path
@@ -343,7 +399,7 @@ const Footer: React.FC = () => {
                 href={process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white"
+                className="text-cream-300 hover:text-anzac-400 transition-colors"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path
@@ -356,9 +412,10 @@ const Footer: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="mt-8 border-t border-gray-700 pt-8 text-center text-gray-300">
-          <p>
-            &copy; {new Date().getFullYear()} Nicotine Tins by Hockey Puxx. All rights reserved.
+        <div className="border-rich-800 text-cream-400 mt-8 border-t pt-8 text-center">
+          <p>&copy; {new Date().getFullYear()} PUXX Premium. All rights reserved.</p>
+          <p className="mt-2 text-xs">
+            These products contain nicotine. Nicotine is an addictive chemical. For adult use only.
           </p>
         </div>
       </div>

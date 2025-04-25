@@ -4,50 +4,46 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Layout from './components/layout/NewLayout';
 import { flavors, products } from './data/products';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-white py-24 text-gray-900">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-cream-50 dark:bg-rich-950 py-24 text-rich-900 dark:text-cream-50">
+        <div className="absolute inset-0 bg-[url('/placeholder.svg?height=1080&width=1920')] bg-cover bg-center opacity-30 dark:opacity-20"></div>
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="items-center lg:grid lg:grid-cols-2 lg:gap-16">
             <div>
-              <div className="bg-primary-50 text-primary-600 mb-6 inline-block rounded-full px-3 py-1 text-sm font-medium">
-                FOR HOCKEY PLAYERS
+              <div className="bg-anzac-400 text-white mb-6 inline-block rounded-full px-3 py-1 text-sm font-medium">
+                PUXX PREMIUM EXPERIENCE
               </div>
-              <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 text-shadow-sm sm:text-5xl lg:text-6xl">
-                Stay in the Game with Hockey Puxx
+              <h1 className="mb-6 text-4xl font-bold tracking-tight text-rich-900 dark:text-cream-50 sm:text-5xl lg:text-6xl">
+                Premium Nicotine <span className="text-anzac-500">Experience</span>
               </h1>
-              <p className="mb-10 max-w-xl text-xl leading-relaxed text-gray-600">
-                Premium tobacco-free nicotine pouches designed for hockey players and fans.
-                Discreet, convenient, and perfect for the rink.
+              <p className="mb-10 max-w-xl text-xl leading-relaxed text-rich-700 dark:text-cream-300">
+                Meticulously crafted premium tobacco-free nicotine pouches for those who demand excellence. 
+                Discreet, convenient, and perfect for your lifestyle.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row">
-                <Link
-                  href="/products"
-                  className="bg-primary-600 hover:bg-primary-700 inline-block rounded-md px-6 py-3 text-base font-medium text-white shadow-sm transition-all"
-                >
-                  Shop Now
-                </Link>
+                <Button variant="primary" className="inline-block rounded-md px-6 py-3 text-base font-medium shadow-sm transition-all">
+                  <Link href="/products">Shop Now</Link>
+                </Button>
 
-                <Link
-                  href="/about"
-                  className="inline-block rounded-md border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50"
-                >
-                  Our Story
-                </Link>
+                <Button variant="outline" className="inline-block rounded-md px-6 py-3 text-base font-medium shadow-sm transition-all">
+                  <Link href="/craftsmanship">Our Craft</Link>
+                </Button>
               </div>
             </div>
             <div className="relative mt-12 lg:mt-0">
               <div className="relative mx-auto max-w-md overflow-hidden rounded-2xl shadow-lg lg:max-w-none">
-                <div className="bg-primary-500 absolute top-4 right-4 z-10 rounded-full px-3 py-1 text-xs font-medium text-white shadow-sm">
-                  NEW
+                <div className="bg-anzac-500 absolute top-4 right-4 z-10 rounded-full px-3 py-1 text-xs font-medium text-white shadow-sm">
+                  PREMIUM
                 </div>
                 <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl">
                   <Image
                     src="/images/hero.jpeg"
-                    alt="Hockey Puxx - Premium Nicotine Pouches"
+                    alt="PUXX Premium - Luxury Nicotine Pouches"
                     fill
                     style={{ objectFit: 'cover' }}
                     className="rounded-2xl"
@@ -60,124 +56,61 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <span className="text-primary-600 inline-block text-sm font-medium">BENEFITS</span>
-            <h2 className="mt-3 text-3xl font-bold text-gray-900 text-shadow-xs sm:text-4xl">
-              Why Hockey Players Choose Our Pouches
+      <section className="py-20 bg-cream-100 dark:bg-rich-900">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <span className="text-anzac-600 dark:text-anzac-400 inline-block text-sm font-medium">SUPERIOR QUALITY</span>
+            <h2 className="mt-3 text-3xl font-bold text-rich-950 dark:text-cream-50 mb-4">
+              Globally-sourced excellence in every pouch
             </h2>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-600">
-              Designed specifically for hockey players and fans who need a discreet, convenient
-              nicotine option that works with their active lifestyle.
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-rich-700 dark:text-cream-300">
+              Designed for those who demand more from every moment. PUXX Premium delivers an unparalleled experience.
             </p>
           </div>
 
-          <div className="mt-20 grid grid-cols-1 gap-12 md:grid-cols-3">
-            <div className="group">
-              <div className="bg-primary-50 mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full">
-                <svg
-                  className="text-primary-600 h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white dark:bg-rich-800 rounded-xl p-8 shadow-md hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-anzac-400 rounded-full flex items-center justify-center text-white font-bold mb-6">
+                01
               </div>
-              <h3 className="mb-3 text-xl font-medium text-gray-900">Quick Energy Boost</h3>
-              <p className="mb-5 text-gray-600">
-                Get the energy you need between periods without the crash. Perfect for maintaining
-                focus during long games.
-              </p>
-              <Link
-                href="/products"
-                className="text-primary-600 hover:text-primary-700 inline-flex items-center text-sm font-medium"
-              >
-                Explore our products <span className="ml-1">&rarr;</span>
-              </Link>
+              <h3 className="text-xl font-bold text-rich-950 dark:text-cream-50 mb-3">Perfect Balance</h3>
+              <p className="text-rich-700 dark:text-cream-300">Ideal harmony of flavor, strength, and comfort</p>
             </div>
 
-            <div className="group">
-              <div className="bg-primary-50 mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full">
-                <svg
-                  className="text-primary-600 h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                  />
-                </svg>
+            <div className="bg-white dark:bg-rich-800 rounded-xl p-8 shadow-md hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-navy-600 rounded-full flex items-center justify-center text-white font-bold mb-6">
+                02
               </div>
-              <h3 className="mb-3 text-xl font-medium text-gray-900">Discreet & Convenient</h3>
-              <p className="mb-5 text-gray-600">
-                No spitting, no mess. Use them anywhere - in the locker room, on the bench, or
-                during travel to away games.
+              <h3 className="text-xl font-bold text-rich-950 dark:text-cream-50 mb-3">Revolutionary Design</h3>
+              <p className="text-rich-700 dark:text-cream-300">
+                Optimal placement, minimal movement, maximum comfort
               </p>
-              <Link
-                href="/research"
-                className="text-primary-600 hover:text-primary-700 inline-flex items-center text-sm font-medium"
-              >
-                Learn how they work <span className="ml-1">&rarr;</span>
-              </Link>
             </div>
 
-            <div className="group">
-              <div className="bg-primary-50 mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full">
-                <svg
-                  className="text-primary-600 h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
+            <div className="bg-white dark:bg-rich-800 rounded-xl p-8 shadow-md hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-forest-600 rounded-full flex items-center justify-center text-white font-bold mb-6">
+                03
               </div>
-              <h3 className="mb-3 text-xl font-medium text-gray-900">Team Discounts</h3>
-              <p className="mb-5 text-gray-600">
-                Bulk discounts available for hockey teams and leagues. The same pouches trusted by
-                professional players.
+              <h3 className="text-xl font-bold text-rich-950 dark:text-cream-50 mb-3">Precision Crafted</h3>
+              <p className="text-rich-700 dark:text-cream-300">
+                Engineered for consistent release and maximum comfort
               </p>
-              <Link
-                href="/products"
-                className="text-primary-600 hover:text-primary-700 inline-flex items-center text-sm font-medium"
-              >
-                Shop team favorites <span className="ml-1">&rarr;</span>
-              </Link>
             </div>
           </div>
         </div>
       </section>
 
       {/* Player Favorites Section */}
-      <section className="bg-gray-50 py-24">
+      <section className="py-24 bg-cream-50 dark:bg-rich-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <span className="text-primary-600 inline-block text-sm font-medium">TOP PICKS</span>
-            <h2 className="mt-3 text-3xl font-bold text-gray-900 text-shadow-xs sm:text-4xl">
-              Player Favorites
+            <span className="text-anzac-600 dark:text-anzac-400 inline-block text-sm font-medium">COLLECTIONS</span>
+            <h2 className="mt-3 text-3xl font-bold text-rich-950 dark:text-cream-50 sm:text-4xl">
+              Crafted Perfection
             </h2>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-600">
-              Our most popular flavors among hockey players. All pouches are tobacco-free, designed
-              for maximum performance and convenience on and off the ice.
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-rich-700 dark:text-cream-300">
+              Each PUXX collection represents our relentless pursuit of perfection, offering distinct experiences for
+              every preference and moment.
             </p>
           </div>
 
@@ -185,25 +118,25 @@ export default function Home() {
             {flavors.slice(0, 4).map((flavor, index) => (
               <div
                 key={index}
-                className="group relative overflow-hidden rounded-lg bg-white shadow-sm transition-all hover:shadow-md"
+                className="group relative overflow-hidden rounded-lg bg-white dark:bg-rich-800 shadow-sm transition-all hover:shadow-md"
               >
                 {index === 0 && (
-                  <div className="bg-primary-600 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
-                    BEST SELLER
+                  <div className="bg-anzac-500 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
+                    CLASSIC
                   </div>
                 )}
                 {index === 1 && (
-                  <div className="bg-primary-500 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
-                    POPULAR
+                  <div className="bg-navy-600 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
+                    INTENSE
                   </div>
                 )}
                 {index === 2 && (
-                  <div className="bg-primary-700 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
-                    STRONG
+                  <div className="bg-forest-600 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
+                    LIGHT
                   </div>
                 )}
                 {index === 3 && (
-                  <div className="bg-primary-400 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
+                  <div className="bg-anzac-400 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
                     NEW
                   </div>
                 )}
@@ -220,22 +153,22 @@ export default function Home() {
                   />
                 </div>
                 <div className="p-5">
-                  <h3 className="mb-2 text-lg font-medium text-gray-900">{flavor}</h3>
-                  <p className="mb-4 text-sm text-gray-500">
+                  <h3 className="mb-2 text-lg font-medium text-rich-950 dark:text-cream-50">{flavor}</h3>
+                  <p className="mb-4 text-sm text-rich-700 dark:text-cream-300">
                     Perfect for{' '}
                     {index === 0
-                      ? 'between periods'
+                      ? 'everyday elegance'
                       : index === 1
-                        ? 'long road trips'
+                        ? 'bold experiences'
                         : index === 2
-                          ? 'post-game recovery'
-                          : 'training sessions'}
+                          ? 'gentle introduction'
+                          : 'special moments'}
                   </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-medium text-gray-900">$15.00</span>
+                    <span className="text-lg font-medium text-rich-950 dark:text-cream-50">$15.00</span>
                     <Link
                       href={`/products?flavor=${encodeURIComponent(flavor)}`}
-                      className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                      className="text-anzac-600 dark:text-anzac-400 hover:text-anzac-700 dark:hover:text-anzac-300 text-sm font-medium"
                     >
                       Shop now <span className="ml-1">&rarr;</span>
                     </Link>
@@ -246,133 +179,48 @@ export default function Home() {
           </div>
 
           <div className="mt-16 text-center">
-            <Link
-              href="/products"
-              className="inline-flex items-center rounded-md border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50"
-            >
-              View All Products
-              <svg
-                className="ml-2 h-5 w-5 text-gray-400"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </Link>
+            <Button variant="outline" className="inline-flex items-center rounded-md px-6 py-3 text-base font-medium shadow-sm transition-all">
+              <Link href="/products">
+                View All Products
+                <svg
+                  className="ml-2 h-5 w-5 text-anzac-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
 
-      {/* Join the Community CTA Section */}
-      <section className="py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="overflow-hidden rounded-2xl bg-gray-50 shadow-sm">
-            <div className="grid grid-cols-1 lg:grid-cols-2">
-              <div className="p-8 sm:p-12 lg:p-16">
-                <span className="text-primary-600 inline-block text-sm font-medium">
-                  JOIN THE COMMUNITY
-                </span>
-                <h2 className="mt-3 text-3xl font-bold text-gray-900 text-shadow-xs sm:text-4xl">
-                  Get the Edge On and Off the Ice
-                </h2>
-                <p className="mt-6 text-lg text-gray-600">
-                  Join thousands of hockey players across Canada who trust Hockey Puxx for a clean,
-                  discreet nicotine experience that fits their active lifestyle.
-                </p>
-                <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-                  <Link
-                    href="/products"
-                    className="bg-primary-600 hover:bg-primary-700 inline-flex items-center rounded-md px-6 py-3 text-base font-medium text-white shadow-sm transition-all"
-                  >
-                    Shop Now
-                  </Link>
-                  <Link
-                    href="/account"
-                    className="inline-flex items-center rounded-md border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50"
-                  >
-                    Create Account
-                  </Link>
-                </div>
-              </div>
-              <div className="bg-gray-100 p-8 sm:p-12 lg:p-16">
-                <h3 className="text-xl font-bold text-gray-900">Why Players Love Us</h3>
-                <ul className="mt-8 space-y-5">
-                  <li className="flex">
-                    <svg
-                      className="mr-3 h-5 w-5 flex-shrink-0 text-green-500"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="text-gray-700">Discreet use during games & practice</span>
-                  </li>
-                  <li className="flex">
-                    <svg
-                      className="mr-3 h-5 w-5 flex-shrink-0 text-green-500"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="text-gray-700">Quick energy boost between periods</span>
-                  </li>
-                  <li className="flex">
-                    <svg
-                      className="mr-3 h-5 w-5 flex-shrink-0 text-green-500"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="text-gray-700">No spitting required - clean & convenient</span>
-                  </li>
-                  <li className="flex">
-                    <svg
-                      className="mr-3 h-5 w-5 flex-shrink-0 text-green-500"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="text-gray-700">Fast, free shipping across Canada</span>
-                  </li>
-                </ul>
-                <div className="mt-8">
-                  <Link
-                    href="/research"
-                    className="text-primary-600 hover:text-primary-700 inline-flex items-center"
-                  >
-                    Learn more about our products <span className="ml-1">&rarr;</span>
-                  </Link>
-                </div>
-              </div>
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-br from-anzac-500 to-anzac-600 text-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-4">Experience Nicotine Reimagined</h2>
+            <p className="text-xl mb-4">Join the Premium PUXX Movement</p>
+            <p className="mb-8">
+              Elevate your nicotine experience with our meticulously crafted tobacco-free pouches, designed for those
+              who demand more from every moment.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Button className="bg-white text-anzac-600 hover:bg-cream-100 border-none">
+                <Link href="/products">Shop Premium Pouches</Link>
+              </Button>
+              <Button variant="outline" className="border-white text-white hover:bg-anzac-600">
+                <Link href="/products">Explore Flavors</Link>
+              </Button>
             </div>
+            <p className="text-sm mt-8">
+              These products contain nicotine. Nicotine is an addictive chemical. For adult use only.
+            </p>
           </div>
         </div>
       </section>

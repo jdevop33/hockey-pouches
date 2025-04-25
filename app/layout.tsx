@@ -10,8 +10,9 @@ import { DatabaseInit } from './_components/database-init';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { CsrfProvider } from './context/CsrfContext';
-import { defaultSEO, generateMetadata as seoGenerateMetadata } from './components/SEO';
-import JsonLd, { generateOrganizationJsonLd } from './components/JsonLd';
+import './components/SEO';
+import './components/JsonLd';
+import { ThemeProvider } from './components/theme-provider';
 
 // Analytics tracking IDs - configured for production deployment
 const GA_TRACKING_ID = 'G-PMM01WKF05';
@@ -21,30 +22,29 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://nicotinetins.com'),
-  title:
-    'Nicotine Tins - Premium Nicotine Pouches by Hockey Puxx | Best Tobacco-Free Pouches in Canada',
+  title: 'PUXX Premium - Luxury Nicotine Pouches | Premium Tobacco-Free Experience',
   description:
-    'Premium tobacco-free nicotine pouches by Hockey Puxx, designed for hockey players and fans across Canada. Discreet, convenient, and perfect for your active lifestyle. Free shipping on orders over $50.',
+    'Experience premium tobacco-free nicotine pouches by PUXX Premium. Meticulously crafted for those who demand excellence. Discreet, convenient, and perfect for your lifestyle. Free shipping on orders over $50.',
   keywords:
-    'nicotine pouches, hockey puxx, tobacco-free, Canada, athletes, sports, energy, performance, discreet, nicotine tins, hockey players',
-  authors: [{ name: 'Hockey Puxx Team' }],
-  creator: 'Hockey Puxx',
-  publisher: 'Nicotine Tins',
+    'nicotine pouches, PUXX Premium, tobacco-free, luxury nicotine, premium pouches, discreet nicotine, smoke-free, odorless',
+  authors: [{ name: 'PUXX Premium Team' }],
+  creator: 'PUXX Premium',
+  publisher: 'PUXX Premium',
   alternates: {
-    canonical: 'https://nicotinetins.com',
+    canonical: 'https://puxxpremium.com',
   },
   openGraph: {
-    title: 'Nicotine Tins - Premium Nicotine Pouches by Hockey Puxx | Best in Canada',
+    title: 'PUXX Premium - Luxury Nicotine Pouches | Premium Tobacco-Free Experience',
     description:
-      'Premium tobacco-free nicotine pouches by Hockey Puxx, designed for hockey players and fans across Canada. Discreet, convenient, and perfect for your active lifestyle.',
-    url: 'https://nicotinetins.com',
-    siteName: 'Nicotine Tins by Hockey Puxx',
+      'Experience premium tobacco-free nicotine pouches by PUXX Premium. Meticulously crafted for those who demand excellence. Discreet, convenient, and perfect for your lifestyle.',
+    url: 'https://puxxpremium.com',
+    siteName: 'PUXX Premium',
     images: [
       {
-        url: '/images/logo/logo3.svg',
+        url: '/images/logo/puxx-logo.svg',
         width: 1200,
         height: 630,
-        alt: 'Nicotine Tins - Premium Nicotine Pouches by Hockey Puxx',
+        alt: 'PUXX Premium - Luxury Nicotine Pouches',
       },
     ],
     locale: 'en_CA',
@@ -53,12 +53,12 @@ export const metadata: Metadata = {
   // Updated from Twitter to X
   twitter: {
     card: 'summary_large_image',
-    title: 'Nicotine Tins - Premium Nicotine Pouches by Hockey Puxx',
+    title: 'PUXX Premium - Luxury Nicotine Pouches',
     description:
-      'Premium tobacco-free nicotine pouches designed for hockey players and fans across Canada. Free shipping on orders over $50.',
-    images: ['/images/logo/logo3.svg'],
-    creator: '@nicotinetins',
-    site: '@nicotinetins',
+      'Experience premium tobacco-free nicotine pouches by PUXX Premium. Meticulously crafted for those who demand excellence.',
+    images: ['/images/logo/puxx-logo.svg'],
+    creator: '@puxxpremium',
+    site: '@puxxpremium',
   },
   robots: {
     index: true,
@@ -81,30 +81,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         {/* ... (keep existing head content) ... */}
-        <link rel="canonical" href="https://nicotinetins.com" />
-        <link rel="icon" href="/images/logo/logo3.svg" sizes="any" />
-        <link rel="apple-touch-icon" href="/images/logo/logo3.svg" sizes="256x256" />
-        <link rel="icon" type="image/svg+xml" sizes="64x64" href="/images/logo/logo3.svg" />
-        <link rel="icon" type="image/svg+xml" sizes="48x48" href="/images/logo/logo3.svg" />
+        <link rel="canonical" href="https://puxxpremium.com" />
+        <link rel="icon" href="/images/logo/puxx-logo.svg" sizes="any" />
+        <link rel="apple-touch-icon" href="/images/logo/puxx-logo.svg" sizes="256x256" />
+        <link rel="icon" type="image/svg+xml" sizes="64x64" href="/images/logo/puxx-logo.svg" />
+        <link rel="icon" type="image/svg+xml" sizes="48x48" href="/images/logo/puxx-logo.svg" />
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.google-analytics.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://www.clarity.ms" />
-        <meta property="og:site_name" content="Nicotine Tins by Hockey Puxx" />
+        <meta property="og:site_name" content="PUXX Premium" />
         <meta property="og:type" content="website" />
         <meta property="og:locale" content="en_CA" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:creator" content="@nicotinetins" />
-        <meta name="twitter:site" content="@nicotinetins" />
-        <meta name="theme-color" content="#0F172A" />
-        <meta name="msapplication-TileColor" content="#0F172A" />
+        <meta name="twitter:creator" content="@puxxpremium" />
+        <meta name="twitter:site" content="@puxxpremium" />
+        <meta name="theme-color" content="#d4af37" />
+        <meta name="msapplication-TileColor" content="#d4af37" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Nicotine Tins by Hockey Puxx" />
+        <meta name="apple-mobile-web-app-title" content="PUXX Premium" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="Nicotine Tins by Hockey Puxx" />
+        <meta name="application-name" content="PUXX Premium" />
         <Script
           strategy="afterInteractive"
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
@@ -147,27 +147,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'WebSite',
-              '@id': 'https://nicotinetins.com/#website',
-              url: 'https://nicotinetins.com',
-              name: 'Nicotine Tins by Hockey Puxx',
+              '@id': 'https://puxxpremium.com/#website',
+              url: 'https://puxxpremium.com',
+              name: 'PUXX Premium',
               description:
-                'Premium tobacco-free nicotine pouches designed for hockey players and fans across Canada. Discreet, convenient, and perfect for your active lifestyle.',
+                'Experience premium tobacco-free nicotine pouches by PUXX Premium. Meticulously crafted for those who demand excellence. Discreet, convenient, and perfect for your lifestyle.',
               potentialAction: [
                 {
                   '@type': 'SearchAction',
                   target: {
                     '@type': 'EntryPoint',
-                    urlTemplate: 'https://nicotinetins.com/products?search={search_term_string}',
+                    urlTemplate: 'https://puxxpremium.com/products?search={search_term_string}',
                   },
                   'query-input': 'required name=search_term_string',
                 },
               ],
               publisher: {
                 '@type': 'Organization',
-                name: 'Nicotine Tins by Hockey Puxx',
+                name: 'PUXX Premium',
                 logo: {
                   '@type': 'ImageObject',
-                  url: 'https://nicotinetins.com/images/logo/logo3.svg',
+                  url: 'https://puxxpremium.com/images/logo/puxx-logo.svg',
                 },
               },
             }),
@@ -181,26 +181,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'Organization',
-              '@id': 'https://nicotinetins.com/#organization',
-              name: 'Nicotine Tins by Hockey Puxx',
-              url: 'https://nicotinetins.com',
+              '@id': 'https://puxxpremium.com/#organization',
+              name: 'PUXX Premium',
+              url: 'https://puxxpremium.com',
               logo: {
                 '@type': 'ImageObject',
-                url: 'https://nicotinetins.com/images/logo/logo3.svg',
+                url: 'https://puxxpremium.com/images/logo/puxx-logo.svg',
                 width: 512,
                 height: 512,
               },
               sameAs: [
-                'https://twitter.com/nicotinetins',
-                'https://www.instagram.com/nicotinetins',
-                'https://www.facebook.com/nicotinetins',
+                'https://twitter.com/puxxpremium',
+                'https://www.instagram.com/puxxpremium',
+                'https://www.facebook.com/puxxpremium',
               ],
               contactPoint: [
                 {
                   '@type': 'ContactPoint',
                   telephone: '+1-250-415-5678',
                   contactType: 'customer service',
-                  email: 'info@nicotinetins.com',
+                  email: 'info@puxxpremium.com',
                   areaServed: 'CA',
                   availableLanguage: ['English', 'French'],
                 },
@@ -210,22 +210,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${inter.variable} font-sans`} suppressHydrationWarning>
-        <AuthProvider>
-          <ToastProvider>
-            <CsrfProvider>
-              {/* Web Vitals Tracking */}
-              <WebVitals />
-              {/* Performance Monitoring */}
-              <PerformanceMonitoring />
-              {/* Vercel Analytics */}
-              <Analytics />
-              {/* Database Initialization */}
-              <DatabaseInit />
-              {/* Main Content */}
-              <CartWrapper>{children}</CartWrapper>
-            </CsrfProvider>
-          </ToastProvider>
-        </AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="light">
+          <AuthProvider>
+            <ToastProvider>
+              <CsrfProvider>
+                {/* Web Vitals Tracking */}
+                <WebVitals />
+                {/* Performance Monitoring */}
+                <PerformanceMonitoring />
+                {/* Vercel Analytics */}
+                <Analytics />
+                {/* Database Initialization */}
+                <DatabaseInit />
+                {/* Main Content */}
+                <CartWrapper>{children}</CartWrapper>
+              </CsrfProvider>
+            </ToastProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

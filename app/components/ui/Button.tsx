@@ -26,7 +26,8 @@ const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   // Base classes
-  const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium focus:outline-none transition-colors';
+  const baseClasses =
+    'inline-flex items-center justify-center rounded-md font-medium focus:outline-none transition-colors';
 
   // Size classes
   const sizeClasses = {
@@ -37,15 +38,21 @@ const Button: React.FC<ButtonProps> = ({
 
   // Variant classes
   const variantClasses = {
-    primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-    secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2',
-    success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2',
-    outline: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+    primary:
+      'bg-anzac-500 text-white hover:bg-anzac-600 focus:ring-2 focus:ring-anzac-400 focus:ring-offset-2',
+    secondary:
+      'bg-navy-600 text-white hover:bg-navy-700 focus:ring-2 focus:ring-navy-500 focus:ring-offset-2',
+    danger:
+      'bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2',
+    success:
+      'bg-forest-600 text-white hover:bg-forest-700 focus:ring-2 focus:ring-forest-500 focus:ring-offset-2',
+    outline:
+      'bg-cream-50 dark:bg-rich-900 text-rich-800 dark:text-cream-100 border border-anzac-300 dark:border-rich-700 hover:bg-cream-100 dark:hover:bg-rich-800 focus:ring-2 focus:ring-anzac-400 focus:ring-offset-2',
   }[variant];
 
   // Disabled classes
-  const disabledClasses = (disabled || isLoading) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
+  const disabledClasses =
+    disabled || isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
 
   return (
     <button
@@ -56,10 +63,10 @@ const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {isLoading && (
-        <LoadingSpinner 
-          size="small" 
-          color={variant === 'outline' ? 'primary' : 'white'} 
-          className="mr-2" 
+        <LoadingSpinner
+          size="small"
+          color={variant === 'outline' ? 'primary' : 'white'}
+          className="mr-2"
         />
       )}
       {children}

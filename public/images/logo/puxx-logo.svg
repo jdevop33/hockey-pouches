@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="64" fill="#121212"/>
+  <path d="M96 160H160V224H96V160Z" fill="#D4AF37"/>
+  <path d="M96 288H160V352H96V288Z" fill="#D4AF37"/>
+  <path d="M224 160H288V224H224V160Z" fill="#D4AF37"/>
+  <path d="M224 288H288V352H224V288Z" fill="#D4AF37"/>
+  <path d="M352 160H416V352H352V160Z" fill="#D4AF37"/>
+  <path d="M96 224H160V288H96V224Z" fill="#3F7FC0"/>
+  <path d="M224 224H288V288H224V224Z" fill="#3F7FC0"/>
+  <text x="256" y="416" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="#D4AF37">PREMIUM</text>
+</svg>
