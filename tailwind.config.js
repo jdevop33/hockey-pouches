@@ -3,7 +3,7 @@
 // Toggle between branding styles
 // Set to 'new' for PUXX Premium luxury branding (anzac gold, navy, forest green, cream)
 // Set to 'old' for original Hockey Pouches branding (blue, slate, sky)
-const BRANDING = 'old';
+const BRANDING = 'new';
 
 // Color palettes
 const newBranding = {

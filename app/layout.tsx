@@ -213,7 +213,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${inter.variable} font-sans`} suppressHydrationWarning>
         <ThemeProvider>
-          <BrandingProvider branding="old">
+          <BrandingProvider branding="new">
             <AuthProvider>
               <ToastProvider>
                 <CsrfProvider>
