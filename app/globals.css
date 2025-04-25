@@ -3,13 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
+  /* Define base colors for light/dark - adjust as needed */
+  --foreground-rgb-light: 0, 0, 0;
+  --background-rgb-light: 255, 255, 255;
+
+  --foreground-rgb-dark: 229, 231, 235; /* Example: gray-200 */
+  --background-rgb-dark: 17, 24, 39;    /* Example: gray-900 */
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+   /* Default to dark mode colors */
+  color: rgb(var(--foreground-rgb-dark));
+  background: rgb(var(--background-rgb-dark));
 }
 
 /* Mobile optimizations */

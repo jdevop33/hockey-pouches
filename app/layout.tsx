@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Script from 'next/script';
 import CartWrapper from './components/CartWrapper';
-import { Analytics } from '@vercel/analytics/react';
+import { Analytics } from '@vercel/analytics/next'; 
 import { WebVitals } from './_components/web-vitals';
 import { DatabaseInit } from './_components/database-init';
 import { AuthProvider } from './context/AuthContext';
@@ -75,7 +75,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    // Added the 'dark' class here for dark-mode-only
+    <html lang="en" className="dark">
       <head>
         {/* ... (keep existing head content) ... */}
         <link rel="canonical" href="https://nicotinetins.com" />
@@ -206,7 +207,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      {/* Removed suppressHydrationWarning from body */}
       <body className={`${inter.variable} font-sans`}>
         <AuthProvider>
           <ToastProvider>

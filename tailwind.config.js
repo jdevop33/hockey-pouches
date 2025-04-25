@@ -1,11 +1,13 @@
+const defaultTheme = require('tailwindcss/defaultTheme');
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class', // Enable dark mode using the class strategy
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
-    // Removed ./pages, ./components, ./src as they don't seem applicable
   ],
   theme: {
-    extend: {
+    extend: { 
       colors: {
         primary: {
           50: '#eff7ff',
@@ -45,19 +47,11 @@ module.exports = {
           900: '#0c4a6e',
           950: '#082f49',
         },
-      },
+      }, 
       fontFamily: {
         sans: [
-          'var(--font-inter)',
-          'ui-sans-serif',
-          'system-ui',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'Segoe UI',
-          'Roboto',
-          'Helvetica Neue',
-          'Arial',
-          'sans-serif',
+          'var(--font-inter)', 
+          ...defaultTheme.fontFamily.sans,
         ],
       },
       animation: {
@@ -69,7 +63,7 @@ module.exports = {
           '100%': { opacity: 1 },
         },
       },
-    },
+    }, 
   },
   plugins: [
     require('@tailwindcss/forms'),

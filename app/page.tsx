@@ -13,11 +13,11 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="items-center lg:grid lg:grid-cols-2 lg:gap-16">
             <div>
+              {/* Restored original classes */}
               <div className="bg-primary-50 text-primary-600 mb-6 inline-block rounded-full px-3 py-1 text-sm font-medium">
                 FOR HOCKEY PLAYERS
               </div>
-              {/* --- ADDED TEST CLASSES HERE --- */}
-              <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 text-shadow-sm sm:text-5xl lg:text-6xl bg-red-500 text-white p-10">
+              <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 text-shadow-sm sm:text-5xl lg:text-6xl">
                 Stay in the Game with Hockey Puxx
               </h1>
               <p className="mb-10 max-w-xl text-xl leading-relaxed text-gray-600">
@@ -25,6 +25,7 @@ export default function Home() {
                 Discreet, convenient, and perfect for the rink.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row">
+                 {/* Restored original classes */}
                 <Link
                   href="/products"
                   className="bg-primary-600 hover:bg-primary-700 inline-block rounded-md px-6 py-3 text-base font-medium text-white shadow-sm transition-all"
@@ -42,6 +43,7 @@ export default function Home() {
             </div>
             <div className="relative mt-12 lg:mt-0">
               <div className="relative mx-auto max-w-md overflow-hidden rounded-2xl shadow-lg lg:max-w-none">
+                 {/* Restored original classes */}
                 <div className="bg-primary-500 absolute top-4 right-4 z-10 rounded-full px-3 py-1 text-xs font-medium text-white shadow-sm">
                   NEW
                 </div>
@@ -64,6 +66,7 @@ export default function Home() {
       <section className="py-24">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
+             {/* Restored original classes */}
             <span className="text-primary-600 inline-block text-sm font-medium">BENEFITS</span>
             <h2 className="mt-3 text-3xl font-bold text-gray-900 text-shadow-xs sm:text-4xl">
               Why Hockey Players Choose Our Pouches
@@ -76,6 +79,7 @@ export default function Home() {
 
           <div className="mt-20 grid grid-cols-1 gap-12 md:grid-cols-3">
             <div className="group">
+               {/* Restored original classes */}
               <div className="bg-primary-50 mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full">
                 <svg
                   className="text-primary-600 h-6 w-6"
@@ -104,8 +108,8 @@ export default function Home() {
                 Explore our products <span className="ml-1">&rarr;</span>
               </Link>
             </div>
-
-            <div className="group">
+            {/* ... rest of features section ... */}
+             <div className="group">
               <div className="bg-primary-50 mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full">
                 <svg
                   className="text-primary-600 h-6 w-6"
@@ -134,8 +138,7 @@ export default function Home() {
                 Learn how they work <span className="ml-1">&rarr;</span>
               </Link>
             </div>
-
-            <div className="group">
+             <div className="group">
               <div className="bg-primary-50 mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full">
                 <svg
                   className="text-primary-600 h-6 w-6"
@@ -167,11 +170,11 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Player Favorites Section */}
-      <section className="bg-gray-50 py-24">
+       {/* ... rest of page ... */}
+       <section className="bg-gray-50 py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
+             {/* Restored original classes */}
             <span className="text-primary-600 inline-block text-sm font-medium">TOP PICKS</span>
             <h2 className="mt-3 text-3xl font-bold text-gray-900 text-shadow-xs sm:text-4xl">
               Player Favorites
@@ -188,6 +191,7 @@ export default function Home() {
                 key={index}
                 className="group relative overflow-hidden rounded-lg bg-white shadow-sm transition-all hover:shadow-md"
               >
+                 {/* Restored original classes */}
                 {index === 0 && (
                   <div className="bg-primary-600 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
                     BEST SELLER
@@ -234,6 +238,7 @@ export default function Home() {
                   </p>
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-medium text-gray-900">$15.00</span>
+                     {/* Restored original classes */}
                     <Link
                       href={`/products?flavor=${encodeURIComponent(flavor)}`}
                       className="text-primary-600 hover:text-primary-700 text-sm font-medium"
@@ -268,13 +273,12 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Join the Community CTA Section */}
       <section className="py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="overflow-hidden rounded-2xl bg-gray-50 shadow-sm">
             <div className="grid grid-cols-1 lg:grid-cols-2">
               <div className="p-8 sm:p-12 lg:p-16">
+                 {/* Restored original classes */}
                 <span className="text-primary-600 inline-block text-sm font-medium">
                   JOIN THE COMMUNITY
                 </span>
@@ -286,6 +290,7 @@ export default function Home() {
                   discreet nicotine experience that fits their active lifestyle.
                 </p>
                 <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+                   {/* Restored original classes */}
                   <Link
                     href="/products"
                     className="bg-primary-600 hover:bg-primary-700 inline-flex items-center rounded-md px-6 py-3 text-base font-medium text-white shadow-sm transition-all"
@@ -318,7 +323,8 @@ export default function Home() {
                     </svg>
                     <span className="text-gray-700">Discreet use during games & practice</span>
                   </li>
-                  <li className="flex">
+                  {/* ... list items ... */}
+                   <li className="flex">
                     <svg
                       className="mr-3 h-5 w-5 flex-shrink-0 text-green-500"
                       xmlns="http://www.w3.org/2000/svg"
@@ -365,6 +371,7 @@ export default function Home() {
                   </li>
                 </ul>
                 <div className="mt-8">
+                   {/* Restored original classes */}
                   <Link
                     href="/research"
                     className="text-primary-600 hover:text-primary-700 inline-flex items-center"
