@@ -24,6 +24,18 @@ interface CreateOrderBody {
   billingAddress?: AddressInput;
   paymentMethod?: string;
   discountCode?: string | null;
+  shippingMethod?: 'standard' | 'express';
+  shippingCost?: number;
+  taxes?: {
+    gst: number;
+    pst?: number;
+    hst?: number;
+    qst?: number;
+    total: number;
+  };
+  subtotal?: number;
+  discountAmount?: number;
+  total?: number;
 }
 interface ProductInfo {
   id: number;
@@ -75,7 +87,19 @@ export async function POST(request: NextRequest) {
     if (!userId) return NextResponse.json({ message: 'Unauthorized.' }, { status: 401 });
 
     const body: CreateOrderBody = await request.json();
-    const { items, shippingAddress, billingAddress, paymentMethod, discountCode } = body;
+    const {
+      items,
+      shippingAddress,
+      billingAddress,
+      paymentMethod,
+      discountCode,
+      shippingMethod = 'standard',
+      shippingCost: clientShippingCost,
+      taxes: clientTaxes,
+      subtotal: clientSubtotal,
+      discountAmount: clientDiscountAmount,
+      total: clientTotal,
+    } = body;
 
     // --- Input Validation ---
     if (!items || !Array.isArray(items) || items.length === 0)
@@ -199,9 +223,30 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const shippingCost = 5.0;
-    const taxes = subtotal * 0.13;
-    const totalAmount = subtotal - discountAmount + shippingCost + taxes;
+    // Use client-provided values if available, otherwise calculate
+    const finalShippingCost = clientShippingCost || (shippingMethod === 'express' ? 20.0 : 10.0);
+
+    // Calculate taxes if not provided by client
+    let taxesTotal = 0;
+    let taxesGst = 0;
+    let taxesPst = 0;
+    let taxesHst = 0;
+    let taxesQst = 0;
+
+    if (clientTaxes) {
+      taxesTotal = clientTaxes.total;
+      taxesGst = clientTaxes.gst || 0;
+      taxesPst = clientTaxes.pst || 0;
+      taxesHst = clientTaxes.hst || 0;
+      taxesQst = clientTaxes.qst || 0;
+    } else {
+      // Default tax calculation (13% HST) if client didn't provide taxes
+      taxesHst = subtotal * 0.13;
+      taxesTotal = taxesHst;
+    }
+
+    // Calculate final total
+    const totalAmount = clientTotal || subtotal - discountAmount + finalShippingCost + taxesTotal;
 
     // --- Database Transaction ---
     await client.query('BEGIN');
@@ -216,15 +261,30 @@ export async function POST(request: NextRequest) {
     const shippingAddrJson = JSON.stringify(shippingAddress);
     const billingAddrJson = JSON.stringify(billingAddress);
 
-    const orderInsertQuery = `INSERT INTO orders (user_id, status, subtotal, discount_code, discount_amount, shipping_cost, taxes, total_amount, shipping_address, billing_address, payment_method, payment_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`;
+    // Create tax details JSON
+    const taxDetailsJson = JSON.stringify({
+      gst: taxesGst,
+      pst: taxesPst,
+      hst: taxesHst,
+      qst: taxesQst,
+      total: taxesTotal,
+    });
+
+    const orderInsertQuery = `INSERT INTO orders (
+      user_id, status, subtotal, discount_code, discount_amount,
+      shipping_method, shipping_cost, tax_details, total_amount,
+      shipping_address, billing_address, payment_method, payment_status
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id`;
+
     const orderInsertParams = [
       userId,
       initialStatus,
       subtotal.toFixed(2),
       appliedDiscountCode,
       discountAmount.toFixed(2),
-      shippingCost.toFixed(2),
-      taxes.toFixed(2),
+      shippingMethod,
+      finalShippingCost.toFixed(2),
+      taxDetailsJson,
       totalAmount.toFixed(2),
       shippingAddrJson,
       billingAddrJson,

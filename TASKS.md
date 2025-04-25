@@ -129,8 +129,8 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [x] Complete payment gateway integration
 - [x] Enhance checkout UI and validation
 - [x] Implement order confirmation emails
-- [ ] Add tax calculation
-- [ ] Implement shipping options and rates
+- [x] Add tax calculation
+- [x] Implement shipping options and rates
 - [x] Add discount code functionality (Backend implementation complete)
 - [x] Add admin interface for discount code management
 - [ ] Add guest checkout option

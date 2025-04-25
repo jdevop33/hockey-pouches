@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Layout from '../components/layout/NewLayout';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { calculateTaxes, getTaxBreakdown } from '@/lib/taxCalculation';
 
 interface AddressData {
   street: string;
@@ -50,6 +51,20 @@ export default function CheckoutPage() {
     discountAmount: number;
     message: string;
   } | null>(null);
+
+  // Shipping state
+  const [shippingMethod, setShippingMethod] = useState<'standard' | 'express'>('standard');
+  const shippingCost = shippingMethod === 'standard' ? 10.0 : 20.0;
+
+  // Calculate taxes based on province
+  const discountedSubtotal = subtotal - (appliedDiscount?.discountAmount || 0);
+  const taxes = useMemo(() => {
+    if (!shippingAddress.province) return { gst: 0, total: 0 };
+    return calculateTaxes(items, shippingAddress.province, discountedSubtotal);
+  }, [items, shippingAddress.province, discountedSubtotal]);
+
+  // Calculate order total
+  const orderTotal = discountedSubtotal + shippingCost + taxes.total;
 
   useEffect(() => {
     if (!authLoading) {
@@ -206,6 +221,12 @@ export default function CheckoutPage() {
         : { ...finalBillingAddress, country: 'Canada' },
       paymentMethod: paymentMethod,
       discountCode: appliedDiscount?.code || null,
+      shippingMethod: shippingMethod,
+      shippingCost: shippingCost,
+      taxes: taxes,
+      subtotal: subtotal,
+      discountAmount: appliedDiscount?.discountAmount || 0,
+      total: orderTotal,
     };
     console.log('Placing order with data:', orderData);
 
@@ -465,9 +486,64 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               )}
+              {/* Shipping Method */}
+              <div className="rounded-lg bg-white p-6 shadow-md">
+                <h2 className="mb-4 text-xl font-semibold text-gray-700">Shipping Method</h2>
+                <div className="space-y-4">
+                  <div
+                    className={`rounded-lg border p-4 ${shippingMethod === 'standard' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'}`}
+                  >
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="standard-shipping"
+                        name="shippingMethod"
+                        value="standard"
+                        checked={shippingMethod === 'standard'}
+                        onChange={() => setShippingMethod('standard')}
+                        className="text-primary-600 focus:ring-primary-500 h-4 w-4"
+                      />
+                      <label
+                        htmlFor="standard-shipping"
+                        className="ml-3 flex flex-grow cursor-pointer items-center"
+                      >
+                        <span className="text-sm font-medium text-gray-900">
+                          Standard Shipping (5-7 business days)
+                        </span>
+                        <span className="ml-auto font-medium">$10.00</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`rounded-lg border p-4 ${shippingMethod === 'express' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'}`}
+                  >
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="express-shipping"
+                        name="shippingMethod"
+                        value="express"
+                        checked={shippingMethod === 'express'}
+                        onChange={() => setShippingMethod('express')}
+                        className="text-primary-600 focus:ring-primary-500 h-4 w-4"
+                      />
+                      <label
+                        htmlFor="express-shipping"
+                        className="ml-3 flex flex-grow cursor-pointer items-center"
+                      >
+                        <span className="text-sm font-medium text-gray-900">
+                          Express Shipping (2-3 business days)
+                        </span>
+                        <span className="ml-auto font-medium">$20.00</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Payment Method */}
               <div className="rounded-lg bg-white p-6 shadow-md">
-                {/* ... payment options ... */}
                 <h2 className="mb-4 text-xl font-semibold text-gray-700">Payment Method</h2>
                 {formErrors.payment && (
                   <div className="mb-4 rounded-md bg-red-50 p-3">
@@ -692,17 +768,47 @@ export default function CheckoutPage() {
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <dt>Shipping</dt>
-                    <dd className="font-medium text-gray-900">$ TBD</dd>
+                    <dt>Shipping ({shippingMethod === 'standard' ? 'Standard' : 'Express'})</dt>
+                    <dd className="font-medium text-gray-900">${shippingCost.toFixed(2)}</dd>
                   </div>
-                  <div className="flex justify-between">
-                    <dt>Taxes</dt>
-                    <dd className="font-medium text-gray-900">$ TBD</dd>
-                  </div>
+
+                  {/* Tax breakdown */}
+                  {shippingAddress.province && (
+                    <>
+                      {taxes.hst ? (
+                        <div className="flex justify-between">
+                          <dt>HST ({shippingAddress.province})</dt>
+                          <dd className="font-medium text-gray-900">${taxes.hst.toFixed(2)}</dd>
+                        </div>
+                      ) : (
+                        <>
+                          {taxes.gst > 0 && (
+                            <div className="flex justify-between">
+                              <dt>GST</dt>
+                              <dd className="font-medium text-gray-900">${taxes.gst.toFixed(2)}</dd>
+                            </div>
+                          )}
+                          {taxes.pst > 0 && (
+                            <div className="flex justify-between">
+                              <dt>PST ({shippingAddress.province})</dt>
+                              <dd className="font-medium text-gray-900">${taxes.pst.toFixed(2)}</dd>
+                            </div>
+                          )}
+                          {taxes.qst > 0 && (
+                            <div className="flex justify-between">
+                              <dt>QST</dt>
+                              <dd className="font-medium text-gray-900">${taxes.qst.toFixed(2)}</dd>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </>
+                  )}
+
                   <div className="mt-2 flex justify-between border-t border-gray-200 pt-2">
-                    <dt className="text-base font-semibold text-gray-900">Estimated Total</dt>
+                    <dt className="text-base font-semibold text-gray-900">Total</dt>
                     <dd className="text-base font-semibold text-gray-900">
-                      ${(subtotal - (appliedDiscount?.discountAmount || 0)).toFixed(2)} + Fees
+                      ${orderTotal.toFixed(2)}
                     </dd>
                   </div>
                 </dl>
