@@ -10,14 +10,14 @@ export const monitoring = {
    */
   trackError: (error: Error | string, context?: Record<string, any>) => {
     console.error('Error:', error, context);
-    
+
     // Send to Google Analytics if available
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', 'error', {
-        'event_category': 'error',
-        'event_label': typeof error === 'string' ? error : error.message,
-        'non_interaction': true,
-        ...context
+        event_category: 'error',
+        event_label: typeof error === 'string' ? error : error.message,
+        non_interaction: true,
+        ...context,
       });
     }
   },
@@ -36,15 +36,15 @@ export const monitoring = {
     tags?: Record<string, string>
   ) => {
     console.log(`Performance metric: ${name} = ${value} ${unit}`, tags);
-    
+
     // Send to Google Analytics if available
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', 'performance', {
-        'event_category': 'performance',
-        'event_label': name,
-        'value': value,
-        'metric_unit': unit,
-        ...tags
+        event_category: 'performance',
+        event_label: name,
+        value: value,
+        metric_unit: unit,
+        ...tags,
       });
     }
   },
@@ -55,10 +55,10 @@ export const monitoring = {
    */
   setUser: (user: { id: string; email?: string; username?: string }) => {
     console.log('Set user:', user);
-    
+
     // Set user ID in Google Analytics if available
     if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('set', { 'user_id': user.id });
+      window.gtag('set', { user_id: user.id });
     }
   },
 
@@ -67,10 +67,10 @@ export const monitoring = {
    */
   clearUser: () => {
     console.log('Clear user');
-    
+
     // Clear user ID in Google Analytics if available
     if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('set', { 'user_id': undefined });
+      window.gtag('set', { user_id: undefined });
     }
   },
 
@@ -81,7 +81,7 @@ export const monitoring = {
    */
   setTag: (key: string, value: string) => {
     console.log(`Set tag: ${key}=${value}`);
-    
+
     // Set custom dimension in Google Analytics if available
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('set', { [key]: value });
@@ -95,5 +95,34 @@ export const monitoring = {
    */
   setExtra: (key: string, value: any) => {
     console.log(`Set extra: ${key}=${JSON.stringify(value)}`);
+  },
+
+  /**
+   * Start a performance transaction
+   * @param name Transaction name
+   * @param op Operation type
+   * @returns Transaction
+   */
+  startTransaction: (name: string, op: string) => {
+    // Create a simple transaction object for development
+    console.log(`Starting transaction: ${name} (${op})`);
+
+    // Return a mock transaction object
+    const startTime = Date.now();
+    return {
+      name,
+      op,
+      startTimestamp: startTime,
+      finish: () => {
+        const duration = Date.now() - startTime;
+        console.log(`Finished transaction: ${name} (${op}) - Duration: ${duration}ms`);
+      },
+      setTag: (key: string, value: string) => {
+        console.log(`Transaction tag: ${key}=${value}`);
+      },
+      setData: (key: string, value: any) => {
+        console.log(`Transaction data: ${key}=${JSON.stringify(value)}`);
+      },
+    };
   },
 };

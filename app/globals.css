@@ -1,9 +1,45 @@
-@import 'tailwindcss';
-@import '../tailwind.config.css';
+@import 'tailwindcss/preflight';
+@tailwind utilities;
 
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-rgb: 255, 255, 255;
+
+  /* Primary colors - Hockey Pouches blue */
+  --primary-50: 239, 247, 255;
+  --primary-100: 219, 235, 254;
+  --primary-200: 185, 218, 253;
+  --primary-300: 148, 201, 252;
+  --primary-400: 98, 171, 248;
+  --primary-500: 61, 138, 244; /* Tropical Blue */
+  --primary-600: 40, 108, 232;
+  --primary-700: 31, 86, 214;
+  --primary-800: 32, 71, 173;
+  --primary-900: 31, 63, 137;
+
+  /* Secondary colors - Slate gray */
+  --secondary-50: 248, 250, 252;
+  --secondary-100: 241, 245, 249;
+  --secondary-200: 226, 232, 240;
+  --secondary-300: 203, 213, 225;
+  --secondary-400: 148, 163, 184;
+  --secondary-500: 100, 116, 139;
+  --secondary-600: 71, 85, 105;
+  --secondary-700: 51, 65, 85;
+  --secondary-800: 30, 41, 59;
+  --secondary-900: 15, 23, 42;
+
+  /* Accent colors - Sky blue */
+  --accent-50: 240, 249, 255;
+  --accent-100: 224, 242, 254;
+  --accent-200: 186, 230, 253;
+  --accent-300: 125, 211, 252;
+  --accent-400: 56, 189, 248;
+  --accent-500: 14, 165, 233; /* Sky Blue */
+  --accent-600: 2, 132, 199;
+  --accent-700: 3, 105, 161;
+  --accent-800: 7, 89, 133;
+  --accent-900: 12, 74, 110;
 }
 
 body {
@@ -31,17 +67,6 @@ body {
   select,
   textarea {
     font-size: 16px;
-  }
-
-  /* Better spacing for mobile */
-  .py-12 {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
-  }
-
-  /* Make tables scrollable on mobile */
-  .overflow-x-auto {
-    -webkit-overflow-scrolling: touch;
   }
 }
 

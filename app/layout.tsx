@@ -11,7 +11,6 @@ import { ToastProvider } from './context/ToastContext';
 import { CsrfProvider } from './context/CsrfContext';
 import './components/SEO';
 import './components/JsonLd';
-import { ThemeProvider } from './components/theme-provider-simple';
 import { BrandingProvider } from './components/BrandingContext';
 
 // Analytics tracking IDs - configured for production deployment
@@ -211,24 +210,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${inter.variable} font-sans`} suppressHydrationWarning>
-        <ThemeProvider>
-          <BrandingProvider branding="new">
-            <AuthProvider>
-              <ToastProvider>
-                <CsrfProvider>
-                  {/* Web Vitals Tracking */}
-                  <WebVitals />
-                  {/* Vercel Analytics */}
-                  <Analytics />
-                  {/* Database Initialization */}
-                  <DatabaseInit />
-                  {/* Main Content */}
-                  <CartWrapper>{children}</CartWrapper>
-                </CsrfProvider>
-              </ToastProvider>
-            </AuthProvider>
-          </BrandingProvider>
-        </ThemeProvider>
+        <BrandingProvider branding="new">
+          <AuthProvider>
+            <ToastProvider>
+              <CsrfProvider>
+                {/* Web Vitals Tracking */}
+                <WebVitals />
+                {/* Vercel Analytics */}
+                <Analytics />
+                {/* Database Initialization */}
+                <DatabaseInit />
+                {/* Main Content */}
+                <CartWrapper>{children}</CartWrapper>
+              </CsrfProvider>
+            </ToastProvider>
+          </AuthProvider>
+        </BrandingProvider>
       </body>
     </html>
   );
