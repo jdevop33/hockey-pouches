@@ -2,6 +2,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logger } from '@/lib/logger';
+import { monitoring } from '@/lib/monitoring';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -36,6 +37,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       },
       error
     );
+
+    // Report the error to monitoring service
+    monitoring.trackError(error, {
+      componentStack: errorInfo.componentStack,
+    });
   }
 
   render(): ReactNode {
@@ -46,21 +52,19 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       }
 
       return (
-        <div className="p-4 m-4 bg-red-50 border border-red-200 rounded-md">
+        <div className="m-4 rounded-md border border-red-200 bg-red-50 p-4">
           <h2 className="text-lg font-semibold text-red-700">Something went wrong</h2>
           <p className="mt-2 text-sm text-red-600">
             An error occurred while rendering this component. Please try refreshing the page.
           </p>
           {process.env.NODE_ENV === 'development' && this.state.error && (
-            <div className="mt-4 p-2 bg-gray-100 rounded overflow-auto text-xs">
+            <div className="mt-4 overflow-auto rounded bg-gray-100 p-2 text-xs">
               <p className="font-semibold">{this.state.error.toString()}</p>
-              <pre className="mt-2 whitespace-pre-wrap">
-                {this.state.error.stack}
-              </pre>
+              <pre className="mt-2 whitespace-pre-wrap">{this.state.error.stack}</pre>
             </div>
           )}
           <button
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+            className="mt-4 rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
             onClick={() => window.location.reload()}
           >
             Refresh Page

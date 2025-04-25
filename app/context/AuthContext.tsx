@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { monitoring } from '@/lib/monitoring';
 
 interface User {
   id: string;
@@ -81,12 +82,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(userData);
     setIsAuthenticated(true);
 
+    // Track user in monitoring
+    monitoring.setUser({
+      id: userData.id,
+      email: userData.email,
+      username: userData.name,
+    });
+
+    // Set user role as a tag
+    monitoring.setTag('user.role', userData.role);
+
     try {
       // Store both user data and token in localStorage
       localStorage.setItem('authUser', JSON.stringify(userData));
       localStorage.setItem('authToken', token);
     } catch (error) {
       console.error('Failed to save auth data to localStorage:', error);
+      monitoring.trackError(error as Error, { action: 'login_storage' });
     }
   };
 
@@ -98,12 +110,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
     setIsAuthenticated(false);
 
+    // Clear user from monitoring
+    monitoring.clearUser();
+    monitoring.setTag('user.role', 'anonymous');
+
     try {
       // Clear localStorage
       localStorage.removeItem('authUser');
       localStorage.removeItem('authToken');
     } catch (error) {
       console.error('Failed to clear auth data from localStorage:', error);
+      monitoring.trackError(error as Error, { action: 'logout_storage' });
     }
 
     // Call the logout API in the background
@@ -114,6 +131,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
     } catch (error) {
       console.error('Failed to call logout API:', error);
+      monitoring.trackError(error as Error, { action: 'logout_api' });
       // Non-critical error, user is already logged out in the UI
     }
   };
