@@ -89,7 +89,7 @@ export default function AccountPage() {
                       id="email"
                       name="email"
                       type="email"
-                      autoComplete="username email"
+                      autoComplete="email"
                       required
                       value={email}
                       onChange={e => setEmail(e.target.value)}
@@ -105,7 +105,7 @@ export default function AccountPage() {
                       id="password"
                       name="password"
                       type="password"
-                      autoComplete={isLogin ? 'current-password' : 'new-password'}
+                      autoComplete="current-password"
                       required
                       value={password}
                       onChange={e => setPassword(e.target.value)}
@@ -120,6 +120,7 @@ export default function AccountPage() {
                           id="remember-me"
                           name="remember-me"
                           type="checkbox"
+                          autoComplete="off"
                           className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                         />
                         <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">

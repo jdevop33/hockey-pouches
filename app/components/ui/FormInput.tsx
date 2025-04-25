@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface FormInputProps {
   id: string;
@@ -56,17 +56,20 @@ const FormInput: React.FC<FormInputProps> = ({
   const displayError = error || localError;
 
   // Validate the input value
-  const validateInput = (inputValue: string) => {
-    if (!validate) return;
+  const validateInput = useCallback(
+    (inputValue: string) => {
+      if (!validate) return;
 
-    const result = validate(inputValue);
+      const result = validate(inputValue);
 
-    if (typeof result === 'boolean') {
-      setLocalError(result ? '' : 'Invalid input');
-    } else {
-      setLocalError(result.isValid ? '' : result.message);
-    }
-  };
+      if (typeof result === 'boolean') {
+        setLocalError(result ? '' : 'Invalid input');
+      } else {
+        setLocalError(result.isValid ? '' : result.message);
+      }
+    },
+    [validate, setLocalError]
+  );
 
   // Handle input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,7 +99,7 @@ const FormInput: React.FC<FormInputProps> = ({
     if (touched && isDirty && validateOnChange) {
       validateInput(value);
     }
-  }, [value, touched, isDirty, validateOnChange]);
+  }, [value, touched, isDirty, validateOnChange, validateInput]);
 
   return (
     <div className={`mb-4 ${className}`}>

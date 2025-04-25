@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 
@@ -27,7 +27,7 @@ const CartSidebar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState<CartData | null>(null);
 
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
     if (!token) return;
 
     try {
@@ -52,7 +52,7 @@ const CartSidebar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, setLoading, setError, setCart]);
 
   useEffect(() => {
     if (isOpen && token) {
