@@ -1,31 +1,25 @@
 'use client';
 
 import React from 'react';
-// Removed static import: import { Product } from '../data/products';
-
-// Define the type for the product prop, aligning with API/DB data
-// Make potentially missing fields optional
-interface SchemaProduct {
-  id: number;
-  name: string;
-  description?: string | null; // Optional
-  image_url?: string | null; // Use image_url and make optional
-  price: number;
-  is_active?: boolean;
-  inventory_quantity?: number;
-}
+import JsonLd from './JsonLd';
+import { Product } from '@/types';
 
 interface ProductSchemaProps {
-  product: SchemaProduct; // Use the updated interface
+  product: Product;
+  url?: string;
 }
 
-const ProductSchema: React.FC<ProductSchemaProps> = ({ product }) => {
+const ProductSchema: React.FC<ProductSchemaProps> = ({ product, url }) => {
   // Construct absolute image URL if image_url is relative
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://nicotinetins.com';
   const absoluteImageUrl = product.image_url
     ? product.image_url.startsWith('http')
       ? product.image_url
-      : `https://nicotinetins.com${product.image_url}` // Assuming base URL
+      : `${baseUrl}${product.image_url}`
     : undefined;
+
+  // Construct product URL
+  const productUrl = url || `${baseUrl}/products/${product.id}`;
 
   const schemaData = {
     '@context': 'https://schema.org/',
@@ -37,22 +31,19 @@ const ProductSchema: React.FC<ProductSchemaProps> = ({ product }) => {
     mpn: `HPNT-${product.id}`,
     brand: {
       '@type': 'Brand',
-      name: 'Hockey Puxx', // Assuming static brand
+      name: 'Hockey Puxx',
     },
     offers: {
       '@type': 'Offer',
-      url: `https://nicotinetins.com/products/${product.id}`,
+      url: productUrl,
       priceCurrency: 'CAD',
       price: product.price,
       priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
         .toISOString()
         .split('T')[0],
-      availability:
-        product.is_active === false
-          ? 'https://schema.org/OutOfStock'
-          : product.inventory_quantity !== undefined && product.inventory_quantity <= 0
-            ? 'https://schema.org/OutOfStock'
-            : 'https://schema.org/InStock',
+      availability: product.is_active
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
       seller: {
         '@type': 'Organization',
         name: 'Nicotine Tins by Hockey Puxx',
@@ -67,12 +58,7 @@ const ProductSchema: React.FC<ProductSchemaProps> = ({ product }) => {
     },
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
-    />
-  );
+  return <JsonLd data={schemaData} />;
 };
 
 export default ProductSchema;

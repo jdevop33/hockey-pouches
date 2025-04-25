@@ -9,6 +9,8 @@ import { DatabaseInit } from './_components/database-init';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { CsrfProvider } from './context/CsrfContext';
+import { defaultSEO, generateMetadata as seoGenerateMetadata } from './components/SEO';
+import JsonLd, { generateOrganizationJsonLd } from './components/JsonLd';
 
 // Analytics tracking IDs - configured for production deployment
 const GA_TRACKING_ID = 'G-PMM01WKF05';
