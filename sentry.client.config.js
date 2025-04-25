@@ -6,7 +6,7 @@ import * as Sentry from '@sentry/nextjs';
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  
+
   // Adjust this value in production, or use tracesSampler for greater control
   tracesSampleRate: 1,
 
@@ -17,7 +17,7 @@ Sentry.init({
   integrations: [
     new Sentry.BrowserTracing({
       // Set `tracePropagationTargets` to control for which URLs distributed tracing should be enabled
-      tracePropagationTargets: ['localhost', /^https:\/\/nicotinetins\.com/],
+      tracePropagationTargets: ['localhost', /^https:\/\/puxxpremium\.com/],
     }),
     new Sentry.Replay({
       // Additional Replay configuration goes here
@@ -36,7 +36,7 @@ Sentry.init({
   // Enable automatic instrumentation for Next.js routing
   autoInstrumentServerFunctions: true,
   autoInstrumentNextNavigation: true,
-  
+
   // Capture all console logs
   beforeSend(event) {
     // Check if it is an exception, and if so, show an alert dialog

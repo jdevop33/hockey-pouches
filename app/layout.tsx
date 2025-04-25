@@ -83,8 +83,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* ... (keep existing head content) ... */}
         <link rel="canonical" href="https://puxxpremium.com" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+        <link rel="icon" href="/images/logo/logo3.svg" sizes="any" />
+        <link rel="apple-touch-icon" href="/images/logo/logo3.svg" sizes="180x180" />
+        <link rel="icon" type="image/svg+xml" href="/images/logo/logo3.svg" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />

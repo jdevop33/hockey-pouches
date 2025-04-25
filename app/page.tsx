@@ -11,7 +11,7 @@ export default function Home() {
     <Layout>
       {/* Hero Section */}
       <section className="bg-cream-50 dark:bg-rich-950 text-rich-900 dark:text-cream-50 relative py-24">
-        <div className="absolute inset-0 bg-[url('/placeholder.svg?height=1080&width=1920')] bg-cover bg-center opacity-30 dark:opacity-20"></div>
+        <div className="absolute inset-0 bg-[url('/images/hero-bg.jpg')] bg-cover bg-center opacity-30 dark:opacity-20"></div>
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="items-center lg:grid lg:grid-cols-2 lg:gap-16">
             <div>
@@ -163,7 +163,7 @@ export default function Home() {
                   <Image
                     src={
                       products.find(p => p.flavor === flavor)?.imageUrl ||
-                      '/images/products/placeholder.svg'
+                      '/images/products/product-default.png'
                     }
                     alt={flavor}
                     fill

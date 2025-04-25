@@ -6,7 +6,7 @@ import * as Sentry from '@sentry/nextjs';
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  
+
   // Adjust this value in production, or use tracesSampler for greater control
   tracesSampleRate: 1,
 
@@ -17,13 +17,13 @@ Sentry.init({
   integrations: [
     new Sentry.BrowserTracing({
       // Set `tracePropagationTargets` to control for which URLs distributed tracing should be enabled
-      tracePropagationTargets: ['localhost', /^https:\/\/nicotinetins\.com/],
+      tracePropagationTargets: ['localhost', /^https:\/\/puxxpremium\.com/],
     }),
   ],
 
   // Enable automatic instrumentation for Next.js routing
   autoInstrumentServerFunctions: true,
-  
+
   // Capture all console logs
   beforeSend(event) {
     return event;

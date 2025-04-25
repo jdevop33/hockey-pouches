@@ -14,6 +14,10 @@ Built with Next.js (`14.2.28`) and Tailwind CSS v4.
 - [x] Add a BrandingContext provider to make switching between brandings easy
 - [x] Create a wholesale section with sample request functionality
 - [x] Fix Tailwind CSS v4 compatibility issues in globals.css
+- [x] Fix placeholder SVG 404 errors
+- [x] Update favicon to use logo3.svg
+- [x] Fix shadcn/ui Button component integration
+- [x] Address Sentry/OpenTelemetry warnings
 - [ ] Implement responsive design for all pages (mobile-first approach)
 - [ ] Improve product detail pages to create a compelling sales experience
 
@@ -31,7 +35,7 @@ Built with Next.js (`14.2.28`) and Tailwind CSS v4.
 
 - [ ] Implement manual payment processing with email notifications
 - [ ] Add option to use affiliated store's payment link
-- [ ] Remove remaining Stripe-related files causing build failures
+- [x] Remove remaining Stripe-related files causing build failures
 
 ### UI/UX Issues
 
