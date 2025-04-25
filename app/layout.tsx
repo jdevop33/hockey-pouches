@@ -9,6 +9,7 @@ import { DatabaseInit } from './_components/database-init';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { CsrfProvider } from './context/CsrfContext';
+import { ThemeProvider } from './components/theme-provider';
 
 // Analytics tracking IDs - configured for production deployment
 const GA_TRACKING_ID = 'G-PMM01WKF05';
@@ -75,7 +76,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* ... (keep existing head content) ... */}
         <link rel="canonical" href="https://nicotinetins.com" />
@@ -207,20 +208,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${inter.variable} font-sans`} suppressHydrationWarning>
-        <AuthProvider>
-          <ToastProvider>
-            <CsrfProvider>
-              {/* Web Vitals Tracking */}
-              <WebVitals />
-              {/* Vercel Analytics */}
-              <Analytics />
-              {/* Database Initialization */}
-              <DatabaseInit />
-              {/* Main Content */}
-              <CartWrapper>{children}</CartWrapper>
-            </CsrfProvider>
-          </ToastProvider>
-        </AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>
+            <ToastProvider>
+              <CsrfProvider>
+                {/* Web Vitals Tracking */}
+                <WebVitals />
+                {/* Vercel Analytics */}
+                <Analytics />
+                {/* Database Initialization */}
+                <DatabaseInit />
+                {/* Main Content */}
+                <CartWrapper>{children}</CartWrapper>
+              </CsrfProvider>
+            </ToastProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

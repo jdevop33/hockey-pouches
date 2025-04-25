@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation'; // Added useRouter
 import CartIcon from '../cart/CartIcon';
 import Logo from '../ui/Logo';
+import { ThemeToggle } from '../ui/theme-toggle';
 import { useAuth } from '../../context/AuthContext'; // Import useAuth
 
 interface NavItem {
@@ -73,7 +74,7 @@ const Navigation: React.FC = () => {
   });
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
+    <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
       {/* Desktop navigation */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-28 items-center justify-between">
@@ -93,8 +94,8 @@ const Navigation: React.FC = () => {
                     // Handle potential dashboard parent paths for active state
                     pathname === item.href ||
                     (item.href.includes('dashboard') && pathname.startsWith(item.href))
-                      ? 'text-primary-600 font-semibold'
-                      : 'hover:text-primary-600 text-gray-700'
+                      ? 'text-primary-600 dark:text-primary-400 font-semibold'
+                      : 'hover:text-primary-600 dark:hover:text-primary-400 text-gray-700 dark:text-gray-300'
                   }`}
                 >
                   {item.label}
@@ -103,15 +104,18 @@ const Navigation: React.FC = () => {
 
               {/* Auth Buttons / User Info */}
               <div className="ml-4 flex items-center space-x-4">
+                <ThemeToggle />
                 <CartIcon />
                 {authIsLoading ? (
                   <span className="text-sm text-gray-500">Loading...</span>
                 ) : user ? (
                   <>
-                    <span className="text-sm text-gray-700">Hi, {user.name.split(' ')[0]}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Hi, {user.name.split(' ')[0]}
+                    </span>
                     <button
                       onClick={handleLogout}
-                      className="hover:text-primary-600 rounded-md px-3 py-2 text-sm font-medium text-gray-700"
+                      className="hover:text-primary-600 dark:hover:text-primary-400 rounded-md px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
                       Logout
                     </button>
@@ -119,7 +123,7 @@ const Navigation: React.FC = () => {
                 ) : (
                   <Link
                     href="/login" // Changed from /account to /login
-                    className="bg-primary-600 hover:bg-primary-700 flex items-center rounded-md px-3 py-2 text-sm font-medium text-white"
+                    className="bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 flex items-center rounded-md px-3 py-2 text-sm font-medium text-white"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -146,7 +150,7 @@ const Navigation: React.FC = () => {
             <CartIcon />
             <button
               type="button"
-              className="focus:ring-primary-500 ml-4 inline-flex items-center justify-center rounded-md bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 focus:ring-2 focus:outline-none"
+              className="focus:ring-primary-500 ml-4 inline-flex items-center justify-center rounded-md bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 focus:ring-2 focus:outline-none dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {/* ... menu icon ... */}
@@ -192,7 +196,7 @@ const Navigation: React.FC = () => {
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden">
-          <div className="space-y-1 border-t border-gray-200 bg-white px-2 pt-2 pb-3 shadow-lg">
+          <div className="space-y-1 border-t border-gray-200 bg-white px-2 pt-2 pb-3 shadow-lg dark:border-gray-700 dark:bg-gray-900">
             {visibleNavItems.map(item => (
               <Link
                 key={item.href}
@@ -200,8 +204,8 @@ const Navigation: React.FC = () => {
                 className={`block rounded-md px-3 py-2 text-base font-medium ${
                   pathname === item.href ||
                   (item.href.includes('dashboard') && pathname.startsWith(item.href))
-                    ? 'text-primary-600 bg-gray-100 font-semibold'
-                    : 'hover:text-primary-600 text-gray-700 hover:bg-gray-100'
+                    ? 'text-primary-600 dark:text-primary-400 bg-gray-100 font-semibold dark:bg-gray-800'
+                    : 'hover:text-primary-600 dark:hover:text-primary-400 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -210,19 +214,25 @@ const Navigation: React.FC = () => {
             ))}
             {/* Mobile Auth Button/Logout */}
             <div className="mt-4 border-t border-gray-200 px-3 pt-4">
+              <div className="mb-4 flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Toggle theme
+                </span>
+                <ThemeToggle />
+              </div>
               {authIsLoading ? (
                 <span className="block text-base font-medium text-gray-500">Loading...</span>
               ) : user ? (
                 <button
                   onClick={handleLogout}
-                  className="block w-full rounded-md bg-red-50 px-3 py-2 text-left text-base font-medium text-red-700 hover:bg-red-100"
+                  className="block w-full rounded-md bg-red-50 px-3 py-2 text-left text-base font-medium text-red-700 hover:bg-red-100 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800"
                 >
                   Logout
                 </button>
               ) : (
                 <Link
                   href="/login"
-                  className="bg-primary-600 hover:bg-primary-700 block w-full rounded-md px-3 py-2 text-center text-base font-medium text-white"
+                  className="bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 block w-full rounded-md px-3 py-2 text-center text-base font-medium text-white"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Sign In
@@ -241,7 +251,7 @@ const Footer: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <footer className="bg-gray-800 py-8 text-white">
+    <footer className="bg-gray-800 py-8 text-white dark:bg-gray-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <div>

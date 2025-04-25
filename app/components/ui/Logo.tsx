@@ -20,15 +20,15 @@ export default function Logo({ className = '', size = 'medium' }: LogoProps) {
     <Link href="/" className={`block ${className}`}>
       <div className="relative" style={{ minWidth: width / 2, minHeight: height / 2 }}>
         <Image
-          src="/images/logo/hockey-logo2.svg"
+          src="/images/logo/logo3.svg"
           alt="Hockey Puxx Logo"
           width={width}
           height={height}
           className={`${sizeClass} w-auto max-w-none`}
           priority
-          style={{ 
+          style={{
             objectFit: 'contain',
-            transform: size === 'large' ? 'scale(1.2)' : 'none'
+            transform: size === 'large' ? 'scale(1.2)' : 'none',
           }}
         />
       </div>
