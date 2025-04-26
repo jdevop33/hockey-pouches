@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import Image from 'next/image';
 
 // This component creates a canvas with the logo and text for OpenGraph images
 const OpenGraphImage = () => {
@@ -69,7 +68,7 @@ const OpenGraphImage = () => {
   }, []);
 
   return (
-    <div style={{ display: 'none' }}>
+    <div className="hidden">
       <canvas ref={canvasRef} />
     </div>
   );

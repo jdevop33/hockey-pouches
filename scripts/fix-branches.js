@@ -1,4 +1,4 @@
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
 
 // Function to execute shell commands and log output
 function runCommand(command) {
