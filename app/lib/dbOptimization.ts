@@ -1,7 +1,7 @@
 // app/lib/dbOptimization.ts
-import { Pool } from '@neondatabase/serverless';
 import sql, { pool } from './db';
 import { cache } from 'react';
+import { getFirstRow, getRowCount, getRows } from './db-types';
 
 /**
  * Cache duration in milliseconds
@@ -186,7 +186,7 @@ export async function getById(
   const query = `SELECT ${fields} FROM ${table} WHERE id = $1 LIMIT 1`;
   const result = await sql.query(query, [id]);
 
-  return result.length > 0 ? result[0] : null;
+  return getFirstRow(result);
 }
 
 /**
@@ -208,7 +208,7 @@ export async function getByIds(
   const query = `SELECT ${fields} FROM ${table} WHERE id IN (${placeholders})`;
 
   const result = await sql.query(query, ids);
-  return result;
+  return getRows(result);
 }
 
 /**
@@ -232,7 +232,7 @@ export async function insert(table: string, data: Record<string, any>): Promise<
   `;
 
   const result = await sql.query(query, values);
-  return result[0];
+  return getFirstRow(result);
 }
 
 /**
@@ -261,7 +261,7 @@ export async function update(
   `;
 
   const result = await sql.query(query, [...values, id]);
-  return result[0];
+  return getFirstRow(result);
 }
 
 /**
@@ -272,7 +272,7 @@ export async function update(
  */
 export async function remove(table: string, id: number | string): Promise<boolean> {
   const result = await sql.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
-  return result.length > 0;
+  return getRowCount(result) > 0;
 }
 
 /**

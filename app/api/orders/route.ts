@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import sql, { pool } from '@/lib/db';
+import { pool } from '@/lib/db';
 import jwt from 'jsonwebtoken';
 import { PoolClient } from 'pg';
+import { sendOrderConfirmationEmail } from '../../lib/email';
 
 // --- Interfaces ---
 interface JwtPayload {
@@ -17,6 +18,10 @@ interface AddressInput {
   province?: string;
   postalCode?: string;
   country?: string;
+  firstName?: string;
+  lastName?: string;
+  address1?: string;
+  address2?: string;
 }
 interface CreateOrderBody {
   items?: OrderItemInput[];
@@ -98,6 +103,8 @@ export async function POST(request: NextRequest) {
     const productIds = items.map(item => item.productId);
     if (productIds.length === 0) throw new Error('No valid product IDs in order.');
 
+    if (!client) throw new Error('Failed to connect to database.');
+
     const productDetailsResult = await client.query(
       'SELECT id, name, price, is_active FROM products WHERE id = ANY($1)',
       [productIds]
@@ -122,6 +129,8 @@ export async function POST(request: NextRequest) {
         );
       if (!item.quantity || item.quantity <= 0)
         throw new Error(`Invalid quantity for product ID ${item.productId}.`);
+
+      if (!client) throw new Error('Database connection lost.');
 
       const stockResult = await client.query(
         'SELECT quantity FROM inventory WHERE product_id = $1 AND location = $2',
@@ -149,7 +158,7 @@ export async function POST(request: NextRequest) {
     let discountAmount = 0;
     let appliedDiscountCode = null;
 
-    if (discountCode) {
+    if (discountCode && client) {
       const discountResult = await client.query(
         `SELECT
           id, code, description, discount_type, discount_value,
@@ -204,6 +213,8 @@ export async function POST(request: NextRequest) {
     const totalAmount = subtotal - discountAmount + shippingCost + taxes;
 
     // --- Database Transaction ---
+    if (!client) throw new Error('Database connection lost before transaction.');
+
     await client.query('BEGIN');
     console.log('BEGIN Transaction');
 
@@ -239,8 +250,12 @@ export async function POST(request: NextRequest) {
     // 5. Create Order Items
     const itemInsertQuery =
       'INSERT INTO order_items (order_id, product_id, quantity, price_per_item) VALUES ($1, $2, $3, $4)';
+
+    if (!client) throw new Error('Database connection lost before inserting order items.');
+
+    // Use non-null assertion (!.) to tell TypeScript that client won't be null
     const itemInsertPromises = orderItemsData.map(item =>
-      client.query(itemInsertQuery, [
+      client!.query(itemInsertQuery, [
         newOrderId,
         item.productId,
         item.quantity,
@@ -253,10 +268,17 @@ export async function POST(request: NextRequest) {
     // 6. Decrement Inventory
     const inventoryUpdateQuery =
       'UPDATE inventory SET quantity = quantity - $1, last_updated = CURRENT_TIMESTAMP WHERE product_id = $2 AND location = $3 AND quantity >= $1';
+
+    // Double-check client before any database operations
+    if (!client) throw new Error('Database connection lost during inventory update.');
+
+    // Use non-null assertion to tell TypeScript that client is not null
     const inventoryUpdatePromises = orderItemsData.map(item =>
-      client.query(inventoryUpdateQuery, [item.quantity, item.productId, targetLocation])
+      client!.query(inventoryUpdateQuery, [item.quantity, item.productId, targetLocation])
     );
+
     const updateResults = await Promise.all(inventoryUpdatePromises);
+
     for (let i = 0; i < updateResults.length; i++) {
       if (updateResults[i].rowCount === 0) {
         throw new Error(
@@ -267,7 +289,10 @@ export async function POST(request: NextRequest) {
     console.log(`Inventory decremented for order ${newOrderId}`);
 
     // Commit transaction
-    await client.query('COMMIT');
+    if (!client) throw new Error('Database connection lost before commit.');
+
+    // Use non-null assertion for commit
+    await client!.query('COMMIT');
     console.log('COMMIT Transaction');
     orderCreated = true; // Set flag only AFTER successful commit
 
@@ -279,15 +304,74 @@ export async function POST(request: NextRequest) {
         // Import payment service dynamically to avoid circular dependencies
         const { processPayment } = await import('@/lib/payment');
 
+        // Map the payment method to the expected format
+        // The payment library expects 'credit-card' but we might have 'credit'
+        const paymentMethodMapping: Record<string, string> = {
+          credit: 'credit-card',
+          cc: 'credit-card',
+          'e-transfer': 'etransfer',
+          bitcoin: 'btc',
+        };
+
+        const normalizedPaymentMethod = paymentMethodMapping[paymentMethod] || paymentMethod;
+
         // Process the payment
         const paymentResult = await processPayment(
           newOrderId,
           totalAmount,
-          paymentMethod as any, // Type assertion for now
+          normalizedPaymentMethod as 'credit-card' | 'etransfer' | 'btc', // Use correct type
           userId
         );
 
         console.log(`Payment processing result for order ${newOrderId}:`, paymentResult);
+
+        // Send order confirmation email
+        try {
+          if (!client) throw new Error('Database connection lost before sending email.');
+
+          // Get user details
+          const userResult = await client.query(
+            'SELECT email, first_name, last_name FROM users WHERE id = $1',
+            [userId]
+          );
+
+          if (userResult.rows.length > 0) {
+            const user = userResult.rows[0];
+
+            // Create properly typed shipping address for email
+            const emailShippingAddress = {
+              firstName: shippingAddress.firstName || user.first_name || '',
+              lastName: shippingAddress.lastName || user.last_name || '',
+              address1: shippingAddress.address1 || shippingAddress.street || '',
+              address2: shippingAddress.address2 || '',
+              city: shippingAddress.city || '',
+              province: shippingAddress.province || '',
+              postalCode: shippingAddress.postalCode || '',
+              country: shippingAddress.country || 'Canada',
+            };
+
+            await sendOrderConfirmationEmail({
+              customerEmail: user.email,
+              customerName: `${user.first_name} ${user.last_name}`,
+              orderId: newOrderId.toString(),
+              orderTotal: totalAmount,
+              orderItems: orderItemsData.map(item => ({
+                name: item.name,
+                price: item.pricePerItem,
+                quantity: item.quantity,
+              })),
+              shippingAddress: emailShippingAddress,
+            });
+
+            console.log(`Order confirmation email sent for order ${newOrderId}`);
+          }
+        } catch (emailError) {
+          // Log error but don't fail the request
+          console.error(
+            `Failed to send order confirmation email for order ${newOrderId}:`,
+            emailError
+          );
+        }
 
         // Return appropriate response based on payment result
         return NextResponse.json(
@@ -333,7 +417,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Rollback transaction if client exists and order wasn't successfully committed
     if (client && !orderCreated) {
       try {
@@ -345,7 +429,7 @@ export async function POST(request: NextRequest) {
     }
     console.error(`POST /api/orders - Failed for user ${userId || '(unknown)'}:`, error);
     return NextResponse.json(
-      { message: error.message || 'Internal Server Error' },
+      { message: error instanceof Error ? error.message : 'Internal Server Error' },
       { status: 500 }
     );
   } finally {

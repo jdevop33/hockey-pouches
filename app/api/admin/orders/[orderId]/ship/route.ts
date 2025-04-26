@@ -1,11 +1,14 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import sql from '@/lib/db';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
+import { sendShippingConfirmationEmail } from '../../../../../lib/email';
+import { getRowCount, getFirstRow } from '@/lib/db-types';
 
 export const dynamic = 'force-dynamic';
 
 interface ShipBody {
   trackingNumber?: string | null;
+  trackingUrl?: string | null;
 }
 
 export async function POST(request: NextRequest, { params }: { params: { orderId: string } }) {
@@ -37,12 +40,13 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
     // Fetch order to check status and potentially get existing tracking
     const orderCheck =
       await sql`SELECT status, user_id, tracking_number FROM orders WHERE id = ${orderId}`;
-    if (orderCheck.length === 0)
+    if (getRowCount(orderCheck) === 0)
       return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
 
-    const currentStatus = orderCheck[0].status;
-    const customerUserId = orderCheck[0].user_id;
-    const existingTracking = orderCheck[0].tracking_number;
+    const orderCheckData = getFirstRow(orderCheck);
+    const currentStatus = orderCheckData.status;
+    const customerUserId = orderCheckData.user_id;
+    const existingTracking = orderCheckData.tracking_number;
     const finalTrackingNumber = trackingNumber || existingTracking; // Prioritize tracking from request body
 
     if (!['Awaiting Shipment'].includes(currentStatus)) {
@@ -122,7 +126,33 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
 
     // Trigger Notifications: Send shipping confirmation email to customer
     console.log(`Sending shipping email to customer ${customerUserId} for order ${orderId}`);
-    // In a real implementation, this would call an email service
+
+    try {
+      // Get customer details
+      const customer = await sql`
+        SELECT email, "firstName", "lastName"
+        FROM users
+        WHERE id = ${customerUserId}
+        LIMIT 1
+      `;
+
+      if (getRowCount(customer) > 0) {
+        const customerData = getFirstRow(customer);
+        await sendShippingConfirmationEmail({
+          customerEmail: customerData.email,
+          customerName: `${customerData.firstName} ${customerData.lastName}`,
+          orderId: orderIdString,
+          trackingNumber: finalTrackingNumber || undefined,
+          trackingUrl: body.trackingUrl || undefined,
+        });
+        console.log(
+          `Shipping confirmation email sent to customer ${customerUserId} for order ${orderId}`
+        );
+      }
+    } catch (emailError) {
+      // Log the error but don't fail the request
+      console.error(`Failed to send shipping email for order ${orderId}:`, emailError);
+    }
 
     // Calculate & Record Commissions
     console.log(`Calculating commissions for order ${orderId}`);
@@ -135,8 +165,8 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
       WHERE o.id = ${orderId}
     `;
 
-    if (orderDetails.length > 0) {
-      const order = orderDetails[0];
+    if (getRowCount(orderDetails) > 0) {
+      const order = getFirstRow(orderDetails);
       const referralCode = order.referral_code;
       const referrerId = order.referrer_id;
       const orderTotal = parseFloat(order.total_amount);
@@ -156,8 +186,8 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
             SELECT id FROM users WHERE referral_code = ${referralCode}
           `;
 
-          if (referrerResult.length > 0) {
-            referrerUserId = referrerResult[0].id;
+          if (getRowCount(referrerResult) > 0) {
+            referrerUserId = getFirstRow(referrerResult).id;
           }
         }
 
@@ -209,12 +239,12 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
     }
 
     return NextResponse.json({ message: `Order ${orderId} marked as shipped.` });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof SyntaxError)
       return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
     console.error(`Admin: Failed to mark order ${orderId} as shipped:`, error);
     return NextResponse.json(
-      { message: error.message || 'Internal Server Error' },
+      { message: (error as Error).message || 'Internal Server Error' },
       { status: 500 }
     );
   }

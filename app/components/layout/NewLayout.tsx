@@ -7,6 +7,7 @@ import CartIcon from '../cart/CartIcon';
 import Logo from '../ui/Logo';
 import { ThemeToggle } from '../ui/theme-toggle';
 import { useAuth } from '../../context/AuthContext'; // Import useAuth
+import AccessibilityMenu from './AccessibilityMenu';
 
 interface NavItem {
   href: string;
@@ -149,6 +150,7 @@ const Navigation: React.FC = () => {
               <div className="ml-4 flex items-center space-x-4">
                 <ThemeToggle />
                 <CartIcon />
+                <AccessibilityMenu className="hidden md:block" />
                 {authIsLoading ? (
                   <span className="text-sm text-gray-500">Loading...</span>
                 ) : user ? (

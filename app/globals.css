@@ -396,3 +396,79 @@
     background-position: 0% 50%;
   }
 }
+
+/* Accessibility overrides */
+.high-contrast {
+  --foreground-rgb: 255, 255, 255;
+  --background-rgb: 0, 0, 0;
+  --primary-gold: 255, 215, 0; /* Brighter gold for better contrast */
+  --accent-gold: 255, 255, 0; /* Yellow for maximum contrast */
+  --luxury-gold: 255, 215, 0; /* Brighter gold */
+  --dark-blue: 0, 0, 0;
+  --dark-bg: 0, 0, 0;
+  --gold-glow: none; /* Remove glow effects for cleaner visuals */
+}
+
+.high-contrast * {
+  border-color: white !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.high-contrast a:not(.button),
+.high-contrast button:not([aria-label='Accessibility options']) {
+  text-decoration: underline !important;
+}
+
+.high-contrast h1,
+.high-contrast h2,
+.high-contrast h3,
+.high-contrast h4,
+.high-contrast h5,
+.high-contrast h6 {
+  color: rgb(255, 255, 0) !important; /* Bright yellow for headings */
+}
+
+.high-contrast input,
+.high-contrast textarea,
+.high-contrast select {
+  background-color: black !important;
+  border: 2px solid white !important;
+}
+
+.high-contrast .bg-secondary-800,
+.high-contrast .bg-secondary-900,
+.high-contrast .bg-secondary-950 {
+  background-color: black !important;
+}
+
+.high-contrast .text-gold-500,
+.high-contrast .text-primary-600 {
+  color: rgb(255, 255, 0) !important; /* Bright yellow for gold text */
+}
+
+/* For users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.reduced-motion * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* For users who prefer a dyslexic-friendly font */
+.dyslexic-font * {
+  font-family:
+    'Comic Sans MS', 'Comic Sans', 'OpenDyslexic', 'Lexie Readable', sans-serif !important;
+  letter-spacing: 0.05em !important;
+  word-spacing: 0.1em !important;
+  line-height: 1.5 !important;
+}

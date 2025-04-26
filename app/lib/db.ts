@@ -1,5 +1,6 @@
 // app/lib/db.ts
 import { Pool, neon, neonConfig } from '@neondatabase/serverless';
+import type { NeonQueryFunction } from '@neondatabase/serverless';
 import ws from 'ws';
 import { mockPool, mockSql } from './db.mock';
 
@@ -10,8 +11,8 @@ neonConfig.webSocketConstructor = ws;
 const connectionString = process.env.POSTGRES_URL;
 
 // Initialize pool and sql with either real or mock implementations
-let pool: any;
-let sql: any;
+let pool: Pool;
+let sql: NeonQueryFunction<any, any>;
 
 // Use real database if connection string is available, otherwise use mock
 if (connectionString) {
@@ -28,15 +29,15 @@ if (connectionString) {
       .then(() => {
         console.log('✅ Database connection test successful');
       })
-      .catch((error: any) => {
+      .catch((error: Error) => {
         console.error('❌ Database connection test failed:', error);
       });
   } catch (error) {
     // Fallback to mock if error occurs
     console.error('Error initializing database connection:', error);
     console.warn('Falling back to mock database');
-    pool = mockPool;
-    sql = mockSql;
+    pool = mockPool as unknown as Pool;
+    sql = mockSql as unknown as NeonQueryFunction<any, any>;
   }
 } else {
   // Use mock database
@@ -47,8 +48,8 @@ if (connectionString) {
       .filter(key => key.includes('PG') || key.includes('POSTGRES'))
       .join(', ')
   );
-  pool = mockPool;
-  sql = mockSql;
+  pool = mockPool as unknown as Pool;
+  sql = mockSql as unknown as NeonQueryFunction<any, any>;
 }
 
 // Export pool and sql

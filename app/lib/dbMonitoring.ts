@@ -1,6 +1,7 @@
 // app/lib/dbMonitoring.ts
 import sql from './db';
 import { logger } from './logger';
+import { getRowCount, getFirstRow, mapRows } from './db-types';
 
 /**
  * Interface for query performance data
@@ -49,18 +50,43 @@ export async function monitoredQuery(query: string, params: any[] = []): Promise
     console.log(`[DB] With parameters:`, params);
 
     const result = await sql.query(query, params);
-
-    const duration = Date.now() - startTime;
+    const endTime = Date.now();
+    const duration = endTime - startTime;
 
     if (duration > SLOW_QUERY_THRESHOLD) {
       slowQueries++;
       logger.warn(`Slow query (${duration}ms): ${query}`, { duration, params });
     }
 
-    console.log(`[DB] Query completed in ${duration}ms, returned ${result.length} rows`);
+    // Log query performance data
+    logQueryPerformance({
+      query,
+      params,
+      startTime,
+      endTime,
+      duration,
+      success: true,
+    });
+
+    const rowCount = getRowCount(result);
+    console.log(`[DB] Query completed in ${duration}ms, returned ${rowCount} rows`);
     return result;
   } catch (error: any) {
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+
     failedQueries++;
+
+    // Log the failed query performance
+    logQueryPerformance({
+      query,
+      params,
+      startTime,
+      endTime,
+      duration,
+      success: false,
+      error,
+    });
 
     console.error('[DB] Query error:', error);
     console.error('[DB] Failed query:', query);
@@ -171,12 +197,13 @@ export async function checkDatabaseConnectivity(): Promise<{
     );
     const duration = Date.now() - startTime;
 
+    const firstRow = getFirstRow(result);
     return {
       connected: true,
       metadata: {
-        time: result[0]?.time,
-        database: result[0]?.db,
-        version: result[0]?.version,
+        time: firstRow?.time,
+        database: firstRow?.db,
+        version: firstRow?.version,
         latency: duration,
       },
     };
@@ -203,7 +230,7 @@ export async function explainQuery(query: string, params?: any[]): Promise<strin
 
   try {
     const result = await sql.query(explainQuery, params);
-    return result.map((row: any) => row.QUERY_PLAN);
+    return mapRows(result, (row: any) => row.QUERY_PLAN);
   } catch (error) {
     console.error('Error explaining query:', error);
     throw error;

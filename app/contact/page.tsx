@@ -44,13 +44,10 @@ export default function ContactPage() {
 
     try {
       // Remove honeypot field before sending
-      const { ...formData } = data;
+      const { honeypot: _honeypot, ...formData } = data;
 
-      // Send form data to HeroTofu
-      const endpoint =
-        process.env.NEXT_PUBLIC_HEROTOFU_ENDPOINT ||
-        'https://public.herotofu.com/v1/f129c2a0-180e-11f0-8883-29a3f54ace99';
-      const response = await fetch(endpoint, {
+      // Send form data to our API endpoint that uses Mailgun
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +62,10 @@ export default function ContactPage() {
         setIsSubmitted(true);
         reset();
       } else {
-        alert('There was an error submitting the form. Please try again.');
+        const errorData = await response.json();
+        alert(
+          `Error: ${errorData.message || 'There was an error submitting the form. Please try again.'}`
+        );
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -94,7 +94,7 @@ export default function ContactPage() {
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
                     <svg
-                      className="text-primary-600 h-6 w-6"
+                      className="h-6 w-6 text-primary-600"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -117,7 +117,7 @@ export default function ContactPage() {
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
                     <svg
-                      className="text-primary-600 h-6 w-6"
+                      className="h-6 w-6 text-primary-600"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -140,7 +140,7 @@ export default function ContactPage() {
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
                     <svg
-                      className="text-primary-600 h-6 w-6"
+                      className="h-6 w-6 text-primary-600"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -171,7 +171,7 @@ export default function ContactPage() {
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
                     <svg
-                      className="text-primary-600 h-6 w-6"
+                      className="h-6 w-6 text-primary-600"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -322,7 +322,7 @@ export default function ContactPage() {
                     <div className="mt-6">
                       <button
                         type="submit"
-                        className="bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 w-full rounded-md px-4 py-3 font-medium text-white focus:ring-2 focus:ring-offset-2 focus:outline-none"
+                        className="w-full rounded-md bg-primary-600 px-4 py-3 font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? 'Sending...' : 'Send Message'}
