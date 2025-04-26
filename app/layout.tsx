@@ -34,18 +34,8 @@ export const metadata: Metadata = {
       { url: '/images/logo/logo3.svg', sizes: '48x48', type: 'image/svg+xml' },
       { url: '/favicon.ico', sizes: 'any' },
     ],
-    apple: [
-      { url: '/images/logo/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
-      { url: '/images/logo/apple-touch-icon.png', type: 'image/png' },
-      { url: '/images/logo/logo3.svg', sizes: '256x256' },
-    ],
-    shortcut: [{ url: '/images/logo/apple-touch-icon.png' }],
-    other: [
-      {
-        rel: 'apple-touch-icon',
-        url: '/images/logo/apple-touch-icon.png',
-      },
-    ],
+    apple: [{ url: '/images/logo/logo3.svg', sizes: '256x256', type: 'image/svg+xml' }],
+    shortcut: [{ url: '/images/logo/logo3.svg' }],
   },
   openGraph: {
     title: 'Nicotine Tins - Premium Nicotine Pouches by PUXX | Best in Canada',
