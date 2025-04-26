@@ -1,84 +1,71 @@
 'use client';
 
 import React, { ReactNode, useState } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation'; // Added useRouter
-import { ThemeToggle } from '../ui/theme-toggle';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
-import AccessibilityMenu from './AccessibilityMenu';
 import Image from 'next/image';
-import Button from '@/components/ui/Button';
 import { ShoppingCart, Menu, User, LogOut, LogIn } from 'lucide-react';
+import Footer from './Footer';
 
 interface NavItem {
   href: string;
   label: string;
-  authRequired?: boolean; // Optionally hide/show based on auth
-  roles?: string[]; // Optionally show only for specific roles
+  authRequired?: boolean;
+  roles?: string[];
 }
 
 const Navigation: React.FC = () => {
   const pathname = usePathname();
-  const router = useRouter(); // For redirect after logout
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, logout, isLoading: authIsLoading } = useAuth(); // Get auth state and functions
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
     setMobileMenuOpen(false);
-    // Optionally redirect to home or login page after logout
     router.push('/');
   };
 
-  // Define nav items, potentially adding dashboard links based on role
   const baseNavItems: NavItem[] = [
-    { href: '/', label: 'Home' },
-    { href: '/products', label: 'Shop' },
-    { href: '/research', label: 'Benefits' },
-    { href: '/about', label: 'Our Story' },
-    { href: '/contact', label: 'Contact' },
+    { href: '/', label: 'HOME' },
+    { href: '/products', label: 'SHOP' },
+    { href: '/research', label: 'BENEFITS' },
+    { href: '/about', label: 'OUR STORY' },
+    { href: '/contact', label: 'CONTACT' },
   ];
 
   const dynamicNavItems: NavItem[] = [...baseNavItems];
   if (user) {
-    // Add dashboard links based on role
     if (user.role === 'Admin') {
-      // For admin users, use the admin dashboard as their account page
       dynamicNavItems.push({
         href: '/admin/dashboard',
-        label: 'Admin Dashboard',
+        label: 'ADMIN',
         roles: ['Admin'],
       });
     } else if (user.role === 'Distributor') {
-      // For distributor users, use the distributor dashboard as their account page
       dynamicNavItems.push({
         href: '/distributor/dashboard',
-        label: 'Distributor Dashboard',
+        label: 'DASHBOARD',
         roles: ['Distributor'],
       });
     } else {
-      // Regular users get the standard dashboard
-      dynamicNavItems.push({ href: '/dashboard', label: 'My Account', authRequired: true });
+      dynamicNavItems.push({ href: '/dashboard', label: 'MY ACCOUNT', authRequired: true });
     }
-    // All users get cart
-    dynamicNavItems.push({ href: '/cart', label: 'Cart' });
+    dynamicNavItems.push({ href: '/cart', label: 'CART' });
   } else {
-    // Only show cart if not logged in (assuming login/register are separate)
-    dynamicNavItems.push({ href: '/cart', label: 'Cart' });
+    dynamicNavItems.push({ href: '/cart', label: 'CART' });
   }
 
-  // Filter items based on auth status and role (though role check is implicitly handled above)
   const visibleNavItems = dynamicNavItems.filter(item => {
     if (item.authRequired && !user) return false;
     if (item.roles && (!user || !item.roles.includes(user.role))) return false;
     return true;
   });
 
-  // Luxury dark mode only nav with brand palette and logo
   return (
     <>
       {/* Desktop nav */}
-      <nav className="border-border bg-background/80 sticky top-0 z-50 hidden border-b shadow-lg backdrop-blur-xl transition-all duration-200 md:block">
+      <nav className="sticky top-0 z-50 hidden border-b border-gold-500/20 bg-dark-500 shadow-lg backdrop-blur-xl transition-all duration-200 md:block">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between">
             <div className="flex items-center gap-10">
@@ -90,287 +77,170 @@ const Navigation: React.FC = () => {
                 priority
                 className="h-12 w-auto object-contain"
               />
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 {visibleNavItems.map(item => (
-                  <Button
+                  <button
                     key={item.href}
-                    variant={
-                      pathname === item.href ||
-                      (item.href.includes('dashboard') && pathname.startsWith(item.href))
-                        ? 'secondary'
-                        : 'ghost'
-                    }
-                    className="rounded-full px-5 py-2 text-lg font-extrabold uppercase tracking-tight focus-visible:ring-2 focus-visible:ring-offset-2"
+                    className={`rounded-md px-4 py-2 text-sm font-bold tracking-wider transition-all ${
+                      pathname === item.href
+                        ? 'bg-gold-500/10 text-gold-500 shadow-gold-sm'
+                        : 'text-white hover:bg-dark-400 hover:text-gold-500'
+                    }`}
                     onClick={() => router.push(item.href)}
                   >
                     {item.label}
-                  </Button>
+                  </button>
                 ))}
               </div>
             </div>
+
             <div className="flex items-center gap-4">
-              <ThemeToggle />
-              <Button
-                variant="ghost"
-                className="rounded-full p-2"
-                aria-label="Cart"
+              <button
                 onClick={() => router.push('/cart')}
+                className="relative rounded-full p-2 text-white hover:bg-dark-400 hover:text-gold-500"
+                aria-label="Shopping cart"
               >
-                <ShoppingCart className="h-6 w-6" />
-              </Button>
-              <AccessibilityMenu className="hidden md:block" />
-              {authIsLoading ? (
-                <span className="text-muted-foreground text-base">Loading...</span>
-              ) : user ? (
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" aria-label="User menu" disabled>
-                    <User className="h-6 w-6" />
-                  </Button>
-                  <span className="text-foreground text-base font-bold">
-                    Hi, {user.name.split(' ')[0]}
-                  </span>
-                  <Button
-                    onClick={handleLogout}
-                    variant="ghost"
-                    className="rounded-full px-4 py-2 text-lg font-bold"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" /> Logout
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  variant="primary"
-                  className="flex items-center gap-2 rounded-full px-5 py-2 text-lg font-extrabold uppercase shadow-lg"
-                  onClick={() => router.push('/login')}
-                >
-                  <LogIn className="h-5 w-5" /> Sign In
-                </Button>
-              )}
+                <ShoppingCart className="h-5 w-5" />
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold-500 text-xs font-bold text-dark-500">
+                  0
+                </span>
+              </button>
+
+              <button
+                onClick={() => router.push(user ? '/dashboard' : '/login')}
+                className="flex items-center rounded-md bg-gradient-gold px-4 py-2 text-xs font-bold text-dark-500 shadow-gold-sm transition-all hover:shadow-gold"
+              >
+                {user ? (
+                  <>
+                    <User className="mr-2 h-4 w-4" />
+                    ACCOUNT
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="mr-2 h-4 w-4" />
+                    SIGN IN
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
       </nav>
-      {/* Mobile sticky bottom nav */}
-      <nav className="border-border bg-background/90 shadow-t fixed bottom-0 left-0 right-0 z-50 flex border-t transition-all duration-200 md:hidden">
+
+      {/* Mobile bottom navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-gold-500/20 bg-dark-500/95 shadow-lg transition-all duration-200 md:hidden">
         <div className="flex h-16 flex-1 items-center justify-around">
           {visibleNavItems.slice(0, 4).map(item => (
-            <Button
+            <button
               key={item.href}
-              variant={pathname === item.href ? 'secondary' : 'ghost'}
-              className="flex flex-col items-center justify-center px-2 py-1 text-xs font-bold uppercase tracking-wide"
+              className={`flex flex-col items-center justify-center px-2 py-1 text-xs font-bold ${
+                pathname === item.href ? 'text-gold-500' : 'text-gray-400 hover:text-gold-500'
+              }`}
               onClick={() => router.push(item.href)}
             >
               {item.label}
-            </Button>
+            </button>
           ))}
-          <Button
+          <button
             type="button"
-            variant="ghost"
             aria-label="Open menu"
             onClick={() => setMobileMenuOpen(true)}
-            className="flex flex-col items-center justify-center px-2 py-1 text-xs font-bold uppercase tracking-wide"
+            className="flex flex-col items-center justify-center px-2 py-1 text-xs font-bold text-gray-400 hover:text-gold-500"
           >
-            <Menu className="h-6 w-6" />
-            <span className="sr-only">More</span>
-          </Button>
+            <Menu className="h-5 w-5" />
+            <span>MORE</span>
+          </button>
         </div>
-        {/* Slide-in mobile menu */}
+
+        {/* Mobile menu overlay */}
         <div
-          className={`bg-background/80 fixed inset-0 z-50 transition-opacity duration-200 ${mobileMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
+          className={`fixed inset-0 z-50 bg-black/80 backdrop-blur-sm transition-opacity duration-200 ${
+            mobileMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+          }`}
           onClick={() => setMobileMenuOpen(false)}
         />
-        <aside
-          className={`bg-background/95 fixed bottom-0 left-0 right-0 z-50 min-h-[40vh] rounded-t-2xl p-6 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${mobileMenuOpen ? 'translate-y-0' : 'translate-y-full'}`}
-          aria-modal="true"
-          role="dialog"
+
+        {/* Mobile menu panel */}
+        <div
+          className={`fixed bottom-0 left-0 right-0 z-50 rounded-t-xl bg-dark-500 p-6 shadow-xl transition-transform duration-300 ${
+            mobileMenuOpen ? 'translate-y-0' : 'translate-y-full'
+          }`}
         >
-          <div className="flex flex-col gap-6">
-            <Button
+          <div className="mb-6 flex justify-between">
+            <h2 className="text-xl font-bold text-gold-500">Menu</h2>
+            <button
               type="button"
-              variant="ghost"
               aria-label="Close menu"
-              className="self-end rounded-full p-2"
+              className="rounded-full p-2 text-gray-400 hover:bg-dark-400 hover:text-white"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
-            </Button>
+            </button>
+          </div>
+
+          <div className="space-y-3">
             {visibleNavItems.map(item => (
-              <Button
+              <button
                 key={item.href}
-                variant={pathname === item.href ? 'secondary' : 'ghost'}
-                className="block rounded-full px-4 py-3 text-lg font-extrabold uppercase tracking-tight"
-                onClick={() => setMobileMenuOpen(false)}
+                className={`block w-full rounded-lg px-4 py-3 text-left text-sm font-bold ${
+                  pathname === item.href
+                    ? 'bg-gold-500/10 text-gold-500'
+                    : 'text-white hover:bg-dark-400 hover:text-gold-500'
+                }`}
+                onClick={() => {
+                  router.push(item.href);
+                  setMobileMenuOpen(false);
+                }}
               >
-                <Link href={item.href}>{item.label}</Link>
-              </Button>
+                {item.label}
+              </button>
             ))}
-            <div className="mt-6 flex items-center gap-6">
-              <ThemeToggle />
-              <Button
-                variant="ghost"
-                className="rounded-full p-2"
-                aria-label="Cart"
-                onClick={() => router.push('/cart')}
+          </div>
+
+          <div className="mt-6 border-t border-gold-500/10 pt-6">
+            <button
+              onClick={() => {
+                router.push(user ? '/dashboard' : '/login');
+                setMobileMenuOpen(false);
+              }}
+              className="flex w-full items-center justify-center rounded-lg bg-gold-500 px-4 py-3 text-sm font-bold text-dark-500"
+            >
+              {user ? (
+                <>
+                  <User className="mr-2 h-4 w-4" />
+                  MY ACCOUNT
+                </>
+              ) : (
+                <>
+                  <LogIn className="mr-2 h-4 w-4" />
+                  SIGN IN
+                </>
+              )}
+            </button>
+
+            {user && (
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setMobileMenuOpen(false);
+                }}
+                className="mt-3 flex w-full items-center justify-center rounded-lg border border-gold-500/20 bg-transparent px-4 py-3 text-sm font-bold text-white hover:bg-dark-400"
               >
-                <ShoppingCart className="h-6 w-6" />
-              </Button>
-              <AccessibilityMenu />
-            </div>
-            {authIsLoading ? (
-              <span className="text-muted-foreground text-base">Loading...</span>
-            ) : user ? (
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" aria-label="User menu" disabled>
-                  <User className="h-6 w-6" />
-                </Button>
-                <span className="text-foreground text-base font-bold">
-                  Hi, {user.name.split(' ')[0]}
-                </span>
-                <Button
-                  onClick={handleLogout}
-                  variant="ghost"
-                  className="rounded-full px-4 py-2 text-lg font-bold"
-                >
-                  <LogOut className="mr-2 h-4 w-4" /> Logout
-                </Button>
-              </div>
-            ) : (
-              <Button
-                variant="primary"
-                className="flex items-center gap-2 rounded-full px-5 py-2 text-lg font-extrabold uppercase shadow-lg"
-                onClick={() => router.push('/login')}
-              >
-                <LogIn className="h-5 w-5" /> Sign In
-              </Button>
+                <LogOut className="mr-2 h-4 w-4" />
+                SIGN OUT
+              </button>
             )}
           </div>
-        </aside>
+        </div>
       </nav>
     </>
-  );
-};
-
-const Footer: React.FC = () => {
-  return (
-    <footer className="border-border bg-background text-foreground border-t py-12">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          <div>
-            <h3 className="text-primary mb-4 text-xl font-extrabold uppercase tracking-widest">
-              Nicotine Tins
-            </h3>
-            <p className="text-muted-foreground text-lg">
-              Premium tobacco-free nicotine pouches by Hockey Puxx, designed for hockey players and
-              fans across Canada.
-            </p>
-          </div>
-          <div>
-            <h3 className="text-primary mb-4 text-xl font-extrabold uppercase tracking-widest">
-              Quick Links
-            </h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/products"
-                  className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded transition-colors focus-visible:outline-none focus-visible:ring-2"
-                >
-                  Shop
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/cart"
-                  className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded transition-colors focus-visible:outline-none focus-visible:ring-2"
-                >
-                  Cart
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/research"
-                  className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded transition-colors focus-visible:outline-none focus-visible:ring-2"
-                >
-                  Benefits
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/about"
-                  className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded transition-colors focus-visible:outline-none focus-visible:ring-2"
-                >
-                  Our Story
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/login"
-                  className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded transition-colors focus-visible:outline-none focus-visible:ring-2"
-                >
-                  Sign In
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-primary mb-4 text-xl font-extrabold uppercase tracking-widest">
-              Contact Us
-            </h3>
-            <p className="text-muted-foreground text-lg">Email: info@nicotinetins.com</p>
-            <p className="text-muted-foreground text-lg">Phone: (250) 415-5678</p>
-            <div className="mt-4 flex space-x-4">
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded-full p-2 transition-colors focus-visible:outline-none focus-visible:ring-2"
-                aria-label="Follow us on X (formerly Twitter)"
-              >
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                </svg>
-              </a>
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded-full p-2 transition-colors focus-visible:outline-none focus-visible:ring-2"
-                aria-label="Follow us on Facebook"
-              >
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    fillRule="evenodd"
-                    d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </a>
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded-full p-2 transition-colors focus-visible:outline-none focus-visible:ring-2"
-                aria-label="Follow us on Instagram"
-              >
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    fillRule="evenodd"
-                    d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.683-.566 1.15-.748.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </div>
-        <div className="border-border text-muted-foreground mt-12 border-t pt-8 text-center">
-          <p>
-            &copy; {new Date().getFullYear()} Nicotine Tins by Hockey Puxx. All rights reserved.
-          </p>
-        </div>
-      </div>
-    </footer>
   );
 };
 
@@ -380,7 +250,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-dark-500">
       <Navigation />
       <main className="grow">{children}</main>
       <Footer />
