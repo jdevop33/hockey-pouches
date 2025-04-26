@@ -6,7 +6,6 @@ import { useAuth } from '../../context/AuthContext';
 import Image from 'next/image';
 import { ShoppingCart, Menu, User, LogOut, LogIn } from 'lucide-react';
 import Footer from './Footer';
-import { ThemeToggle } from '../ui/theme-toggle';
 import Link from 'next/link';
 
 interface NavItem {
@@ -106,7 +105,6 @@ const Navigation: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              <ThemeToggle className="mr-2" />
               <button
                 onClick={() => router.push('/cart')}
                 className="relative rounded-full p-2 text-white hover:bg-dark-400 hover:text-gold-500"

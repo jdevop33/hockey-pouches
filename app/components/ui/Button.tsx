@@ -10,8 +10,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-gold-500 text-black hover:bg-gold-600 shadow-gold-sm hover:shadow-gold',
-        primary: 'bg-gold-500 text-black hover:bg-gold-600 shadow-gold-sm hover:shadow-gold',
+        default: 'bg-gold-500 text-dark-900 hover:bg-gold-600 shadow-gold-sm hover:shadow-gold',
+        primary: 'bg-gold-500 text-dark-900 hover:bg-gold-600 shadow-gold-sm hover:shadow-gold',
         destructive: 'bg-alert-red text-white hover:bg-red-600',
         danger: 'bg-alert-red text-white hover:bg-red-600',
         outline: 'border border-gold-500/50 bg-transparent hover:bg-gold-500/10 text-gold-500',

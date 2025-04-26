@@ -2,8 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import Layout from './components/layout/NewLayout';
-import { ThemeToggle } from './components/ui/theme-toggle';
+import Layout from './components/layout/Layout';
 
 // Define product data directly in the component with corrected image paths
 const featuredProducts = [
@@ -43,20 +42,23 @@ const featuredProducts = [
 export default function Home() {
   return (
     <Layout>
-      <main className="flex min-h-screen flex-col bg-gray-50 transition-colors duration-300 dark:bg-dark-500">
+      <main className="flex min-h-screen flex-col bg-dark-500">
         {/* Hero Section */}
         <section className="relative flex min-h-[75vh] w-full flex-col items-center justify-center overflow-hidden px-4 py-20 md:py-32">
-          <div className="absolute inset-0 z-0 bg-gradient-to-b from-dark-500 to-dark-700 dark:from-dark-600 dark:to-dark-900"></div>
+          {/* Background Image */}
+          <div
+            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: "url('/images/products/banner.png')",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundBlendMode: 'overlay',
+            }}
+          >
+            <div className="absolute inset-0 bg-dark-900/70"></div>
+          </div>
 
           <div className="container relative z-10 mx-auto flex flex-col items-center justify-center text-center">
-            {/* Theme Toggle for demo */}
-            <div className="mb-8 flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                Toggle theme:
-              </span>
-              <ThemeToggle />
-            </div>
-
             <h1 className="mb-6 max-w-4xl text-4xl font-bold tracking-tight text-white md:text-5xl lg:text-6xl">
               Premium Nicotine Pouches for{' '}
               <span className="bg-gradient-gold bg-clip-text text-transparent">
