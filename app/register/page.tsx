@@ -20,6 +20,29 @@ import {
   isMinimumAge,
 } from '../lib/validation';
 
+// Role options for registration
+const userRoles = [
+  {
+    id: 'retail-customer',
+    value: 'Retail Customer',
+    label: 'Retail Customer',
+    description: 'Shop our products for personal use',
+    default: true,
+  },
+  {
+    id: 'distributor',
+    value: 'Distributor',
+    label: 'Distributor',
+    description: 'Fulfill orders and earn commissions (requires approval)',
+  },
+  {
+    id: 'referral-partner',
+    value: 'Referral Partner',
+    label: 'Referral Partner',
+    description: 'Refer customers and earn commissions (requires approval)',
+  },
+];
+
 // Loading component for Suspense fallback
 function RegisterFormSkeleton() {
   return (
@@ -54,11 +77,13 @@ function RegisterForm() {
     referralCode: initialReferralCode,
     birthDate: '',
     agreeToTerms: false,
+    role: 'Retail Customer', // Default role
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [referrerName, setReferrerName] = useState<string | null>(null);
+  const [accountPendingApproval, setAccountPendingApproval] = useState(false);
 
   // Check for referral code in localStorage (from referral landing page)
   useEffect(() => {
@@ -90,8 +115,9 @@ function RegisterForm() {
     }
   }, [formData.referralCode]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const value =
+      e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
     setFormData({ ...formData, [e.target.name]: value });
     setError(null); // Clear any previous error when user starts typing
   };
@@ -100,6 +126,7 @@ function RegisterForm() {
     e.preventDefault();
     setError(null);
     setSuccess(false);
+    setAccountPendingApproval(false);
 
     // Comprehensive validation
     if (!isValidName(formData.name)) {
@@ -157,6 +184,7 @@ function RegisterForm() {
           password: formData.password,
           birthDate: formData.birthDate,
           referralCode: formData.referralCode || null, // Send null if empty
+          role: formData.role, // Include selected role
         }),
       });
 
@@ -167,7 +195,14 @@ function RegisterForm() {
 
       // Handle successful registration
       setSuccess(true);
-      showToast('Registration successful! You can now log in.', 'success');
+
+      // Check if account requires approval
+      if (formData.role !== 'Retail Customer') {
+        setAccountPendingApproval(true);
+        showToast('Registration successful! Your account is pending approval.', 'success');
+      } else {
+        showToast('Registration successful! You can now log in.', 'success');
+      }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred.';
       setError(errorMessage);
@@ -195,14 +230,32 @@ function RegisterForm() {
         {success ? (
           <div className="text-center">
             <FormFeedback type="success" message="Registration Successful!" />
-            <p className="mt-2 text-sm text-gray-700">Please proceed to login.</p>
-            <Button
-              variant="primary"
-              className="mt-4"
-              onClick={() => (window.location.href = '/login')}
-            >
-              Go to Login
-            </Button>
+            {accountPendingApproval ? (
+              <>
+                <p className="mt-2 text-sm text-gray-700">
+                  Your account is pending approval by an administrator. You'll receive an email when
+                  your account is approved.
+                </p>
+                <Button
+                  variant="primary"
+                  className="mt-4"
+                  onClick={() => (window.location.href = '/')}
+                >
+                  Return to Home
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="mt-2 text-sm text-gray-700">Please proceed to login.</p>
+                <Button
+                  variant="primary"
+                  className="mt-4"
+                  onClick={() => (window.location.href = '/login')}
+                >
+                  Go to Login
+                </Button>
+              </>
+            )}
           </div>
         ) : (
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -248,6 +301,35 @@ function RegisterForm() {
                 validateOnBlur={true}
                 validateOnChange={false}
               />
+
+              {/* Role Selection */}
+              <div>
+                <label htmlFor="role" className="mb-1 block text-sm font-medium text-gray-700">
+                  Account Type
+                </label>
+                <select
+                  id="role"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
+                >
+                  {userRoles.map(role => (
+                    <option key={role.id} value={role.value}>
+                      {role.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-sm text-gray-500">
+                  {userRoles.find(r => r.value === formData.role)?.description || ''}
+                  {formData.role !== 'Retail Customer' && (
+                    <span className="mt-1 block font-medium text-amber-600">
+                      Note: This account type requires admin approval before activation.
+                    </span>
+                  )}
+                </p>
+              </div>
 
               <FormInput
                 id="password"

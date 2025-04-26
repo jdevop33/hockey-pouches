@@ -11,7 +11,15 @@ interface RegistrationBody {
   email?: string;
   password?: string;
   referralCode?: string | null;
+  role?: string;
+  birthDate?: string;
 }
+
+// Valid roles for user registration
+const VALID_ROLES = ['Retail Customer', 'Distributor', 'Referral Partner'];
+
+// Roles that require admin approval
+const APPROVAL_REQUIRED_ROLES = ['Distributor', 'Referral Partner'];
 
 // Define a simple User type returned from DB (adjust based on actual query)
 interface User {
@@ -23,7 +31,7 @@ export const POST = withRateLimit(
   withCsrfProtection(async (request: NextRequest) => {
     try {
       const body: RegistrationBody = await request.json();
-      const { name, email, password, referralCode } = body;
+      const { name, email, password, referralCode, role = 'Retail Customer', birthDate } = body;
 
       // --- Input Validation ---
       if (!name || typeof name !== 'string' || name.trim().length === 0) {
@@ -42,12 +50,42 @@ export const POST = withRateLimit(
           { status: 400 }
         );
       }
+
+      if (!VALID_ROLES.includes(role)) {
+        return NextResponse.json(
+          { message: 'Invalid user role. Must be one of: ' + VALID_ROLES.join(', ') },
+          { status: 400 }
+        );
+      }
+
       if (referralCode && typeof referralCode !== 'string') {
         return NextResponse.json({ message: 'Invalid referral code format.' }, { status: 400 });
       }
       const referredBy = referralCode?.trim() || null;
 
-      logger.info('Registration attempt validation passed', { email: lowerCaseEmail });
+      // Birth date validation
+      if (!birthDate) {
+        return NextResponse.json({ message: 'Birth date is required.' }, { status: 400 });
+      }
+
+      // Check if birth date makes user at least 21 years old
+      const birthDateObj = new Date(birthDate);
+      const today = new Date();
+      let age = today.getFullYear() - birthDateObj.getFullYear();
+      const monthDiff = today.getMonth() - birthDateObj.getMonth();
+
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+        age--;
+      }
+
+      if (age < 21) {
+        return NextResponse.json(
+          { message: 'You must be at least 21 years old to register.' },
+          { status: 400 }
+        );
+      }
+
+      logger.info('Registration attempt validation passed', { email: lowerCaseEmail, role });
 
       // --- Database Operations ---
 
@@ -84,40 +122,112 @@ export const POST = withRateLimit(
         logger.debug('Valid referral code', { referralCode: referredBy, referrerId });
       }
 
-      // 4. TODO: Generate a unique referral_code for the new user (e.g., base part of name + random chars)
+      // 4. Generate a unique referral_code for the new user
       const newUserReferralCode = `${trimmedName.split(' ')[0].toUpperCase()}${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
       logger.debug('Generated referral code', { referralCode: newUserReferralCode });
 
-      // 5. Create user in DB
-      logger.debug('Inserting new user into database', { email: lowerCaseEmail });
-      const newUser = await sql`
-        INSERT INTO users (name, email, password_hash, referred_by_code, referred_by_user_id, referral_code, role, status)
-        VALUES (${trimmedName}, ${lowerCaseEmail}, ${passwordHash}, ${referredBy}, ${referrerId}, ${newUserReferralCode}, 'Retail Customer', 'Active')
-        RETURNING id
-    `;
-      const newUserId = newUser[0].id;
-      logger.info('User inserted successfully', { email: lowerCaseEmail, userId: newUserId });
+      // 5. Determine account status based on role
+      const accountStatus = APPROVAL_REQUIRED_ROLES.includes(role) ? 'Pending Approval' : 'Active';
 
-      // 6. Create referral commission record if referred by someone
+      // 6. Create user in DB
+      logger.debug('Inserting new user into database', {
+        email: lowerCaseEmail,
+        role,
+        status: accountStatus,
+      });
+      const newUser = await sql`
+        INSERT INTO users (
+          name, 
+          email, 
+          password_hash, 
+          referred_by_code, 
+          referred_by_user_id, 
+          referral_code, 
+          role, 
+          status, 
+          birth_date
+        )
+        VALUES (
+          ${trimmedName}, 
+          ${lowerCaseEmail}, 
+          ${passwordHash}, 
+          ${referredBy}, 
+          ${referrerId}, 
+          ${newUserReferralCode}, 
+          ${role}, 
+          ${accountStatus},
+          ${birthDate}
+        )
+        RETURNING id
+      `;
+      const newUserId = newUser[0].id;
+      logger.info('User inserted successfully', {
+        email: lowerCaseEmail,
+        userId: newUserId,
+        role,
+        status: accountStatus,
+      });
+
+      // 7. Create referral commission record if referred by someone
       if (referrerId) {
         logger.debug('Creating referral commission record', { referrerId, newUserId });
         await sql`
-            INSERT INTO commissions (user_id, type, amount, status, related_to, related_id, notes)
-            VALUES (
-                ${referrerId},
-                'New Referral',
-                0,
-                'Pending',
-                'User',
-                ${newUserId},
-                'New user referral bonus pending first purchase'
-            )
+          INSERT INTO commissions (
+            user_id, 
+            type, 
+            amount, 
+            status, 
+            related_to, 
+            related_id, 
+            notes
+          )
+          VALUES (
+            ${referrerId},
+            'New Referral',
+            0,
+            'Pending',
+            'User',
+            ${newUserId},
+            'New user referral bonus pending first purchase'
+          )
         `;
         logger.debug('Referral commission record created', { referrerId, newUserId });
       }
 
+      // 8. Create admin notification for approval if needed
+      if (APPROVAL_REQUIRED_ROLES.includes(role)) {
+        await sql`
+          INSERT INTO admin_notifications (
+            type,
+            message,
+            related_to,
+            related_id,
+            is_read,
+            created_at
+          )
+          VALUES (
+            'User Approval Required',
+            ${`New ${role} account registration requires approval: ${trimmedName} (${lowerCaseEmail})`},
+            'User',
+            ${newUserId},
+            false,
+            NOW()
+          )
+        `;
+        logger.debug('Admin notification created for account approval', {
+          userId: newUserId,
+          role,
+        });
+      }
+
       // --- Success Response ---
-      return NextResponse.json({ message: 'User registered successfully.' }, { status: 201 });
+      return NextResponse.json(
+        {
+          message: 'User registered successfully.',
+          requiresApproval: APPROVAL_REQUIRED_ROLES.includes(role),
+        },
+        { status: 201 }
+      );
     } catch (error: any) {
       // Handle JSON parsing errors
       if (error instanceof SyntaxError) {

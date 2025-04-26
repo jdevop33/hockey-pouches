@@ -98,8 +98,9 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 
 ### User Management
 
-- [ ] Complete user CRUD operations
-- [ ] Implement user suspension/reactivation
+- [x] Complete user registration with role selection
+- [x] Implement user suspension/reactivation
+- [x] Add user approval workflow for special roles
 - [ ] Add user permissions within admin role
 - [ ] Implement user activity logs
 - [ ] Add user search and filtering
@@ -199,7 +200,7 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 
 - [x] Implement basic referral code generation
 - [ ] Complete referral statistics tracking
-- [ ] Add referral link generation and tracking
+- [x] Add referral link generation and tracking
 - [ ] Implement referral marketing materials
 - [ ] Add referral performance metrics
 - [ ] Implement referral tier system (if applicable)
