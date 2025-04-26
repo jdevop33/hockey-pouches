@@ -4,6 +4,41 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Layout from './components/layout/NewLayout';
 
+// Define product data directly in the component
+const featuredProducts = [
+  {
+    id: 'cool-mint',
+    name: 'Cool Mint',
+    description: 'Perfect for between periods',
+    price: 15.0,
+    image: '/images/products/mint/mint-pack.webp',
+    badge: { text: 'BEST SELLER', color: 'bg-gold-500' },
+  },
+  {
+    id: 'peppermint',
+    name: 'Peppermint',
+    description: 'Perfect for long road trips',
+    price: 15.0,
+    image: '/images/products/mint/peppermint-pack.webp',
+  },
+  {
+    id: 'spearmint',
+    name: 'Spearmint',
+    description: 'Perfect for post-game recovery',
+    price: 15.0,
+    image: '/images/products/mint/spearmint-pack.webp',
+    badge: { text: 'POPULAR', color: 'bg-gold-500' },
+  },
+  {
+    id: 'watermelon',
+    name: 'Watermelon',
+    description: 'Perfect for training sessions',
+    price: 15.0,
+    image: '/images/products/berry/berry-pack.webp',
+    badge: { text: 'NEW', color: 'bg-blue-500' },
+  },
+];
+
 export default function Home() {
   return (
     <Layout>
@@ -177,106 +212,41 @@ export default function Home() {
           </p>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Product 1 */}
-            <div className="group rounded-lg bg-dark-400 p-6 transition-all hover:shadow-gold-sm">
-              <div className="aspect-square relative mb-4 overflow-hidden rounded-md bg-dark-300">
-                <span className="absolute right-2 top-2 z-10 rounded-full bg-gold-500 px-2 py-1 text-xs font-bold text-dark-500">
-                  BEST SELLER
-                </span>
-                <Image
-                  src="/images/products/mint/mint-pack.webp"
-                  alt="Cool Mint"
-                  fill
-                  className="object-cover transition-transform group-hover:scale-105"
-                />
+            {featuredProducts.map(product => (
+              <div
+                key={product.id}
+                className="group rounded-lg bg-dark-400 p-6 transition-all hover:shadow-gold-sm"
+              >
+                <div className="aspect-square relative mb-4 overflow-hidden rounded-md bg-dark-300">
+                  {product.badge && (
+                    <span
+                      className={`absolute right-2 top-2 z-10 rounded-full ${product.badge.color} px-2 py-1 text-xs font-bold ${product.badge.color === 'bg-gold-500' ? 'text-dark-500' : 'text-white'}`}
+                    >
+                      {product.badge.text}
+                    </span>
+                  )}
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    className="object-cover transition-transform group-hover:scale-105"
+                  />
+                </div>
+                <h3 className="mb-1 text-lg font-bold text-white">{product.name}</h3>
+                <p className="mb-3 text-sm text-gray-400">{product.description}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-bold text-gold-500">
+                    ${product.price.toFixed(2)}
+                  </span>
+                  <Link
+                    href={`/products/${product.id}`}
+                    className="rounded bg-dark-300 px-3 py-1 text-sm text-white transition-colors hover:bg-gold-500 hover:text-dark-500"
+                  >
+                    Shop now →
+                  </Link>
+                </div>
               </div>
-              <h3 className="mb-1 text-lg font-bold text-white">Cool Mint</h3>
-              <p className="mb-3 text-sm text-gray-400">Perfect for between periods</p>
-              <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-gold-500">$15.00</span>
-                <Link
-                  href="/products/cool-mint"
-                  className="rounded bg-dark-300 px-3 py-1 text-sm text-white transition-colors hover:bg-gold-500 hover:text-dark-500"
-                >
-                  Shop now →
-                </Link>
-              </div>
-            </div>
-
-            {/* Product 2 */}
-            <div className="group rounded-lg bg-dark-400 p-6 transition-all hover:shadow-gold-sm">
-              <div className="aspect-square relative mb-4 overflow-hidden rounded-md bg-dark-300">
-                <Image
-                  src="/images/products/mint/peppermint-pack.webp"
-                  alt="Peppermint"
-                  fill
-                  className="object-cover transition-transform group-hover:scale-105"
-                />
-              </div>
-              <h3 className="mb-1 text-lg font-bold text-white">Peppermint</h3>
-              <p className="mb-3 text-sm text-gray-400">Perfect for long road trips</p>
-              <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-gold-500">$15.00</span>
-                <Link
-                  href="/products/peppermint"
-                  className="rounded bg-dark-300 px-3 py-1 text-sm text-white transition-colors hover:bg-gold-500 hover:text-dark-500"
-                >
-                  Shop now →
-                </Link>
-              </div>
-            </div>
-
-            {/* Product 3 */}
-            <div className="group rounded-lg bg-dark-400 p-6 transition-all hover:shadow-gold-sm">
-              <div className="aspect-square relative mb-4 overflow-hidden rounded-md bg-dark-300">
-                <span className="absolute right-2 top-2 z-10 rounded-full bg-gold-500 px-2 py-1 text-xs font-bold text-dark-500">
-                  POPULAR
-                </span>
-                <Image
-                  src="/images/products/mint/spearmint-pack.webp"
-                  alt="Spearmint"
-                  fill
-                  className="object-cover transition-transform group-hover:scale-105"
-                />
-              </div>
-              <h3 className="mb-1 text-lg font-bold text-white">Spearmint</h3>
-              <p className="mb-3 text-sm text-gray-400">Perfect for post-game recovery</p>
-              <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-gold-500">$15.00</span>
-                <Link
-                  href="/products/spearmint"
-                  className="rounded bg-dark-300 px-3 py-1 text-sm text-white transition-colors hover:bg-gold-500 hover:text-dark-500"
-                >
-                  Shop now →
-                </Link>
-              </div>
-            </div>
-
-            {/* Product 4 */}
-            <div className="group rounded-lg bg-dark-400 p-6 transition-all hover:shadow-gold-sm">
-              <div className="aspect-square relative mb-4 overflow-hidden rounded-md bg-dark-300">
-                <span className="absolute right-2 top-2 z-10 rounded-full bg-blue-500 px-2 py-1 text-xs font-bold text-white">
-                  NEW
-                </span>
-                <Image
-                  src="/images/products/berry/berry-pack.webp"
-                  alt="Watermelon"
-                  fill
-                  className="object-cover transition-transform group-hover:scale-105"
-                />
-              </div>
-              <h3 className="mb-1 text-lg font-bold text-white">Watermelon</h3>
-              <p className="mb-3 text-sm text-gray-400">Perfect for training sessions</p>
-              <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-gold-500">$15.00</span>
-                <Link
-                  href="/products/watermelon"
-                  className="rounded bg-dark-300 px-3 py-1 text-sm text-white transition-colors hover:bg-gold-500 hover:text-dark-500"
-                >
-                  Shop now →
-                </Link>
-              </div>
-            </div>
+            ))}
           </div>
 
           <div className="mt-10 text-center">
