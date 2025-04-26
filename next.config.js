@@ -1,10 +1,11 @@
 /** @type {import('next').NextConfig} */
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const withBundleAnalyzer =
-  process.env.ANALYZE === 'true'
-    ? require('@next/bundle-analyzer')({ enabled: true })
-    : config => config;
+let withBundleAnalyzer = config => config;
+// Use ESBuild-friendly approach instead of require
+if (process.env.ANALYZE === 'true') {
+  const analyzer = import('@next/bundle-analyzer');
+  withBundleAnalyzer = analyzer.default({ enabled: true });
+}
 
 const nextConfig = {
   reactStrictMode: true,

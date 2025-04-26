@@ -8,7 +8,7 @@ The application uses Mailgun for email delivery through the Nodemailer library. 
 
 Email service credentials are stored in environment variables:
 
-```
+```env
 MAILGUN_API_KEY=your-api-key
 MAILGUN_DOMAIN=mg.yourdomain.com
 DEFAULT_FROM_EMAIL="Your App <noreply@mg.yourdomain.com>"

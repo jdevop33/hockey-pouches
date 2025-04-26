@@ -1,15 +1,36 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, useCallback } from 'react';
 import Layout from '@/components/layout/NewLayout';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Button from '@/components/ui/Button';
 import { LogEntry, LogLevel } from '@/lib/logger';
 
+// Type guard for checking if an object is error-like (renamed with underscore since not used yet)
+const _isErrorLike = (obj: unknown): obj is { message: string; name?: string; stack?: string } => {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'message' in obj &&
+    typeof (obj as any).message === 'string'
+  );
+};
+
+// Helper to safely stringify unknown values
+const safeStringify = (value: unknown): string => {
+  if (typeof value === 'string') return value;
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+};
+
 export default function LogsPage() {
-  const router = useRouter();
   const { user, token, isLoading: authLoading } = useAuth();
   const { showToast } = useToast();
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -20,7 +41,7 @@ export default function LogsPage() {
   const [isDevelopment, setIsDevelopment] = useState(false);
 
   // Fetch logs
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     if (!token) return;
 
     setIsLoading(true);
@@ -29,11 +50,11 @@ export default function LogsPage() {
     try {
       // Build query parameters
       const queryParams = new URLSearchParams();
-      
+
       if (selectedLevel !== 'all') {
         queryParams.append('level', selectedLevel);
       }
-      
+
       queryParams.append('limit', limit.toString());
 
       const response = await fetch(`/api/admin/logs?${queryParams.toString()}`, {
@@ -60,7 +81,7 @@ export default function LogsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [token, selectedLevel, limit]);
 
   // Clear logs
   const clearLogs = async () => {
@@ -96,7 +117,7 @@ export default function LogsPage() {
     if (!authLoading && user?.role === 'Admin') {
       fetchLogs();
     }
-  }, [authLoading, user, token, selectedLevel, limit]);
+  }, [authLoading, user, fetchLogs]);
 
   // Format timestamp
   const formatTimestamp = (timestamp: string) => {
@@ -134,7 +155,7 @@ export default function LogsPage() {
   return (
     <Layout>
       <div className="min-h-screen bg-gray-100 p-8">
-        <div className="flex justify-between items-center mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-800">Application Logs</h1>
           <div className="flex space-x-4">
             <Button
@@ -145,36 +166,33 @@ export default function LogsPage() {
             >
               Refresh Logs
             </Button>
-            <Button
-              variant="danger"
-              onClick={clearLogs}
-              disabled={isLoading || logs.length === 0}
-            >
+            <Button variant="danger" onClick={clearLogs} disabled={isLoading || logs.length === 0}>
               Clear Logs
             </Button>
           </div>
         </div>
 
         {!isDevelopment && (
-          <div className="mb-6 p-4 bg-yellow-100 text-yellow-800 rounded-md">
+          <div className="mb-6 rounded-md bg-yellow-100 p-4 text-yellow-800">
             <p className="font-semibold">Logs are only available in development mode.</p>
-            <p className="text-sm mt-1">
-              In production, logs are sent to external logging services. Please check your logging service dashboard.
+            <p className="mt-1 text-sm">
+              In production, logs are sent to external logging services. Please check your logging
+              service dashboard.
             </p>
           </div>
         )}
 
         {/* Filters */}
-        <div className="mb-6 p-4 bg-white rounded-md shadow">
-          <div className="flex flex-wrap gap-4 items-center">
+        <div className="mb-6 rounded-md bg-white p-4 shadow">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="w-40">
-              <label htmlFor="level" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="level" className="mb-1 block text-sm font-medium text-gray-700">
                 Log Level
               </label>
               <select
                 id="level"
                 value={selectedLevel}
-                onChange={(e) => setSelectedLevel(e.target.value)}
+                onChange={e => setSelectedLevel(e.target.value)}
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               >
                 <option value="all">All Levels</option>
@@ -185,13 +203,13 @@ export default function LogsPage() {
               </select>
             </div>
             <div className="w-40">
-              <label htmlFor="limit" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="limit" className="mb-1 block text-sm font-medium text-gray-700">
                 Limit
               </label>
               <select
                 id="limit"
                 value={limit}
-                onChange={(e) => setLimit(parseInt(e.target.value))}
+                onChange={e => setLimit(parseInt(e.target.value))}
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               >
                 <option value={50}>50 entries</option>
@@ -205,75 +223,81 @@ export default function LogsPage() {
         </div>
 
         {/* Error Display */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-4 rounded-md bg-red-100 p-4 text-red-700">{error}</div>}
 
         {/* Loading State */}
         {isLoading && (
-          <div className="text-center p-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+          <div className="p-8 text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-gray-900"></div>
             <p className="mt-2 text-gray-600">Loading logs...</p>
           </div>
         )}
 
         {/* Logs Table */}
         {!isLoading && logs.length === 0 && (
-          <div className="bg-white p-8 rounded-md shadow text-center">
+          <div className="rounded-md bg-white p-8 text-center shadow">
             <p className="text-gray-500">No logs found.</p>
           </div>
         )}
 
         {!isLoading && logs.length > 0 && (
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
+          <div className="overflow-hidden rounded-lg bg-white shadow-md">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                    >
                       Timestamp
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                    >
                       Level
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                    >
                       Message
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                    >
                       Context
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 bg-white">
                   {logs.map((log, index) => (
                     <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                         {formatTimestamp(log.timestamp)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
                         <span className={`font-medium ${getLevelColor(log.level)}`}>
                           {log.level.toUpperCase()}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {log.message}
-                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{log.message}</td>
                       <td className="px-6 py-4 text-sm text-gray-500">
                         {log.context && (
                           <pre className="whitespace-pre-wrap text-xs">
-                            {JSON.stringify(log.context, null, 2)}
+                            {safeStringify(log.context)}
                           </pre>
                         )}
-                        {log.error && (
+                        {log.error ? (
                           <div className="mt-2">
                             <div className="text-xs font-semibold text-red-600">Error:</div>
                             <pre className="whitespace-pre-wrap text-xs text-red-500">
-                              {JSON.stringify(log.error, null, 2)}
+                              {safeStringify(log.error)}
                             </pre>
                           </div>
-                        )}
+                        ) : null}
                       </td>
                     </tr>
                   ))}
