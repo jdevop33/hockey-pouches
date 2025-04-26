@@ -1,5 +1,3 @@
-import nodemailer from 'nodemailer';
-import { createMailgunTransport } from 'nodemailer-mailgun-transport';
 import { emailWrapper } from './email-templates';
 
 type EmailOptions = {
@@ -28,29 +26,21 @@ interface ShippingAddress {
 }
 
 /**
- * Mailgun configuration for sending emails
- */
-const mailgunAuth = {
-  auth: {
-    domain: process.env.MAILGUN_DOMAIN || 'mg.nicotinetins.com',
-    api_key: process.env.MAILGUN_API_KEY || 'b77417511d18b603a630256a5320b25e-10b6f382-f82c2ce3',
-  },
-};
-
-/**
- * Nodemailer transporter instance for Mailgun
- */
-const transport = createMailgunTransport(mailgunAuth);
-const transporter = nodemailer.createTransport(transport);
-
-/**
  * Default sender address
  */
 const DEFAULT_FROM_EMAIL =
   process.env.DEFAULT_FROM_EMAIL || 'Hockey Pouches <noreply@mg.nicotinetins.com>';
 
 /**
- * Sends an email using Mailgun
+ * Mailgun configuration
+ */
+const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN || 'mg.nicotinetins.com';
+const MAILGUN_API_KEY =
+  process.env.MAILGUN_API_KEY || 'b77417511d18b603a630256a5320b25e-10b6f382-f82c2ce3';
+const MAILGUN_API_URL = `https://api.mailgun.net/v3/${MAILGUN_DOMAIN}/messages`;
+
+/**
+ * Sends an email using Mailgun API directly with fetch
  * @param options Email options including recipients, subject, and content
  * @returns Promise that resolves with the send info
  */
@@ -58,16 +48,45 @@ export const sendEmail = async (options: EmailOptions) => {
   const { to, subject, text, html, from = DEFAULT_FROM_EMAIL } = options;
 
   try {
-    const result = await transporter.sendMail({
-      from,
-      to,
-      subject,
-      text,
-      html,
+    // Create form data
+    const formData = new URLSearchParams();
+    formData.append('from', from);
+    formData.append('subject', subject);
+
+    // Add recipients
+    if (Array.isArray(to)) {
+      to.forEach(recipient => formData.append('to', recipient));
+    } else {
+      formData.append('to', to);
+    }
+
+    // Add content
+    if (text) formData.append('text', text);
+    if (html) formData.append('html', html);
+
+    // Basic auth credentials need to be base64 encoded
+    const authHeader = `Basic ${Buffer.from(`api:${MAILGUN_API_KEY}`).toString('base64')}`;
+
+    // Send request to Mailgun API
+    const response = await fetch(MAILGUN_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData,
     });
 
-    console.log('Email sent successfully:', result.messageId);
-    return { success: true, messageId: result.messageId };
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Mailgun API error: ${response.status} ${response.statusText} - ${errorText}`
+      );
+    }
+
+    const result = await response.json();
+    console.log('Email sent successfully:', result.id);
+    return { success: true, messageId: result.id };
   } catch (error) {
     console.error('Error sending email:', error);
     throw error;

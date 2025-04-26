@@ -1,10 +1,9 @@
 /** @type {import('next').NextConfig} */
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const withBundleAnalyzer =
   process.env.ANALYZE === 'true'
-    ? require('@next/bundle-analyzer')({
-        enabled: true,
-      })
+    ? require('@next/bundle-analyzer')({ enabled: true })
     : config => config;
 
 const nextConfig = {
