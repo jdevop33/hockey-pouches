@@ -1,11 +1,10 @@
 /** @type {import('next').NextConfig} */
 
-let withBundleAnalyzer = config => config;
-// Use ESBuild-friendly approach instead of require
-if (process.env.ANALYZE === 'true') {
-  const analyzer = import('@next/bundle-analyzer');
-  withBundleAnalyzer = analyzer.default({ enabled: true });
-}
+// Convert to ESM and use import for bundle analyzer
+import bundleAnalyzer from '@next/bundle-analyzer';
+
+const withBundleAnalyzer =
+  process.env.ANALYZE === 'true' ? bundleAnalyzer({ enabled: true }) : config => config;
 
 const nextConfig = {
   reactStrictMode: true,
@@ -123,4 +122,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withBundleAnalyzer(nextConfig);
+export default withBundleAnalyzer(nextConfig);

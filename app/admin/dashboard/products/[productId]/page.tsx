@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -28,6 +28,14 @@ export default function AdminProductDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<ProductDetails>>({});
   const [isSaving, setIsSaving] = useState(false);
+
+  // Variations state
+  const [variations, setVariations] = useState<ProductVariation[]>([]);
+  const [isLoadingVariations, setIsLoadingVariations] = useState(false);
+  const [variationError, setVariationError] = useState<string | null>(null);
+  const [showVariationModal, setShowVariationModal] = useState(false);
+  const [currentVariation, setCurrentVariation] = useState<Partial<ProductVariation> | null>(null);
+  const [isSavingVariation, setIsSavingVariation] = useState(false);
 
   // --- Effects ---
   useEffect(() => {
@@ -70,6 +78,44 @@ export default function AdminProductDetailPage() {
     }
   }, [user, token, productId, router, logout]);
 
+  // Load variations from API - define before it's used in useEffect
+  const loadVariations = useCallback(async () => {
+    if (!product?.id || !token) return;
+
+    setIsLoadingVariations(true);
+    setVariationError(null);
+
+    try {
+      const response = await fetch(`/api/admin/products/${product.id}/variations`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          logout();
+          router.push('/login');
+          return;
+        }
+        throw new Error(`Failed to load variations (${response.status})`);
+      }
+
+      const data = await response.json();
+      setVariations(data as ProductVariation[]);
+    } catch (err: any) {
+      setVariationError(err.message || 'Failed to load variations.');
+      console.error(err);
+    } finally {
+      setIsLoadingVariations(false);
+    }
+  }, [product?.id, token, logout, router]);
+
+  // Load variations when product is loaded
+  useEffect(() => {
+    if (product?.id && token) {
+      loadVariations();
+    }
+  }, [product?.id, token, loadVariations]);
+
   // --- Handlers ---
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -90,7 +136,8 @@ export default function AdminProductDetailPage() {
         if (name === 'variations') {
           finalValue = editData.variations || [];
         } else {
-          finalValue = name in editData ? editData[name as keyof ProductDetails] : null;
+          const fieldValue = editData[name as keyof ProductDetails];
+          finalValue = name in editData && fieldValue !== undefined ? fieldValue : null;
         }
       }
     }
@@ -108,7 +155,7 @@ export default function AdminProductDetailPage() {
 
     (Object.keys(editData) as Array<keyof ProductDetails>).forEach(key => {
       if (key === 'id') return;
-      let currentVal = product[key];
+      const currentVal = product[key];
       let editedVal = editData[key];
       if (
         editedVal === '' &&
@@ -129,12 +176,12 @@ export default function AdminProductDetailPage() {
           case 'description':
           case 'category':
           case 'image_url':
-            payload[key] = editedVal as string | null;
+            payload[key] = editedVal === null ? undefined : (editedVal as string);
             break;
           case 'price':
           case 'compare_at_price':
           case 'strength':
-            payload[key] = editedVal as number | null;
+            payload[key] = editedVal === null ? undefined : (editedVal as number);
             break;
           case 'is_active':
             payload[key] = editedVal as boolean;
@@ -206,52 +253,6 @@ export default function AdminProductDetailPage() {
       console.error(err);
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  // Variations state
-  const [variations, setVariations] = useState<ProductVariation[]>([]);
-  const [isLoadingVariations, setIsLoadingVariations] = useState(false);
-  const [variationError, setVariationError] = useState<string | null>(null);
-  const [showVariationModal, setShowVariationModal] = useState(false);
-  const [currentVariation, setCurrentVariation] = useState<Partial<ProductVariation> | null>(null);
-  const [isSavingVariation, setIsSavingVariation] = useState(false);
-
-  // Load variations when product is loaded
-  useEffect(() => {
-    if (product?.id && token) {
-      loadVariations();
-    }
-  }, [product?.id, token]);
-
-  // Load variations from API
-  const loadVariations = async () => {
-    if (!product?.id || !token) return;
-
-    setIsLoadingVariations(true);
-    setVariationError(null);
-
-    try {
-      const response = await fetch(`/api/admin/products/${product.id}/variations`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          logout();
-          router.push('/login');
-          return;
-        }
-        throw new Error(`Failed to load variations (${response.status})`);
-      }
-
-      const data = await response.json();
-      setVariations(data as ProductVariation[]);
-    } catch (err: any) {
-      setVariationError(err.message || 'Failed to load variations.');
-      console.error(err);
-    } finally {
-      setIsLoadingVariations(false);
     }
   };
 
@@ -455,7 +456,7 @@ export default function AdminProductDetailPage() {
                     value={editData.name || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing || isSaving}
-                    className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
                     required
                   />
                 </div>
@@ -471,7 +472,7 @@ export default function AdminProductDetailPage() {
                     value={editData.category || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing || isSaving}
-                    className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
 
@@ -486,7 +487,7 @@ export default function AdminProductDetailPage() {
                     value={editData.price || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing || isSaving}
-                    className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
                     step="0.01"
                     min="0"
                     required
@@ -507,7 +508,7 @@ export default function AdminProductDetailPage() {
                     value={editData.compare_at_price || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing || isSaving}
-                    className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
                     step="0.01"
                     min="0"
                   />
@@ -527,7 +528,7 @@ export default function AdminProductDetailPage() {
                     onChange={handleInputChange}
                     disabled={!isEditing || isSaving}
                     rows={4}
-                    className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
 
@@ -542,7 +543,7 @@ export default function AdminProductDetailPage() {
                     value={editData.strength || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing || isSaving}
-                    className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
                     min="0"
                     max="5"
                     step="1"
@@ -553,13 +554,19 @@ export default function AdminProductDetailPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Product Image</label>
                   {isEditing ? (
-                    <ImageUploader
-                      currentImageUrl={editData.image_url}
-                      onImageUpload={url => setEditData({ ...editData, image_url: url })}
-                      token={token}
-                      folder="products"
-                      disabled={isSaving}
-                    />
+                    token ? (
+                      <ImageUploader
+                        currentImageUrl={editData.image_url}
+                        onImageUpload={url => setEditData({ ...editData, image_url: url })}
+                        token={token}
+                        folder="products"
+                        disabled={isSaving}
+                      />
+                    ) : (
+                      <div className="mt-1 text-sm text-red-500">
+                        Authentication required for image upload
+                      </div>
+                    )
                   ) : (
                     <div className="mt-1">
                       {editData.image_url ? (
@@ -588,7 +595,7 @@ export default function AdminProductDetailPage() {
                     checked={editData.is_active || false}
                     onChange={handleInputChange}
                     disabled={!isEditing || isSaving}
-                    className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+                    className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
                   <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
                     Active (visible to customers)
@@ -623,37 +630,37 @@ export default function AdminProductDetailPage() {
                   <tr>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
                     >
                       Name
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
                     >
                       Flavor
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
                     >
                       Strength
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
+                      className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500"
                     >
                       Price
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 uppercase"
+                      className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500"
                     >
                       Stock
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 uppercase"
+                      className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500"
                     >
                       Status
                     </th>
@@ -672,24 +679,24 @@ export default function AdminProductDetailPage() {
                   ) : (
                     variations.map(variation => (
                       <tr key={variation.id}>
-                        <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                           {variation.name}
                         </td>
-                        <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                           {variation.flavor || '-'}
                         </td>
-                        <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                           {variation.strength || '-'}
                         </td>
-                        <td className="px-6 py-4 text-right text-sm whitespace-nowrap text-gray-900">
+                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm text-gray-900">
                           ${variation.price.toFixed(2)}
                         </td>
-                        <td className="px-6 py-4 text-center text-sm whitespace-nowrap text-gray-500">
+                        <td className="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500">
                           {variation.inventory_quantity}
                         </td>
-                        <td className="px-6 py-4 text-center whitespace-nowrap">
+                        <td className="whitespace-nowrap px-6 py-4 text-center">
                           <span
-                            className={`inline-flex rounded-full px-2 text-xs leading-5 font-semibold ${
+                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                               variation.is_active
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-red-100 text-red-800'
@@ -698,7 +705,7 @@ export default function AdminProductDetailPage() {
                             {variation.is_active ? 'Active' : 'Inactive'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-right text-sm whitespace-nowrap">
+                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
                           <button
                             onClick={() => handleEditVariation(variation.id)}
                             className="mr-3 text-indigo-600 hover:text-indigo-900"
@@ -724,7 +731,7 @@ export default function AdminProductDetailPage() {
         {/* Variation Modal */}
         {showVariationModal && currentVariation && (
           <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
               <div className="fixed inset-0 transition-opacity" aria-hidden="true">
                 <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
               </div>
@@ -735,10 +742,10 @@ export default function AdminProductDetailPage() {
                 &#8203;
               </span>
               <div className="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                   <div className="sm:flex sm:items-start">
                     <div className="mt-3 w-full text-center sm:mt-0 sm:text-left">
-                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      <h3 className="text-lg font-medium leading-6 text-gray-900">
                         {currentVariation.id ? 'Edit Variation' : 'Add Variation'}
                       </h3>
 
@@ -763,7 +770,7 @@ export default function AdminProductDetailPage() {
                             onChange={e =>
                               setCurrentVariation({ ...currentVariation, name: e.target.value })
                             }
-                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                             required
                           />
                         </div>
@@ -782,7 +789,7 @@ export default function AdminProductDetailPage() {
                             onChange={e =>
                               setCurrentVariation({ ...currentVariation, flavor: e.target.value })
                             }
-                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                           />
                         </div>
 
@@ -805,7 +812,7 @@ export default function AdminProductDetailPage() {
                             }
                             min="0"
                             max="5"
-                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                           />
                         </div>
 
@@ -828,7 +835,7 @@ export default function AdminProductDetailPage() {
                             }
                             step="0.01"
                             min="0"
-                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                             required
                           />
                         </div>
@@ -854,7 +861,7 @@ export default function AdminProductDetailPage() {
                             }
                             step="0.01"
                             min="0"
-                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                           />
                         </div>
 
@@ -872,7 +879,7 @@ export default function AdminProductDetailPage() {
                             onChange={e =>
                               setCurrentVariation({ ...currentVariation, sku: e.target.value })
                             }
-                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                           />
                         </div>
 
@@ -894,7 +901,7 @@ export default function AdminProductDetailPage() {
                               })
                             }
                             min="0"
-                            className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                           />
                         </div>
 
@@ -902,19 +909,25 @@ export default function AdminProductDetailPage() {
                           <label className="block text-sm font-medium text-gray-700">
                             Product Image
                           </label>
-                          <ImageUploader
-                            currentImageUrl={currentVariation.image_url}
-                            onImageUpload={url =>
-                              setCurrentVariation({
-                                ...currentVariation,
-                                image_url: url,
-                              })
-                            }
-                            token={token}
-                            folder="variations"
-                            disabled={isSavingVariation}
-                            className="mt-1"
-                          />
+                          {token ? (
+                            <ImageUploader
+                              currentImageUrl={currentVariation.image_url}
+                              onImageUpload={url =>
+                                setCurrentVariation({
+                                  ...currentVariation,
+                                  image_url: url,
+                                })
+                              }
+                              token={token}
+                              folder="variations"
+                              disabled={isSavingVariation}
+                              className="mt-1"
+                            />
+                          ) : (
+                            <div className="mt-1 text-sm text-red-500">
+                              Authentication required for image upload
+                            </div>
+                          )}
                         </div>
 
                         <div className="col-span-2 flex items-center">
@@ -928,7 +941,7 @@ export default function AdminProductDetailPage() {
                                 is_active: e.target.checked,
                               })
                             }
-                            className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+                            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                           />
                           <label
                             htmlFor="variation-active"
@@ -946,7 +959,7 @@ export default function AdminProductDetailPage() {
                     type="button"
                     onClick={handleSaveVariation}
                     disabled={isSavingVariation}
-                    className="inline-flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+                    className="inline-flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
                   >
                     {isSavingVariation ? 'Saving...' : 'Save'}
                   </button>
@@ -958,7 +971,7 @@ export default function AdminProductDetailPage() {
                       setVariationError(null);
                     }}
                     disabled={isSavingVariation}
-                    className="focus:ring-primary-500 mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm"
+                    className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
                   >
                     Cancel
                   </button>

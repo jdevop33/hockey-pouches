@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Lato:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+html {
+  font-family: 'Lato', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  background: #101010;
+  color: #f5f5f4;
+  transition:
+    background 0.3s,
+    color 0.3s;
+}
+
+body {
+  background: #101010;
+  color: #f5f5f4;
+  min-height: 100vh;
+  font-family: 'Lato', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  letter-spacing: 0;
+  transition:
+    background 0.3s,
+    color 0.3s;
+}
+
+h1,
+.h1 {
+  font-family: 'Montserrat', 'Sora', ui-sans-serif, system-ui, sans-serif;
+  font-size: 3rem;
+  line-height: 3.375rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+h2,
+.h2 {
+  font-family: 'Montserrat', 'Sora', ui-sans-serif, system-ui, sans-serif;
+  font-size: 2.25rem;
+  line-height: 2.75rem;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+h3,
+.h3 {
+  font-family: 'Montserrat', 'Sora', ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.75rem;
+  line-height: 2.25rem;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+}
+h4,
+.h4 {
+  font-family: 'Montserrat', 'Sora', ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.3125rem;
+  line-height: 1.75rem;
+  font-weight: 500;
+}
+.subtitle {
+  font-family: 'Montserrat', 'Sora', ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.625rem;
+  font-weight: 400;
+  letter-spacing: 0.2px;
+}
+.body,
+p,
+li {
+  font-family: 'Lato', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 400;
+}
+.caption {
+  font-family: 'Lato', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 300;
+  letter-spacing: 0.1px;
+}
+.legal {
+  font-family: 'Lato', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 300;
+}
+code,
+pre,
+.mono {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.95em;
+  background: #18181b;
+  color: #d4af37;
+  border-radius: 6px;
+  padding: 0.1em 0.4em;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  background: #18181b;
+}
+::-webkit-scrollbar-thumb {
+  background: #23232a;
+  border-radius: 8px;
+}

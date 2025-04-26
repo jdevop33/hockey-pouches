@@ -89,6 +89,19 @@ module.exports = {
           900: '#7f5a00',
           950: '#473200',
         },
+        'brand-black': '#101014',
+        'brand-gold': '#FFD700',
+        'brand-cream': '#F5F5F4',
+        'brand-blue': '#3B82F6',
+        'brand-surface': '#18181b',
+        'brand-gray': '#23232a',
+        // PUXX Brand Colors
+        'puxx-black': '#101010',
+        'puxx-gold': '#D4AF37',
+        // Status
+        'success-green': '#05CE91',
+        'warning-amber': '#FF9900',
+        'alert-red': '#FF3B30',
       },
       fontFamily: {
         sans: [
@@ -103,6 +116,22 @@ module.exports = {
           'Arial',
           'sans-serif',
         ],
+        heading: ['Montserrat', 'Sora', 'ui-sans-serif', 'system-ui'],
+        body: ['Lato', 'Inter', 'ui-sans-serif', 'system-ui'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+      },
+      fontSize: {
+        h1: ['3rem', { lineHeight: '3.375rem', letterSpacing: '-0.5px', fontWeight: '700' }],
+        h2: ['2.25rem', { lineHeight: '2.75rem', letterSpacing: '-0.3px', fontWeight: '600' }],
+        h3: ['1.75rem', { lineHeight: '2.25rem', letterSpacing: '-0.2px', fontWeight: '500' }],
+        h4: ['1.3125rem', { lineHeight: '1.75rem', fontWeight: '500' }],
+        subtitle: [
+          '1.125rem',
+          { lineHeight: '1.625rem', fontWeight: '400', letterSpacing: '0.2px' },
+        ],
+        body: ['1rem', { lineHeight: '1.5rem', fontWeight: '400' }],
+        caption: ['0.875rem', { lineHeight: '1.25rem', fontWeight: '300', letterSpacing: '0.1px' }],
+        legal: ['0.75rem', { lineHeight: '1rem', fontWeight: '300' }],
       },
       animation: {
         fadeIn: 'fadeIn 0.2s ease-in-out',
@@ -142,16 +171,29 @@ module.exports = {
         'gold-lg': '0 0 15px rgba(212, 175, 55, 0.4)',
         'gold-inner': 'inset 0 0 5px rgba(212, 175, 55, 0.2)',
         'gold-glow': '0 0 20px rgba(255, 215, 0, 0.4)',
+        card: '0 4px 24px 0 rgba(16,16,16,0.12)',
+        glass: '0 8px 32px 0 rgba(16,16,16,0.24)',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-gold': 'linear-gradient(45deg, #d4af37, #ffd700, #b8860b)',
+        'gradient-gold': 'linear-gradient(45deg, #D4AF37, #FFD700, #B8860B)',
         'gradient-gold-subtle':
           'linear-gradient(45deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.1))',
         'gradient-dark': 'linear-gradient(to bottom, rgba(5, 5, 15, 0.9), rgba(15, 23, 42, 0.9))',
+        'gradient-navy': 'linear-gradient(45deg, #1A2B40, #23232a)',
+        'gradient-green': 'linear-gradient(45deg, #2C5545, #23232a)',
+        'gradient-blue': 'linear-gradient(45deg, #7CB7CB, #23232a)',
       },
       borderWidth: {
         0.5: '0.5px',
+      },
+      borderRadius: {
+        card: '12px',
+        btn: '8px',
+      },
+      // Glassmorphism utility
+      backdropBlur: {
+        glass: '10px',
       },
     },
   },
@@ -171,6 +213,15 @@ module.exports = {
         '.text-shadow-gold': {
           'text-shadow': '0 0 8px rgba(212, 175, 55, 0.5)',
         },
+        '.text-shadow-success': {
+          'text-shadow': '0 0 8px rgba(5, 206, 145, 0.5)',
+        },
+        '.text-shadow-warning': {
+          'text-shadow': '0 0 8px rgba(255, 153, 0, 0.5)',
+        },
+        '.text-shadow-alert': {
+          'text-shadow': '0 0 8px rgba(255, 59, 48, 0.5)',
+        },
       };
       addUtilities(newUtilities);
     },
@@ -188,16 +239,16 @@ module.exports = {
       };
       addUtilities(newUtilities);
     },
-    // Add glass effect utilities
+    // Glass effect utilities
     function ({ addUtilities }) {
       const newUtilities = {
         '.bg-glass': {
-          background: 'rgba(5, 5, 15, 0.6)',
+          background: 'rgba(16,16,16,0.6)',
           'backdrop-filter': 'blur(10px)',
           border: '1px solid rgba(212, 175, 55, 0.1)',
         },
         '.bg-glass-dark': {
-          background: 'rgba(5, 5, 15, 0.8)',
+          background: 'rgba(16,16,16,0.8)',
           'backdrop-filter': 'blur(10px)',
           border: '1px solid rgba(212, 175, 55, 0.1)',
         },

@@ -2,11 +2,12 @@
 
 import React from 'react';
 import LoadingSpinner from './LoadingSpinner';
+import clsx from 'clsx';
 
 interface ButtonProps {
   children: React.ReactNode;
   type?: 'button' | 'submit' | 'reset';
-  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'outline' | 'gold';
+  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'outline' | 'gold' | 'ghost';
   size?: 'small' | 'medium' | 'large';
   isLoading?: boolean;
   disabled?: boolean;
@@ -27,7 +28,7 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   // Base classes
   const baseClasses =
-    'inline-flex items-center justify-center rounded-md font-medium focus:outline-none transition-all';
+    'inline-flex items-center justify-center rounded-full px-6 py-3 text-lg font-extrabold uppercase tracking-wide transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2';
 
   // Size classes
   const sizeClasses = {
@@ -39,14 +40,15 @@ const Button: React.FC<ButtonProps> = ({
   // Variant classes
   const variantClasses = {
     primary:
-      'bg-gradient-gold text-secondary-950 hover:shadow-gold border border-gold-600 hover:scale-[1.02]',
+      'bg-brand-gold text-brand-black shadow-gold hover:bg-brand-blue hover:text-brand-cream hover:shadow-gold-glow',
     secondary:
       'bg-secondary-800 text-white hover:bg-secondary-700 border border-gold-light hover:border-gold hover:shadow-gold-sm',
     danger: 'bg-red-600 text-white hover:bg-red-700 border border-red-700',
     success: 'bg-green-600 text-white hover:bg-green-700 border border-green-700',
     outline:
-      'bg-transparent text-gold-500 border border-gold-light hover:bg-secondary-800 hover:border-gold hover:shadow-gold-sm',
+      'border-2 border-brand-gold text-brand-gold bg-transparent hover:bg-brand-gold/10 hover:text-brand-blue',
     gold: 'bg-gold-700 text-secondary-950 hover:bg-gold-600 border border-gold-600 hover:shadow-gold',
+    ghost: 'bg-transparent text-brand-cream hover:bg-brand-blue/10 hover:text-brand-blue',
   }[variant];
 
   // Disabled classes
@@ -58,7 +60,7 @@ const Button: React.FC<ButtonProps> = ({
   return (
     <button
       type={type}
-      className={`${baseClasses} ${sizeClasses} ${variantClasses} ${disabledClasses} ${className}`}
+      className={clsx(baseClasses, sizeClasses, variantClasses, disabledClasses, className)}
       disabled={disabled || isLoading}
       onClick={onClick}
       {...props}

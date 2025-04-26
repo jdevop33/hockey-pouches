@@ -290,14 +290,14 @@ export default function LogsPage() {
                             {safeStringify(log.context)}
                           </pre>
                         )}
-                        {log.error ? (
+                        {Boolean(log.error) && (
                           <div className="mt-2">
                             <div className="text-xs font-semibold text-red-600">Error:</div>
                             <pre className="whitespace-pre-wrap text-xs text-red-500">
                               {safeStringify(log.error)}
                             </pre>
                           </div>
-                        ) : null}
+                        )}
                       </td>
                     </tr>
                   ))}
