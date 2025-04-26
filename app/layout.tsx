@@ -35,8 +35,16 @@ export const metadata: Metadata = {
       { url: '/favicon.ico', sizes: 'any' },
     ],
     apple: [
+      { url: '/images/logo/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/images/logo/apple-touch-icon.png', type: 'image/png' },
       { url: '/images/logo/logo3.svg', sizes: '256x256' },
-      { url: '/images/logo/apple-touch-icon.png' },
+    ],
+    shortcut: [{ url: '/images/logo/apple-touch-icon.png' }],
+    other: [
+      {
+        rel: 'apple-touch-icon',
+        url: '/images/logo/apple-touch-icon.png',
+      },
     ],
   },
   openGraph: {
@@ -87,6 +95,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <link rel="canonical" href="https://nicotinetins.com" />
+        <link rel="manifest" href="/manifest.json" />
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -106,6 +115,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="application-name" content="Nicotine Tins by PUXX" />
         <meta name="theme-color" content="#12121a" />
+        <meta name="msapplication-navbutton-color" content="#12121a" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="#12121a" />
+        <meta name="color-scheme" content="dark" />
         <Script
           strategy="afterInteractive"
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}

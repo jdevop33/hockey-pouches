@@ -1,0 +1,21 @@
+{
+  "name": "Nicotine Tins by PUXX",
+  "short_name": "Nicotine Tins",
+  "description": "Premium tobacco-free nicotine pouches designed for discerning adults across Canada.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#12121a",
+  "theme_color": "#12121a",
+  "icons": [
+    {
+      "src": "/images/logo/logo3.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/images/logo/logo3.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

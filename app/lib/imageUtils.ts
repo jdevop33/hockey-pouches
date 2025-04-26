@@ -28,7 +28,7 @@ export const generateSrcSet = (src: string, widths: number[]): string => {
     // For external images, we can't generate srcSet
     return '';
   }
-  
+
   // For local images, generate srcSet
   return widths
     .map(width => {
@@ -65,18 +65,66 @@ export const getImageDimensions = (
  * @returns YouTube video ID or null if invalid
  */
 export const getYoutubeId = (url: string): string | null => {
+  if (!url) return null;
+
+  // Handle various YouTube URL formats
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]{11}).*/;
   const match = url.match(regExp);
-  return match && match[2].length === 11 ? match[2] : null;
+  return match && match[2] && match[2].length === 11 ? match[2] : null;
 };
 
 /**
  * Get YouTube thumbnail URL from video ID
  * @param videoId YouTube video ID
+ * @param quality Thumbnail quality (default, medium, high, maxres, standard)
  * @returns URL to the thumbnail image
  */
-export const getYoutubeThumbnail = (videoId: string): string => {
-  return `https://img.youtube.com/vi/${videoId}/0.jpg`;
+export const getYoutubeThumbnail = (
+  videoId: string,
+  quality: 'default' | 'medium' | 'high' | 'maxres' | 'standard' = 'maxres'
+): string => {
+  if (!videoId) return '/images/videos/default-video-thumb.jpg';
+
+  const qualityMap = {
+    default: '0.jpg', // 120x90
+    medium: 'mqdefault.jpg', // 320x180
+    high: 'hqdefault.jpg', // 480x360
+    standard: 'sddefault.jpg', // 640x480
+    maxres: 'maxresdefault.jpg', // 1280x720
+  };
+
+  return `https://img.youtube.com/vi/${videoId}/${qualityMap[quality]}`;
+};
+
+/**
+ * Get multiple thumbnail options for a YouTube video to allow fallbacks
+ * @param videoId YouTube video ID
+ * @returns Object with multiple thumbnail URLs
+ */
+export const getYoutubeThumbnailOptions = (
+  videoId: string
+): {
+  maxres: string;
+  high: string;
+  medium: string;
+  default: string;
+} => {
+  if (!videoId) {
+    const defaultThumb = '/images/videos/default-video-thumb.jpg';
+    return {
+      maxres: defaultThumb,
+      high: defaultThumb,
+      medium: defaultThumb,
+      default: defaultThumb,
+    };
+  }
+
+  return {
+    maxres: getYoutubeThumbnail(videoId, 'maxres'),
+    high: getYoutubeThumbnail(videoId, 'high'),
+    medium: getYoutubeThumbnail(videoId, 'medium'),
+    default: getYoutubeThumbnail(videoId, 'default'),
+  };
 };
 
 /**
