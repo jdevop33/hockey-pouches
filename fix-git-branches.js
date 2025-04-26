@@ -17,16 +17,18 @@ function runCommand(command) {
 // Main function to fix Git branches
 async function fixGitBranches() {
   console.log('Starting Git branch cleanup...');
-  
-  // 1. Add changes to next.config.js
-  runCommand('git add next.config.js');
-  
+
+  // 1. Add changes to next.config.cjs
+  runCommand('git add next.config.cjs');
+
   // 2. Commit changes
-  runCommand('git commit -m "Fix: Update next.config.js experimental options to fix Vercel build warnings"');
-  
+  runCommand(
+    'git commit -m "Fix: Update next.config.cjs experimental options to fix Vercel build warnings"'
+  );
+
   // 3. Push to master
   runCommand('git push origin master');
-  
+
   console.log('Git branch cleanup completed!');
 }
 

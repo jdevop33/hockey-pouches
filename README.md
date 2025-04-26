@@ -6,71 +6,72 @@ Built with Next.js (`14.2.28`) and Tailwind CSS v4.
 
 ## Core Features
 
-*   **E-commerce:** Product browsing, cart, checkout (Credit Card, E-Transfer, potential BTC).
-*   **MLM System:**
-    *   **Retail Customer/Referrers:** Can buy products and earn 5% commission via referral code/link.
-    *   **Distributors:** Regional inventory management (Vancouver, Calgary, Edmonton, Toronto) and order fulfillment.
-    *   **Wholesale Buyers:** Bulk purchasing with referral requirement.
-*   **Admin Management:** Full oversight of users, products, inventory, orders (approval/assignment/verification), commissions, finances, and task management.
+- **E-commerce:** Product browsing, cart, checkout (Credit Card, E-Transfer, potential BTC).
+- **MLM System:**
+  - **Retail Customer/Referrers:** Can buy products and earn 5% commission via referral code/link.
+  - **Distributors:** Regional inventory management (Vancouver, Calgary, Edmonton, Toronto) and order fulfillment.
+  - **Wholesale Buyers:** Bulk purchasing with referral requirement.
+- **Admin Management:** Full oversight of users, products, inventory, orders (approval/assignment/verification), commissions, finances, and task management.
 
 ## Tech Stack
 
-*   **Framework**: Next.js `14.2.28` (App Router)
-*   **Styling**: Tailwind CSS v4
-*   **Language**: TypeScript `~5.0.0`
-*   **Database**: Neon (PostgreSQL) via `@neondatabase/serverless`
-*   **Auth**: `bcrypt` for hashing, `jsonwebtoken` for tokens
-*   **Analytics**: Google Analytics (GA4), Microsoft Clarity, Vercel Analytics
+- **Framework**: Next.js `14.2.28` (App Router)
+- **Styling**: Tailwind CSS v4
+- **Language**: TypeScript `~5.0.0`
+- **Database**: Neon (PostgreSQL) via `@neondatabase/serverless`
+- **Auth**: `bcrypt` for hashing, `jsonwebtoken` for tokens
+- **Analytics**: Google Analytics (GA4), Microsoft Clarity, Vercel Analytics
 
 ## Project Status (Apr 23, 2025)
 
-*   **Phase 1: Scaffolding (Complete)**
-    *   Full project structure (API routes, Frontend pages) created based on scope.
-    *   Neon DB connection utility (`/app/lib/db.ts`) established.
-    *   `users` table created in Neon DB.
-    *   Basic Register/Login API implemented (with DB checks, hashing).
-    *   Basic Auth Context (`/app/context/AuthContext.tsx`) implemented using localStorage.
-    *   Layout updated for basic Login/Logout display.
-    *   Vercel build is stable.
-*   **Phase 2: Implementation (In Progress)**
-    *   Authentication flow solidified with centralized auth utility.
-    *   API routes secured with JWT verification.
-    *   Shared type definitions implemented.
-    *   User, product, order, and commission APIs implemented.
-    *   Admin routes secured with role-based access control.
+- **Phase 1: Scaffolding (Complete)**
+  - Full project structure (API routes, Frontend pages) created based on scope.
+  - Neon DB connection utility (`/app/lib/db.ts`) established.
+  - `users` table created in Neon DB.
+  - Basic Register/Login API implemented (with DB checks, hashing).
+  - Basic Auth Context (`/app/context/AuthContext.tsx`) implemented using localStorage.
+  - Layout updated for basic Login/Logout display.
+  - Vercel build is stable.
+- **Phase 2: Implementation (In Progress)**
+  - Authentication flow solidified with centralized auth utility.
+  - API routes secured with JWT verification.
+  - Shared type definitions implemented.
+  - User, product, order, and commission APIs implemented.
+  - Admin routes secured with role-based access control.
 
 ## Project Structure (Expanded)
 
-*   `/app`: Next.js App Router structure
-    *   `/api`: Backend API routes (Auth, Users, Products, Orders, etc. + Admin/Distributor)
-    *   `/components`: Reusable React components (Layout, UI, Cart)
-    *   `/context`: React Context providers (AuthContext, CartContext)
-    *   `/lib`: Utility functions (e.g., `db.ts`, `auth.ts`)
-    *   `/types`: Shared TypeScript type definitions
-    *   `/dashboard`: Retail Customer dashboard pages.
-    *   `/distributor/dashboard`: Distributor dashboard pages.
-    *   `/admin/dashboard`: Admin dashboard pages.
-    *   `/data`: Static data (initial `products.ts`).
-    *   `/(public pages)`: Root pages (`page.tsx`, `products/page.tsx`, etc.)
-    *   `/_components`: Root-level client components (analytics, etc.).
-*   `/public`: Static assets.
-*   `/scripts`: Utility scripts.
-*   `.github/workflows`: Contains `neon_workflow.yml` for automatic preview DB branches (if added).
-*   Config files: `README.md`, `package.json`, `tsconfig.json`, `next.config.js`, `.env.local`
+- `/app`: Next.js App Router structure
+  - `/api`: Backend API routes (Auth, Users, Products, Orders, etc. + Admin/Distributor)
+  - `/components`: Reusable React components (Layout, UI, Cart)
+  - `/context`: React Context providers (AuthContext, CartContext)
+  - `/lib`: Utility functions (e.g., `db.ts`, `auth.ts`)
+  - `/types`: Shared TypeScript type definitions
+  - `/dashboard`: Retail Customer dashboard pages.
+  - `/distributor/dashboard`: Distributor dashboard pages.
+  - `/admin/dashboard`: Admin dashboard pages.
+  - `/data`: Static data (initial `products.ts`).
+  - `/(public pages)`: Root pages (`page.tsx`, `products/page.tsx`, etc.)
+  - `/_components`: Root-level client components (analytics, etc.).
+- `/public`: Static assets.
+- `/scripts`: Utility scripts.
+- `.github/workflows`: Contains `neon_workflow.yml` for automatic preview DB branches (if added).
+- Config files: `README.md`, `package.json`, `tsconfig.json`, `next.config.cjs`, `.env.local`
 
 ## Getting Started
 
 ### Prerequisites
 
-*   Node.js `~18.17.0` or later
-*   npm or yarn
-*   Access to the Neon project & Vercel project.
+- Node.js `~18.17.0` or later
+- npm or yarn
+- Access to the Neon project & Vercel project.
 
 ### Installation
 
 1.  Clone the repository.
 2.  Install dependencies: `npm install`
 3.  **Environment Variables:** Create `.env.local` file (copy from `.env.example` if available or use structure below) and populate with actual values from Vercel / Neon / Service accounts. **Ensure Vercel project environment variables are also set.**
+
     ```dotenv
     # General Public Vars
     NEXT_PUBLIC_BASE_URL=http://localhost:3000
@@ -86,6 +87,7 @@ Built with Next.js (`14.2.28`) and Tailwind CSS v4.
 
     # Add Payment Gateway Keys etc. as needed
     ```
+
 4.  Start the development server: `npm run dev`
 5.  Open [http://localhost:3000](http://localhost:3000).
 
@@ -105,20 +107,22 @@ To make authenticated requests to the API, include the JWT token in the Authoriz
 ```javascript
 const response = await fetch('/api/users/me', {
   headers: {
-    'Authorization': `Bearer ${token}`
-  }
+    Authorization: `Bearer ${token}`,
+  },
 });
 ```
 
 ## API Routes
 
 ### Public Routes
+
 - `/api/auth/login` - User login
 - `/api/auth/register` - User registration
 - `/api/products` - List all active products
 - `/api/products/[productId]` - Get specific product details
 
 ### Protected User Routes
+
 - `/api/users/me` - Get current user profile
 - `/api/users/me/commissions` - Get user's commissions
 - `/api/users/me/tasks` - Get user's assigned tasks
@@ -126,6 +130,7 @@ const response = await fetch('/api/users/me', {
 - `/api/orders/me/[orderId]` - Get specific order details
 
 ### Admin Routes
+
 - `/api/admin/users` - Manage users
 - `/api/admin/products` - Manage products
 - `/api/admin/orders` - Manage orders
@@ -134,29 +139,30 @@ const response = await fetch('/api/users/me', {
 - `/api/admin/inventory` - Manage inventory
 
 ### Distributor Routes
+
 - `/api/distributor/orders` - View assigned orders
 - `/api/distributor/orders/[orderId]/fulfill` - Mark order as fulfilled
 
 ## Development Workflow
 
 1.  **Implementation:**
-    *   Continue implementing features based on `// TODO:` comments.
-    *   Focus on frontend components and pages.
-    *   Implement remaining API routes.
-    *   Build out Admin/Distributor dashboards.
+    - Continue implementing features based on `// TODO:` comments.
+    - Focus on frontend components and pages.
+    - Implement remaining API routes.
+    - Build out Admin/Distributor dashboards.
 2.  **Testing:** Add tests for API routes and components.
 3.  **Commit & Push:** Use conventional commit messages (e.g., `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
 4.  **Deploy:** Use `npm run deploy` or Vercel dashboard.
 
 ## Available Scripts
 
-*   `npm run dev` - Start development server
-*   `npm run build` - Build for production
-*   `npm run start` - Start production server
-*   `npm run lint` - Run ESLint
-*   `npm run typecheck` - Run TypeScript type checking
-*   `npm run deploy` - Deploy to Vercel
-*   `npm run git:push` - Push to GitHub
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run typecheck` - Run TypeScript type checking
+- `npm run deploy` - Deploy to Vercel
+- `npm run git:push` - Push to GitHub
 
 ## Deployment
 

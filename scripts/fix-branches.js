@@ -17,32 +17,34 @@ function runCommand(command) {
 // Main function to fix Git branches
 async function fixGitBranches() {
   console.log('Starting Git branch cleanup...');
-  
+
   // 1. Make sure we're on the main branch (renamed from master)
   console.log('Current branch:');
   runCommand('git branch --show-current');
-  
-  // 2. Add changes to next.config.js
-  runCommand('git add next.config.js');
-  
+
+  // 2. Add changes to next.config.cjs
+  runCommand('git add next.config.cjs');
+
   // 3. Commit changes
-  runCommand('git commit -m "Fix: Update next.config.js experimental options to fix Vercel build warnings"');
-  
+  runCommand(
+    'git commit -m "Fix: Update next.config.cjs experimental options to fix Vercel build warnings"'
+  );
+
   // 4. Force push to main
   runCommand('git push -f origin main');
-  
+
   // 5. Delete the remote fix-analytics branch
   runCommand('git push origin --delete fix-analytics');
-  
+
   // 6. Delete the remote hockey-b2c branch
   runCommand('git push origin --delete hockey-b2c');
-  
+
   // 7. Delete the remote master branch
   runCommand('git push origin --delete master');
-  
+
   // 8. Delete local fix-analytics branch
   runCommand('git branch -D fix-analytics');
-  
+
   console.log('Git branch cleanup completed!');
 }
 

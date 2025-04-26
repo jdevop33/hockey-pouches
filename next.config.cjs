@@ -1,0 +1,142 @@
+/** @type {import('next').NextConfig} */
+
+// Use CommonJS require for bundle analyzer
+const bundleAnalyzer = require('@next/bundle-analyzer');
+
+const withBundleAnalyzer =
+  process.env.ANALYZE === 'true' ? bundleAnalyzer({ enabled: true }) : config => config;
+
+// Fix for the "t.mask is not a function" error in deployment
+// This removes the problematic Sentry integration causing the issue
+const nextConfig = {
+  reactStrictMode: true,
+  // Disable ESLint during build
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  // Ignore TypeScript errors during production builds
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  // Image optimization settings
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Enable image domains
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'img.youtube.com',
+        pathname: '/vi/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+        pathname: '/vi/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'randomuser.me',
+        pathname: '/api/portraits/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'poucheswholesale.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'hockeypouches.ca',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'nicotinetins.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        pathname: '/**',
+      },
+    ],
+  },
+  // Ensure the basePath is set correctly
+  basePath: '',
+  // Ensure the output directory is set correctly
+  distDir: '.next',
+  // Add compression for production builds
+  compress: true,
+  // Optimize for production
+  poweredByHeader: false,
+  // Generate ETags for improved caching
+  generateEtags: true,
+  // Configure compiler options
+  compiler: {
+    // Remove console.log in production
+    removeConsole:
+      process.env.NODE_ENV === 'production'
+        ? {
+            exclude: ['error', 'warn', 'info'],
+          }
+        : false,
+  },
+  // Configure headers for better security and performance
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+      {
+        source: '/(.*)\\.(jpg|jpeg|png|webp|avif|svg|ico|css|js)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
+  // Enable experimental features for Next.js 15
+  experimental: {
+    // Enable server actions (as an object with properties)
+    serverActions: {
+      allowedOrigins: ['localhost:3000', 'nicotinetins.com'],
+    },
+    // Remove instrumentation hook which is no longer needed and causing issues
+    // instrumentationHook: false,
+  },
+  // Fix the module typeless warning
+  webpack: config => {
+    // Resolve ESM/CJS conflicts
+    config.resolve.extensionAlias = {
+      '.js': ['.js', '.ts', '.tsx'],
+      '.jsx': ['.jsx', '.tsx'],
+    };
+    return config;
+  },
+};
+
+// Use CommonJS exports
+module.exports = withBundleAnalyzer(nextConfig);
