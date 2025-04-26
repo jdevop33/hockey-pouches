@@ -57,9 +57,7 @@ function AboutContent() {
     <Layout>
       <div className="bg-gray-50 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 className="mb-8 text-center text-4xl font-bold text-gray-900">
-            About Hockey Pouches
-          </h1>
+          <h1 className="mb-8 text-center text-4xl font-bold text-gray-900">About PUXX</h1>
 
           {/* Our Story */}
           <div className="mb-12 rounded-lg bg-white p-8 shadow-md">
@@ -67,21 +65,22 @@ function AboutContent() {
             <div className="grid gap-8 md:grid-cols-2">
               <div className="space-y-4">
                 <p className="text-gray-600">
-                  Hockey Puxx was founded by a group of passionate hockey players who were looking
-                  for a better way to enjoy nicotine without the drawbacks of traditional tobacco
-                  products.
+                  PUXX was founded by connoisseurs and innovators seeking to redefine the premium
+                  nicotine experience through sophisticated, high-performance pouches crafted for
+                  those who demand excellence.
                 </p>
                 <p className="text-gray-600">
-                  As athletes, we understood the importance of maintaining peak physical condition
-                  while still enjoying the focus and relaxation that nicotine can provide. Our
-                  search for a solution that wouldn't compromise our lung capacity, endurance, or
-                  overall health led us to discover nicotine pouches.
+                  As enthusiasts of refined experiences, we understood the importance of maintaining
+                  peak performance while enjoying the focus and clarity that premium nicotine can
+                  provide. Our search for a solution that wouldn't compromise our standards led us
+                  to create something extraordinary.
                 </p>
                 <p className="text-gray-600">
-                  We started importing premium European nicotine pouches for our own team, and soon
-                  other players were asking where they could get them. That's when Hockey Puxx was
-                  born - a brand dedicated to providing Canadian hockey players with the highest
-                  quality nicotine pouches designed specifically for their lifestyle.
+                  We began by sourcing the finest ingredients from across Europe, developing
+                  proprietary blends that deliver unparalleled satisfaction. What started as a
+                  pursuit of personal perfection quickly became PUXX – a luxury brand dedicated to
+                  providing connoisseurs with the highest quality nicotine pouches designed for
+                  those who accept nothing less than exceptional.
                 </p>
               </div>
               <div className="relative flex h-64 items-center justify-center">
@@ -95,9 +94,9 @@ function AboutContent() {
             <h2 className="mb-6 text-2xl font-bold">Our Values</h2>
             <div className="grid gap-8 md:grid-cols-3">
               <div>
-                <div className="bg-primary-100 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
                   <svg
-                    className="text-primary-600 h-6 w-6"
+                    className="h-6 w-6 text-primary-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -111,16 +110,17 @@ function AboutContent() {
                     />
                   </svg>
                 </div>
-                <h3 className="mb-2 text-xl font-semibold">Quality</h3>
+                <h3 className="mb-2 text-xl font-semibold">Uncompromising Quality</h3>
                 <p className="text-gray-600">
-                  We never compromise on quality. Our products are designed for athletes who demand
-                  the best, with consistent performance in every pouch.
+                  Excellence is non-negotiable. Every PUXX product represents our commitment to
+                  superior craftsmanship, with meticulous attention to detail and consistency in
+                  every pouch.
                 </p>
               </div>
               <div>
-                <div className="bg-primary-100 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
                   <svg
-                    className="text-primary-600 h-6 w-6"
+                    className="h-6 w-6 text-primary-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -134,17 +134,17 @@ function AboutContent() {
                     />
                   </svg>
                 </div>
-                <h3 className="mb-2 text-xl font-semibold">Partnership</h3>
+                <h3 className="mb-2 text-xl font-semibold">Exclusive Community</h3>
                 <p className="text-gray-600">
-                  We believe in building a community of hockey players who share our passion. We
-                  support local teams and are committed to enhancing the hockey experience both on
-                  and off the ice.
+                  We cultivate a distinguished network of discerning individuals who recognize and
+                  demand superior experiences. Our commitment extends beyond products to fostering
+                  connections among those who share our passion for excellence.
                 </p>
               </div>
               <div>
-                <div className="bg-primary-100 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
                   <svg
-                    className="text-primary-600 h-6 w-6"
+                    className="h-6 w-6 text-primary-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -158,11 +158,11 @@ function AboutContent() {
                     />
                   </svg>
                 </div>
-                <h3 className="mb-2 text-xl font-semibold">Innovation</h3>
+                <h3 className="mb-2 text-xl font-semibold">Relentless Innovation</h3>
                 <p className="text-gray-600">
-                  We stay ahead of the game, continuously improving our products to meet the unique
-                  needs of hockey players and developing new solutions that enhance performance and
-                  recovery.
+                  We push boundaries, continuously refining our formulations to create experiences
+                  that anticipate and exceed expectations. Our commitment to innovation ensures PUXX
+                  remains at the forefront of luxury nicotine experiences.
                 </p>
               </div>
             </div>
@@ -170,10 +170,10 @@ function AboutContent() {
 
           {/* Our Strengths */}
           <div className="mb-12 rounded-lg bg-white p-8 shadow-md">
-            <h2 className="mb-6 text-2xl font-bold">Our Strengths</h2>
+            <h2 className="mb-6 text-2xl font-bold">Our Distinction</h2>
             <div className="grid gap-8 md:grid-cols-3">
               <div className="text-center">
-                <div className="bg-primary-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100">
                   <Image
                     src="/images/products/mint/mint-12mg.png"
                     alt="Superior Quality"
@@ -182,14 +182,14 @@ function AboutContent() {
                     className="object-contain"
                   />
                 </div>
-                <h3 className="mb-2 text-xl font-semibold">Superior Quality</h3>
+                <h3 className="mb-2 text-xl font-semibold">Exceptional Craftsmanship</h3>
                 <p className="text-gray-600">
-                  Globally-sourced excellence in every pouch, with pharmaceutical-grade nicotine for
-                  consistent satisfaction.
+                  Globally-sourced excellence in every pouch, with pharmaceutical-grade nicotine and
+                  premium ingredients for an unparalleled experience.
                 </p>
               </div>
               <div className="text-center">
-                <div className="bg-primary-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100">
                   <Image
                     src="/images/products/berry/berry-12mg.png"
                     alt="Perfect Balance"
@@ -198,14 +198,14 @@ function AboutContent() {
                     className="object-contain"
                   />
                 </div>
-                <h3 className="mb-2 text-xl font-semibold">Perfect Balance</h3>
+                <h3 className="mb-2 text-xl font-semibold">Sophisticated Balance</h3>
                 <p className="text-gray-600">
-                  Ideal harmony of flavor, strength, and comfort designed specifically for athletes
-                  who demand the best.
+                  A masterful harmony of nuanced flavor profiles, optimal strength, and refined
+                  comfort designed for those who appreciate the extraordinary.
                 </p>
               </div>
               <div className="text-center">
-                <div className="bg-primary-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100">
                   <Image
                     src="/images/products/citrus/citrus-12mg.png"
                     alt="Revolutionary Design"
@@ -214,58 +214,58 @@ function AboutContent() {
                     className="object-contain"
                   />
                 </div>
-                <h3 className="mb-2 text-xl font-semibold">Revolutionary Design</h3>
+                <h3 className="mb-2 text-xl font-semibold">Innovative Design</h3>
                 <p className="text-gray-600">
-                  Optimal placement, minimal movement, maximum comfort - perfect for use during
-                  intense physical activity.
+                  Engineered for discretion and comfort with refined contours that ensure a seamless
+                  experience in any setting or activity.
                 </p>
               </div>
             </div>
           </div>
 
           {/* Premium Experience */}
-          <div className="from-primary-600 to-primary-800 mb-12 rounded-lg bg-gradient-to-r p-8 text-white shadow-md">
+          <div className="mb-12 rounded-lg bg-gradient-to-r from-primary-600 to-primary-800 p-8 text-white shadow-md">
             <div className="mb-8 text-center">
-              <h2 className="mb-2 text-2xl font-bold">Premium Nicotine Experience</h2>
+              <h2 className="mb-2 text-2xl font-bold">Elevated Nicotine Experience</h2>
               <p className="text-lg">
-                Precision Crafted for Those Who Demand Excellence On and Off the Ice
+                Meticulously Crafted for Those Who Demand Nothing Less Than Excellence
               </p>
             </div>
             <p className="mx-auto mb-8 max-w-3xl text-center">
-              In a world of compromises, Hockey Puxx stands apart. We've meticulously crafted these
-              premium nicotine pouches from the highest-grade sources available, delivering an
-              unparalleled experience without smoke or odor that won't affect your performance on
-              the ice.
+              In a world of compromise, PUXX stands apart. We've meticulously crafted these premium
+              nicotine pouches from the highest-grade sources available, delivering an unparalleled
+              experience of sophistication without smoke or odor that integrates seamlessly into
+              your lifestyle.
             </p>
             <div className="mt-10 grid gap-8 md:grid-cols-3">
               <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm transition-all hover:bg-white/20">
-                <div className="bg-primary-500 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-500">
                   <span className="text-xl font-bold text-white">01</span>
                 </div>
-                <h3 className="mb-3 text-center text-xl font-semibold">Smoke-Free</h3>
+                <h3 className="mb-3 text-center text-xl font-semibold">Discrete Luxury</h3>
                 <p className="text-center">
-                  A cleaner alternative delivering nicotine without the smoke, protecting your lung
-                  capacity for peak performance.
+                  A refined alternative delivering nicotine without smoke or odor, preserving your
+                  composure and presence in any setting.
                 </p>
               </div>
               <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm transition-all hover:bg-white/20">
-                <div className="bg-primary-500 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-500">
                   <span className="text-xl font-bold text-white">02</span>
                 </div>
-                <h3 className="mb-3 text-center text-xl font-semibold">Discreet Usage</h3>
+                <h3 className="mb-3 text-center text-xl font-semibold">Superior Satisfaction</h3>
                 <p className="text-center">
-                  Perfect for use during games, practices, or in the locker room - our odorless
-                  pouches leave no trace behind.
+                  Expertly balanced formulations provide consistent release and lasting satisfaction
+                  with refined flavor profiles that exceed expectations.
                 </p>
               </div>
               <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm transition-all hover:bg-white/20">
-                <div className="bg-primary-500 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-500">
                   <span className="text-xl font-bold text-white">03</span>
                 </div>
-                <h3 className="mb-3 text-center text-xl font-semibold">Athlete Focused</h3>
+                <h3 className="mb-3 text-center text-xl font-semibold">Effortless Integration</h3>
                 <p className="text-center">
-                  Designed by hockey players for hockey players - ready when you are, wherever the
-                  game takes you.
+                  Seamlessly enhances your lifestyle with discreet, convenient pouches that fit
+                  naturally into moments of focus, creativity, and social engagement.
                 </p>
               </div>
             </div>
@@ -276,7 +276,7 @@ function AboutContent() {
             <h2 className="mb-6 text-2xl font-bold">Our Team</h2>
             <div className="grid gap-8 md:grid-cols-3">
               <div className="text-center">
-                <div className="bg-primary-100 relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full">
+                <div className="relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full bg-primary-100">
                   <Image
                     src="https://randomuser.me/api/portraits/men/32.jpg"
                     alt="John Smith"
@@ -288,7 +288,7 @@ function AboutContent() {
                 <p className="text-gray-600">Founder & Former NHL Player</p>
               </div>
               <div className="text-center">
-                <div className="bg-primary-100 relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full">
+                <div className="relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full bg-primary-100">
                   <Image
                     src="https://randomuser.me/api/portraits/women/44.jpg"
                     alt="Sarah Johnson"
@@ -300,7 +300,7 @@ function AboutContent() {
                 <p className="text-gray-600">Product Development & Nutritionist</p>
               </div>
               <div className="text-center">
-                <div className="bg-primary-100 relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full">
+                <div className="relative mx-auto mb-4 h-48 w-48 overflow-hidden rounded-full bg-primary-100">
                   <Image
                     src="https://randomuser.me/api/portraits/men/67.jpg"
                     alt="Michael Brown"
@@ -396,7 +396,7 @@ function AboutContent() {
           </div>
 
           {/* CTA */}
-          <div className="bg-primary-600 rounded-lg p-8 text-white">
+          <div className="rounded-lg bg-primary-600 p-8 text-white">
             <h2 className="mb-4 text-2xl font-bold">Ready to Join the Team?</h2>
             <p className="mb-6">
               Join thousands of hockey players across Canada who trust Hockey Puxx for a clean,
@@ -405,13 +405,13 @@ function AboutContent() {
             <div className="flex flex-col gap-4 sm:flex-row">
               <Link
                 href="/contact"
-                className="text-primary-600 rounded-md bg-white px-6 py-3 text-center font-medium hover:bg-gray-100"
+                className="rounded-md bg-white px-6 py-3 text-center font-medium text-primary-600 hover:bg-gray-100"
               >
                 Contact Us
               </Link>
               <Link
                 href="/products"
-                className="hover:bg-primary-700 rounded-md border-2 border-white bg-transparent px-6 py-3 text-center font-medium text-white"
+                className="rounded-md border-2 border-white bg-transparent px-6 py-3 text-center font-medium text-white hover:bg-primary-700"
               >
                 Shop Now
               </Link>
@@ -438,7 +438,7 @@ function AboutContent() {
                 <div className="mt-6">
                   <Link
                     href="/distributor/apply"
-                    className="bg-primary-600 hover:bg-primary-700 inline-flex items-center rounded-md px-6 py-3 text-base font-medium text-white shadow-sm"
+                    className="inline-flex items-center rounded-md bg-primary-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-primary-700"
                   >
                     Apply to Become a Distributor
                     <svg
@@ -462,7 +462,7 @@ function AboutContent() {
                 <ul className="space-y-3">
                   <li className="flex items-start">
                     <svg
-                      className="text-primary-600 mr-2 h-5 w-5 flex-shrink-0"
+                      className="mr-2 h-5 w-5 flex-shrink-0 text-primary-600"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -476,7 +476,7 @@ function AboutContent() {
                   </li>
                   <li className="flex items-start">
                     <svg
-                      className="text-primary-600 mr-2 h-5 w-5 flex-shrink-0"
+                      className="mr-2 h-5 w-5 flex-shrink-0 text-primary-600"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -490,7 +490,7 @@ function AboutContent() {
                   </li>
                   <li className="flex items-start">
                     <svg
-                      className="text-primary-600 mr-2 h-5 w-5 flex-shrink-0"
+                      className="mr-2 h-5 w-5 flex-shrink-0 text-primary-600"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -506,7 +506,7 @@ function AboutContent() {
                   </li>
                   <li className="flex items-start">
                     <svg
-                      className="text-primary-600 mr-2 h-5 w-5 flex-shrink-0"
+                      className="mr-2 h-5 w-5 flex-shrink-0 text-primary-600"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -520,7 +520,7 @@ function AboutContent() {
                   </li>
                   <li className="flex items-start">
                     <svg
-                      className="text-primary-600 mr-2 h-5 w-5 flex-shrink-0"
+                      className="mr-2 h-5 w-5 flex-shrink-0 text-primary-600"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -534,7 +534,7 @@ function AboutContent() {
                   </li>
                   <li className="flex items-start">
                     <svg
-                      className="text-primary-600 mr-2 h-5 w-5 flex-shrink-0"
+                      className="mr-2 h-5 w-5 flex-shrink-0 text-primary-600"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -581,7 +581,7 @@ function AboutContent() {
                 <div className="mt-6">
                   <Link
                     href="/register"
-                    className="bg-primary-600 hover:bg-primary-700 inline-flex items-center rounded-md px-6 py-3 text-base font-medium text-white shadow-sm"
+                    className="inline-flex items-center rounded-md bg-primary-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-primary-700"
                   >
                     Join Our Referral Program
                   </Link>
@@ -591,12 +591,12 @@ function AboutContent() {
           </div>
 
           {/* Our Mission */}
-          <div className="from-primary-700 to-primary-900 mb-12 rounded-lg bg-gradient-to-br p-8 text-white shadow-md">
+          <div className="mb-12 rounded-lg bg-gradient-to-br from-primary-700 to-primary-900 p-8 text-white shadow-md">
             <div className="text-center">
               <h2 className="mb-4 text-2xl font-bold">Our Mission</h2>
               <p className="mx-auto mb-8 max-w-3xl text-lg">
-                We're on a mission to empower hockey enthusiasts with premium nicotine products
-                while creating opportunities for entrepreneurship and community building.
+                We're on a mission to empower discerning adults with premium nicotine products while
+                creating opportunities for entrepreneurship and community building.
               </p>
             </div>
             <div className="grid gap-8 md:grid-cols-3">
@@ -604,7 +604,7 @@ function AboutContent() {
                 <h3 className="mb-3 text-xl font-semibold">Quality Products</h3>
                 <p>
                   We're committed to providing the highest quality tobacco-free nicotine pouches
-                  designed specifically for the hockey community.
+                  crafted with pharmaceutical-grade ingredients for the most discerning consumers.
                 </p>
               </div>
               <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm">
@@ -617,9 +617,73 @@ function AboutContent() {
               <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm">
                 <h3 className="mb-3 text-xl font-semibold">Building Community</h3>
                 <p>
-                  We're fostering a community of hockey players, fans, and entrepreneurs who share
-                  our passion for the game and our products.
+                  We're fostering a community of sophisticated individuals who appreciate premium
+                  quality and share our passion for excellence in nicotine products.
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* FAQ */}
+          <div className="mb-12 rounded-lg bg-white p-8 shadow-md">
+            <h2 className="mb-6 text-2xl font-bold">Frequently Asked Questions</h2>
+            <div className="divide-y divide-gray-200">
+              <div className="py-6">
+                <h3 className="mb-3 text-xl font-medium">
+                  What makes PUXX different from other nicotine pouches?
+                </h3>
+                <p className="text-gray-600">
+                  PUXX stands apart through our unwavering commitment to premium quality,
+                  sophisticated flavor profiles, and optimal nicotine delivery. Our pouches are
+                  crafted with pharmaceutical-grade ingredients, featuring proprietary blends
+                  developed specifically for discerning connoisseurs who demand excellence in every
+                  aspect of their experience.
+                </p>
+              </div>
+              <div className="py-6">
+                <h3 className="mb-3 text-xl font-medium">
+                  Are PUXX products available internationally?
+                </h3>
+                <p className="text-gray-600">
+                  Currently, PUXX is exclusively available to Canadian customers, with plans for
+                  selective international expansion. We're committed to maintaining the highest
+                  standards of quality and service as we grow, ensuring that every PUXX customer
+                  receives an exceptional experience regardless of location.
+                </p>
+              </div>
+              <div className="py-6">
+                <h3 className="mb-3 text-xl font-medium">How should I store my PUXX pouches?</h3>
+                <p className="text-gray-600">
+                  For optimal freshness and flavor preservation, store your PUXX pouches in a cool,
+                  dry place away from direct sunlight. Our specialized packaging is designed to
+                  maintain peak quality, but proper storage will ensure each pouch delivers the
+                  exceptional experience you expect from PUXX.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Join Us */}
+          <div className="rounded-lg bg-gradient-to-r from-primary-600 to-primary-800 p-8 text-white shadow-md">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="mb-4 text-2xl font-bold">Experience the PUXX Difference</h2>
+              <p className="mb-8 text-lg">
+                Join the growing community of discerning individuals who have elevated their
+                nicotine experience.
+              </p>
+              <div className="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-x-4 sm:space-y-0">
+                <Link
+                  href="/products"
+                  className="inline-flex items-center justify-center rounded-md bg-white px-5 py-3 text-base font-medium text-primary-600 hover:bg-gray-100"
+                >
+                  Explore Our Collection
+                </Link>
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center justify-center rounded-md border border-white bg-transparent px-5 py-3 text-base font-medium text-white hover:bg-white/10"
+                >
+                  Contact Us
+                </Link>
               </div>
             </div>
           </div>

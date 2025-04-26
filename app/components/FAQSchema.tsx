@@ -1,22 +1,18 @@
 'use client';
 
 import React from 'react';
+import Script from 'next/script';
 
-interface FAQItem {
-  question: string;
-  answer: string;
+interface FAQProps {
+  faqs: Array<{
+    question: string;
+    answer: string;
+  }>;
 }
 
-interface FAQSchemaProps {
-  faqs: FAQItem[];
-  mainEntity?: string;
-}
-
-const FAQSchema: React.FC<FAQSchemaProps> = ({ 
-  faqs, 
-  mainEntity = 'Nicotine Pouches FAQ' 
-}) => {
-  const schemaData = {
+export default function FAQSchema({ faqs }: FAQProps) {
+  // Create structured data for FAQPage using JSON-LD format
+  const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
     mainEntity: faqs.map(faq => ({
@@ -24,17 +20,18 @@ const FAQSchema: React.FC<FAQSchemaProps> = ({
       name: faq.question,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: faq.answer
-      }
-    }))
+        text: faq.answer,
+      },
+    })),
   };
 
   return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
-    />
+    <>
+      <Script
+        id="faq-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+    </>
   );
-};
-
-export default FAQSchema;
+}
