@@ -17,8 +17,11 @@ const OpenGraphImage = () => {
     canvas.width = 1200;
     canvas.height = 630;
 
-    // Draw background
-    ctx.fillStyle = '#0F172A'; // Dark blue background (matches primary color)
+    // Draw background - dark mode gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#12121a'); // dark-500
+    gradient.addColorStop(1, '#08080a'); // dark-700
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Load and draw logo
@@ -35,12 +38,12 @@ const OpenGraphImage = () => {
 
       // Add text below logo
       ctx.font = 'bold 48px Inter, sans-serif';
-      ctx.fillStyle = '#FFFFFF';
+      ctx.fillStyle = '#d4af37'; // gold-500
       ctx.textAlign = 'center';
       ctx.fillText('Premium Nicotine Pouches', canvas.width / 2, logoY + logoHeight + 80);
 
       ctx.font = '32px Inter, sans-serif';
-      ctx.fillStyle = '#94A3B8';
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillText('For Hockey Players', canvas.width / 2, logoY + logoHeight + 140);
 
       // Export as PNG

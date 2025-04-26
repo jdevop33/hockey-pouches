@@ -84,7 +84,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <link rel="canonical" href="https://nicotinetins.com" />
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
@@ -99,12 +99,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:creator" content="@nicotinetins" />
         <meta name="twitter:site" content="@nicotinetins" />
-        <meta name="msapplication-TileColor" content="#0F172A" />
+        <meta name="msapplication-TileColor" content="#12121a" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Nicotine Tins by PUXX" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="application-name" content="Nicotine Tins by PUXX" />
+        <meta name="theme-color" content="#12121a" />
         <Script
           strategy="afterInteractive"
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
@@ -209,7 +210,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
+      <body
+        className={`${inter.variable} bg-dark-500 font-sans text-white antialiased`}
+        suppressHydrationWarning
+      >
         <Providers>
           {/* Web Vitals Tracking */}
           <WebVitals />

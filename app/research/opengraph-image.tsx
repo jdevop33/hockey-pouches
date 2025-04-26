@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element, react/no-unknown-property */
+/* eslint-disable @next/next/no-img-element, react/no-unknown-property, @next/next/no-css-tags */
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
@@ -17,7 +17,7 @@ export default async function Image() {
       <div
         style={{
           fontSize: 48,
-          background: 'linear-gradient(to bottom, #0ea5e9, #0c4a6e)',
+          background: 'linear-gradient(to bottom, #12121a, #08080a)',
           width: '100%',
           height: '100%',
           display: 'flex',
@@ -36,7 +36,7 @@ export default async function Image() {
             height={120}
             style={{ marginRight: 24 }}
           />
-          <div style={{ fontWeight: 'bold' }}>Hockey Pouches</div>
+          <div style={{ fontWeight: 'bold', color: '#d4af37' }}>Hockey Pouches</div>
         </div>
         <div
           style={{
@@ -45,6 +45,7 @@ export default async function Image() {
             marginBottom: 24,
             textAlign: 'center',
             textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+            color: '#d4af37',
           }}
         >
           Research & Benefits

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useTheme } from '../../../app/hooks/use-theme';
-import { Moon, Sun } from 'lucide-react';
+import { Moon } from 'lucide-react';
 
 interface ThemeToggleProps {
   className?: string;
@@ -10,31 +10,36 @@ interface ThemeToggleProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
+/**
+ * ThemeToggle component is now just a visual indicator of dark mode
+ * It doesn't actually toggle the theme anymore as we're enforcing dark mode
+ */
 export function ThemeToggle({
   className = '',
   variant = 'outline',
   size = 'sm',
 }: ThemeToggleProps) {
-  const { theme, toggleTheme, mounted } = useTheme();
+  const { mounted } = useTheme();
 
   // Prevent hydration mismatch
   if (!mounted) {
     return <div className={`h-9 w-9 ${className}`} />;
   }
 
+  // Just show the moon icon to indicate dark mode - no functionality
   return (
-    <button
-      onClick={toggleTheme}
-      className={`rounded-full p-2 ${
+    <div
+      className={`cursor-default rounded-full p-2 opacity-70 ${
         variant === 'outline'
-          ? 'border border-gray-200 dark:border-gray-800'
+          ? 'border border-gray-800'
           : variant === 'ghost'
-            ? 'hover:bg-gray-100 dark:hover:bg-gray-800'
-            : 'bg-gray-100 dark:bg-gray-800'
+            ? 'bg-gray-800/50'
+            : 'bg-gray-800'
       } ${size === 'sm' ? 'h-8 w-8' : size === 'lg' ? 'h-12 w-12' : 'h-10 w-10'} ${className}`}
-      aria-label="Toggle theme"
+      aria-label="Dark mode enabled"
+      title="Dark mode enabled"
     >
-      {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="text-gold-500 h-5 w-5" />}
-    </button>
+      <Moon className="h-5 w-5 text-gold-500" />
+    </div>
   );
 }

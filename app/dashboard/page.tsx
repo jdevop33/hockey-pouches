@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Layout from '../components/layout/NewLayout';
@@ -81,18 +81,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!authLoading && !authUser) {
-      router.push('/login');
-      return;
-    }
-
-    if (authUser && token) {
-      loadData();
-    }
-  }, [authUser, authLoading, token, router]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       // Fetch user profile data
@@ -116,7 +105,18 @@ export default function DashboardPage() {
       setError('Unable to load profile data. Please try again later.');
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (!authLoading && !authUser) {
+      router.push('/login');
+      return;
+    }
+
+    if (authUser && token) {
+      loadData();
+    }
+  }, [authUser, authLoading, token, router, loadData]);
 
   if (authLoading || loading) {
     return (

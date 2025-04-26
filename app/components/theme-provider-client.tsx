@@ -5,22 +5,21 @@ import { ThemeProvider as NextThemesProvider } from 'next-themes';
 
 export interface ThemeProviderProps {
   children: React.ReactNode;
-  defaultTheme?: string;
-  storageKey?: string;
   [key: string]: React.ReactNode | string | boolean | undefined;
 }
 
-export function ThemeProviderClient({
-  children,
-  defaultTheme = 'dark',
-  storageKey = 'hockey-puxx-theme',
-  ...props
-}: ThemeProviderProps) {
+export function ThemeProviderClient({ children, ...props }: ThemeProviderProps) {
   // Only render on client side
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
+
+    // Force dark mode
+    document.documentElement.classList.add('dark');
+
+    // Prevent theme changes
+    localStorage.setItem('hockey-puxx-theme', 'dark');
   }, []);
 
   if (!mounted) {
@@ -30,10 +29,10 @@ export function ThemeProviderClient({
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme={defaultTheme}
+      defaultTheme="dark"
+      forcedTheme="dark"
       enableSystem={false}
       disableTransitionOnChange
-      storageKey={storageKey}
       {...props}
     >
       {children}
