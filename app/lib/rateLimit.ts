@@ -104,7 +104,7 @@ function getClientIdentifier(req: NextRequest, config: RateLimitConfig): string 
   }
 
   // Get client IP address
-  const ip = (req as any).ip ?? req.headers.get('x-forwarded-for') ?? 'unknown';
+  const ip = (req as { ip?: string }).ip ?? req.headers.get('x-forwarded-for') ?? 'unknown';
 
   // Get route path
   const path = new URL(req.url).pathname;
