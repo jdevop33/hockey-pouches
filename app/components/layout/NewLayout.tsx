@@ -3,11 +3,12 @@
 import React, { ReactNode, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation'; // Added useRouter
-import CartIcon from '../cart/CartIcon';
 import { ThemeToggle } from '../ui/theme-toggle';
-import { useAuth } from '../../context/AuthContext'; // Import useAuth
+import { useAuth } from '../../context/AuthContext';
 import AccessibilityMenu from './AccessibilityMenu';
 import Image from 'next/image';
+import Button from '@/components/ui/Button';
+import { ShoppingCart, Menu, User, LogOut, LogIn } from 'lucide-react';
 
 interface NavItem {
   href: string;
@@ -77,7 +78,7 @@ const Navigation: React.FC = () => {
   return (
     <>
       {/* Desktop nav */}
-      <nav className="border-brand-gold/20 bg-brand-black/80 sticky top-0 z-50 hidden border-b shadow-lg backdrop-blur-xl transition-all duration-200 md:block">
+      <nav className="border-border bg-background/80 sticky top-0 z-50 hidden border-b shadow-lg backdrop-blur-xl transition-all duration-200 md:block">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between">
             <div className="flex items-center gap-10">
@@ -91,111 +92,104 @@ const Navigation: React.FC = () => {
               />
               <div className="flex items-center gap-2">
                 {visibleNavItems.map(item => (
-                  <Link
+                  <Button
                     key={item.href}
-                    href={item.href}
-                    className={`focus-visible:ring-brand-gold rounded-full bg-transparent px-5 py-2 text-lg font-extrabold uppercase tracking-tight transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                    variant={
                       pathname === item.href ||
                       (item.href.includes('dashboard') && pathname.startsWith(item.href))
-                        ? 'bg-brand-gold/20 text-brand-gold shadow-md'
-                        : 'text-brand-cream/90 hover:bg-brand-blue/20 hover:text-brand-blue'
-                    }`}
+                        ? 'secondary'
+                        : 'ghost'
+                    }
+                    className="rounded-full px-5 py-2 text-lg font-extrabold uppercase tracking-tight focus-visible:ring-2 focus-visible:ring-offset-2"
+                    onClick={() => router.push(item.href)}
                   >
                     {item.label}
-                  </Link>
+                  </Button>
                 ))}
               </div>
             </div>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
               <ThemeToggle />
-              <CartIcon />
+              <Button
+                variant="ghost"
+                className="rounded-full p-2"
+                aria-label="Cart"
+                onClick={() => router.push('/cart')}
+              >
+                <ShoppingCart className="h-6 w-6" />
+              </Button>
               <AccessibilityMenu className="hidden md:block" />
               {authIsLoading ? (
-                <span className="text-brand-gold/80 text-base">Loading...</span>
+                <span className="text-muted-foreground text-base">Loading...</span>
               ) : user ? (
-                <>
-                  <span className="text-brand-gold/90 text-base font-bold">
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" aria-label="User menu" disabled>
+                    <User className="h-6 w-6" />
+                  </Button>
+                  <span className="text-foreground text-base font-bold">
                     Hi, {user.name.split(' ')[0]}
                   </span>
-                  <button
+                  <Button
                     onClick={handleLogout}
-                    className="text-brand-gold/90 hover:bg-brand-gold/20 hover:text-brand-gold focus-visible:ring-brand-gold rounded-full px-5 py-2 text-lg font-bold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                    variant="ghost"
+                    className="rounded-full px-4 py-2 text-lg font-bold"
                   >
-                    Logout
-                  </button>
-                </>
+                    <LogOut className="mr-2 h-4 w-4" /> Logout
+                  </Button>
+                </div>
               ) : (
-                <Link
-                  href="/login"
-                  className="bg-brand-gold text-brand-black hover:bg-brand-blue hover:text-brand-cream focus-visible:ring-brand-gold flex items-center rounded-full px-5 py-2 text-lg font-extrabold uppercase shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                <Button
+                  variant="primary"
+                  className="flex items-center gap-2 rounded-full px-5 py-2 text-lg font-extrabold uppercase shadow-lg"
+                  onClick={() => router.push('/login')}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="mr-2 h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Sign In
-                </Link>
+                  <LogIn className="h-5 w-5" /> Sign In
+                </Button>
               )}
             </div>
           </div>
         </div>
       </nav>
       {/* Mobile sticky bottom nav */}
-      <nav className="shadow-t border-brand-gold/20 bg-brand-black/90 fixed bottom-0 left-0 right-0 z-50 flex border-t transition-all duration-200 md:hidden">
+      <nav className="border-border bg-background/90 shadow-t fixed bottom-0 left-0 right-0 z-50 flex border-t transition-all duration-200 md:hidden">
         <div className="flex h-16 flex-1 items-center justify-around">
           {visibleNavItems.slice(0, 4).map(item => (
-            <Link
+            <Button
               key={item.href}
-              href={item.href}
-              className={`focus-visible:ring-brand-gold flex flex-col items-center justify-center bg-transparent px-2 py-1 text-xs font-bold uppercase tracking-wide transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-                pathname === item.href
-                  ? 'text-brand-gold'
-                  : 'text-brand-cream/90 hover:text-brand-blue'
-              }`}
+              variant={pathname === item.href ? 'secondary' : 'ghost'}
+              className="flex flex-col items-center justify-center px-2 py-1 text-xs font-bold uppercase tracking-wide"
+              onClick={() => router.push(item.href)}
             >
               {item.label}
-            </Link>
+            </Button>
           ))}
-          {/* Hamburger menu for extras */}
-          <button
+          <Button
             type="button"
+            variant="ghost"
             aria-label="Open menu"
-            className="text-brand-cream/90 hover:text-brand-gold focus-visible:ring-brand-gold flex flex-col items-center justify-center px-2 py-1 text-xs font-bold uppercase tracking-wide focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             onClick={() => setMobileMenuOpen(true)}
+            className="flex flex-col items-center justify-center px-2 py-1 text-xs font-bold uppercase tracking-wide"
           >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            More
-          </button>
+            <Menu className="h-6 w-6" />
+            <span className="sr-only">More</span>
+          </Button>
         </div>
         {/* Slide-in mobile menu */}
         <div
-          className={`bg-brand-black/80 fixed inset-0 z-50 transition-opacity duration-200 ${mobileMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
+          className={`bg-background/80 fixed inset-0 z-50 transition-opacity duration-200 ${mobileMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
           onClick={() => setMobileMenuOpen(false)}
         />
         <aside
-          className={`bg-brand-black/95 fixed bottom-0 left-0 right-0 z-50 min-h-[40vh] rounded-t-2xl p-6 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${mobileMenuOpen ? 'translate-y-0' : 'translate-y-full'}`}
+          className={`bg-background/95 fixed bottom-0 left-0 right-0 z-50 min-h-[40vh] rounded-t-2xl p-6 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${mobileMenuOpen ? 'translate-y-0' : 'translate-y-full'}`}
+          aria-modal="true"
+          role="dialog"
         >
           <div className="flex flex-col gap-6">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               aria-label="Close menu"
-              className="text-brand-gold/80 hover:text-brand-blue self-end focus:outline-none"
+              className="self-end rounded-full p-2"
               onClick={() => setMobileMenuOpen(false)}
             >
               <svg
@@ -207,60 +201,55 @@ const Navigation: React.FC = () => {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </Button>
             {visibleNavItems.map(item => (
-              <Link
+              <Button
                 key={item.href}
-                href={item.href}
-                className={`focus-visible:ring-brand-gold block rounded-full bg-transparent px-4 py-3 text-lg font-extrabold uppercase tracking-tight transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-                  pathname === item.href
-                    ? 'bg-brand-gold/20 text-brand-gold shadow-md'
-                    : 'text-brand-cream/90 hover:bg-brand-blue/20 hover:text-brand-blue'
-                }`}
+                variant={pathname === item.href ? 'secondary' : 'ghost'}
+                className="block rounded-full px-4 py-3 text-lg font-extrabold uppercase tracking-tight"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {item.label}
-              </Link>
+                <Link href={item.href}>{item.label}</Link>
+              </Button>
             ))}
             <div className="mt-6 flex items-center gap-6">
               <ThemeToggle />
-              <CartIcon />
+              <Button
+                variant="ghost"
+                className="rounded-full p-2"
+                aria-label="Cart"
+                onClick={() => router.push('/cart')}
+              >
+                <ShoppingCart className="h-6 w-6" />
+              </Button>
               <AccessibilityMenu />
             </div>
             {authIsLoading ? (
-              <span className="text-brand-gold/80 text-base">Loading...</span>
+              <span className="text-muted-foreground text-base">Loading...</span>
             ) : user ? (
-              <>
-                <span className="text-brand-gold/90 text-lg font-bold">
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" aria-label="User menu" disabled>
+                  <User className="h-6 w-6" />
+                </Button>
+                <span className="text-foreground text-base font-bold">
                   Hi, {user.name.split(' ')[0]}
                 </span>
-                <button
+                <Button
                   onClick={handleLogout}
-                  className="text-brand-gold/90 hover:bg-brand-gold/20 hover:text-brand-gold focus-visible:ring-brand-gold rounded-full px-4 py-3 text-lg font-bold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                  variant="ghost"
+                  className="rounded-full px-4 py-2 text-lg font-bold"
                 >
-                  Logout
-                </button>
-              </>
+                  <LogOut className="mr-2 h-4 w-4" /> Logout
+                </Button>
+              </div>
             ) : (
-              <Link
-                href="/login"
-                className="bg-brand-gold text-brand-black hover:bg-brand-blue hover:text-brand-cream focus-visible:ring-brand-gold flex items-center rounded-full px-4 py-3 text-lg font-extrabold uppercase shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                onClick={() => setMobileMenuOpen(false)}
+              <Button
+                variant="primary"
+                className="flex items-center gap-2 rounded-full px-5 py-2 text-lg font-extrabold uppercase shadow-lg"
+                onClick={() => router.push('/login')}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mr-2 h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Sign In
-              </Link>
+                <LogIn className="h-5 w-5" /> Sign In
+              </Button>
             )}
           </div>
         </aside>
