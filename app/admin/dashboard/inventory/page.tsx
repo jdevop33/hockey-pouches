@@ -25,6 +25,7 @@ interface TransferData {
   targetLocation: string;
   quantity: number;
   reason: string;
+  newLocationName?: string; // Add for new location support
 }
 
 interface PaginationState {
@@ -296,63 +297,63 @@ export default function AdminInventoryPage() {
   };
 
   // --- Render Logic ---
-  if (authLoading)
+  if (authLoading || isLoadingData) {
     return (
       <Layout>
-        <div className="p-8 text-center">Authenticating...</div>
+        <div className="p-8 text-center text-gray-100">Loading inventory...</div>
       </Layout>
-    ); // Separate auth loading
-  if (!user || user.role !== 'Admin')
+    );
+  }
+
+  if (!user || user.role !== 'Admin') {
     return (
       <Layout>
-        <div className="p-8 text-center">Access Denied.</div>
+        <div className="p-8 text-center text-gray-100">
+          Access Denied. Admin privileges required.
+        </div>
       </Layout>
-    ); // Auth check complete, user not admin
+    );
+  }
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-100 p-8">
-        {/* Header & Transfer Button */}
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-800">Manage Inventory</h1>
-          <button
-            onClick={() => handleInitiateTransfer()}
-            className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-600"
-          >
-            Initiate Transfer
-          </button>
-        </div>
-
-        {/* Filters */}
-        <div className="mb-6 rounded-md bg-white p-4 shadow">
-          <div className="flex items-center space-x-4">
-            <label htmlFor="locationFilter" className="font-medium text-gray-700">
-              Filter by Location:
-            </label>
-            <select
-              id="locationFilter"
-              value={filterLocation}
-              onChange={e => setFilterLocation(e.target.value)}
-              className="rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      <div className="min-h-screen bg-gray-900 p-8 text-gray-100">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-3xl font-bold text-gray-100">Inventory Management</h1>
+          <div className="flex flex-wrap gap-2">
+            <div>
+              <label htmlFor="locationFilter" className="mr-2 text-sm font-medium text-gray-300">
+                Filter Location:
+              </label>
+              <select
+                id="locationFilter"
+                value={filterLocation}
+                onChange={e => {
+                  setFilterLocation(e.target.value);
+                  setPagination(prev => ({ ...prev, page: 1 }));
+                }}
+                className="rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500 sm:text-sm"
+              >
+                <option value="">All Locations</option>
+                {availableLocations.map(loc => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={() => handleInitiateTransfer()}
+              className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
             >
-              <option value="">All Locations</option>
-              {availableLocations.map(location => (
-                <option key={location} value={location}>
-                  {location}
-                </option>
-              ))}
-            </select>
+              New Transfer
+            </button>
           </div>
         </div>
-
-        {/* Error Display */}
-        {error && (
-          <p className="mb-4 rounded bg-red-100 p-3 text-red-500">
-            Error loading inventory: {error}
-          </p>
-        )}
+        {/* Display Errors */}
+        {error && <p className="mb-4 rounded bg-red-900/50 p-3 text-red-300">Error: {error}</p>}
         {actionError && (
-          <p className="mb-4 rounded bg-red-100 p-3 text-red-500">Action Error: {actionError}</p>
+          <p className="mb-4 rounded bg-red-900/50 p-3 text-red-300">Action Error: {actionError}</p>
         )}
 
         {/* Inventory Table */}
@@ -360,99 +361,115 @@ export default function AdminInventoryPage() {
           <div className="p-8 text-center">Loading inventory data...</div>
         )}
         {!isLoadingData && !error && (
-          <div className="overflow-x-auto rounded-lg bg-white shadow-md">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div className="overflow-x-auto rounded-lg bg-gray-800 shadow-gold-sm">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead className="bg-gray-700">
                 <tr>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
+                  >
+                    ID
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
                   >
                     Product
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-                  >
-                    Variation
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
                   >
                     Location
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500"
+                    className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-300"
                   >
                     Quantity
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500"
-                  >
-                    Actions
+                  <th scope="col" className="relative px-6 py-3">
+                    <span className="sr-only">Actions</span>
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
+              <tbody className="divide-y divide-gray-700 bg-gray-800">
                 {inventory.length > 0 ? (
                   inventory.map(item => (
-                    <tr
-                      key={item.inventoryId}
-                      className={`${item.lowStockThreshold && item.quantity < item.lowStockThreshold ? 'bg-red-50' : ''}`}
-                    >
-                      <td className="flex items-center whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                        <Image
-                          src={item.imageUrl || '/images/products/placeholder.svg'}
-                          alt={item.productName}
-                          width={32}
-                          height={32}
-                          className="mr-3 h-8 w-8 rounded-md border object-contain p-0.5"
-                        />
-                        <Link
-                          href={`/admin/dashboard/products/${item.productId}`}
-                          className="hover:text-primary-600"
-                        >
-                          {item.productName}
-                        </Link>
+                    <tr key={item.inventoryId} className="hover:bg-gray-750">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-400">
+                        #{item.inventoryId}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        {item.variationName || 'N/A'}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          {item.imageUrl ? (
+                            <div className="mr-3 h-12 w-12 flex-shrink-0 overflow-hidden rounded-md border border-gray-700">
+                              <Image
+                                src={item.imageUrl}
+                                alt={item.productName}
+                                className="h-full w-full object-contain"
+                                width={48}
+                                height={48}
+                              />
+                            </div>
+                          ) : (
+                            <div className="mr-3 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md border border-gray-700 bg-gray-900">
+                              <span className="text-xs text-gray-500">No image</span>
+                            </div>
+                          )}
+                          <div>
+                            <div className="text-sm font-medium text-gray-200">
+                              <Link
+                                href={`/admin/dashboard/products/${item.productId}`}
+                                className="hover:text-gold-400"
+                              >
+                                {item.productName}
+                              </Link>
+                            </div>
+                            {item.variationName && (
+                              <div className="text-sm text-gray-400">{item.variationName}</div>
+                            )}
+                          </div>
+                        </div>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-400">
                         {item.location}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-gray-900">
-                        {item.quantity}
+                      <td className="whitespace-nowrap px-6 py-4 text-center text-sm">
+                        <span
+                          className={`font-semibold ${item.quantity <= (item.lowStockThreshold || 5) ? 'text-red-400' : 'text-green-400'}`}
+                        >
+                          {item.quantity}
+                        </span>
+                        {item.lowStockThreshold && (
+                          <span className="ml-1 text-xs text-gray-500">
+                            (Threshold: {item.lowStockThreshold})
+                          </span>
+                        )}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                        <div className="flex justify-end space-x-2">
-                          <button
-                            onClick={() => handleEditQuantity(item)}
-                            className="text-indigo-600 hover:text-indigo-900 disabled:cursor-not-allowed disabled:opacity-50"
-                            disabled={isAdjusting === item.inventoryId}
-                          >
-                            {isAdjusting === item.inventoryId ? 'Saving...' : 'Adjust Qty'}
-                          </button>
-
-                          {item.quantity > 0 && (
-                            <button
-                              onClick={() => handleInitiateTransfer(item)}
-                              className="text-blue-600 hover:text-blue-900"
-                            >
-                              Transfer
-                            </button>
-                          )}
-                        </div>
+                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
+                        <button
+                          onClick={() => handleEditQuantity(item)}
+                          disabled={isAdjusting === item.inventoryId}
+                          className="mr-3 text-gold-400 hover:text-gold-300 disabled:text-gray-500"
+                        >
+                          {isAdjusting === item.inventoryId ? 'Updating...' : 'Adjust Qty'}
+                        </button>
+                        <button
+                          onClick={() => handleInitiateTransfer(item)}
+                          disabled={isAdjusting === item.inventoryId || item.quantity <= 0}
+                          className="text-gold-400 hover:text-gold-300 disabled:text-gray-500"
+                        >
+                          Transfer
+                        </button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                      No inventory data found for selected filters.
+                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-400">
+                      No inventory items found matching criteria.
                     </td>
                   </tr>
                 )}
@@ -461,111 +478,104 @@ export default function AdminInventoryPage() {
 
             {/* Pagination Controls */}
             {pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
-                <div className="flex flex-1 justify-between sm:hidden">
-                  <button
-                    onClick={() => handlePageChange(pagination.page - 1)}
-                    disabled={pagination.page === 1}
-                    className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => handlePageChange(pagination.page + 1)}
-                    disabled={pagination.page === pagination.totalPages}
-                    className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Next
-                  </button>
-                </div>
-                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm text-gray-700">
-                      Showing{' '}
-                      <span className="font-medium">
-                        {(pagination.page - 1) * pagination.limit + 1}
-                      </span>{' '}
-                      to{' '}
-                      <span className="font-medium">
-                        {Math.min(pagination.page * pagination.limit, pagination.total)}
-                      </span>{' '}
-                      of <span className="font-medium">{pagination.total}</span> results
-                    </p>
-                  </div>
-                  <div>
-                    <nav
-                      className="relative z-0 inline-flex -space-x-px rounded-md shadow-sm"
-                      aria-label="Pagination"
+              <div className="border-t border-gray-700 px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-1 justify-between sm:hidden">
+                    <button
+                      onClick={() => handlePageChange(pagination.page - 1)}
+                      disabled={pagination.page === 1}
+                      className="relative inline-flex items-center rounded border border-gray-600 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50"
                     >
-                      <button
-                        onClick={() => handlePageChange(1)}
-                        disabled={pagination.page === 1}
-                        className="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <span className="sr-only">First</span>«
-                      </button>
-                      <button
-                        onClick={() => handlePageChange(pagination.page - 1)}
-                        disabled={pagination.page === 1}
-                        className="relative inline-flex items-center border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <span className="sr-only">Previous</span>‹
-                      </button>
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => handlePageChange(pagination.page + 1)}
+                      disabled={pagination.page === pagination.totalPages}
+                      className="relative ml-3 inline-flex items-center rounded border border-gray-600 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
 
-                      {/* Page numbers */}
-                      {[...Array(pagination.totalPages).keys()].map(idx => {
-                        const pageNum = idx + 1;
-                        // Only show a few pages around current page
-                        if (
-                          pageNum === 1 ||
-                          pageNum === pagination.totalPages ||
-                          (pageNum >= pagination.page - 1 && pageNum <= pagination.page + 1)
-                        ) {
+                  <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm text-gray-300">
+                        Showing page <span className="font-medium">{pagination.page}</span> of{' '}
+                        <span className="font-medium">{pagination.totalPages}</span> (
+                        {pagination.total} items)
+                      </p>
+                    </div>
+                    <div>
+                      <nav
+                        className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                        aria-label="Pagination"
+                      >
+                        <button
+                          onClick={() => handlePageChange(1)}
+                          disabled={pagination.page === 1}
+                          className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-700 hover:bg-gray-700 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                        >
+                          <span className="sr-only">First</span>
+                          &laquo;
+                        </button>
+                        <button
+                          onClick={() => handlePageChange(pagination.page - 1)}
+                          disabled={pagination.page === 1}
+                          className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-700 hover:bg-gray-700 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                        >
+                          <span className="sr-only">Previous</span>
+                          &lsaquo;
+                        </button>
+
+                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (pagination.totalPages <= 5) {
+                            // Show all pages if 5 or fewer total pages
+                            pageNum = i + 1;
+                          } else if (pagination.page <= 3) {
+                            // Near the start
+                            pageNum = i + 1;
+                          } else if (pagination.page >= pagination.totalPages - 2) {
+                            // Near the end
+                            pageNum = pagination.totalPages - 4 + i;
+                          } else {
+                            // In the middle
+                            pageNum = pagination.page - 2 + i;
+                          }
+
                           return (
                             <button
                               key={pageNum}
                               onClick={() => handlePageChange(pageNum)}
-                              disabled={pagination.page === pageNum}
-                              className={`relative inline-flex items-center border px-4 py-2 text-sm font-medium ${
-                                pagination.page === pageNum
-                                  ? 'z-10 border-blue-500 bg-blue-50 text-blue-600'
-                                  : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'
+                              className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                                pageNum === pagination.page
+                                  ? 'z-10 bg-gold-500 text-gray-900 focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500'
+                                  : 'text-gray-300 ring-1 ring-inset ring-gray-700 hover:bg-gray-700 focus:z-20 focus:outline-offset-0'
                               }`}
                             >
                               {pageNum}
                             </button>
                           );
-                        } else if (
-                          pageNum === pagination.page - 2 ||
-                          pageNum === pagination.page + 2
-                        ) {
-                          return (
-                            <span
-                              key={pageNum}
-                              className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700"
-                            >
-                              ...
-                            </span>
-                          );
-                        }
-                        return null;
-                      })}
+                        })}
 
-                      <button
-                        onClick={() => handlePageChange(pagination.page + 1)}
-                        disabled={pagination.page === pagination.totalPages}
-                        className="relative inline-flex items-center border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <span className="sr-only">Next</span>›
-                      </button>
-                      <button
-                        onClick={() => handlePageChange(pagination.totalPages)}
-                        disabled={pagination.page === pagination.totalPages}
-                        className="relative inline-flex items-center rounded-r-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <span className="sr-only">Last</span>»
-                      </button>
-                    </nav>
+                        <button
+                          onClick={() => handlePageChange(pagination.page + 1)}
+                          disabled={pagination.page === pagination.totalPages}
+                          className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-700 hover:bg-gray-700 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                        >
+                          <span className="sr-only">Next</span>
+                          &rsaquo;
+                        </button>
+                        <button
+                          onClick={() => handlePageChange(pagination.totalPages)}
+                          disabled={pagination.page === pagination.totalPages}
+                          className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-700 hover:bg-gray-700 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                        >
+                          <span className="sr-only">Last</span>
+                          &raquo;
+                        </button>
+                      </nav>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -575,103 +585,235 @@ export default function AdminInventoryPage() {
 
         {/* Transfer Modal */}
         {isTransferModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-              <h3 className="mb-4 text-lg font-semibold">Transfer Inventory</h3>
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-screen items-center justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div className="absolute inset-0 bg-gray-900 opacity-75"></div>
+              </div>
 
-              {actionError && (
-                <div className="mb-4 rounded-md bg-red-100 p-3 text-red-600">{actionError}</div>
-              )}
+              {/* Modal content */}
+              <div className="inline-block transform overflow-hidden rounded-lg bg-gray-800 text-left align-bottom shadow-gold-sm transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+                <form onSubmit={handleTransferSubmit}>
+                  <div className="bg-gray-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div className="sm:flex sm:items-start">
+                      <div className="mt-3 w-full text-left sm:mt-0">
+                        <h3 className="text-lg font-medium leading-6 text-gray-100">
+                          Transfer Inventory
+                        </h3>
+                        <div className="mt-4 space-y-4">
+                          {/* Source Item - shows if not already set */}
+                          {transferData.sourceInventoryId === 0 && (
+                            <div>
+                              <label
+                                htmlFor="sourceInventoryId"
+                                className="block text-sm font-medium text-gray-300"
+                              >
+                                Source Item
+                              </label>
+                              <select
+                                id="sourceInventoryId"
+                                value={transferData.sourceInventoryId}
+                                onChange={e =>
+                                  setTransferData({
+                                    ...transferData,
+                                    sourceInventoryId: parseInt(e.target.value),
+                                  })
+                                }
+                                required
+                                className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500"
+                              >
+                                <option value={0}>Select Item</option>
+                                {inventory
+                                  .filter(item => item.quantity > 0)
+                                  .map(item => (
+                                    <option key={item.inventoryId} value={item.inventoryId}>
+                                      {item.productName}
+                                      {item.variationName ? ` - ${item.variationName}` : ''} (
+                                      {item.location}: {item.quantity} units)
+                                    </option>
+                                  ))}
+                              </select>
+                            </div>
+                          )}
 
-              <form onSubmit={handleTransferSubmit}>
-                <div className="mb-4">
-                  <label
-                    htmlFor="quantity"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    Quantity to Transfer
-                  </label>
-                  <input
-                    id="quantity"
-                    type="number"
-                    min="1"
-                    value={transferData.quantity}
-                    onChange={e =>
-                      setTransferData({
-                        ...transferData,
-                        quantity: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full rounded-md border p-2"
-                    required
-                  />
-                </div>
+                          {/* Source Info - shown if pre-selected */}
+                          {transferData.sourceInventoryId > 0 && (
+                            <div className="rounded bg-gray-700 p-3 text-gray-200">
+                              <h4 className="font-medium">Source Item</h4>
+                              <p>
+                                {
+                                  inventory.find(
+                                    item => item.inventoryId === transferData.sourceInventoryId
+                                  )?.productName
+                                }
+                                {inventory.find(
+                                  item => item.inventoryId === transferData.sourceInventoryId
+                                )?.variationName
+                                  ? ` - ${
+                                      inventory.find(
+                                        item => item.inventoryId === transferData.sourceInventoryId
+                                      )?.variationName
+                                    }`
+                                  : ''}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                Current Location:{' '}
+                                {
+                                  inventory.find(
+                                    item => item.inventoryId === transferData.sourceInventoryId
+                                  )?.location
+                                }{' '}
+                                (
+                                {
+                                  inventory.find(
+                                    item => item.inventoryId === transferData.sourceInventoryId
+                                  )?.quantity
+                                }{' '}
+                                units)
+                              </p>
+                            </div>
+                          )}
 
-                <div className="mb-4">
-                  <label
-                    htmlFor="targetLocation"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    Target Location
-                  </label>
-                  <select
-                    id="targetLocation"
-                    value={transferData.targetLocation}
-                    onChange={e =>
-                      setTransferData({
-                        ...transferData,
-                        targetLocation: e.target.value,
-                      })
-                    }
-                    className="w-full rounded-md border p-2"
-                    required
-                  >
-                    <option value="">Select Target Location</option>
-                    {availableLocations.map(location => (
-                      <option key={location} value={location}>
-                        {location}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                          {/* Target Location */}
+                          <div>
+                            <label
+                              htmlFor="targetLocation"
+                              className="block text-sm font-medium text-gray-300"
+                            >
+                              Target Location
+                            </label>
+                            <select
+                              id="targetLocation"
+                              value={transferData.targetLocation}
+                              onChange={e =>
+                                setTransferData({ ...transferData, targetLocation: e.target.value })
+                              }
+                              required
+                              className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500"
+                            >
+                              <option value="">Select Target Location</option>
+                              {availableLocations.map(location => (
+                                <option
+                                  key={location}
+                                  value={location}
+                                  disabled={
+                                    transferData.sourceInventoryId > 0 &&
+                                    inventory.find(
+                                      item => item.inventoryId === transferData.sourceInventoryId
+                                    )?.location === location
+                                  }
+                                >
+                                  {location}
+                                  {transferData.sourceInventoryId > 0 &&
+                                  inventory.find(
+                                    item => item.inventoryId === transferData.sourceInventoryId
+                                  )?.location === location
+                                    ? ' (Current Location)'
+                                    : ''}
+                                </option>
+                              ))}
+                              <option value="new">+ Add New Location</option>
+                            </select>
+                          </div>
 
-                <div className="mb-4">
-                  <label htmlFor="reason" className="mb-1 block text-sm font-medium text-gray-700">
-                    Reason for Transfer
-                  </label>
-                  <textarea
-                    id="reason"
-                    value={transferData.reason}
-                    onChange={e =>
-                      setTransferData({
-                        ...transferData,
-                        reason: e.target.value,
-                      })
-                    }
-                    className="w-full rounded-md border p-2"
-                    rows={3}
-                    required
-                  />
-                </div>
+                          {/* New Location Field */}
+                          {transferData.targetLocation === 'new' && (
+                            <div>
+                              <label
+                                htmlFor="newLocation"
+                                className="block text-sm font-medium text-gray-300"
+                              >
+                                New Location Name
+                              </label>
+                              <input
+                                type="text"
+                                id="newLocation"
+                                placeholder="Enter new location name"
+                                required
+                                className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500"
+                                onChange={e =>
+                                  setTransferData({
+                                    ...transferData,
+                                    newLocationName: e.target.value,
+                                  })
+                                }
+                              />
+                            </div>
+                          )}
 
-                <div className="flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={handleCloseTransferModal}
-                    className="rounded-md border border-gray-300 px-4 py-2 text-gray-600 hover:bg-gray-100"
-                    disabled={isTransferring}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={isTransferring}
-                  >
-                    {isTransferring ? 'Processing...' : 'Transfer'}
-                  </button>
-                </div>
-              </form>
+                          {/* Quantity */}
+                          <div>
+                            <label
+                              htmlFor="quantity"
+                              className="block text-sm font-medium text-gray-300"
+                            >
+                              Quantity to Transfer
+                            </label>
+                            <input
+                              type="number"
+                              id="quantity"
+                              value={transferData.quantity}
+                              onChange={e =>
+                                setTransferData({
+                                  ...transferData,
+                                  quantity: parseInt(e.target.value),
+                                })
+                              }
+                              min="1"
+                              max={
+                                transferData.sourceInventoryId > 0
+                                  ? inventory.find(
+                                      item => item.inventoryId === transferData.sourceInventoryId
+                                    )?.quantity || 1
+                                  : 1
+                              }
+                              required
+                              className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500"
+                            />
+                          </div>
+
+                          {/* Reason */}
+                          <div>
+                            <label
+                              htmlFor="reason"
+                              className="block text-sm font-medium text-gray-300"
+                            >
+                              Reason for Transfer
+                            </label>
+                            <textarea
+                              id="reason"
+                              value={transferData.reason}
+                              onChange={e =>
+                                setTransferData({ ...transferData, reason: e.target.value })
+                              }
+                              required
+                              rows={2}
+                              className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <button
+                      type="submit"
+                      disabled={isTransferring}
+                      className="inline-flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+                    >
+                      {isTransferring ? 'Processing...' : 'Transfer'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCloseTransferModal}
+                      disabled={isTransferring}
+                      className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-600 bg-gray-800 px-4 py-2 text-base font-medium text-gray-300 shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         )}
