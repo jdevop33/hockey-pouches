@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Layout from '../components/layout/NewLayout';
-import { metadata } from './metadata';
 import ResearchStructuredData from '../components/seo/ResearchStructuredData';
 import SocialShare from '../components/social/SocialShare';
 import RelatedContent from '../components/content/RelatedContent';
@@ -280,8 +279,8 @@ const studies: Study[] = [
 
 // Video Player Component
 const VideoPlayer = ({ videoId, onClose }: { videoId: string; onClose: () => void }) => {
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -289,71 +288,66 @@ const VideoPlayer = ({ videoId, onClose }: { videoId: string; onClose: () => voi
     };
 
     const handleClickOutside = (e: MouseEvent) => {
-      if (overlayRef.current === e.target) onClose();
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        onClose();
+      }
     };
 
     document.addEventListener('keydown', handleEscape);
     document.addEventListener('mousedown', handleClickOutside);
-    document.body.style.overflow = 'hidden';
 
-    // Set a timeout to hide the loading indicator after a reasonable time
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.removeEventListener('mousedown', handleClickOutside);
-      document.body.style.overflow = 'auto';
-      clearTimeout(timer);
+      document.body.style.overflow = '';
     };
   }, [onClose]);
 
   const handleIframeLoad = () => {
-    setIsLoading(false);
+    setIsLoaded(true);
   };
 
   return (
-    <div
-      ref={overlayRef}
-      className="bg-opacity-90 fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
-    >
-      <div className="relative w-full max-w-4xl overflow-hidden rounded-lg bg-black shadow-2xl">
-        <button
-          onClick={onClose}
-          className="bg-opacity-50 hover:bg-opacity-70 absolute top-4 right-4 z-10 rounded-full bg-black p-2 text-white transition-colors"
-          aria-label="Close video"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
+      <div
+        ref={modalRef}
+        className="relative z-10 mx-auto w-full max-w-4xl rounded-xl border border-gold-500/20 bg-dark-800 p-4 shadow-xl md:p-6"
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-xl font-bold text-white">Video Player</h3>
+          <button
+            onClick={onClose}
+            className="rounded-full bg-dark-700 p-2 text-gray-400 transition-colors hover:bg-dark-600 hover:text-white"
+            aria-label="Close video player"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
 
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black">
-            <div className="border-primary-600 h-16 w-16 animate-spin rounded-full border-t-4 border-b-4"></div>
-          </div>
-        )}
-
-        <div className="aspect-video">
+        <div className="aspect-video relative w-full overflow-hidden rounded-lg bg-black">
+          {!isLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="h-16 w-16 animate-spin rounded-full border-b-2 border-t-2 border-gold-500"></div>
+            </div>
+          )}
           <iframe
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
+            src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+            title="YouTube video player"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            className="h-full w-full border-0"
+            className="h-full w-full"
             onLoad={handleIframeLoad}
-            title="YouTube video player"
           ></iframe>
         </div>
       </div>
@@ -363,7 +357,7 @@ const VideoPlayer = ({ videoId, onClose }: { videoId: string; onClose: () => voi
 
 // Study Detail Component
 const StudyDetail = ({ study, onClose }: { study: Study; onClose: () => void }) => {
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -371,147 +365,109 @@ const StudyDetail = ({ study, onClose }: { study: Study; onClose: () => void }) 
     };
 
     const handleClickOutside = (e: MouseEvent) => {
-      if (overlayRef.current === e.target) onClose();
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        onClose();
+      }
     };
 
     document.addEventListener('keydown', handleEscape);
     document.addEventListener('mousedown', handleClickOutside);
+
+    // Prevent scrolling
     document.body.style.overflow = 'hidden';
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.removeEventListener('mousedown', handleClickOutside);
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = '';
     };
   }, [onClose]);
 
   return (
-    <div
-      ref={overlayRef}
-      className="bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
-    >
-      <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white shadow-2xl">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-10 rounded-full bg-gray-200 p-2 text-gray-800 shadow-md transition-colors hover:bg-gray-300"
-          aria-label="Close study details"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
+      <div
+        ref={modalRef}
+        className="relative max-h-[90vh] w-full max-w-4xl overflow-auto rounded-xl border border-gold-500/20 bg-dark-800 p-4 shadow-xl md:p-6"
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <div className="rounded-full border border-gold-500/20 bg-dark-700 px-3 py-1 text-sm text-gold-500">
+            {study.category}
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-full bg-dark-700 p-2 text-gray-400 transition-colors hover:bg-dark-600 hover:text-white"
+            aria-label="Close study details"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
 
-        {/* Study Header with Category Badge */}
-        <div className="from-primary-700 to-primary-500 bg-gradient-to-r p-6 text-white sm:p-8">
-          <div className="flex items-start justify-between">
-            <div>
-              <span className="text-primary-700 mb-3 inline-block rounded-full bg-white px-3 py-1 text-xs font-bold shadow-sm">
-                {study.category}
-              </span>
-              <h2 className="mb-2 text-2xl font-bold sm:text-3xl">{study.title}</h2>
-              <p className="font-medium text-white/90">{study.authors}</p>
-              <p className="text-white/80 italic">
-                {study.journal}, {study.year}
-              </p>
-            </div>
-            <div className="hidden sm:block">
-              <div className="rounded-lg bg-white/10 p-4 shadow-inner backdrop-blur-sm">
-                <div className="mb-1 text-sm font-medium">DOI Reference</div>
-                <div className="text-xs break-all text-white/90">
-                  {study.link.replace('https://doi.org/', '')}
-                </div>
-              </div>
-            </div>
+        <h2 className="mb-4 text-2xl font-bold text-gold-500">{study.title}</h2>
+
+        <div className="mb-6 grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="text-sm text-gray-400">Authors</p>
+            <p className="text-white">{study.authors}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-400">Publication</p>
+            <p className="text-white">
+              {study.journal} ({study.year})
+            </p>
           </div>
         </div>
 
-        <div className="p-6 sm:p-8">
-          {/* Abstract Section */}
-          <div className="mb-8 rounded-lg border border-gray-100 bg-gray-50 p-5">
-            <h3 className="mb-3 flex items-center text-lg font-semibold text-gray-900">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-primary-600 mr-2 h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Abstract
-            </h3>
-            <p className="leading-relaxed text-gray-700">{study.abstract}</p>
-          </div>
+        <div className="mb-6">
+          <p className="mb-2 text-sm text-gray-400">Abstract</p>
+          <p className="text-gray-300">{study.abstract}</p>
+        </div>
 
-          {/* Key Findings Section */}
-          <div className="mb-8">
-            <h3 className="mb-4 flex items-center text-lg font-semibold text-gray-900">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-primary-600 mr-2 h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-              Key Findings
-            </h3>
-            <ul className="space-y-3">
-              {study.keyFindings.map((finding, index) => (
-                <li
-                  key={index}
-                  className="flex items-start rounded-md border border-gray-100 bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
-                >
-                  <span className="bg-primary-100 text-primary-700 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full font-bold">
-                    {index + 1}
-                  </span>
-                  <span className="text-gray-700">{finding}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div className="mb-6">
+          <p className="mb-3 text-lg font-bold text-gold-500">Key Findings</p>
+          <ul className="list-disc space-y-2 pl-5 text-gray-300">
+            {study.keyFindings.map((finding, index) => (
+              <li key={index}>{finding}</li>
+            ))}
+          </ul>
+        </div>
 
-          {/* Citation and Link Section */}
-          <div className="mt-8 border-t border-gray-200 pt-6">
-            <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-              <div className="text-sm text-gray-500">
-                <p>
-                  Citation: {study.authors.split(',')[0]} et al., {study.journal}, {study.year}
-                </p>
-              </div>
-              <a
-                href={study.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-primary-600 hover:bg-primary-700 inline-flex items-center rounded-md px-6 py-3 font-medium text-white shadow-sm transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mr-2 h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                  <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                </svg>
-                Read Full Study
-              </a>
-            </div>
-          </div>
+        <div className="mt-8 flex justify-between border-t border-gold-500/10 pt-4">
+          <a
+            href={study.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center rounded-lg bg-gold-500 px-4 py-2 text-sm font-bold text-dark-900 transition-colors hover:bg-gold-400"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="mr-2 h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
+            </svg>
+            View Original Publication
+          </a>
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-gold-500/20 bg-dark-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-dark-600"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
@@ -529,29 +485,15 @@ const Filter = ({
   onChange: (filter: string) => void;
 }) => {
   return (
-    <div className="mb-8 rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
-      <div className="mb-3 flex items-center">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="text-primary-600 mr-2 h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-            clipRule="evenodd"
-          />
-        </svg>
-        <h3 className="text-sm font-semibold text-gray-700">Filter by Category</h3>
-      </div>
-      <div className="flex flex-wrap gap-2">
+    <div className="mb-8">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="mr-2 text-sm font-medium text-gray-300">Filter by:</span>
         <button
           onClick={() => onChange('All')}
-          className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+          className={`rounded-full px-4 py-1 text-sm font-medium transition-all ${
             activeFilter === 'All'
-              ? 'bg-primary-600 scale-105 transform text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
+              ? 'bg-gold-500 text-dark-900 shadow-sm'
+              : 'bg-dark-700/80 text-gray-300 hover:bg-dark-600 hover:text-white'
           }`}
         >
           All
@@ -560,10 +502,10 @@ const Filter = ({
           <button
             key={option}
             onClick={() => onChange(option)}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+            className={`rounded-full px-4 py-1 text-sm font-medium transition-all ${
               activeFilter === option
-                ? 'bg-primary-600 scale-105 transform text-white shadow-md'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
+                ? 'bg-gold-500 text-dark-900 shadow-sm'
+                : 'bg-dark-700/80 text-gray-300 hover:bg-dark-600 hover:text-white'
             }`}
           >
             {option}
@@ -576,6 +518,51 @@ const Filter = ({
 
 // Filter out videos without a valid YouTube ID
 const validVideos = videos.filter(video => getYoutubeId(video.youtubeUrl));
+
+// Loading component
+function AboutLoading() {
+  return (
+    <Layout>
+      <div className="min-h-screen bg-dark-500 py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 h-8 w-1/3 animate-pulse rounded bg-dark-700"></div>
+
+          {/* Research Hero Loading */}
+          <div className="mb-12 rounded-lg border border-gold-500/10 bg-dark-600 p-8 shadow-md">
+            <div className="mb-6 h-6 w-1/4 animate-pulse rounded bg-dark-500"></div>
+            <div className="grid gap-8 md:grid-cols-2">
+              <div className="space-y-4">
+                <div className="h-4 w-full animate-pulse rounded bg-dark-500"></div>
+                <div className="h-4 w-full animate-pulse rounded bg-dark-500"></div>
+                <div className="h-4 w-3/4 animate-pulse rounded bg-dark-500"></div>
+              </div>
+              <div className="h-64 animate-pulse rounded-lg bg-dark-500 p-4">
+                <div className="flex h-full items-center justify-center">
+                  <div className="h-32 w-32 animate-pulse rounded-full bg-dark-400"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Content Loading */}
+          <div className="mb-12 rounded-lg border border-gold-500/10 bg-dark-600 p-8 shadow-md">
+            <div className="mb-6 h-6 w-1/4 animate-pulse rounded bg-dark-500"></div>
+            <div className="grid gap-8 md:grid-cols-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <div className="mx-auto h-12 w-12 animate-pulse rounded-full bg-dark-500"></div>
+                  <div className="mx-auto h-4 w-1/2 animate-pulse rounded bg-dark-500"></div>
+                  <div className="h-4 w-full animate-pulse rounded bg-dark-500"></div>
+                  <div className="h-4 w-full animate-pulse rounded bg-dark-500"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+}
 
 export default function ResearchPage() {
   const [activeTab, setActiveTab] = useState<'videos' | 'studies'>('videos');
@@ -598,417 +585,414 @@ export default function ResearchPage() {
     studyFilter === 'All' ? studies : studies.filter(study => study.category === studyFilter);
 
   return (
-    <Layout>
-      <ResearchStructuredData videos={validVideos} studies={studies} />
-      <div className="bg-gray-50 py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Hero Section */}
-          <div className="mb-16 text-center">
-            <div className="bg-primary-100 text-primary-800 mb-4 inline-block rounded-full px-3 py-1 text-sm font-bold">
-              Evidence-Based Information
+    <Suspense fallback={<AboutLoading />}>
+      <Layout>
+        <ResearchStructuredData videos={validVideos} studies={studies} />
+        <div className="min-h-screen bg-dark-500 py-12 text-white">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            {/* Hero Section */}
+            <div className="mb-16 text-center">
+              <div className="mb-4 inline-block rounded-full bg-gold-500/20 px-3 py-1 text-sm font-bold text-gold-500">
+                Evidence-Based Information
+              </div>
+              <h1 className="mb-6 text-4xl font-extrabold text-white sm:text-5xl">
+                Player Benefits & Research
+              </h1>
+              <div className="mx-auto mb-6 h-1 w-24 bg-gold-500"></div>
+              <p className="mx-auto mt-4 max-w-3xl text-xl text-gray-300">
+                Discover why hockey players choose nicotine pouches and explore the science behind
+                how they can enhance your performance on and off the ice.
+              </p>
+              <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm">
+                <div className="flex items-center rounded-full border border-gold-500/20 bg-dark-600/80 px-4 py-2 shadow-sm backdrop-blur-sm">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="mr-2 h-5 w-5 text-gold-500"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>{videos.length} Educational Videos</span>
+                </div>
+                <div className="flex items-center rounded-full border border-gold-500/20 bg-dark-600/80 px-4 py-2 shadow-sm backdrop-blur-sm">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="mr-2 h-5 w-5 text-gold-500"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                  </svg>
+                  <span>{studies.length} Scientific Studies</span>
+                </div>
+                <div className="flex items-center rounded-full border border-gold-500/20 bg-dark-600/80 px-4 py-2 shadow-sm backdrop-blur-sm">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="mr-2 h-5 w-5 text-gold-500"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>Peer-Reviewed Content</span>
+                </div>
+              </div>
             </div>
-            <h1 className="mb-6 text-4xl font-extrabold text-gray-900 text-shadow-sm sm:text-5xl">
-              Player Benefits & Research
-            </h1>
-            <div className="bg-primary-600 mx-auto mb-6 h-1 w-24"></div>
-            <p className="mx-auto mt-4 max-w-3xl text-xl text-gray-600">
-              Discover why hockey players choose nicotine pouches and explore the science behind how
-              they can enhance your performance on and off the ice.
-            </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm">
-              <div className="flex items-center rounded-full bg-white px-4 py-2 shadow-sm">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-primary-600 mr-2 h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>{videos.length} Educational Videos</span>
-              </div>
-              <div className="flex items-center rounded-full bg-white px-4 py-2 shadow-sm">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-primary-600 mr-2 h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
-                </svg>
-                <span>{studies.length} Scientific Studies</span>
-              </div>
-              <div className="flex items-center rounded-full bg-white px-4 py-2 shadow-sm">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-primary-600 mr-2 h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Peer-Reviewed Content</span>
-              </div>
-            </div>
-          </div>
 
-          {/* Tabs */}
-          <div className="mb-12 flex justify-center">
-            <div className="inline-flex rounded-lg bg-gray-100 p-1 shadow-sm">
-              <button
-                onClick={() => setActiveTab('videos')}
-                className={`flex items-center rounded-md px-6 py-3 text-lg font-medium transition-all duration-200 ${
-                  activeTab === 'videos'
-                    ? 'text-primary-700 scale-[1.02] transform bg-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
-                }`}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mr-2 h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
+            {/* Tabs */}
+            <div className="mb-12 flex justify-center">
+              <div className="inline-flex rounded-lg border border-gold-500/20 bg-dark-600/80 p-1 shadow-md backdrop-blur-sm">
+                <button
+                  onClick={() => setActiveTab('videos')}
+                  className={`flex items-center rounded-md px-6 py-3 text-lg font-medium transition-all duration-200 ${
+                    activeTab === 'videos'
+                      ? 'scale-[1.02] transform bg-gold-500 font-bold text-dark-900 shadow-md'
+                      : 'text-white hover:bg-dark-700 hover:text-gold-400'
+                  }`}
                 >
-                  <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-                </svg>
-                Educational Videos
-                <span className="bg-primary-100 text-primary-800 ml-2 rounded-full px-2 py-1 text-xs font-bold">
-                  {videos.length}
-                </span>
-              </button>
-              <button
-                onClick={() => setActiveTab('studies')}
-                className={`flex items-center rounded-md px-6 py-3 text-lg font-medium transition-all duration-200 ${
-                  activeTab === 'studies'
-                    ? 'text-primary-700 scale-[1.02] transform bg-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
-                }`}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mr-2 h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
-                </svg>
-                Medical Studies
-                <span className="bg-primary-100 text-primary-800 ml-2 rounded-full px-2 py-1 text-xs font-bold">
-                  {studies.length}
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* Videos Section */}
-          {activeTab === 'videos' && (
-            <div>
-              <div className="mb-8">
-                <h2 className="mb-4 text-2xl font-bold text-gray-900 text-shadow-xs">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="mr-2 h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                  </svg>
                   Educational Videos
-                </h2>
-                <p className="text-gray-600">
-                  Watch these informative videos to learn more about nicotine pouches, their
-                  benefits, and how they compare to traditional tobacco products.
-                </p>
-              </div>
-
-              <Filter
-                options={videoCategories}
-                activeFilter={videoFilter}
-                onChange={setVideoFilter}
-              />
-
-              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-2">
-                {filteredVideos.map(video => (
-                  <div
-                    key={video.id}
-                    className="group hover:border-primary-200 overflow-hidden rounded-lg border border-gray-100 bg-white shadow-md transition-all duration-300 hover:shadow-xl"
+                  <span className="ml-2 rounded-full bg-dark-900/80 px-2 py-1 text-xs font-bold text-gold-500">
+                    {videos.length}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('studies')}
+                  className={`flex items-center rounded-md px-6 py-3 text-lg font-medium transition-all duration-200 ${
+                    activeTab === 'studies'
+                      ? 'scale-[1.02] transform bg-gold-500 font-bold text-dark-900 shadow-md'
+                      : 'text-white hover:bg-dark-700 hover:text-gold-400'
+                  }`}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="mr-2 h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
                   >
-                    <div
-                      className="relative aspect-video cursor-pointer overflow-hidden"
-                      onClick={() => setActiveVideo(getYoutubeId(video.youtubeUrl))}
-                    >
-                      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/60 to-black/10 transition-all duration-300 group-hover:from-black/70 group-hover:to-black/20">
-                        <div className="bg-primary-600 bg-opacity-90 drop-shadow-primary-500/50 flex h-16 w-16 transform items-center justify-center rounded-full shadow-lg drop-shadow-lg transition-transform duration-300 group-hover:scale-110">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-8 w-8 text-white"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </div>
-
-                        <div className="absolute right-4 bottom-4 left-4">
-                          <h3 className="mb-1 line-clamp-1 text-lg font-bold text-white text-shadow-md">
-                            {video.title}
-                          </h3>
-                          <p className="line-clamp-1 text-sm text-white/80 text-shadow-sm">
-                            By{' '}
-                            {video.title.includes('Huberman')
-                              ? 'Dr. Andrew Huberman'
-                              : video.title.includes('Lex Fridman')
-                                ? 'Lex Fridman'
-                                : video.title.includes('Thomas DeLauer')
-                                  ? 'Thomas DeLauer'
-                                  : video.title.includes('Houston Methodist')
-                                    ? 'Houston Methodist Hospital'
-                                    : video.title.includes('Dr. Urban')
-                                      ? 'Dr. Urban A. Kiernan'
-                                      : video.title.includes('Bloomberg')
-                                        ? 'Bloomberg News'
-                                        : video.title.includes('Tucker')
-                                          ? 'Tucker Carlson'
-                                          : 'Industry Experts'}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="bg-primary-600 absolute top-3 right-3 rounded-full px-2 py-1 text-xs font-bold text-white shadow-md text-shadow-xs">
-                        {video.category}
-                      </div>
-
-                      <div className="relative h-full w-full bg-gray-100">
-                        <Image
-                          src={video.thumbnailUrl}
-                          alt={video.title}
-                          fill
-                          style={{ objectFit: 'cover' }}
-                          className="z-10 transition-transform duration-500 group-hover:scale-105"
-                          onError={e => {
-                            // Simple fallback to default image if YouTube thumbnail fails
-                            const target = e.target as HTMLImageElement;
-                            target.src = DEFAULT_VIDEO_IMAGE;
-                          }}
-                          unoptimized // Use this for external images like YouTube thumbnails
-                          priority={true} // Prioritize loading all video thumbnails for better engagement
-                        />
-                        {/* Preloaded backup image that shows while YouTube thumbnail loads */}
-                        <div className="absolute inset-0 z-0 flex flex-col items-center justify-center bg-gray-100 p-4">
-                          <div className="border-primary-200 border-t-primary-600 mb-4 h-12 w-12 animate-spin rounded-full border-4"></div>
-                          <div className="text-center text-sm text-gray-500">
-                            Loading video thumbnail...
-                          </div>
-                          <div className="mt-2 text-center text-xs font-medium text-gray-400">
-                            {video.title.substring(0, 30)}...
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      <p className="line-clamp-3 text-gray-600">{video.description}</p>
-                      <div className="mt-4 flex items-center justify-between">
-                        <span className="text-xs text-gray-500">
-                          Duration:{' '}
-                          {video.id === 'v1'
-                            ? '4:13'
-                            : video.id === 'v2'
-                              ? '3:02'
-                              : video.id === 'v3'
-                                ? '5:24'
-                                : video.id === 'v4'
-                                  ? '8:47'
-                                  : video.id === 'v5'
-                                    ? '10:32'
-                                    : video.id === 'v6'
-                                      ? '7:15'
-                                      : video.id === 'v7'
-                                        ? '6:28'
-                                        : video.id === 'v8'
-                                          ? '2:45'
-                                          : video.id === 'v9'
-                                            ? '4:56'
-                                            : video.id === 'v10'
-                                              ? '5:18'
-                                              : '~5 min'}
-                        </span>
-                        <button
-                          onClick={() => setActiveVideo(getYoutubeId(video.youtubeUrl))}
-                          className="text-primary-600 hover:text-primary-700 flex items-center text-sm font-medium"
-                        >
-                          Watch Now
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="ml-1 h-4 w-4"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {filteredVideos.length === 0 && (
-                <div className="py-12 text-center">
-                  <p className="text-lg text-gray-500">No videos found in this category.</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Studies Section */}
-          {activeTab === 'studies' && (
-            <div>
-              <div className="mb-8">
-                <h2 className="mb-4 text-2xl font-bold text-gray-900 text-shadow-xs">
+                    <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                  </svg>
                   Medical Studies
-                </h2>
-                <p className="text-gray-600">
-                  Explore peer-reviewed research on nicotine pouches, their health implications, and
-                  comparisons with traditional tobacco products.
-                </p>
+                  <span className="ml-2 rounded-full bg-dark-900/80 px-2 py-1 text-xs font-bold text-gold-500">
+                    {studies.length}
+                  </span>
+                </button>
               </div>
+            </div>
 
-              <Filter
-                options={studyCategories}
-                activeFilter={studyFilter}
-                onChange={setStudyFilter}
-              />
+            {/* Videos Section */}
+            {activeTab === 'videos' && (
+              <div>
+                <div className="mb-8">
+                  <h2 className="mb-4 text-2xl font-bold text-gold-500">Educational Videos</h2>
+                  <p className="text-gray-300">
+                    Watch these informative videos to learn more about nicotine pouches, their
+                    benefits, and how they compare to traditional tobacco products.
+                  </p>
+                </div>
 
-              <div className="space-y-6">
-                {filteredStudies.map(study => (
-                  <div
-                    key={study.id}
-                    className="cursor-pointer overflow-hidden rounded-lg bg-white shadow-md transition-shadow hover:shadow-lg"
-                    onClick={() => setActiveStudy(study)}
-                  >
-                    <div className="p-6">
-                      <div className="mb-4 flex flex-wrap items-start justify-between">
-                        <div className="mb-2 sm:mb-0">
-                          <span className="bg-primary-100 text-primary-800 inline-block rounded px-2.5 py-0.5 text-xs font-medium">
-                            {study.category}
-                          </span>
-                          <span className="ml-2 inline-block text-sm text-gray-500">
-                            {study.journal}, {study.year}
-                          </span>
+                <Filter
+                  options={videoCategories}
+                  activeFilter={videoFilter}
+                  onChange={setVideoFilter}
+                />
+
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-2">
+                  {filteredVideos.map(video => (
+                    <div
+                      key={video.id}
+                      className="group overflow-hidden rounded-lg border border-gold-500/10 bg-dark-700 shadow-md transition-all duration-300 hover:border-gold-500/30 hover:shadow-xl"
+                    >
+                      <div
+                        className="aspect-video relative cursor-pointer overflow-hidden"
+                        onClick={() => setActiveVideo(getYoutubeId(video.youtubeUrl))}
+                      >
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/60 to-black/10 transition-all duration-300 group-hover:from-black/70 group-hover:to-black/20">
+                          <div className="flex h-16 w-16 transform items-center justify-center rounded-full bg-gold-500 bg-opacity-90 shadow-lg transition-transform duration-300 group-hover:scale-110">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-8 w-8 text-dark-900"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </div>
+
+                          <div className="absolute bottom-4 left-4 right-4">
+                            <h3 className="mb-1 line-clamp-1 text-lg font-bold text-white text-shadow-md">
+                              {video.title}
+                            </h3>
+                            <p className="line-clamp-1 text-sm text-white/80 text-shadow-sm">
+                              By{' '}
+                              {video.title.includes('Huberman')
+                                ? 'Dr. Andrew Huberman'
+                                : video.title.includes('Lex Fridman')
+                                  ? 'Lex Fridman'
+                                  : video.title.includes('Thomas DeLauer')
+                                    ? 'Thomas DeLauer'
+                                    : video.title.includes('Houston Methodist')
+                                      ? 'Houston Methodist Hospital'
+                                      : video.title.includes('Dr. Urban')
+                                        ? 'Dr. Urban A. Kiernan'
+                                        : video.title.includes('Bloomberg')
+                                          ? 'Bloomberg News'
+                                          : video.title.includes('Tucker')
+                                            ? 'Tucker Carlson'
+                                            : 'Industry Experts'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="absolute right-3 top-3 rounded-full bg-primary-600 px-2 py-1 text-xs font-bold text-white shadow-md text-shadow-xs">
+                          {video.category}
+                        </div>
+
+                        <div className="relative h-full w-full bg-gray-100">
+                          <Image
+                            src={video.thumbnailUrl}
+                            alt={video.title}
+                            fill
+                            style={{ objectFit: 'cover' }}
+                            className="z-10 transition-transform duration-500 group-hover:scale-105"
+                            onError={e => {
+                              // Simple fallback to default image if YouTube thumbnail fails
+                              const target = e.target as HTMLImageElement;
+                              target.src = DEFAULT_VIDEO_IMAGE;
+                            }}
+                            unoptimized // Use this for external images like YouTube thumbnails
+                            priority={true} // Prioritize loading all video thumbnails for better engagement
+                          />
+                          {/* Preloaded backup image that shows while YouTube thumbnail loads */}
+                          <div className="absolute inset-0 z-0 flex flex-col items-center justify-center bg-gray-100 p-4">
+                            <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600"></div>
+                            <div className="text-center text-sm text-gray-500">
+                              Loading video thumbnail...
+                            </div>
+                            <div className="mt-2 text-center text-xs font-medium text-gray-400">
+                              {video.title.substring(0, 30)}...
+                            </div>
+                          </div>
                         </div>
                       </div>
-
-                      <h3 className="mb-2 text-xl font-bold text-gray-900">{study.title}</h3>
-                      <p className="mb-4 text-gray-700">{study.authors}</p>
-
-                      <p className="mb-4 line-clamp-3 text-gray-600">{study.abstract}</p>
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
-                          View details
-                        </span>
-                        <div className="flex space-x-1">
-                          {study.keyFindings.slice(0, 3).map((_, index) => (
-                            <div key={index} className="bg-primary-600 h-2 w-2 rounded-full"></div>
-                          ))}
+                      <div className="p-6">
+                        <p className="line-clamp-3 text-gray-600">{video.description}</p>
+                        <div className="mt-4 flex items-center justify-between">
+                          <span className="text-xs text-gray-500">
+                            Duration:{' '}
+                            {video.id === 'v1'
+                              ? '4:13'
+                              : video.id === 'v2'
+                                ? '3:02'
+                                : video.id === 'v3'
+                                  ? '5:24'
+                                  : video.id === 'v4'
+                                    ? '8:47'
+                                    : video.id === 'v5'
+                                      ? '10:32'
+                                      : video.id === 'v6'
+                                        ? '7:15'
+                                        : video.id === 'v7'
+                                          ? '6:28'
+                                          : video.id === 'v8'
+                                            ? '2:45'
+                                            : video.id === 'v9'
+                                              ? '4:56'
+                                              : video.id === 'v10'
+                                                ? '5:18'
+                                                : '~5 min'}
+                          </span>
+                          <button
+                            onClick={() => setActiveVideo(getYoutubeId(video.youtubeUrl))}
+                            className="flex items-center text-sm font-medium text-primary-600 hover:text-primary-700"
+                          >
+                            Watch Now
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="ml-1 h-4 w-4"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </button>
                         </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+
+                {filteredVideos.length === 0 && (
+                  <div className="py-12 text-center">
+                    <p className="text-lg text-gray-500">No videos found in this category.</p>
                   </div>
-                ))}
+                )}
               </div>
+            )}
 
-              {filteredStudies.length === 0 && (
-                <div className="py-12 text-center">
-                  <p className="text-lg text-gray-500">No studies found in this category.</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Related Content */}
-          <RelatedContent
-            title="Explore More Hockey Performance Content"
-            items={[
-              {
-                title: 'Premium Nicotine Pouches for Hockey Players',
-                description:
-                  'Shop our selection of high-quality nicotine pouches designed specifically for hockey players.',
-                image: '/images/hero.jpeg',
-                link: '/products',
-              },
-              {
-                title: 'About Hockey Pouches',
-                description:
-                  'Learn about our mission to provide the best nicotine pouches for hockey players.',
-                image: '/images/hero.jpeg',
-                link: '/about',
-              },
-              {
-                title: 'Contact Our Team',
-                description:
-                  'Have questions about our products? Get in touch with our knowledgeable team.',
-                image: '/images/hero.jpeg',
-                link: '/contact',
-              },
-            ]}
-          />
-
-          {/* Social Sharing */}
-          <SocialShare
-            url="https://hockey.pouchbuzz.ca/research"
-            title="Hockey Puxx - Research & Benefits | Scientific Studies on Nicotine Pouches"
-            description="Explore scientific research, studies, and expert videos on nicotine pouches. Learn about health implications, performance benefits, and how they compare to traditional tobacco products."
-          />
-
-          {/* Call to Action */}
-          <div className="bg-primary-600 mt-8 overflow-hidden rounded-lg shadow-lg">
-            <div className="px-6 py-12 sm:px-12 lg:flex lg:items-center lg:justify-between">
+            {/* Studies Section */}
+            {activeTab === 'studies' && (
               <div>
-                <h2 className="text-shadow-primary-800/30 text-2xl font-extrabold text-white text-shadow-md sm:text-3xl">
-                  Want to learn more?
-                </h2>
-                <p className="text-primary-100 mt-3 max-w-3xl text-lg">
-                  Ready to experience the benefits for yourself? Shop our premium nicotine pouches
-                  designed specifically for hockey players.
-                </p>
-              </div>
-              <div className="mt-8 lg:mt-0 lg:flex-shrink-0">
-                <div className="inline-flex rounded-md shadow">
-                  <Link
-                    href="/contact"
-                    className="text-primary-600 hover:bg-primary-50 inline-flex items-center justify-center rounded-md border border-transparent bg-white px-5 py-3 text-base font-medium"
-                  >
-                    Contact Us
-                  </Link>
+                <div className="mb-8">
+                  <h2 className="mb-4 text-2xl font-bold text-gold-500">Medical Studies</h2>
+                  <p className="text-gray-300">
+                    Explore peer-reviewed research on nicotine pouches, their health implications,
+                    and comparisons with traditional tobacco products.
+                  </p>
                 </div>
-                <div className="ml-3 inline-flex rounded-md shadow">
-                  <Link
-                    href="/products"
-                    className="bg-primary-700 hover:bg-primary-800 inline-flex items-center justify-center rounded-md border border-transparent px-5 py-3 text-base font-medium text-white"
-                  >
-                    Shop Now
-                  </Link>
+
+                <Filter
+                  options={studyCategories}
+                  activeFilter={studyFilter}
+                  onChange={setStudyFilter}
+                />
+
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-2">
+                  {filteredStudies.map(study => (
+                    <div
+                      key={study.id}
+                      className="group rounded-lg border border-gold-500/10 bg-dark-700 p-6 shadow-md transition-all duration-300 hover:border-gold-500/30 hover:shadow-xl"
+                    >
+                      <div className="cursor-pointer" onClick={() => setActiveStudy(study)}>
+                        <h3 className="mb-2 line-clamp-2 text-xl font-bold text-gold-500 transition-colors group-hover:text-gold-400">
+                          {study.title}
+                        </h3>
+                        <div className="mb-3 flex items-center gap-4">
+                          <div className="flex items-center rounded-full border border-gold-500/20 bg-dark-800 px-3 py-1 text-xs text-gray-300">
+                            <span className="mr-1 font-bold text-gold-500">{study.year}</span>
+                          </div>
+                          <div className="flex items-center rounded-full border border-gold-500/20 bg-dark-800 px-3 py-1 text-xs text-gray-300">
+                            {study.journal}
+                          </div>
+                        </div>
+                        <p className="line-clamp-3 text-sm text-gray-300">{study.abstract}</p>
+                        <div className="mt-4 flex items-center justify-between">
+                          <div className="text-xs text-gray-400">
+                            {study.authors.split(',')[0]} et al.
+                          </div>
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              setActiveStudy(study);
+                            }}
+                            className="rounded-full bg-gold-500 px-4 py-1 text-xs font-bold text-dark-900 transition-all hover:bg-gold-400"
+                          >
+                            View Details
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {filteredStudies.length === 0 && (
+                  <div className="py-12 text-center">
+                    <p className="text-lg text-gray-500">No studies found in this category.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Related Content */}
+            <RelatedContent
+              title="Explore More Hockey Performance Content"
+              items={[
+                {
+                  title: 'Premium Nicotine Pouches for Hockey Players',
+                  description:
+                    'Shop our selection of high-quality nicotine pouches designed specifically for hockey players.',
+                  image: '/images/hero.jpeg',
+                  link: '/products',
+                },
+                {
+                  title: 'About Hockey Pouches',
+                  description:
+                    'Learn about our mission to provide the best nicotine pouches for hockey players.',
+                  image: '/images/hero.jpeg',
+                  link: '/about',
+                },
+                {
+                  title: 'Contact Our Team',
+                  description:
+                    'Have questions about our products? Get in touch with our knowledgeable team.',
+                  image: '/images/hero.jpeg',
+                  link: '/contact',
+                },
+              ]}
+            />
+
+            {/* Social Sharing */}
+            <SocialShare
+              url="https://hockey.pouchbuzz.ca/research"
+              title="Hockey Puxx - Research & Benefits | Scientific Studies on Nicotine Pouches"
+              description="Explore scientific research, studies, and expert videos on nicotine pouches. Learn about health implications, performance benefits, and how they compare to traditional tobacco products."
+            />
+
+            {/* Call to Action */}
+            <div className="mt-8 overflow-hidden rounded-lg bg-primary-600 shadow-lg">
+              <div className="px-6 py-12 sm:px-12 lg:flex lg:items-center lg:justify-between">
+                <div>
+                  <h2 className="text-shadow-primary-800/30 text-2xl font-extrabold text-white text-shadow-md sm:text-3xl">
+                    Want to learn more?
+                  </h2>
+                  <p className="mt-3 max-w-3xl text-lg text-primary-100">
+                    Ready to experience the benefits for yourself? Shop our premium nicotine pouches
+                    designed specifically for hockey players.
+                  </p>
+                </div>
+                <div className="mt-8 lg:mt-0 lg:flex-shrink-0">
+                  <div className="inline-flex rounded-md shadow">
+                    <Link
+                      href="/contact"
+                      className="inline-flex items-center justify-center rounded-md border border-transparent bg-white px-5 py-3 text-base font-medium text-primary-600 hover:bg-primary-50"
+                    >
+                      Contact Us
+                    </Link>
+                  </div>
+                  <div className="ml-3 inline-flex rounded-md shadow">
+                    <Link
+                      href="/products"
+                      className="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-700 px-5 py-3 text-base font-medium text-white hover:bg-primary-800"
+                    >
+                      Shop Now
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Video Modal */}
-      {activeVideo && <VideoPlayer videoId={activeVideo} onClose={() => setActiveVideo(null)} />}
+        {/* Video Modal */}
+        {activeVideo && <VideoPlayer videoId={activeVideo} onClose={() => setActiveVideo(null)} />}
 
-      {/* Study Detail Modal */}
-      {activeStudy && <StudyDetail study={activeStudy} onClose={() => setActiveStudy(null)} />}
-    </Layout>
+        {/* Study Detail Modal */}
+        {activeStudy && <StudyDetail study={activeStudy} onClose={() => setActiveStudy(null)} />}
+      </Layout>
+    </Suspense>
   );
 }
