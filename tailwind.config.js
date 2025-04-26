@@ -1,5 +1,10 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+import tailwindForms from '@tailwindcss/forms';
+import tailwindTypography from '@tailwindcss/typography';
+import tailwindAspectRatio from '@tailwindcss/aspect-ratio';
+import tailwindTextShadow from 'tailwindcss-textshadow';
+
+export default {
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -198,10 +203,10 @@ module.exports = {
     },
   },
   plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography'),
-    require('@tailwindcss/aspect-ratio'),
-    require('tailwindcss-textshadow'),
+    tailwindForms,
+    tailwindTypography,
+    tailwindAspectRatio,
+    tailwindTextShadow,
     // Add custom gold border utilities
     function ({ addUtilities }) {
       const newUtilities = {
