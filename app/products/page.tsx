@@ -252,398 +252,261 @@ export default function ProductsPage() {
 
   return (
     <Layout>
-      <div className="bg-gray-50 py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 text-center">
-            <h1 className="mb-4 text-3xl font-extrabold text-gray-900 sm:text-4xl">Our Products</h1>
-            <p className="mx-auto max-w-2xl text-xl text-gray-500">
-              Premium tobacco-free nicotine pouches.
-            </p>
+      <div className="min-h-screen bg-dark-500 px-4 py-8 text-white sm:px-6 lg:px-8">
+        <h1 className="mb-8 text-3xl font-bold">Shop Premium Nicotine Pouches</h1>
+
+        {/* Filter and Sort Bar */}
+        <div className="mb-8 rounded-lg border border-gold-500/20 bg-dark-600 p-4 shadow-md">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* Category Filter */}
+            <div>
+              <label htmlFor="category" className="mb-1 block text-sm font-medium text-gray-300">
+                Category
+              </label>
+              <select
+                id="category"
+                value={selectedCategory || ''}
+                onChange={e => setSelectedCategory(e.target.value || null)}
+                className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
+              >
+                <option value="">All Categories</option>
+                {availableFilters.categories.map((category, idx) => (
+                  <option key={idx} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Flavor Filter */}
+            <div>
+              <label htmlFor="flavor" className="mb-1 block text-sm font-medium text-gray-300">
+                Flavor
+              </label>
+              <select
+                id="flavor"
+                value={selectedFlavor || ''}
+                onChange={e => setSelectedFlavor(e.target.value || null)}
+                className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
+              >
+                <option value="">All Flavors</option>
+                {availableFilters.flavors.map((flavor, idx) => (
+                  <option key={idx} value={flavor}>
+                    {flavor}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Strength Filter */}
+            <div>
+              <label htmlFor="strength" className="mb-1 block text-sm font-medium text-gray-300">
+                Strength
+              </label>
+              <select
+                id="strength"
+                value={selectedStrength || ''}
+                onChange={e => setSelectedStrength(e.target.value ? Number(e.target.value) : null)}
+                className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
+              >
+                <option value="">All Strengths</option>
+                {availableFilters.strengths.map((strength, idx) => (
+                  <option key={idx} value={strength}>
+                    {strength}mg
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sort Options */}
+            <div>
+              <label htmlFor="sort" className="mb-1 block text-sm font-medium text-gray-300">
+                Sort By
+              </label>
+              <select
+                id="sort"
+                value={`${sortBy}-${sortOrder}`}
+                onChange={e => {
+                  const [newSortBy, newSortOrder] = e.target.value.split('-');
+                  setSortBy(newSortBy);
+                  setSortOrder(newSortOrder);
+                }}
+                className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
+              >
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="price-asc">Price (Low to High)</option>
+                <option value="price-desc">Price (High to Low)</option>
+              </select>
+            </div>
           </div>
-          {/* Filters Section - RESTORED */}
-          <div className="mb-8 rounded-lg bg-white p-6 shadow-md">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="mb-4 text-lg font-medium text-gray-900 sm:mb-0">Filters</h2>
-              <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-6 sm:space-y-0">
-                <div>
-                  <label
-                    htmlFor="category"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    Category
-                  </label>
-                  <select
-                    id="category"
-                    value={selectedCategory || ''}
-                    onChange={e => {
-                      setSelectedCategory(e.target.value || null);
-                      setPagination(p => ({ ...p, page: 1 }));
-                    }}
-                    className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
-                  >
-                    <option value="">All Categories</option>
-                    {availableFilters.categories.map(category => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="flavor" className="mb-1 block text-sm font-medium text-gray-700">
-                    Flavor
-                  </label>
-                  <select
-                    id="flavor"
-                    value={selectedFlavor || ''}
-                    onChange={e => {
-                      setSelectedFlavor(e.target.value || null);
-                      setPagination(p => ({ ...p, page: 1 }));
-                    }}
-                    className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
-                  >
-                    <option value="">All Flavors</option>
-                    {availableFilters.flavors.map(flavor => (
-                      <option key={flavor} value={flavor}>
-                        {flavor}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label
-                    htmlFor="strength"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    Strength
-                  </label>
-                  <select
-                    id="strength"
-                    value={selectedStrength?.toString() || ''}
-                    onChange={e => {
-                      setSelectedStrength(e.target.value ? parseInt(e.target.value) : null);
-                      setPagination(p => ({ ...p, page: 1 }));
-                    }}
-                    className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
-                  >
-                    <option value="">All Strengths</option>
-                    {availableFilters.strengths.map(strength => (
-                      <option key={strength} value={strength}>
-                        {strength}mg
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label
-                    htmlFor="price-range"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    Price Range
-                  </label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      id="min-price"
-                      placeholder="Min"
-                      value={minPriceFilter || ''}
-                      onChange={e => {
-                        setMinPriceFilter(e.target.value || null);
-                        setPagination(p => ({ ...p, page: 1 }));
-                      }}
-                      className="block w-full rounded-md border-gray-300 py-2 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
-                      min={availableFilters.priceRange.min}
-                      max={availableFilters.priceRange.max}
+
+          {/* Price Range Filter */}
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="minPrice" className="mb-1 block text-sm font-medium text-gray-300">
+                Min Price
+              </label>
+              <input
+                type="number"
+                id="minPrice"
+                value={minPriceFilter || ''}
+                onChange={e => setMinPriceFilter(e.target.value || null)}
+                placeholder={`$${availableFilters.priceRange.min}`}
+                className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
+              />
+            </div>
+            <div>
+              <label htmlFor="maxPrice" className="mb-1 block text-sm font-medium text-gray-300">
+                Max Price
+              </label>
+              <input
+                type="number"
+                id="maxPrice"
+                value={maxPriceFilter || ''}
+                onChange={e => setMaxPriceFilter(e.target.value || null)}
+                placeholder={`$${availableFilters.priceRange.max}`}
+                className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex h-64 items-center justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-t-2 border-gold-500"></div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && !isLoading && (
+          <div className="rounded-md bg-red-900/30 p-4 text-red-200">
+            <p>{error}</p>
+          </div>
+        )}
+
+        {/* Product Grid */}
+        {!isLoading && products.length > 0 && (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {products.map(product => (
+              <div
+                key={product.id}
+                className="group overflow-hidden rounded-lg border border-gold-500/10 bg-dark-700 p-4 shadow-md transition-all duration-300 hover:border-gold-500/30 hover:shadow-gold"
+              >
+                <Link href={`/products/${product.id}`}>
+                  <div className="aspect-square relative mb-4 overflow-hidden rounded-md bg-dark-800">
+                    <Image
+                      src={product.image_url || '/images/products/fallback.jpg'}
+                      alt={product.name}
+                      width={300}
+                      height={300}
+                      className="object-contain p-4 transition-transform duration-300 group-hover:scale-105"
                     />
-                    <span>-</span>
-                    <input
-                      type="number"
-                      id="max-price"
-                      placeholder="Max"
-                      value={maxPriceFilter || ''}
-                      onChange={e => {
-                        setMaxPriceFilter(e.target.value || null);
-                        setPagination(p => ({ ...p, page: 1 }));
-                      }}
-                      className="block w-full rounded-md border-gray-300 py-2 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
-                      min={availableFilters.priceRange.min}
-                      max={availableFilters.priceRange.max}
-                    />
+                    {product.compare_at_price && (
+                      <div className="absolute right-0 top-0 rounded-bl-md bg-gold-500 px-2 py-1 text-xs font-bold text-dark-900">
+                        SALE
+                      </div>
+                    )}
                   </div>
-                </div>
-                <div>
-                  <label htmlFor="sortBy" className="mb-1 block text-sm font-medium text-gray-700">
-                    Sort By
-                  </label>
-                  <select
-                    id="sortBy"
-                    value={sortBy}
-                    onChange={e => {
-                      setSortBy(e.target.value);
-                      setPagination(p => ({ ...p, page: 1 }));
-                    }}
-                    className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
-                  >
-                    <option value="name">Name</option>
-                    <option value="price">Price</option>
-                    <option value="strength">Strength</option>
-                    <option value="created_at">Newest</option>
-                  </select>
+                </Link>
+
+                <h3 className="mb-1 text-lg font-semibold text-gold-500">{product.name}</h3>
+
+                <div className="mb-2 flex items-center gap-2">
+                  {product.category && (
+                    <span className="rounded-full bg-dark-800 px-2 py-0.5 text-xs text-gray-300">
+                      {product.category}
+                    </span>
+                  )}
+                  {product.flavor && (
+                    <span className="rounded-full bg-dark-800 px-2 py-0.5 text-xs text-gray-300">
+                      {product.flavor}
+                    </span>
+                  )}
+                  {product.strength && (
+                    <span className="rounded-full bg-dark-800 px-2 py-0.5 text-xs text-gray-300">
+                      {product.strength}mg
+                    </span>
+                  )}
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="sortOrder"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    Order
-                  </label>
-                  <select
-                    id="sortOrder"
-                    value={sortOrder}
-                    onChange={e => {
-                      setSortOrder(e.target.value);
-                      setPagination(p => ({ ...p, page: 1 }));
-                    }}
-                    className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
-                  >
-                    <option value="asc">Ascending</option>
-                    <option value="desc">Descending</option>
-                  </select>
-                </div>
+                <p className="mb-4 text-sm text-gray-400">
+                  {product.description || 'Premium nicotine pouches with exceptional quality.'}
+                </p>
 
-                <div className="flex items-end">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xl font-bold text-white">
+                      ${product.price.toFixed(2)}
+                    </span>
+                    {product.compare_at_price && (
+                      <span className="text-sm text-gray-400 line-through">
+                        ${product.compare_at_price.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+
                   <button
-                    onClick={() => {
-                      setSelectedCategory(null);
-                      setSelectedFlavor(null);
-                      setSelectedStrength(null);
-                      setMinPriceFilter(null);
-                      setMaxPriceFilter(null);
-                      setSortBy('name');
-                      setSortOrder('asc');
-                      setPagination(p => ({ ...p, page: 1 }));
-                    }}
-                    className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                    onClick={() => handleAddToCart(product)}
+                    disabled={addedToCartId === product.id}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
+                      addedToCartId === product.id
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gold-500 text-dark-900 hover:bg-gold-600'
+                    }`}
                   >
-                    Reset All
+                    {addedToCartId === product.id ? 'Added!' : 'Add to Cart'}
                   </button>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-          {isLoading && <div className="p-10 text-center">Loading products...</div>}
-          {error && (
-            <div className="rounded bg-red-100 p-10 text-center text-red-600">Error: {error}</div>
-          )}
+        )}
 
-          {/* Cart notification */}
-          {itemCount > 0 && (
-            <div className="mb-6 rounded-lg bg-green-50 p-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <svg
-                    className="h-6 w-6 text-green-500"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <p className="ml-3 text-sm font-medium text-green-800">
-                    You have {itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart
-                  </p>
-                </div>
-                <Link
-                  href="/cart"
-                  className="whitespace-nowrap rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700"
-                >
-                  View Cart
-                </Link>
-              </div>
-            </div>
-          )}
+        {/* No Products Found */}
+        {!isLoading && products.length === 0 && !error && (
+          <div className="rounded-lg border border-gold-500/10 bg-dark-600 p-8 text-center">
+            <p className="text-gray-300">No products found matching your criteria.</p>
+          </div>
+        )}
 
-          {/* Products Grid - RESTORED */}
-          {!isLoading && !error && products.length > 0 && (
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map(product => (
-                <div
-                  key={product.id}
-                  className="flex flex-col overflow-hidden rounded-lg bg-white shadow-md"
-                >
-                  <Link href={`/products/${product.id}`} className="group block">
-                    <div className="relative h-64 bg-gray-100 transition-opacity group-hover:opacity-75">
-                      <Image
-                        src={product.image_url || '/images/products/placeholder.svg'}
-                        alt={product.name}
-                        fill
-                        style={{ objectFit: 'contain' }}
-                        className="p-4"
-                      />
-                      {product.strength && (
-                        <div className="absolute right-4 top-4">
-                          <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800">
-                            {product.strength}mg
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                  <div className="flex-grow p-6">
-                    <h3 className="mb-2 text-lg font-medium text-gray-900">
-                      <Link href={`/products/${product.id}`} className="hover:text-primary-600">
-                        {product.name}
-                      </Link>
-                    </h3>
-                    <div className="mb-4 mt-2 flex justify-between text-sm">
-                      <span className="text-gray-500">
-                        Flavor: <span className="text-gray-900">{product.flavor || 'N/A'}</span>
-                      </span>
-                    </div>
-                    <div className="border-t border-gray-200 pt-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          {/* Price Display - Ensure product.price is a number */}
-                          {product.compare_at_price && product.compare_at_price > product.price ? (
-                            <div className="flex items-center">
-                              <p className="text-lg font-medium text-red-600">
-                                ${product.price?.toFixed(2) ?? 'N/A'}
-                              </p>
-                              <p className="ml-2 text-sm text-gray-500 line-through">
-                                ${product.compare_at_price?.toFixed(2)}
-                              </p>
-                            </div>
-                          ) : (
-                            <p className="text-lg font-medium text-gray-900">
-                              ${product.price?.toFixed(2) ?? 'N/A'}
-                            </p>
-                          )}
-                        </div>
-                        {/* Add to Cart Button */}
-                        <button
-                          onClick={() => handleAddToCart(product)}
-                          className={`inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm ${addedToCartId === product.id ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-primary-600 text-white hover:bg-primary-700'}`}
-                        >
-                          {addedToCartId === product.id ? 'Added!' : 'Add to Cart'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          {/* No Products Message */}
-          {!isLoading && !error && products.length === 0 && (
-            <div className="rounded-lg bg-white p-8 text-center shadow-md">No products found.</div>
-          )}
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className="mt-10 flex justify-center">
-              <nav
-                className="relative z-0 inline-flex -space-x-px rounded-md shadow-sm"
-                aria-label="Pagination"
+        {/* Pagination */}
+        {pagination.totalPages > 1 && (
+          <div className="mt-8 flex justify-center">
+            <nav className="flex items-center space-x-2">
+              <button
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page === 1}
+                className="rounded-md border border-gold-500/30 bg-dark-700 px-3 py-1 text-sm disabled:opacity-50"
               >
-                {/* Previous Page Button */}
+                Previous
+              </button>
+
+              {[...Array(pagination.totalPages)].map((_, idx) => (
                 <button
-                  onClick={() => handlePageChange(pagination.page - 1)}
-                  disabled={pagination.page === 1}
-                  className={`relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium ${
-                    pagination.page === 1
-                      ? 'cursor-not-allowed text-gray-300'
-                      : 'text-gray-500 hover:bg-gray-50'
+                  key={idx}
+                  onClick={() => handlePageChange(idx + 1)}
+                  className={`rounded-md px-3 py-1 text-sm ${
+                    pagination.page === idx + 1
+                      ? 'bg-gold-500 text-dark-900'
+                      : 'border border-gold-500/30 bg-dark-700'
                   }`}
                 >
-                  <span className="sr-only">Previous</span>
-                  <svg
-                    className="h-5 w-5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  {idx + 1}
                 </button>
+              ))}
 
-                {/* Page Numbers */}
-                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                  // For simplicity, show up to 5 pages
-                  // For more complex pagination, implement logic to show current page and neighbors
-                  let pageNum;
-                  if (pagination.totalPages <= 5) {
-                    // If 5 or fewer pages, show all
-                    pageNum = i + 1;
-                  } else {
-                    // If more than 5 pages, show current page in the middle when possible
-                    const middleIndex = 2; // Index 2 is the middle of a 5-item array (0-indexed)
-                    if (pagination.page <= 3) {
-                      // Near the start
-                      pageNum = i + 1;
-                    } else if (pagination.page >= pagination.totalPages - 2) {
-                      // Near the end
-                      pageNum = pagination.totalPages - 4 + i;
-                    } else {
-                      // In the middle
-                      pageNum = pagination.page - middleIndex + i;
-                    }
-                  }
-
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      className={`relative inline-flex items-center border px-4 py-2 text-sm font-medium ${
-                        pagination.page === pageNum
-                          ? 'z-10 border-primary-500 bg-primary-50 text-primary-600'
-                          : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-
-                {/* Next Page Button */}
-                <button
-                  onClick={() => handlePageChange(pagination.page + 1)}
-                  disabled={pagination.page === pagination.totalPages}
-                  className={`relative inline-flex items-center rounded-r-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium ${
-                    pagination.page === pagination.totalPages
-                      ? 'cursor-not-allowed text-gray-300'
-                      : 'text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  <span className="sr-only">Next</span>
-                  <svg
-                    className="h-5 w-5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
-              </nav>
-            </div>
-          )}
-        </div>
+              <button
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page === pagination.totalPages}
+                className="rounded-md border border-gold-500/30 bg-dark-700 px-3 py-1 text-sm disabled:opacity-50"
+              >
+                Next
+              </button>
+            </nav>
+          </div>
+        )}
       </div>
     </Layout>
   );
