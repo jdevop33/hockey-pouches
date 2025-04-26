@@ -259,66 +259,76 @@ const Navigation: React.FC = () => {
 };
 
 const Footer: React.FC = () => {
-  // Get auth context for the footer
-  // Removed unused 'user' variable
-
-  // Use a simplified footer for server rendering to avoid hydration mismatch
   return (
-    <footer className="border-t border-yellow-600/30 bg-gray-950 py-12 text-yellow-200">
+    <footer className="border-border bg-background text-foreground border-t py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <div>
-            <h3 className="mb-4 text-xl font-extrabold uppercase tracking-widest text-yellow-400">
+            <h3 className="text-primary mb-4 text-xl font-extrabold uppercase tracking-widest">
               Nicotine Tins
             </h3>
-            <p className="text-lg text-yellow-200/80">
+            <p className="text-muted-foreground text-lg">
               Premium tobacco-free nicotine pouches by Hockey Puxx, designed for hockey players and
               fans across Canada.
             </p>
           </div>
           <div>
-            <h3 className="mb-4 text-xl font-extrabold uppercase tracking-widest text-yellow-400">
+            <h3 className="text-primary mb-4 text-xl font-extrabold uppercase tracking-widest">
               Quick Links
             </h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/products" className="text-yellow-200/80 hover:text-yellow-300">
+                <Link
+                  href="/products"
+                  className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded transition-colors focus-visible:outline-none focus-visible:ring-2"
+                >
                   Shop
                 </Link>
               </li>
               <li>
-                <Link href="/cart" className="text-yellow-200/80 hover:text-yellow-300">
+                <Link
+                  href="/cart"
+                  className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded transition-colors focus-visible:outline-none focus-visible:ring-2"
+                >
                   Cart
                 </Link>
               </li>
               <li>
-                <Link href="/research" className="text-yellow-200/80 hover:text-yellow-300">
+                <Link
+                  href="/research"
+                  className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded transition-colors focus-visible:outline-none focus-visible:ring-2"
+                >
                   Benefits
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="text-yellow-200/80 hover:text-yellow-300">
+                <Link
+                  href="/about"
+                  className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded transition-colors focus-visible:outline-none focus-visible:ring-2"
+                >
                   Our Story
                 </Link>
               </li>
               <li>
-                <Link href="/login" className="text-yellow-200/80 hover:text-yellow-300">
+                <Link
+                  href="/login"
+                  className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded transition-colors focus-visible:outline-none focus-visible:ring-2"
+                >
                   Sign In
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-xl font-extrabold uppercase tracking-widest text-yellow-400">
+            <h3 className="text-primary mb-4 text-xl font-extrabold uppercase tracking-widest">
               Contact Us
             </h3>
-            <p className="text-lg text-yellow-200/80">Email: info@nicotinetins.com</p>
-            <p className="text-lg text-yellow-200/80">Phone: (250) 415-5678</p>
+            <p className="text-muted-foreground text-lg">Email: info@nicotinetins.com</p>
+            <p className="text-muted-foreground text-lg">Phone: (250) 415-5678</p>
             <div className="mt-4 flex space-x-4">
-              {/* Social links ... */}
               <a
                 href="#"
-                className="text-yellow-200/80 hover:text-yellow-300"
+                className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded-full p-2 transition-colors focus-visible:outline-none focus-visible:ring-2"
                 aria-label="Follow us on X (formerly Twitter)"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -327,7 +337,7 @@ const Footer: React.FC = () => {
               </a>
               <a
                 href="#"
-                className="text-yellow-200/80 hover:text-yellow-300"
+                className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded-full p-2 transition-colors focus-visible:outline-none focus-visible:ring-2"
                 aria-label="Follow us on Facebook"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -340,7 +350,7 @@ const Footer: React.FC = () => {
               </a>
               <a
                 href="#"
-                className="text-yellow-200/80 hover:text-yellow-300"
+                className="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded-full p-2 transition-colors focus-visible:outline-none focus-visible:ring-2"
                 aria-label="Follow us on Instagram"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -354,7 +364,7 @@ const Footer: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="mt-12 border-t border-yellow-600/30 pt-8 text-center text-yellow-200/70">
+        <div className="border-border text-muted-foreground mt-12 border-t pt-8 text-center">
           <p>
             &copy; {new Date().getFullYear()} Nicotine Tins by Hockey Puxx. All rights reserved.
           </p>
