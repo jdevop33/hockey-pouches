@@ -1,4 +1,4 @@
-import { ClassValue, clsx } from 'clsx';
+import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { debounce, throttle, memoize } from './performanceUtils';
 import { getYoutubeId, getYoutubeThumbnail } from './imageUtils';
@@ -33,11 +33,64 @@ export function cn(...inputs: ClassValue[]) {
  * // Returns "$15.00 USD"
  * formatPrice(15, 'USD')
  */
-export function formatPrice(price: number, currency: string = 'CAD'): string {
+export function formatPrice(
+  price: number | string,
+  options: {
+    currency?: 'USD' | 'EUR' | 'GBP' | 'CAD';
+    notation?: Intl.NumberFormatOptions['notation'];
+  } = {}
+) {
+  const { currency = 'CAD', notation = 'standard' } = options;
+
+  const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
+
   return new Intl.NumberFormat('en-CA', {
     style: 'currency',
     currency,
-  }).format(price);
+    notation,
+    maximumFractionDigits: 2,
+  }).format(numericPrice / 100);
+}
+
+/**
+ * Formats a date using Intl.DateTimeFormat
+ *
+ * @param date - The date to format
+ * @param options - Intl.DateTimeFormat options
+ * @returns Formatted date string
+ *
+ * @example
+ * // Returns "January 1, 2024"
+ * formatDate(new Date(2024, 0, 1))
+ */
+export function formatDate(
+  date: Date | string,
+  options: Intl.DateTimeFormatOptions = {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }
+) {
+  return new Intl.DateTimeFormat('en-CA', {
+    ...options,
+  }).format(typeof date === 'string' ? new Date(date) : date);
+}
+
+/**
+ * Slugifies a string
+ *
+ * @param str - The string to slugify
+ * @returns Slugified string
+ *
+ * @example
+ * // Returns "this-is-a-slug"
+ * slugify("This is a slug")
+ */
+export function slugify(str: string) {
+  return str
+    .toLowerCase()
+    .replace(/[^\w ]+/g, '')
+    .replace(/ +/g, '-');
 }
 
 /**
@@ -166,6 +219,21 @@ export function formatPhoneNumber(phone: string): string {
 
   // Return original if not 10 digits
   return phone;
+}
+
+/**
+ * Truncates a string to a specified length
+ *
+ * @param str - The string to truncate
+ * @param length - Maximum length (default: 50)
+ * @returns Truncated string
+ *
+ * @example
+ * // Returns "This is a long..."
+ * truncate(str, 12)
+ */
+export function truncate(str: string, length: number) {
+  return str.length > length ? `${str.substring(0, length)}...` : str;
 }
 
 // Re-export utility functions for easier imports

@@ -194,7 +194,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       <div className="hidden md:flex md:w-64 md:flex-col">
         <div className="flex flex-grow flex-col overflow-y-auto border-r bg-white pt-5">
           <div className="flex flex-shrink-0 items-center px-4">
-            <span className="text-xl font-semibold">Hockey Puxx</span>
+            <span className="text-xl font-semibold">PUXX</span>
           </div>
           <div className="mt-5 flex flex-1 flex-col">
             <nav className="flex-1 space-y-1 px-2 pb-4">
@@ -254,7 +254,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Mobile header */}
       <div className="flex items-center justify-between border-b bg-white p-4 md:hidden">
-        <span className="text-xl font-semibold">Hockey Puxx</span>
+        <span className="text-xl font-semibold">PUXX</span>
         <button
           className="rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
           aria-label="Toggle mobile menu"

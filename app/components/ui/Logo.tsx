@@ -21,7 +21,7 @@ export default function Logo({ className = '', size = 'medium' }: LogoProps) {
       <div className={`relative min-w-[${width / 2}px] min-h-[${height / 2}px]`}>
         <Image
           src="/images/logo/logo3.svg"
-          alt="Hockey Puxx Logo"
+          alt="PUXX Logo"
           width={width}
           height={height}
           className={`${sizeClass} w-auto max-w-none object-contain ${size === 'large' ? 'scale-120' : ''}`}

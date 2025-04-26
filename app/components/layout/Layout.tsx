@@ -191,10 +191,10 @@ const Footer: React.FC = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-gold-500">Hockey Puxx</h3>
+            <h3 className="mb-4 text-lg font-semibold text-gold-500">PUXX</h3>
             <p className="text-gray-300">
-              Premium tobacco-free nicotine pouches by Hockey Puxx, designed for hockey players and
-              fans across Canada.
+              Premium tobacco-free nicotine pouches by PUXX, designed for discerning adults across
+              Canada.
             </p>
           </div>
           <div>
@@ -294,7 +294,7 @@ const Footer: React.FC = () => {
         </div>
         <div className="border-gold-subtle mt-12 border-t pt-8 text-center text-gray-400">
           <p className="text-gold-gradient-text">
-            &copy; {new Date().getFullYear()} Nicotine Tins by Hockey Puxx. All rights reserved.
+            &copy; {new Date().getFullYear()} Nicotine Tins by PUXX. All rights reserved.
           </p>
         </div>
       </div>

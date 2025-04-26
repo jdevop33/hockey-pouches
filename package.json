@@ -24,6 +24,7 @@
     "@vercel/blob": "^1.0.0",
     "@vercel/edge": "^1.2.1",
     "bcrypt": "^5.1.1",
+    "bufferutil": "^4.0.9",
     "clsx": "^2.1.1",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.503.0",

@@ -10,12 +10,23 @@ export interface ThemeProviderProps {
   [key: string]: React.ReactNode | string | boolean | undefined;
 }
 
-export function ThemeProvider({
+export function ThemeProviderClient({
   children,
   defaultTheme = 'dark',
   storageKey = 'hockey-puxx-theme',
   ...props
 }: ThemeProviderProps) {
+  // Only render on client side
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <>{children}</>;
+  }
+
   return (
     <NextThemesProvider
       attribute="class"

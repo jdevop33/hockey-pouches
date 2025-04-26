@@ -6,8 +6,6 @@ const bundleAnalyzer = require('@next/bundle-analyzer');
 const withBundleAnalyzer =
   process.env.ANALYZE === 'true' ? bundleAnalyzer({ enabled: true }) : config => config;
 
-// Fix for the "t.mask is not a function" error in deployment
-// This removes the problematic Sentry integration causing the issue
 const nextConfig = {
   reactStrictMode: true,
   // Disable ESLint during build
@@ -133,17 +131,7 @@ const nextConfig = {
       '.jsx': ['.jsx', '.tsx'],
     };
 
-    // Disable Sentry plugin to fix "t.mask is not a function" error
-    config.plugins = config.plugins.filter(plugin => {
-      return plugin.constructor.name !== 'SentryWebpackPlugin';
-    });
-
     return config;
-  },
-  // Disable Sentry completely
-  sentry: {
-    disableServerWebpackPlugin: true,
-    disableClientWebpackPlugin: true,
   },
 };
 

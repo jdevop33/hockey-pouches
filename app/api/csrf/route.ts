@@ -6,6 +6,11 @@ import { generateAndSetCsrfToken } from '@/lib/csrf-server';
  * Returns a CSRF token
  */
 export async function GET(request: NextRequest) {
-  const token = generateAndSetCsrfToken();
-  return NextResponse.json({ token });
+  try {
+    const token = generateAndSetCsrfToken();
+    return NextResponse.json({ token });
+  } catch (error) {
+    console.error('CSRF generation error:', error);
+    return NextResponse.json({ error: 'Failed to generate CSRF token' }, { status: 500 });
+  }
 }

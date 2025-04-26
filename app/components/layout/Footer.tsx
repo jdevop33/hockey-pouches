@@ -13,15 +13,14 @@ const Footer: React.FC = () => {
             <div className="mb-6">
               <Image
                 src="/images/logo/PUXX-LOGO-LONG-WHITE-650x195.png"
-                alt="Hockey Puxx Logo"
+                alt="PUXX Logo"
                 width={180}
                 height={54}
                 className="h-10 w-auto"
               />
             </div>
             <p className="text-gray-400">
-              Premium tobacco-free nicotine pouches designed for hockey players and fans across
-              Canada.
+              Premium tobacco-free nicotine pouches designed for discerning adults across Canada.
             </p>
           </div>
           <div>
@@ -105,8 +104,7 @@ const Footer: React.FC = () => {
         </div>
         <div className="mt-12 border-t border-gold-500/10 pt-8 text-center text-gray-500">
           <p>
-            &copy; {new Date().getFullYear()} Hockey Puxx. All rights reserved. Not for sale to
-            minors.
+            &copy; {new Date().getFullYear()} PUXX. All rights reserved. Not for sale to minors.
           </p>
         </div>
       </div>

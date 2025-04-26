@@ -6,6 +6,8 @@ import { useAuth } from '../../context/AuthContext';
 import Image from 'next/image';
 import { ShoppingCart, Menu, User, LogOut, LogIn } from 'lucide-react';
 import Footer from './Footer';
+import { ThemeToggle } from '../ui/theme-toggle';
+import Link from 'next/link';
 
 interface NavItem {
   href: string;
@@ -62,6 +64,10 @@ const Navigation: React.FC = () => {
     return true;
   });
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
   return (
     <>
       {/* Desktop nav */}
@@ -69,14 +75,19 @@ const Navigation: React.FC = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between">
             <div className="flex items-center gap-10">
-              <Image
-                src="/images/logo/PUXX-LOGO-LONG-WHITE-650x195.png"
-                alt="PUXX Logo"
-                width={180}
-                height={54}
-                priority
-                className="h-12 w-auto object-contain"
-              />
+              <Link href="/" className="flex items-center gap-2">
+                <Image
+                  src="/images/logo/logo3.svg"
+                  alt="PUXX Logo"
+                  width={40}
+                  height={40}
+                  priority
+                  className="h-10 w-10"
+                />
+                <span className="hidden text-xl font-bold text-gray-900 dark:text-white sm:inline-block">
+                  PUXX
+                </span>
+              </Link>
               <div className="flex items-center gap-1">
                 {visibleNavItems.map(item => (
                   <button
@@ -95,6 +106,7 @@ const Navigation: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4">
+              <ThemeToggle className="mr-2" />
               <button
                 onClick={() => router.push('/cart')}
                 className="relative rounded-full p-2 text-white hover:bg-dark-400 hover:text-gold-500"
@@ -144,7 +156,7 @@ const Navigation: React.FC = () => {
           <button
             type="button"
             aria-label="Open menu"
-            onClick={() => setMobileMenuOpen(true)}
+            onClick={toggleMobileMenu}
             className="flex flex-col items-center justify-center px-2 py-1 text-xs font-bold text-gray-400 hover:text-gold-500"
           >
             <Menu className="h-5 w-5" />
@@ -250,9 +262,9 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="flex min-h-screen flex-col bg-dark-500">
+    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-dark-500">
       <Navigation />
-      <main className="grow">{children}</main>
+      <main className="flex-1">{children}</main>
       <Footer />
     </div>
   );
