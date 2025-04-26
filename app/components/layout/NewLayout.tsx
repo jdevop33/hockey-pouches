@@ -136,7 +136,7 @@ const Navigation: React.FC = () => {
       </nav>
 
       {/* Mobile bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-gold-500/20 bg-dark-500/95 shadow-lg transition-all duration-200 md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-gold-500/30 bg-dark-900/90 shadow-xl backdrop-blur-md transition-all duration-200 md:hidden">
         <div className="flex h-16 flex-1 items-center justify-around">
           {visibleNavItems.slice(0, 4).map(item => (
             <button
@@ -162,7 +162,7 @@ const Navigation: React.FC = () => {
 
         {/* Mobile menu overlay */}
         <div
-          className={`fixed inset-0 z-50 bg-black/80 backdrop-blur-sm transition-opacity duration-200 ${
+          className={`bg-black/85 fixed inset-0 z-50 backdrop-blur-md transition-opacity duration-200 ${
             mobileMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
           }`}
           onClick={() => setMobileMenuOpen(false)}
@@ -170,7 +170,7 @@ const Navigation: React.FC = () => {
 
         {/* Mobile menu panel */}
         <div
-          className={`fixed bottom-0 left-0 right-0 z-50 rounded-t-xl bg-dark-500 p-6 shadow-xl transition-transform duration-300 ${
+          className={`fixed bottom-0 left-0 right-0 z-50 rounded-t-xl border-t-2 border-gold-500/30 bg-dark-800/95 p-6 shadow-xl backdrop-blur-xl transition-transform duration-300 ${
             mobileMenuOpen ? 'translate-y-0' : 'translate-y-full'
           }`}
         >
@@ -179,7 +179,7 @@ const Navigation: React.FC = () => {
             <button
               type="button"
               aria-label="Close menu"
-              className="rounded-full p-2 text-gray-400 hover:bg-dark-400 hover:text-white"
+              className="rounded-full bg-dark-900/80 p-2 text-white hover:bg-dark-700 hover:text-gold-500"
               onClick={() => setMobileMenuOpen(false)}
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -199,8 +199,8 @@ const Navigation: React.FC = () => {
                 key={item.href}
                 className={`block w-full rounded-lg px-4 py-3 text-left text-sm font-bold ${
                   pathname === item.href
-                    ? 'bg-gold-500 text-black'
-                    : 'bg-dark-800/80 text-white hover:bg-gold-500 hover:text-black'
+                    ? 'bg-gold-500 text-black shadow-md'
+                    : 'bg-dark-900/90 text-white hover:bg-gold-500 hover:text-black'
                 }`}
                 onClick={() => {
                   router.push(item.href);
@@ -212,13 +212,13 @@ const Navigation: React.FC = () => {
             ))}
           </div>
 
-          <div className="mt-6 border-t border-gold-500/10 pt-6">
+          <div className="mt-6 border-t border-gold-500/20 pt-6">
             <button
               onClick={() => {
                 router.push(user ? '/dashboard' : '/login');
                 setMobileMenuOpen(false);
               }}
-              className="flex w-full items-center justify-center rounded-lg bg-gold-500 px-4 py-3 text-sm font-bold text-dark-500"
+              className="flex w-full items-center justify-center rounded-lg bg-gradient-gold px-4 py-3 text-sm font-bold text-dark-900 shadow-md transition-all hover:shadow-gold-sm"
             >
               {user ? (
                 <>
@@ -239,7 +239,7 @@ const Navigation: React.FC = () => {
                   handleLogout();
                   setMobileMenuOpen(false);
                 }}
-                className="mt-3 flex w-full items-center justify-center rounded-lg border border-gold-500/20 bg-transparent px-4 py-3 text-sm font-bold text-white hover:bg-dark-400"
+                className="mt-3 flex w-full items-center justify-center rounded-lg border border-gold-500/30 bg-dark-900/80 px-4 py-3 text-sm font-bold text-white hover:bg-dark-700"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 SIGN OUT
