@@ -74,8 +74,8 @@ export async function GET(request: NextRequest) {
       sql.query(commissionsQuery, queryParams),
       sql.query(countQuery, countQueryParams),
     ]);
-    const totalRows = getRows(totalResultRaw);
-    const totalPending = parseInt(totalRows[0]?.count || '0');
+    const totalRows = getRows(totalResultRaw) as Array<{ count: string }>;
+    const totalPending = parseInt(totalRows[0]?.count ?? '0', 10);
     const totalPages = Math.ceil(totalPending / limit);
     const commissions = commissionsResult as AdminCommission[];
 
