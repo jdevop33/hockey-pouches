@@ -144,7 +144,8 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 
 ### Inventory Management
 
-- [ ] Implement inventory tracking for distributors
+- [ ] Implement inventory tracking across locations
+- [x] Add inventory transfer functionality
 - [ ] Add low stock alerts
 - [ ] Create inventory request system
 - [ ] Implement inventory reporting
