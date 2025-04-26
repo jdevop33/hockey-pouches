@@ -8,7 +8,7 @@ import Layout from '@/components/layout/NewLayout';
 import { useAuth } from '@/context/AuthContext';
 import ImageUploader from '@/components/ImageUploader';
 
-import { Product, ProductVariation } from '@/types';
+import { Product, ProductVariation } from '@/types/index';
 
 // Define Product type for this page
 type ProductDetails = Product & {
@@ -67,8 +67,9 @@ export default function AdminProductDetailPage() {
           const data = await response.json();
           setProduct(data as ProductDetails);
           setEditData(data);
-        } catch (err: any) {
-          setError(err.message || 'Failed to load product details.');
+        } catch (err: unknown) {
+          const error = err as Error;
+          setError(error.message || 'Failed to load product details.');
           console.error(err);
         } finally {
           setIsLoadingData(false);
@@ -101,8 +102,9 @@ export default function AdminProductDetailPage() {
 
       const data = await response.json();
       setVariations(data as ProductVariation[]);
-    } catch (err: any) {
-      setVariationError(err.message || 'Failed to load variations.');
+    } catch (err: unknown) {
+      const error = err as Error;
+      setVariationError(error.message || 'Failed to load variations.');
       console.error(err);
     } finally {
       setIsLoadingVariations(false);
@@ -141,7 +143,7 @@ export default function AdminProductDetailPage() {
         }
       }
     }
-    setEditData(prev => ({ ...prev, [name]: finalValue }));
+    setEditData((prev: Partial<ProductDetails>) => ({ ...prev, [name]: finalValue }));
   };
 
   const handleSaveChanges = async (e: React.FormEvent) => {
@@ -159,7 +161,9 @@ export default function AdminProductDetailPage() {
       let editedVal = editData[key];
       if (
         editedVal === '' &&
-        ['description', 'category', 'image_url', 'compare_at_price', 'strength'].includes(key)
+        ['description', 'category', 'image_url', 'compare_at_price', 'strength'].includes(
+          String(key)
+        )
       ) {
         editedVal = null;
       }
@@ -248,8 +252,9 @@ export default function AdminProductDetailPage() {
       setEditData(updatedProductData);
       setIsEditing(false);
       alert('Changes saved!');
-    } catch (err: any) {
-      setError(err.message || 'Failed to save changes.');
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || 'Failed to save changes.');
       console.error(err);
     } finally {
       setIsSaving(false);
@@ -325,8 +330,9 @@ export default function AdminProductDetailPage() {
       await loadVariations();
       setShowVariationModal(false);
       setCurrentVariation(null);
-    } catch (err: any) {
-      setVariationError(err.message || 'Failed to save variation.');
+    } catch (err: unknown) {
+      const error = err as Error;
+      setVariationError(error.message || 'Failed to save variation.');
       console.error(err);
     } finally {
       setIsSavingVariation(false);
@@ -356,8 +362,9 @@ export default function AdminProductDetailPage() {
 
       // Reload variations after successful delete
       await loadVariations();
-    } catch (err: any) {
-      setVariationError(err.message || 'Failed to delete variation.');
+    } catch (err: unknown) {
+      const error = err as Error;
+      setVariationError(error.message || 'Failed to delete variation.');
       console.error(err);
     }
   };

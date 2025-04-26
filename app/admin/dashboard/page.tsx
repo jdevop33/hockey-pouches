@@ -99,9 +99,10 @@ export default function AdminDashboardPage() {
               relatedTo: { type: 'Order', id: 'order-def' },
             },
           ]);
-        } catch (err: any) {
+        } catch (err: unknown) {
+          const error = err as Error;
           // Handle potential 401 from API calls if token expires mid-session
-          if (err.message?.includes('401')) {
+          if (error.message?.includes('401')) {
             // Basic check, improve if needed
             logout();
             // Only redirect if we're still on the admin dashboard
@@ -127,7 +128,7 @@ export default function AdminDashboardPage() {
   if (authLoading || isLoadingData) {
     return (
       <Layout>
-        <div className="p-8 text-center">Loading Admin Dashboard...</div>
+        <div className="p-8 text-center text-white">Loading Admin Dashboard...</div>
       </Layout>
     );
   }
@@ -135,7 +136,7 @@ export default function AdminDashboardPage() {
     // This state might be brief before redirect, or if redirect fails
     return (
       <Layout>
-        <div className="p-8 text-center text-red-600">Access Denied. You must be an Admin.</div>
+        <div className="p-8 text-center text-red-400">Access Denied. You must be an Admin.</div>
       </Layout>
     );
   }
@@ -143,21 +144,28 @@ export default function AdminDashboardPage() {
   // Render actual dashboard content for Admin
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-100 p-8">
-        <h1 className="mb-6 text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+      <div className="min-h-screen bg-dark-800 p-8">
+        <h1 className="mb-6 text-3xl font-bold text-white">Admin Dashboard</h1>
 
-        {error && <p className="mb-4 rounded-md bg-red-100 p-3 text-red-500">Error: {error}</p>}
+        {error && (
+          <p className="mb-4 rounded-md border border-red-500/50 bg-red-900/50 p-3 text-red-400">
+            Error: {error}
+          </p>
+        )}
 
         {/* Key Metrics */}
         <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {/* ... metrics mapping ... */}
           {metrics.map((metric, index) => (
-            <div key={index} className="rounded-lg bg-white p-6 shadow-md">
-              <p className="mb-1 text-sm text-gray-500 uppercase">{metric.label}</p>
-              <p className="text-3xl font-bold text-gray-800">{metric.value}</p>
+            <div
+              key={index}
+              className="rounded-lg border border-gold-500/20 bg-dark-900/95 p-6 shadow-gold-sm"
+            >
+              <p className="mb-1 text-sm uppercase text-gray-400">{metric.label}</p>
+              <p className="text-3xl font-bold text-white">{metric.value}</p>
               {metric.change && (
                 <p
-                  className={`mt-1 text-sm ${metric.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}
+                  className={`mt-1 text-sm ${metric.change.startsWith('+') ? 'text-green-400' : 'text-red-400'}`}
                 >
                   {metric.change} vs yesterday
                 </p>
@@ -167,32 +175,32 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Pending Tasks */}
-        <div className="mb-8 rounded-lg bg-white p-6 shadow-md">
+        <div className="mb-8 rounded-lg border border-gold-500/20 bg-dark-900/95 p-6 shadow-gold-sm">
           {/* ... task list ... */}
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-700">
+            <h2 className="text-xl font-semibold text-white">
               Pending Tasks ({pendingTasks.length})
             </h2>
             <Link
               href="/admin/dashboard/tasks"
-              className="text-primary-600 hover:text-primary-800 text-sm font-medium"
+              className="text-sm font-medium text-gold-500 hover:text-gold-300"
             >
               View All Tasks &rarr;
             </Link>
           </div>
           {pendingTasks.length > 0 ? (
-            <ul className="divide-y divide-gray-200">
+            <ul className="divide-y divide-gold-500/20">
               {pendingTasks.map(task => (
                 <li key={task.id} className="flex items-center justify-between py-3">
                   {/* ... task details ... */}
                   <div>
                     <Link
                       href={`/admin/dashboard/tasks/${task.id}`}
-                      className="hover:text-primary-600 font-medium text-gray-800"
+                      className="font-medium text-gray-200 hover:text-gold-500"
                     >
                       {task.title}
                     </Link>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-400">
                       Category: {task.category}
                       {task.relatedTo && (
                         <>
@@ -200,7 +208,7 @@ export default function AdminDashboardPage() {
                           | Related:{' '}
                           <Link
                             href={`/admin/dashboard/${task.relatedTo.type.toLowerCase()}s/${task.relatedTo.id}`}
-                            className="text-primary-600 hover:underline"
+                            className="text-gold-500 hover:underline"
                           >
                             {task.relatedTo.type} #{task.relatedTo.id.split('-')[1]}
                           </Link>
@@ -210,7 +218,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <Link
                     href={`/admin/dashboard/tasks/${task.id}`}
-                    className="text-primary-600 hover:text-primary-800 text-sm font-medium"
+                    className="text-sm font-medium text-gold-500 hover:text-gold-300"
                   >
                     View
                   </Link>
@@ -218,7 +226,7 @@ export default function AdminDashboardPage() {
               ))}
             </ul>
           ) : (
-            <p className="text-gray-500">No pending tasks.</p>
+            <p className="text-gray-400">No pending tasks.</p>
           )}
         </div>
 
@@ -227,67 +235,49 @@ export default function AdminDashboardPage() {
           {/* ... quick links ... */}
           <Link
             href="/admin/dashboard/orders"
-            className="block rounded-lg bg-white p-6 shadow-md transition-shadow hover:shadow-lg"
+            className="block rounded-lg border border-gold-500/20 bg-dark-900/95 p-6 shadow-gold-sm transition-all hover:border-gold-500/50 hover:shadow-gold"
           >
-            <h3 className="mb-2 text-lg font-semibold text-gray-700">Manage Orders</h3>
-            <p className="text-sm text-gray-500">
+            <h3 className="mb-2 text-lg font-semibold text-gold-500">Manage Orders</h3>
+            <p className="text-sm text-gray-300">
               View, approve, assign, and track all customer orders.
             </p>
           </Link>
           <Link
             href="/admin/dashboard/products"
-            className="block rounded-lg bg-white p-6 shadow-md transition-shadow hover:shadow-lg"
+            className="block rounded-lg border border-gold-500/20 bg-dark-900/95 p-6 shadow-gold-sm transition-all hover:border-gold-500/50 hover:shadow-gold"
           >
-            <h3 className="mb-2 text-lg font-semibold text-gray-700">Manage Products</h3>
-            <p className="text-sm text-gray-500">
+            <h3 className="mb-2 text-lg font-semibold text-gold-500">Manage Products</h3>
+            <p className="text-sm text-gray-300">
               Add, edit, and manage product details and variations.
             </p>
           </Link>
           <Link
             href="/admin/dashboard/users"
-            className="block rounded-lg bg-white p-6 shadow-md transition-shadow hover:shadow-lg"
+            className="block rounded-lg border border-gold-500/20 bg-dark-900/95 p-6 shadow-gold-sm transition-all hover:border-gold-500/50 hover:shadow-gold"
           >
-            <h3 className="mb-2 text-lg font-semibold text-gray-700">Manage Users</h3>
-            <p className="text-sm text-gray-500">
-              View and manage customers, distributors, and wholesalers.
-            </p>
-          </Link>
-          <Link
-            href="/admin/dashboard/inventory"
-            className="block rounded-lg bg-white p-6 shadow-md transition-shadow hover:shadow-lg"
-          >
-            <h3 className="mb-2 text-lg font-semibold text-gray-700">Manage Inventory</h3>
-            <p className="text-sm text-gray-500">Track stock levels across distribution centers.</p>
+            <h3 className="mb-2 text-lg font-semibold text-gold-500">Manage Users</h3>
+            <p className="text-sm text-gray-300">Add, edit roles, and manage user accounts.</p>
           </Link>
           <Link
             href="/admin/dashboard/commissions"
-            className="block rounded-lg bg-white p-6 shadow-md transition-shadow hover:shadow-lg"
+            className="block rounded-lg border border-gold-500/20 bg-dark-900/95 p-6 shadow-gold-sm transition-all hover:border-gold-500/50 hover:shadow-gold"
           >
-            <h3 className="mb-2 text-lg font-semibold text-gray-700">Manage Commissions</h3>
-            <p className="text-sm text-gray-500">Review earned commissions and process payouts.</p>
-          </Link>
-          <Link
-            href="/admin/dashboard/reports"
-            className="block rounded-lg bg-white p-6 shadow-md transition-shadow hover:shadow-lg"
-          >
-            <h3 className="mb-2 text-lg font-semibold text-gray-700">Reports & Analytics</h3>
-            <p className="text-sm text-gray-500">View sales reports and business performance.</p>
+            <h3 className="mb-2 text-lg font-semibold text-gold-500">Commissions</h3>
+            <p className="text-sm text-gray-300">Manage distributor and referral commissions.</p>
           </Link>
           <Link
             href="/admin/dashboard/discount-codes"
-            className="block rounded-lg bg-white p-6 shadow-md transition-shadow hover:shadow-lg"
+            className="block rounded-lg border border-gold-500/20 bg-dark-900/95 p-6 shadow-gold-sm transition-all hover:border-gold-500/50 hover:shadow-gold"
           >
-            <h3 className="mb-2 text-lg font-semibold text-gray-700">Discount Codes</h3>
-            <p className="text-sm text-gray-500">Create and manage promotional discount codes.</p>
+            <h3 className="mb-2 text-lg font-semibold text-gold-500">Discount Codes</h3>
+            <p className="text-sm text-gray-300">Create and manage promotional discount codes.</p>
           </Link>
           <Link
-            href="/admin/dashboard/logs"
-            className="block rounded-lg bg-white p-6 shadow-md transition-shadow hover:shadow-lg"
+            href="/admin/dashboard/inventory"
+            className="block rounded-lg border border-gold-500/20 bg-dark-900/95 p-6 shadow-gold-sm transition-all hover:border-gold-500/50 hover:shadow-gold"
           >
-            <h3 className="mb-2 text-lg font-semibold text-gray-700">System Logs</h3>
-            <p className="text-sm text-gray-500">
-              View application logs for debugging and monitoring.
-            </p>
+            <h3 className="mb-2 text-lg font-semibold text-gold-500">Inventory</h3>
+            <p className="text-sm text-gray-300">Manage product inventory across locations.</p>
           </Link>
         </div>
       </div>
