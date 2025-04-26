@@ -68,28 +68,28 @@ Built with Next.js (`14.2.28`) and Tailwind CSS v4.
 
 ### Installation
 
-1.  Clone the repository.
-2.  Install dependencies: `npm install`
-3.  **Environment Variables:** Create `.env.local` file (copy from `.env.example` if available or use structure below) and populate with actual values from Vercel / Neon / Service accounts. **Ensure Vercel project environment variables are also set.**
+1. Clone the repository.
+2. Install dependencies: `npm install`
+3. **Environment Variables:** Create `.env.local` file (copy from `.env.example` if available or use structure below) and populate with actual values from Vercel / Neon / Service accounts. **Ensure Vercel project environment variables are also set.**
 
-    ```dotenv
-    # General Public Vars
-    NEXT_PUBLIC_BASE_URL=http://localhost:3000
-    NEXT_PUBLIC_CONTACT_EMAIL=info@nicotinetins.com
-    NEXT_PUBLIC_SITE_NAME="Hockey Puxx (Dev)"
-    NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+   ```dotenv
+   # General Public Vars
+   NEXT_PUBLIC_BASE_URL=http://localhost:3000
+   NEXT_PUBLIC_CONTACT_EMAIL=info@nicotinetins.com
+   NEXT_PUBLIC_SITE_NAME="Hockey Puxx (Dev)"
+   NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 
-    # Database (From Neon/Vercel Integration)
-    POSTGRES_URL="postgres://..."
+   # Database (From Neon/Vercel Integration)
+   POSTGRES_URL="postgres://..."
 
-    # Authentication (Generate a strong secret!)
-    JWT_SECRET="YOUR_STRONG_RANDOM_JWT_SECRET_HERE"
+   # Authentication (Generate a strong secret!)
+   JWT_SECRET="YOUR_STRONG_RANDOM_JWT_SECRET_HERE"
 
-    # Add Payment Gateway Keys etc. as needed
-    ```
+   # Add Payment Gateway Keys etc. as needed
+   ```
 
-4.  Start the development server: `npm run dev`
-5.  Open [http://localhost:3000](http://localhost:3000).
+4. Start the development server: `npm run dev`
+5. Open [http://localhost:3000](http://localhost:3000).
 
 ## Authentication System
 
@@ -145,14 +145,14 @@ const response = await fetch('/api/users/me', {
 
 ## Development Workflow
 
-1.  **Implementation:**
-    - Continue implementing features based on `// TODO:` comments.
-    - Focus on frontend components and pages.
-    - Implement remaining API routes.
-    - Build out Admin/Distributor dashboards.
-2.  **Testing:** Add tests for API routes and components.
-3.  **Commit & Push:** Use conventional commit messages (e.g., `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
-4.  **Deploy:** Use `npm run deploy` or Vercel dashboard.
+1. **Implementation:**
+   - Continue implementing features based on `// TODO:` comments.
+   - Focus on frontend components and pages.
+   - Implement remaining API routes.
+   - Build out Admin/Distributor dashboards.
+2. **Testing:** Add tests for API routes and components.
+3. **Commit & Push:** Use conventional commit messages (e.g., `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
+4. **Deploy:** Use `npm run deploy` or Vercel dashboard.
 
 ## Available Scripts
 

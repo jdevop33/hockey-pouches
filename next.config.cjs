@@ -124,8 +124,6 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ['localhost:3000', 'nicotinetins.com'],
     },
-    // Remove instrumentation hook which is no longer needed and causing issues
-    // instrumentationHook: false,
   },
   // Fix the module typeless warning
   webpack: config => {
@@ -134,7 +132,18 @@ const nextConfig = {
       '.js': ['.js', '.ts', '.tsx'],
       '.jsx': ['.jsx', '.tsx'],
     };
+
+    // Disable Sentry plugin to fix "t.mask is not a function" error
+    config.plugins = config.plugins.filter(plugin => {
+      return plugin.constructor.name !== 'SentryWebpackPlugin';
+    });
+
     return config;
+  },
+  // Disable Sentry completely
+  sentry: {
+    disableServerWebpackPlugin: true,
+    disableClientWebpackPlugin: true,
   },
 };
 
