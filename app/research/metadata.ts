@@ -1,40 +1,40 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Hockey Pouches - Research & Benefits | Scientific Studies on Nicotine Pouches',
+  title: 'Luxe Nicotine - Research & Benefits | Premium Adult Lifestyle Pouches',
   description:
-    'Explore scientific research, studies, and expert videos on nicotine pouches. Learn about health implications, performance benefits, and how they compare to traditional tobacco products.',
+    'Explore the sensual benefits and scientific research behind our premium nicotine pouches. Discover how they enhance intimate moments and elevate your sophisticated lifestyle.',
   keywords: [
-    'nicotine pouches research',
-    'hockey performance enhancement',
-    'nicotine pouch benefits',
+    'premium nicotine pouches',
+    'adult lifestyle products',
+    'luxury nicotine experience',
+    'sensual enhancement pouches',
     'tobacco-free alternatives',
-    'scientific studies nicotine',
-    'hockey player supplements',
+    'scientifically formulated pleasure',
     'nicotine cognitive benefits',
-    'tobacco harm reduction',
-    'oral nicotine products',
-    'nicotine pouches for athletes',
+    'discrete lifestyle products',
+    'oral nicotine luxury',
+    'intimate experience enhancement',
   ],
-  authors: [{ name: 'Hockey Pouches' }],
+  authors: [{ name: 'Luxe Nicotine' }],
   openGraph: {
-    title: 'Hockey Pouches - Research & Benefits | Scientific Studies on Nicotine Pouches',
+    title: 'Luxe Nicotine - Research & Benefits | Premium Adult Lifestyle Pouches',
     description:
-      'Explore scientific research, studies, and expert videos on nicotine pouches. Learn about health implications, performance benefits, and how they compare to traditional tobacco products.',
-    url: 'https://hockey-pouches.vercel.app/research',
-    siteName: 'Hockey Pouches',
+      'Explore the sensual benefits and scientific research behind our premium nicotine pouches. Discover how they enhance intimate moments and elevate your sophisticated lifestyle.',
+    url: 'https://luxe-nicotine.vercel.app/research',
+    siteName: 'Luxe Nicotine',
     locale: 'en_CA',
     type: 'website',
   },
   // X (formerly Twitter) metadata
   twitter: {
     card: 'summary_large_image',
-    title: 'Hockey Pouches - Research & Benefits | Scientific Studies on Nicotine Pouches',
+    title: 'Luxe Nicotine - Research & Benefits | Premium Adult Lifestyle Pouches',
     description:
-      'Explore scientific research, studies, and expert videos on nicotine pouches. Learn about health implications, performance benefits, and how they compare to traditional tobacco products.',
+      'Explore the sensual benefits and scientific research behind our premium nicotine pouches. Discover how they enhance intimate moments and elevate your sophisticated lifestyle.',
   },
   alternates: {
-    canonical: 'https://hockey-pouches.vercel.app/research',
+    canonical: 'https://luxe-nicotine.vercel.app/research',
   },
 };
 
