@@ -104,11 +104,11 @@ function getClientIdentifier(req: NextRequest, config: RateLimitConfig): string 
   }
 
   // Get client IP address
-  const ip = req.ip || req.headers.get('x-forwarded-for') || 'unknown';
-  
+  const ip = (req as any).ip ?? req.headers.get('x-forwarded-for') ?? 'unknown';
+
   // Get route path
   const path = new URL(req.url).pathname;
-  
+
   // Combine IP and path for the key
   return `${ip}:${path}`;
 }
@@ -123,13 +123,13 @@ export function withRateLimit(
   return async (req: NextRequest): Promise<NextResponse> => {
     // Get client identifier
     const identifier = getClientIdentifier(req, config);
-    
+
     // Create rate limit key
     const key = `ratelimit:${identifier}`;
-    
+
     // Increment request count
     const count = await store.increment(key, config.window);
-    
+
     // Check if rate limit exceeded
     if (count > config.limit) {
       // Log rate limit exceeded
@@ -141,10 +141,10 @@ export function withRateLimit(
         path: new URL(req.url).pathname,
         method: req.method,
       });
-      
+
       // Calculate retry after time
       const retryAfter = Math.ceil(config.window);
-      
+
       // Return rate limit exceeded response
       return NextResponse.json(
         { message: 'Too many requests, please try again later.' },
@@ -159,20 +159,17 @@ export function withRateLimit(
         }
       );
     }
-    
+
     // Add rate limit headers to response
     const response = await handler(req);
-    
+
     // Clone the response to add headers
-    const newResponse = NextResponse.json(
-      await response.json(),
-      {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-      }
-    );
-    
+    const newResponse = NextResponse.json(await response.json(), {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+
     // Add rate limit headers
     newResponse.headers.set('X-RateLimit-Limit', config.limit.toString());
     newResponse.headers.set('X-RateLimit-Remaining', (config.limit - count).toString());
@@ -180,7 +177,7 @@ export function withRateLimit(
       'X-RateLimit-Reset',
       Math.ceil(Date.now() / 1000 + config.window).toString()
     );
-    
+
     return newResponse;
   };
 }
@@ -194,7 +191,7 @@ export const rateLimits = {
     limit: 100,
     window: RateLimitWindow.MINUTE,
   },
-  
+
   // Authentication rate limits
   auth: {
     login: {
@@ -210,7 +207,7 @@ export const rateLimits = {
       window: RateLimitWindow.HOUR,
     },
   },
-  
+
   // API rate limits
   api: {
     products: {

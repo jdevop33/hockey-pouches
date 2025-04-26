@@ -13,7 +13,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="items-center lg:grid lg:grid-cols-2 lg:gap-16">
             <div>
-              <div className="bg-primary-50 text-primary-600 mb-6 inline-block rounded-full px-3 py-1 text-sm font-medium">
+              <div className="mb-6 inline-block rounded-full bg-primary-50 px-3 py-1 text-sm font-medium text-primary-600">
                 FOR HOCKEY PLAYERS
               </div>
               <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 text-shadow-sm sm:text-5xl lg:text-6xl">
@@ -26,7 +26,7 @@ export default function Home() {
               <div className="flex flex-col gap-4 sm:flex-row">
                 <Link
                   href="/products"
-                  className="bg-primary-600 hover:bg-primary-700 inline-block rounded-md px-6 py-3 text-base font-medium text-white shadow-sm transition-all"
+                  className="inline-block rounded-md bg-primary-600 px-6 py-3 text-base font-medium text-white shadow-sm transition-all hover:bg-primary-700"
                 >
                   Shop Now
                 </Link>
@@ -41,7 +41,7 @@ export default function Home() {
             </div>
             <div className="relative mt-12 lg:mt-0">
               <div className="relative mx-auto max-w-md overflow-hidden rounded-2xl shadow-lg lg:max-w-none">
-                <div className="bg-primary-500 absolute top-4 right-4 z-10 rounded-full px-3 py-1 text-xs font-medium text-white shadow-sm">
+                <div className="absolute right-4 top-4 z-10 rounded-full bg-primary-500 px-3 py-1 text-xs font-medium text-white shadow-sm">
                   NEW
                 </div>
                 <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl">
@@ -60,14 +60,14 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24">
+      <section className="bg-secondary-900 py-24 text-secondary-50">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <span className="text-primary-600 inline-block text-sm font-medium">BENEFITS</span>
-            <h2 className="mt-3 text-3xl font-bold text-gray-900 text-shadow-xs sm:text-4xl">
+            <span className="inline-block text-sm font-medium text-accent-400">BENEFITS</span>
+            <h2 className="mt-3 text-3xl font-bold text-secondary-50 sm:text-4xl">
               Why Hockey Players Choose Our Pouches
             </h2>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-600">
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-secondary-300">
               Designed specifically for hockey players and fans who need a discreet, convenient
               nicotine option that works with their active lifestyle.
             </p>
@@ -75,9 +75,9 @@ export default function Home() {
 
           <div className="mt-20 grid grid-cols-1 gap-12 md:grid-cols-3">
             <div className="group">
-              <div className="bg-primary-50 mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full">
+              <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-secondary-800 group-hover:bg-secondary-700">
                 <svg
-                  className="text-primary-600 h-6 w-6"
+                  className="h-6 w-6 text-accent-400 group-hover:text-accent-300"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -91,23 +91,23 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="mb-3 text-xl font-medium text-gray-900">Quick Energy Boost</h3>
-              <p className="mb-5 text-gray-600">
+              <h3 className="mb-3 text-xl font-medium text-secondary-50">Quick Energy Boost</h3>
+              <p className="mb-5 text-secondary-300">
                 Get the energy you need between periods without the crash. Perfect for maintaining
                 focus during long games.
               </p>
               <Link
                 href="/products"
-                className="text-primary-600 hover:text-primary-700 inline-flex items-center text-sm font-medium"
+                className="inline-flex items-center text-sm font-medium text-accent-400 hover:text-accent-300"
               >
-                Explore our products <span className="ml-1">&rarr;</span>
+                Explore our products <span className="ml-1">→</span>
               </Link>
             </div>
 
             <div className="group">
-              <div className="bg-primary-50 mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full">
+              <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-secondary-800 group-hover:bg-secondary-700">
                 <svg
-                  className="text-primary-600 h-6 w-6"
+                  className="h-6 w-6 text-accent-400 group-hover:text-accent-300"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -121,23 +121,23 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="mb-3 text-xl font-medium text-gray-900">Discreet & Convenient</h3>
-              <p className="mb-5 text-gray-600">
+              <h3 className="mb-3 text-xl font-medium text-secondary-50">Discreet & Convenient</h3>
+              <p className="mb-5 text-secondary-300">
                 No spitting, no mess. Use them anywhere - in the locker room, on the bench, or
                 during travel to away games.
               </p>
               <Link
                 href="/research"
-                className="text-primary-600 hover:text-primary-700 inline-flex items-center text-sm font-medium"
+                className="inline-flex items-center text-sm font-medium text-accent-400 hover:text-accent-300"
               >
-                Learn how they work <span className="ml-1">&rarr;</span>
+                Learn how they work <span className="ml-1">→</span>
               </Link>
             </div>
 
             <div className="group">
-              <div className="bg-primary-50 mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full">
+              <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-secondary-800 group-hover:bg-secondary-700">
                 <svg
-                  className="text-primary-600 h-6 w-6"
+                  className="h-6 w-6 text-accent-400 group-hover:text-accent-300"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -151,16 +151,16 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="mb-3 text-xl font-medium text-gray-900">Team Discounts</h3>
-              <p className="mb-5 text-gray-600">
+              <h3 className="mb-3 text-xl font-medium text-secondary-50">Team Discounts</h3>
+              <p className="mb-5 text-secondary-300">
                 Bulk discounts available for hockey teams and leagues. The same pouches trusted by
                 professional players.
               </p>
               <Link
                 href="/products"
-                className="text-primary-600 hover:text-primary-700 inline-flex items-center text-sm font-medium"
+                className="inline-flex items-center text-sm font-medium text-accent-400 hover:text-accent-300"
               >
-                Shop team favorites <span className="ml-1">&rarr;</span>
+                Shop team favorites <span className="ml-1">→</span>
               </Link>
             </div>
           </div>
@@ -171,7 +171,7 @@ export default function Home() {
       <section className="bg-gray-50 py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <span className="text-primary-600 inline-block text-sm font-medium">TOP PICKS</span>
+            <span className="inline-block text-sm font-medium text-primary-600">TOP PICKS</span>
             <h2 className="mt-3 text-3xl font-bold text-gray-900 text-shadow-xs sm:text-4xl">
               Player Favorites
             </h2>
@@ -188,26 +188,26 @@ export default function Home() {
                 className="group relative overflow-hidden rounded-lg bg-white shadow-sm transition-all hover:shadow-md"
               >
                 {index === 0 && (
-                  <div className="bg-primary-600 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
+                  <div className="absolute right-0 top-0 z-10 rounded-bl-lg bg-primary-600 px-3 py-1 text-xs font-medium text-white">
                     BEST SELLER
                   </div>
                 )}
                 {index === 1 && (
-                  <div className="bg-primary-500 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
+                  <div className="absolute right-0 top-0 z-10 rounded-bl-lg bg-primary-500 px-3 py-1 text-xs font-medium text-white">
                     POPULAR
                   </div>
                 )}
                 {index === 2 && (
-                  <div className="bg-primary-700 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
+                  <div className="absolute right-0 top-0 z-10 rounded-bl-lg bg-primary-700 px-3 py-1 text-xs font-medium text-white">
                     STRONG
                   </div>
                 )}
                 {index === 3 && (
-                  <div className="bg-primary-400 absolute top-0 right-0 z-10 rounded-bl-lg px-3 py-1 text-xs font-medium text-white">
+                  <div className="absolute right-0 top-0 z-10 rounded-bl-lg bg-primary-400 px-3 py-1 text-xs font-medium text-white">
                     NEW
                   </div>
                 )}
-                <div className="relative aspect-square w-full overflow-hidden">
+                <div className="aspect-square relative w-full overflow-hidden">
                   <Image
                     src={
                       products.find(p => p.flavor === flavor)?.imageUrl ||
@@ -235,7 +235,7 @@ export default function Home() {
                     <span className="text-lg font-medium text-gray-900">$15.00</span>
                     <Link
                       href={`/products?flavor=${encodeURIComponent(flavor)}`}
-                      className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                      className="text-sm font-medium text-primary-600 hover:text-primary-700"
                     >
                       Shop now <span className="ml-1">&rarr;</span>
                     </Link>
@@ -274,7 +274,7 @@ export default function Home() {
           <div className="overflow-hidden rounded-2xl bg-gray-50 shadow-sm">
             <div className="grid grid-cols-1 lg:grid-cols-2">
               <div className="p-8 sm:p-12 lg:p-16">
-                <span className="text-primary-600 inline-block text-sm font-medium">
+                <span className="inline-block text-sm font-medium text-primary-600">
                   JOIN THE COMMUNITY
                 </span>
                 <h2 className="mt-3 text-3xl font-bold text-gray-900 text-shadow-xs sm:text-4xl">
@@ -287,7 +287,7 @@ export default function Home() {
                 <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                   <Link
                     href="/products"
-                    className="bg-primary-600 hover:bg-primary-700 inline-flex items-center rounded-md px-6 py-3 text-base font-medium text-white shadow-sm transition-all"
+                    className="inline-flex items-center rounded-md bg-primary-600 px-6 py-3 text-base font-medium text-white shadow-sm transition-all hover:bg-primary-700"
                   >
                     Shop Now
                   </Link>
@@ -366,7 +366,7 @@ export default function Home() {
                 <div className="mt-8">
                   <Link
                     href="/research"
-                    className="text-primary-600 hover:text-primary-700 inline-flex items-center"
+                    className="inline-flex items-center text-primary-600 hover:text-primary-700"
                   >
                     Learn more about our products <span className="ml-1">&rarr;</span>
                   </Link>

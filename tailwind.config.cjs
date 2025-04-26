@@ -201,30 +201,7 @@ module.exports = {
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
     require('@tailwindcss/aspect-ratio'),
-    // Add text shadow plugin
-    function ({ addUtilities }) {
-      const newUtilities = {
-        '.text-shadow-sm': {
-          'text-shadow': '0 1px 2px rgba(0, 0, 0, 0.1)',
-        },
-        '.text-shadow-xs': {
-          'text-shadow': '0 1px 1px rgba(0, 0, 0, 0.05)',
-        },
-        '.text-shadow-gold': {
-          'text-shadow': '0 0 8px rgba(212, 175, 55, 0.5)',
-        },
-        '.text-shadow-success': {
-          'text-shadow': '0 0 8px rgba(5, 206, 145, 0.5)',
-        },
-        '.text-shadow-warning': {
-          'text-shadow': '0 0 8px rgba(255, 153, 0, 0.5)',
-        },
-        '.text-shadow-alert': {
-          'text-shadow': '0 0 8px rgba(255, 59, 48, 0.5)',
-        },
-      };
-      addUtilities(newUtilities);
-    },
+    require('tailwindcss-textshadow'),
     // Add custom gold border utilities
     function ({ addUtilities }) {
       const newUtilities = {

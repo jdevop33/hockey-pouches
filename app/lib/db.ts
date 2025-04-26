@@ -12,14 +12,15 @@ const connectionString = process.env.POSTGRES_URL;
 
 // Initialize pool and sql with either real or mock implementations
 let pool: Pool;
-let sql: NeonQueryFunction<any, any>;
+type NeonFn = NeonQueryFunction<false, false>;
+let sql: NeonFn;
 
 // Use real database if connection string is available, otherwise use mock
 if (connectionString) {
   try {
     // Create real pool and sql
     pool = new Pool({ connectionString });
-    sql = neon(connectionString);
+    sql = neon(connectionString) as NeonFn;
     console.log('Database connection initialized with real implementation');
     console.log('Connection URL format:', connectionString.substring(0, 20) + '...');
 
@@ -37,7 +38,7 @@ if (connectionString) {
     console.error('Error initializing database connection:', error);
     console.warn('Falling back to mock database');
     pool = mockPool as unknown as Pool;
-    sql = mockSql as unknown as NeonQueryFunction<any, any>;
+    sql = mockSql as unknown as NeonFn;
   }
 } else {
   // Use mock database
@@ -49,9 +50,9 @@ if (connectionString) {
       .join(', ')
   );
   pool = mockPool as unknown as Pool;
-  sql = mockSql as unknown as NeonQueryFunction<any, any>;
+  sql = mockSql as unknown as NeonFn;
 }
 
-// Export pool and sql
 export { pool };
+
 export default sql;

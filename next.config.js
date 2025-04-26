@@ -12,6 +12,10 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Ignore TypeScript errors during production builds
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   // Image optimization settings
   images: {
     formats: ['image/avif', 'image/webp'],

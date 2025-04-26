@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
-import { getRows } from '@/lib/db-types';
+import { queryRows } from '@/lib/query';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     // Build WHERE clause
     const conditions = ["status = 'Pending Payout'"]; // Always filter by Pending
-    const queryParams: any[] = [];
+    const queryParams: (string | number)[] = [];
     let paramIndex = 1;
     if (userIdFilter) {
       conditions.push(`user_id = $${paramIndex++}`);
@@ -64,20 +63,19 @@ export async function GET(request: NextRequest) {
         ORDER BY c.earned_date ASC -- Oldest pending first?
         LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
-    queryParams.push(limit.toString(), offset.toString());
+    queryParams.push(limit, offset);
 
     // Fetch Count
     const countQuery = `SELECT COUNT(*) FROM commissions c ${whereClause}`;
     const countQueryParams = queryParams.slice(0, conditions.length - 1); // Exclude limit/offset params
 
-    const [commissionsResult, totalResultRaw] = await Promise.all([
-      sql.query(commissionsQuery, queryParams),
-      sql.query(countQuery, countQueryParams),
+    const [commissions, totalRows] = await Promise.all([
+      queryRows<AdminCommission>(commissionsQuery, queryParams),
+      queryRows<{ count: string }>(countQuery, countQueryParams),
     ]);
-    const totalRows = getRows(totalResultRaw) as Array<{ count: string }>;
+
     const totalPending = parseInt(totalRows[0]?.count ?? '0', 10);
     const totalPages = Math.ceil(totalPending / limit);
-    const commissions = commissionsResult as AdminCommission[];
 
     return NextResponse.json({
       commissions: commissions,
