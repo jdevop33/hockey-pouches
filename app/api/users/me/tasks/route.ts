@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 import sql from '@/lib/db';
 import { Task, Pagination } from '@/types';
+import { getRows } from '@/lib/db-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,11 +74,13 @@ export async function GET(request: NextRequest) {
       sql.query(countQuery, queryParams.slice(0, paramIndex - 2)), // Exclude limit/offset params
     ]);
 
-    const totalTasks = parseInt(totalResult[0]?.count || '0');
+    const totalRows = getRows(totalResult) as Array<{ count: string }>;
+    const totalTasks = parseInt(totalRows[0]?.count ?? '0', 10);
     const totalPages = Math.ceil(totalTasks / limit);
 
     // Format tasks for response
-    const tasks = tasksResult.map((row: any) => ({
+    const taskRows = getRows(tasksResult);
+    const tasks = taskRows.map((row: any) => ({
       id: row.id,
       title: row.title,
       category: row.category,

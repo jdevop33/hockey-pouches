@@ -1,62 +1,53 @@
 import js from '@eslint/js';
-import globals from 'globals';
-import { Linter } from 'eslint';
+import { FlatCompat } from '@eslint/eslintrc';
 
-const config: Linter.FlatConfig[] = [
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
+
+export default [
   {
-    ignores: ['node_modules/**', '.next/**', 'out/**', 'public/**', '.vercel/**'],
+    ignores: [
+      'node_modules/**',
+      '.next/**',
+      'out/**',
+      'public/**',
+      '.vercel/**',
+      'scripts/**',
+      '*.js', // ignore root-level JS files (like next.config.js, etc.)
+      '*.cjs',
+      '*.mjs',
+      'tests/**',
+      'eslint.config.ts',
+    ],
+  },
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: require.resolve('@typescript-eslint/parser'),
+      parserOptions: {
+        project: './tsconfig.json',
+        sourceType: 'module',
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+      },
+    },
+    plugins: {
+      '@typescript-eslint': require('@typescript-eslint/eslint-plugin'),
+    },
   },
   js.configs.recommended,
-  {
-    files: ['**/*.{js,jsx,mjs,cjs,ts,tsx}'],
-    languageOptions: {
-      ecmaVersion: 2022,
-      sourceType: 'module',
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-        ...globals.jest,
-      },
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-    },
-    linterOptions: {
-      reportUnusedDisableDirectives: 'error',
-    },
+  ...compat.config({
+    extends: [
+      'next/core-web-vitals',
+      'next/typescript',
+      'plugin:@next/next/recommended',
+      'prettier',
+    ],
     rules: {
-      // Essential rules
-      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
-      'no-debugger': 'warn',
-      'no-alert': 'warn',
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      'no-duplicate-imports': 'error',
-      'no-unneeded-ternary': 'error',
-      'prefer-object-spread': 'error',
-      
-      // TypeScript-specific rules that now work with core ESLint
-      'no-empty-function': ['error', { 
-        allow: ['arrowFunctions', 'methods', 'privateConstructors', 'protectedConstructors'] 
-      }],
-      'no-invalid-this': 'error',
-      'no-loop-func': 'error',
-      'no-unused-expressions': 'error',
-    },
-  },
-  {
-    files: ['**/*.{jsx,tsx}'],
-    rules: {
-      // React specific rules
-      'react/prop-types': 'off',
-      'react/react-in-jsx-scope': 'off',
-      'react/display-name': 'off',
       'react/no-unescaped-entities': 'off',
-      'jsx-a11y/alt-text': 'warn',
-      'jsx-a11y/aria-props': 'warn',
+      '@next/next/no-img-element': 'off',
+      // Add more custom rules as needed
     },
-  },
+  }),
 ];
-
-export default config;

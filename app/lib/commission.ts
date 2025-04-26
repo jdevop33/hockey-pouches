@@ -1,18 +1,12 @@
 // app/lib/commission.ts
 import sql from '@/lib/db';
+import { getRows } from '@/lib/db-types';
 
 // Commission types
-export type CommissionType = 
-  | 'Order Referral' 
-  | 'Wholesale Referral' 
-  | 'Distributor Fulfillment';
+export type CommissionType = 'Order Referral' | 'Wholesale Referral' | 'Distributor Fulfillment';
 
 // Commission status types
-export type CommissionStatus = 
-  | 'Pending' 
-  | 'Approved' 
-  | 'Paid' 
-  | 'Cancelled';
+export type CommissionStatus = 'Pending' | 'Approved' | 'Paid' | 'Cancelled';
 
 // Commission calculation result
 export interface CommissionResult {
@@ -38,7 +32,7 @@ export async function calculateOrderReferralCommission(
   if (!referralCode) {
     return {
       success: false,
-      message: 'No referral code provided'
+      message: 'No referral code provided',
     };
   }
 
@@ -48,22 +42,23 @@ export async function calculateOrderReferralCommission(
       SELECT id, name, email FROM users WHERE referral_code = ${referralCode}
     `;
 
-    if (referrerResult.length === 0) {
+    const referrerRows = getRows(referrerResult);
+    if (referrerRows.length === 0) {
       return {
         success: false,
-        message: `No user found with referral code: ${referralCode}`
+        message: `No user found with referral code: ${referralCode}`,
       };
     }
 
-    const referrer = referrerResult[0];
-    
+    const referrer = referrerRows[0];
+
     // Calculate commission amount (5% of order amount)
     const commissionRate = 0.05;
     const commissionAmount = orderAmount * commissionRate;
-    
+
     // Round to 2 decimal places
     const roundedAmount = Math.round(commissionAmount * 100) / 100;
-    
+
     // Create commission record
     const commissionResult = await sql`
       INSERT INTO commissions (
@@ -84,13 +79,14 @@ export async function calculateOrderReferralCommission(
         'Order referral commission'
       ) RETURNING id
     `;
-    
-    const commissionId = commissionResult[0]?.id;
-    
+
+    const commissionRows = getRows(commissionResult);
+    const commissionId = commissionRows[0]?.id;
+
     if (!commissionId) {
       throw new Error('Failed to create commission record');
     }
-    
+
     // Create a task for commission review
     await sql`
       INSERT INTO tasks (
@@ -111,19 +107,19 @@ export async function calculateOrderReferralCommission(
         ${commissionId}
       )
     `;
-    
+
     return {
       success: true,
       commissionId,
       amount: roundedAmount,
-      message: `Created referral commission of $${roundedAmount} for user ${referrer.name} (${referrer.email})`
+      message: `Created referral commission of $${roundedAmount} for user ${referrer.name} (${referrer.email})`,
     };
   } catch (error) {
     console.error(`Failed to calculate referral commission for order ${orderId}:`, error);
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error calculating commission',
-      error
+      error,
     };
   }
 }
@@ -146,30 +142,31 @@ export async function calculateDistributorFulfillmentCommission(
       SELECT id, name, email, role FROM users WHERE id = ${distributorId}
     `;
 
-    if (distributorResult.length === 0) {
+    const distributorRows = getRows(distributorResult);
+    if (distributorRows.length === 0) {
       return {
         success: false,
-        message: `No user found with ID: ${distributorId}`
+        message: `No user found with ID: ${distributorId}`,
       };
     }
 
-    const distributor = distributorResult[0];
-    
+    const distributor = distributorRows[0];
+
     // Verify the user is a distributor
     if (distributor.role !== 'Distributor') {
       return {
         success: false,
-        message: `User ${distributor.name} is not a distributor`
+        message: `User ${distributor.name} is not a distributor`,
       };
     }
-    
+
     // Calculate commission amount (10% of order amount for fulfillment)
-    const commissionRate = 0.10;
+    const commissionRate = 0.1;
     const commissionAmount = orderAmount * commissionRate;
-    
+
     // Round to 2 decimal places
     const roundedAmount = Math.round(commissionAmount * 100) / 100;
-    
+
     // Create commission record
     const commissionResult = await sql`
       INSERT INTO commissions (
@@ -190,13 +187,14 @@ export async function calculateDistributorFulfillmentCommission(
         'Fulfillment commission'
       ) RETURNING id
     `;
-    
-    const commissionId = commissionResult[0]?.id;
-    
+
+    const commissionRows = getRows(commissionResult);
+    const commissionId = commissionRows[0]?.id;
+
     if (!commissionId) {
       throw new Error('Failed to create commission record');
     }
-    
+
     // Create a task for commission review
     await sql`
       INSERT INTO tasks (
@@ -217,19 +215,19 @@ export async function calculateDistributorFulfillmentCommission(
         ${commissionId}
       )
     `;
-    
+
     return {
       success: true,
       commissionId,
       amount: roundedAmount,
-      message: `Created fulfillment commission of $${roundedAmount} for distributor ${distributor.name}`
+      message: `Created fulfillment commission of $${roundedAmount} for distributor ${distributor.name}`,
     };
   } catch (error) {
     console.error(`Failed to calculate fulfillment commission for order ${orderId}:`, error);
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error calculating commission',
-      error
+      error,
     };
   }
 }
@@ -239,9 +237,7 @@ export async function calculateDistributorFulfillmentCommission(
  * @param orderId The order ID
  * @returns CommissionResult with status
  */
-export async function cancelCommissionsForOrder(
-  orderId: number
-): Promise<CommissionResult> {
+export async function cancelCommissionsForOrder(orderId: number): Promise<CommissionResult> {
   try {
     // Update all commissions related to this order to Cancelled
     const updateResult = await sql`
@@ -253,7 +249,7 @@ export async function cancelCommissionsForOrder(
       AND related_id = ${orderId}
       AND status IN ('Pending', 'Approved')
     `;
-    
+
     // Close any related tasks
     await sql`
       UPDATE tasks
@@ -269,17 +265,17 @@ export async function cancelCommissionsForOrder(
       )
       AND status = 'Pending'
     `;
-    
+
     return {
       success: true,
-      message: `Cancelled all pending commissions for order ${orderId}`
+      message: `Cancelled all pending commissions for order ${orderId}`,
     };
   } catch (error) {
     console.error(`Failed to cancel commissions for order ${orderId}:`, error);
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error cancelling commissions',
-      error
+      error,
     };
   }
 }

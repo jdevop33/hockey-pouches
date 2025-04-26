@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 import sql from '@/lib/db';
+import { getRows } from '@/lib/db-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,12 +22,10 @@ export async function GET(request: NextRequest) {
     console.log(`GET /api/users/me/referrals - User: ${userId}, Page: ${page}, Limit: ${limit}`);
 
     // Get user's referral code
-    const userResult = await sql.query(
-      `SELECT referral_code FROM users WHERE id = $1`,
-      [userId]
-    );
+    const userResult = await sql.query(`SELECT referral_code FROM users WHERE id = $1`, [userId]);
 
-    const referralCode = userResult[0]?.referral_code || null;
+    const userRows = getRows(userResult);
+    const referralCode = userRows[0]?.referral_code || null;
 
     if (!referralCode) {
       return NextResponse.json({
@@ -87,11 +86,13 @@ export async function GET(request: NextRequest) {
       sql.query(summaryQuery, [userId]),
     ]);
 
-    const totalReferrals = parseInt(countResult[0]?.count || '0');
+    const countRows = getRows(countResult) as Array<{ count: string }>;
+    const totalReferrals = parseInt(countRows[0]?.count ?? '0', 10);
     const totalPages = Math.ceil(totalReferrals / limit);
 
     // Format referrals for response
-    const referrals = referralsResult.map((row: any) => ({
+    const referralRows = getRows(referralsResult);
+    const referrals = referralRows.map((row: any) => ({
       id: row.id,
       name: row.name,
       joinDate: row.join_date,
@@ -99,9 +100,10 @@ export async function GET(request: NextRequest) {
     }));
 
     // Format summary
+    const summaryRows = getRows(summaryResult);
     const summary = {
-      totalReferrals: parseInt(summaryResult[0]?.total_referrals || '0'),
-      totalCommission: parseFloat(summaryResult[0]?.total_commission || '0'),
+      totalReferrals: parseInt(summaryRows[0]?.total_referrals || '0'),
+      totalCommission: parseFloat(summaryRows[0]?.total_commission || '0'),
     };
 
     return NextResponse.json({

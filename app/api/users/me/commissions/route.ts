@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 import sql from '@/lib/db';
 import { Commission, Pagination } from '@/types';
+import { getRows } from '@/lib/db-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,11 +57,13 @@ export async function GET(request: NextRequest) {
       sql.query(countQuery, queryParams.slice(0, paramIndex - 2)), // Exclude limit/offset params
     ]);
 
-    const totalCommissions = parseInt(totalResult[0]?.count || '0');
+    const totalRows = getRows(totalResult) as Array<{ count: string }>;
+    const totalCommissions = parseInt(totalRows[0]?.count ?? '0', 10);
     const totalPages = Math.ceil(totalCommissions / limit);
 
     // Format commissions for response
-    const commissions = commissionsResult.map((row: any) => ({
+    const commissionRows = getRows(commissionsResult);
+    const commissions = commissionRows.map((row: any) => ({
       id: row.id,
       orderId: row.order_id,
       type: row.type,
