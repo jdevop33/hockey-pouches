@@ -83,9 +83,7 @@ const Navigation: React.FC = () => {
                   priority
                   className="h-10 w-10"
                 />
-                <span className="hidden text-xl font-bold text-gray-900 dark:text-white sm:inline-block">
-                  PUXX
-                </span>
+                <span className="hidden text-xl font-bold text-white sm:inline-block">PUXX</span>
               </Link>
               <div className="flex items-center gap-1">
                 {visibleNavItems.map(item => (
@@ -93,8 +91,8 @@ const Navigation: React.FC = () => {
                     key={item.href}
                     className={`rounded-md px-4 py-2 text-sm font-bold tracking-wider transition-all ${
                       pathname === item.href
-                        ? 'bg-gold-500/10 text-gold-500 shadow-gold-sm'
-                        : 'text-white hover:bg-dark-400 hover:text-gold-500'
+                        ? 'bg-gold-500 text-black shadow-gold-sm'
+                        : 'bg-dark-800/80 text-white hover:bg-gold-500 hover:text-black'
                     }`}
                     onClick={() => router.push(item.href)}
                   >
@@ -144,7 +142,7 @@ const Navigation: React.FC = () => {
             <button
               key={item.href}
               className={`flex flex-col items-center justify-center px-2 py-1 text-xs font-bold ${
-                pathname === item.href ? 'text-gold-500' : 'text-gray-400 hover:text-gold-500'
+                pathname === item.href ? 'text-gold-500' : 'text-white hover:text-gold-500'
               }`}
               onClick={() => router.push(item.href)}
             >
@@ -155,7 +153,7 @@ const Navigation: React.FC = () => {
             type="button"
             aria-label="Open menu"
             onClick={toggleMobileMenu}
-            className="flex flex-col items-center justify-center px-2 py-1 text-xs font-bold text-gray-400 hover:text-gold-500"
+            className="flex flex-col items-center justify-center px-2 py-1 text-xs font-bold text-white hover:text-gold-500"
           >
             <Menu className="h-5 w-5" />
             <span>MORE</span>
@@ -201,8 +199,8 @@ const Navigation: React.FC = () => {
                 key={item.href}
                 className={`block w-full rounded-lg px-4 py-3 text-left text-sm font-bold ${
                   pathname === item.href
-                    ? 'bg-gold-500/10 text-gold-500'
-                    : 'text-white hover:bg-dark-400 hover:text-gold-500'
+                    ? 'bg-gold-500 text-black'
+                    : 'bg-dark-800/80 text-white hover:bg-gold-500 hover:text-black'
                 }`}
                 onClick={() => {
                   router.push(item.href);
@@ -260,7 +258,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-dark-500">
+    <div className="flex min-h-screen flex-col bg-dark-500">
       <Navigation />
       <main className="flex-1">{children}</main>
       <Footer />

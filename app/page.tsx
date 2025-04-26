@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import Layout from './components/layout/Layout';
+import Layout from './components/layout/NewLayout';
 
 // Define product data directly in the component with corrected image paths
 const featuredProducts = [
@@ -44,18 +44,18 @@ export default function Home() {
     <Layout>
       <main className="flex min-h-screen flex-col bg-dark-500">
         {/* Hero Section */}
-        <section className="relative flex min-h-[75vh] w-full flex-col items-center justify-center overflow-hidden px-4 py-20 md:py-32">
-          {/* Background Image */}
+        <section className="relative flex min-h-[100vh] w-full flex-col items-center justify-center overflow-hidden px-4">
+          {/* Background Image - Full view without black bars */}
           <div
             className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
             style={{
               backgroundImage: "url('/images/products/banner.png')",
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              backgroundBlendMode: 'overlay',
             }}
           >
-            <div className="absolute inset-0 bg-dark-900/70"></div>
+            {/* Lighter overlay to keep text readable but show more of the image */}
+            <div className="absolute inset-0 bg-dark-900/40 backdrop-blur-[2px]"></div>
           </div>
 
           <div className="container relative z-10 mx-auto flex flex-col items-center justify-center text-center">
@@ -66,7 +66,7 @@ export default function Home() {
               </span>
             </h1>
 
-            <p className="mb-8 max-w-2xl text-lg text-gray-300">
+            <p className="mb-8 max-w-2xl text-lg text-white">
               Discreet, convenient, and perfect for your active lifestyle. Free shipping on orders
               over $50.
             </p>
@@ -74,7 +74,7 @@ export default function Home() {
             <div className="flex flex-col gap-6 sm:flex-row">
               <Link
                 href="/products"
-                className="group flex items-center justify-center rounded-md bg-gold-500 px-8 py-3.5 text-base font-medium text-dark-900 shadow-gold transition-all duration-300 hover:bg-gold-400 hover:shadow-gold-lg"
+                className="group flex items-center justify-center rounded-md bg-gold-500 px-8 py-3.5 text-base font-bold text-black shadow-gold transition-all duration-300 hover:bg-gold-400 hover:shadow-gold-lg"
               >
                 <span>Explore Collection</span>
                 <svg
@@ -94,7 +94,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/about"
-                className="group flex items-center justify-center rounded-md border border-gold-500/30 bg-dark-800/50 px-8 py-3.5 text-base font-medium text-white shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-gold-500/60 hover:bg-dark-700"
+                className="group flex items-center justify-center rounded-md border border-gold-500/50 bg-dark-800/70 px-8 py-3.5 text-base font-medium text-white shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-gold-500/80 hover:bg-dark-700/80"
               >
                 <span>Our Story</span>
                 <svg
@@ -163,7 +163,7 @@ export default function Home() {
                     </span>
                     <Link
                       href={`/products/${product.id}`}
-                      className="rounded-full bg-gold-500 px-5 py-2 text-sm font-medium text-dark-900 transition-all duration-300 hover:bg-gold-400 hover:shadow-gold-sm"
+                      className="rounded-full bg-gold-500 px-5 py-2 text-sm font-bold text-black transition-all duration-300 hover:bg-gold-400 hover:shadow-gold-sm"
                     >
                       Add to Cart
                     </Link>
@@ -312,7 +312,7 @@ export default function Home() {
                   <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                     <Link
                       href="/products"
-                      className="group inline-flex items-center justify-center rounded-md bg-gold-500 px-6 py-3 text-base font-medium text-dark-900 shadow-gold transition-all duration-300 hover:bg-gold-400"
+                      className="group inline-flex items-center justify-center rounded-md bg-gold-500 px-6 py-3 text-base font-bold text-black shadow-gold transition-all duration-300 hover:bg-gold-400"
                     >
                       <span>Explore Products</span>
                       <svg

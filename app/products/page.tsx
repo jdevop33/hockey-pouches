@@ -34,7 +34,7 @@ export default function ProductsPage() {
   console.log('--- ProductsPage: Component rendering START ---');
 
   console.log('ProductsPage: Calling useCart()...');
-  const { addToCart, itemCount } = useCart();
+  const { addToCart } = useCart();
   console.log('ProductsPage: useCart() finished.');
 
   console.log('ProductsPage: Initializing state...');
@@ -62,33 +62,93 @@ export default function ProductsPage() {
     () => [
       {
         id: 1,
-        name: 'Mint Fresh Nicotine Pouch',
-        flavor: 'Mint',
+        name: 'Apple Mint (12mg)',
+        flavor: 'Apple Mint',
+        strength: 12,
+        price: 6.99,
+        image_url: '/images/products/apple-mint/apple-mint-12mg.png',
+        category: 'Regular Strength',
+        description: 'Crisp apple and cool mint flavor.',
+      },
+      {
+        id: 2,
+        name: 'Apple Mint (6mg)',
+        flavor: 'Apple Mint',
         strength: 6,
-        price: 14.99,
-        image_url: '/images/products/mint.jpg',
+        price: 6.99,
+        image_url: '/images/products/apple-mint/apple-mint-6mg.png',
+        category: 'Mild',
+        description: 'Crisp apple and cool mint flavor, lower strength.',
+      },
+      {
+        id: 3,
+        name: 'Mint (12mg)',
+        flavor: 'Mint',
+        strength: 12,
+        price: 6.99,
+        image_url: '/images/products/mint/mint-12mg.png',
         category: 'Regular Strength',
         description: 'Cool and refreshing mint flavor.',
       },
       {
-        id: 2,
-        name: 'Berry Blast Nicotine Pouch',
-        flavor: 'Berry',
-        strength: 8,
-        price: 15.99,
-        image_url: '/images/products/berry.jpg',
-        category: 'Strong',
-        description: 'Sweet and tangy mixed berry flavor.',
+        id: 4,
+        name: 'Mint (6mg)',
+        flavor: 'Mint',
+        strength: 6,
+        price: 6.99,
+        image_url: '/images/products/mint/mint-6mg.png',
+        category: 'Mild',
+        description: 'Cool and refreshing mint flavor, lower strength.',
       },
       {
-        id: 3,
-        name: 'Citrus Chill Nicotine Pouch',
-        flavor: 'Citrus',
-        strength: 4,
-        price: 13.99,
-        image_url: '/images/products/citrus.jpg',
-        category: 'Mild',
-        description: 'Refreshing citrus flavor with a hint of coolness.',
+        id: 5,
+        name: 'PUXX Classic Mint',
+        flavor: 'Mint',
+        strength: 22,
+        price: 14.99,
+        image_url: '/images/products/puxxcoolmint22mg.png',
+        category: 'Strong',
+        description: 'Refined flavor profile with subtle cooling effect.',
+      },
+      {
+        id: 6,
+        name: 'PUXX Peppermint',
+        flavor: 'Peppermint',
+        strength: 22,
+        price: 14.99,
+        image_url: '/images/products/puxxperpermint22mg.png',
+        category: 'Strong',
+        description: 'Crisp peppermint with exceptional clarity.',
+      },
+      {
+        id: 7,
+        name: 'PUXX Spearmint',
+        flavor: 'Spearmint',
+        strength: 22,
+        price: 14.99,
+        image_url: '/images/products/puxxspearmint22mg.png',
+        category: 'Strong',
+        description: 'Sophisticated spearmint with lasting freshness.',
+      },
+      {
+        id: 8,
+        name: 'PUXX Watermelon',
+        flavor: 'Watermelon',
+        strength: 16,
+        price: 14.99,
+        image_url: '/images/products/puxxwatermelon16mg.png',
+        category: 'Medium',
+        description: 'Sweet and refreshing watermelon flavor.',
+      },
+      {
+        id: 9,
+        name: 'PUXX Cola',
+        flavor: 'Cola',
+        strength: 16,
+        price: 14.99,
+        image_url: '/images/products/puxxcola16mg.png',
+        category: 'Medium',
+        description: 'Classic cola flavor with a refreshing twist.',
       },
     ],
     []
@@ -450,10 +510,10 @@ export default function ProductsPage() {
                   <button
                     onClick={() => handleAddToCart(product)}
                     disabled={addedToCartId === product.id}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
+                    className={`rounded-md px-3 py-1.5 text-sm font-bold transition-all ${
                       addedToCartId === product.id
                         ? 'bg-green-600 text-white'
-                        : 'bg-gold-500 text-dark-900 hover:bg-gold-600'
+                        : 'bg-gold-500 text-black hover:bg-gold-600'
                     }`}
                   >
                     {addedToCartId === product.id ? 'Added!' : 'Add to Cart'}
