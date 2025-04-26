@@ -12,10 +12,6 @@ export const size = {
 export const contentType = 'image/png';
 
 export default async function Image() {
-  const interSemiBold = fetch(
-    new URL('https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap', import.meta.url)
-  ).then(res => res.arrayBuffer());
-
   return new ImageResponse(
     (
       <div
@@ -31,6 +27,8 @@ export default async function Image() {
           alignItems: 'center',
           display: 'flex',
           flexDirection: 'column',
+          fontFamily:
+            'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         }}
       >
         <img
