@@ -8,6 +8,7 @@ import React, {
   ReactNode,
   useMemo,
   useCallback,
+  useState,
 } from 'react';
 
 // Define Product type consistently with API/DB
@@ -30,12 +31,15 @@ export interface CartItem {
 }
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product, quantity: number) => void;
+  addToCart: (product: Product, quantity: number) => { success: boolean; message?: string };
   removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  updateQuantity: (productId: number, quantity: number) => { success: boolean; message?: string };
   clearCart: () => void;
   itemCount: number;
   subtotal: number;
+  totalQuantity: number;
+  validateMinimumOrder: () => { isValid: boolean; message?: string };
+  minOrderQuantity: number;
 }
 
 type CartAction =
@@ -48,22 +52,30 @@ interface CartState {
   items: CartItem[];
   itemCount: number;
   subtotal: number;
+  totalQuantity: number;
 }
 
-const calculateDiscountedPrice = (product: Product, quantity: number): number => {
+// Minimum order quantity
+const MIN_ORDER_QUANTITY = 5;
+
+const calculateDiscountedPrice = (product: Product): number => {
   return product.price;
 }; // Simplified
-const calculateTotals = (items: CartItem[]): { itemCount: number; subtotal: number } => {
+
+const calculateTotals = (
+  items: CartItem[]
+): { itemCount: number; subtotal: number; totalQuantity: number } => {
   /* ... */
   return items.reduce(
     (acc, item) => {
-      const price = calculateDiscountedPrice(item.product, item.quantity);
+      const price = calculateDiscountedPrice(item.product);
       return {
-        itemCount: acc.itemCount + item.quantity,
+        itemCount: acc.itemCount + 1, // Count of unique items
         subtotal: acc.subtotal + item.quantity * price,
+        totalQuantity: acc.totalQuantity + item.quantity, // Total count of all items
       };
     },
-    { itemCount: 0, subtotal: 0 }
+    { itemCount: 0, subtotal: 0, totalQuantity: 0 }
   );
 };
 
@@ -71,8 +83,8 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
     case 'SET_ITEMS': {
       const items = action.payload;
-      const { itemCount, subtotal } = calculateTotals(items);
-      return { items, itemCount, subtotal };
+      const { itemCount, subtotal, totalQuantity } = calculateTotals(items);
+      return { items, itemCount, subtotal, totalQuantity };
     }
 
     case 'ADD_ITEM': {
@@ -94,15 +106,15 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
         newItems = [...state.items, { product, quantity }];
       }
 
-      const { itemCount, subtotal } = calculateTotals(newItems);
-      return { items: newItems, itemCount, subtotal };
+      const { itemCount, subtotal, totalQuantity } = calculateTotals(newItems);
+      return { items: newItems, itemCount, subtotal, totalQuantity };
     }
 
     case 'REMOVE_ITEM': {
       const { productId } = action.payload;
       const newItems = state.items.filter(item => item.product.id !== productId);
-      const { itemCount, subtotal } = calculateTotals(newItems);
-      return { items: newItems, itemCount, subtotal };
+      const { itemCount, subtotal, totalQuantity } = calculateTotals(newItems);
+      return { items: newItems, itemCount, subtotal, totalQuantity };
     }
 
     case 'UPDATE_QUANTITY': {
@@ -117,12 +129,12 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
         item.product.id === productId ? { ...item, quantity } : item
       );
 
-      const { itemCount, subtotal } = calculateTotals(newItems);
-      return { items: newItems, itemCount, subtotal };
+      const { itemCount, subtotal, totalQuantity } = calculateTotals(newItems);
+      return { items: newItems, itemCount, subtotal, totalQuantity };
     }
 
     case 'CLEAR_CART':
-      return { items: [], itemCount: 0, subtotal: 0 };
+      return { items: [], itemCount: 0, subtotal: 0, totalQuantity: 0 };
 
     default:
       return state;
@@ -143,8 +155,17 @@ interface CartProviderProps {
 }
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
-  const [state, dispatch] = useReducer(cartReducer, { items: [], itemCount: 0, subtotal: 0 });
-  const { items, itemCount, subtotal } = state;
+  const [state, dispatch] = useReducer(cartReducer, {
+    items: [],
+    itemCount: 0,
+    subtotal: 0,
+    totalQuantity: 0,
+  });
+  const { items, itemCount, subtotal, totalQuantity } = state;
+
+  // We aren't currently using setMinOrderQuantity, but keeping it for future flexibility
+  // when we might need to update the value from an API
+  const [minOrderQuantity] = useState<number>(MIN_ORDER_QUANTITY);
 
   useEffect(() => {
     console.log('CartProvider useEffect: Loading state from localStorage.');
@@ -179,22 +200,73 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   }, [items]);
 
+  // Validate minimum order quantity
+  const validateMinimumOrder = useCallback(() => {
+    if (totalQuantity < minOrderQuantity) {
+      return {
+        isValid: false,
+        message: `Minimum order quantity is ${minOrderQuantity} units. You have ${totalQuantity} units in your cart.`,
+      };
+    }
+    return { isValid: true };
+  }, [totalQuantity, minOrderQuantity]);
+
   const addToCart = useCallback((product: Product, quantity: number) => {
+    // Validate the quantity is at least 1
+    if (quantity < 1) {
+      return {
+        success: false,
+        message: 'Quantity must be at least 1',
+      };
+    }
+
     dispatch({ type: 'ADD_ITEM', payload: { product, quantity } });
+    return { success: true };
   }, []);
+
   const removeFromCart = useCallback((productId: number) => {
     dispatch({ type: 'REMOVE_ITEM', payload: { productId } });
   }, []);
+
   const updateQuantity = useCallback((productId: number, quantity: number) => {
+    if (quantity < 1) {
+      dispatch({ type: 'REMOVE_ITEM', payload: { productId } });
+      return { success: true };
+    }
+
     dispatch({ type: 'UPDATE_QUANTITY', payload: { productId, quantity } });
+    return { success: true };
   }, []);
+
   const clearCart = useCallback(() => {
     dispatch({ type: 'CLEAR_CART' });
   }, []);
 
   const contextValue = useMemo(
-    () => ({ items, addToCart, removeFromCart, updateQuantity, clearCart, itemCount, subtotal }),
-    [items, addToCart, removeFromCart, updateQuantity, clearCart, itemCount, subtotal]
+    () => ({
+      items,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      itemCount,
+      subtotal,
+      totalQuantity,
+      validateMinimumOrder,
+      minOrderQuantity,
+    }),
+    [
+      items,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      itemCount,
+      subtotal,
+      totalQuantity,
+      validateMinimumOrder,
+      minOrderQuantity,
+    ]
   );
 
   return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>;

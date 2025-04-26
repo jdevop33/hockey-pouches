@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Layout from '../../components/layout/NewLayout';
 import { useCart } from '../../context/CartContext';
 import SocialShare from '../../components/SocialShare';
@@ -26,8 +26,7 @@ interface Product {
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const router = useRouter();
-  const { addToCart } = useCart();
+  const { addToCart, minOrderQuantity } = useCart();
 
   const productIdString = params.id as string;
   const productId = productIdString ? parseInt(productIdString) : undefined;
@@ -35,8 +34,9 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(minOrderQuantity);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [addToCartError, setAddToCartError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('description');
 
   useEffect(() => {
@@ -56,8 +56,9 @@ export default function ProductDetailPage() {
         }
         const data = await response.json();
         setProduct(data as Product);
-      } catch (err: any) {
-        setError(err.message || 'Could not load product details.');
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Could not load product details.';
+        setError(errorMessage);
         console.error(err);
       } finally {
         setIsLoading(false);
@@ -68,49 +69,61 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (!product) return;
-    // Pass the fetched product directly - CartContext Product type should now match
-    addToCart(product, quantity);
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
-  };
 
-  const relatedProducts: Product[] = []; // Placeholder
+    // Reset any previous errors
+    setAddToCartError(null);
+
+    // Check minimum quantity
+    if (quantity < minOrderQuantity) {
+      setAddToCartError(`Minimum order quantity is ${minOrderQuantity} units.`);
+      return;
+    }
+
+    // Pass the fetched product directly - CartContext Product type should now match
+    const result = addToCart(product, quantity);
+
+    if (result.success) {
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000);
+    } else if (result.message) {
+      setAddToCartError(result.message);
+    }
+  };
 
   if (isLoading)
     return (
       <Layout>
-        <div className="p-8 text-center">Loading product...</div>
+        <div className="p-8 text-center text-gray-200">Loading product...</div>
       </Layout>
     );
   if (error)
     return (
       <Layout>
-        <div className="rounded bg-red-100 p-8 text-center text-red-600">Error: {error}</div>
+        <div className="rounded bg-red-900/30 p-8 text-center text-red-300">Error: {error}</div>
       </Layout>
     );
   if (!product)
     return (
       <Layout>
-        <div className="p-8 text-center">Product not found.</div>
+        <div className="p-8 text-center text-gray-200">Product not found.</div>
       </Layout>
     );
 
-  const getDiscountedPrice = (qty: number) => product.price;
-  const currentPrice = getDiscountedPrice(quantity);
+  const currentPrice = product.price;
   const showDiscount = product.compare_at_price && product.compare_at_price > product.price;
 
   return (
     <Layout>
       {/* Pass product directly to ProductSchema */}
       <ProductSchema product={product} />
-      <div className="bg-gray-50 py-12">
+      <div className="bg-gray-900 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Breadcrumbs */}
           <nav className="mb-8 flex" aria-label="Breadcrumb">
             <ol className="flex items-center space-x-2">
               <li>
                 <div className="flex items-center">
-                  <Link href="/" className="text-sm font-medium text-gray-500 hover:text-gray-700">
+                  <Link href="/" className="text-sm font-medium text-gray-400 hover:text-gray-200">
                     Home
                   </Link>
                 </div>
@@ -118,7 +131,7 @@ export default function ProductDetailPage() {
               <li>
                 <div className="flex items-center">
                   <svg
-                    className="h-5 w-5 flex-shrink-0 text-gray-300"
+                    className="h-5 w-5 flex-shrink-0 text-gray-600"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -126,7 +139,7 @@ export default function ProductDetailPage() {
                   </svg>
                   <Link
                     href="/products"
-                    className="ml-2 text-sm font-medium text-gray-500 hover:text-gray-700"
+                    className="ml-2 text-sm font-medium text-gray-400 hover:text-gray-200"
                   >
                     Products
                   </Link>
@@ -135,13 +148,13 @@ export default function ProductDetailPage() {
               <li>
                 <div className="flex items-center">
                   <svg
-                    className="h-5 w-5 flex-shrink-0 text-gray-300"
+                    className="h-5 w-5 flex-shrink-0 text-gray-600"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
                     <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
                   </svg>
-                  <span className="ml-2 text-sm font-medium text-gray-900" aria-current="page">
+                  <span className="ml-2 text-sm font-medium text-gray-200" aria-current="page">
                     {product.name}
                   </span>
                 </div>
@@ -150,7 +163,7 @@ export default function ProductDetailPage() {
           </nav>
           <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
             {/* Product image */}
-            <div className="overflow-hidden rounded-lg bg-white shadow-md">
+            <div className="overflow-hidden rounded-lg bg-gray-800 shadow-gold-sm">
               <div className="relative h-72 w-full sm:h-80 md:h-96">
                 <Image
                   src={product.image_url || '/images/products/placeholder.svg'}
@@ -164,24 +177,24 @@ export default function ProductDetailPage() {
             </div>
             {/* Product details */}
             <div className="mt-6 px-2 sm:mt-10 sm:px-4 md:px-0 lg:mt-0">
-              <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">
+              <h1 className="text-2xl font-extrabold tracking-tight text-gray-100 sm:text-3xl">
                 {product.name}
               </h1>
 
               {/* Product badges */}
               <div className="mt-2 flex flex-wrap gap-1.5 sm:gap-2">
                 {product.flavor && (
-                  <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 sm:px-3 sm:text-sm">
+                  <span className="inline-flex items-center rounded-full bg-blue-900/50 px-2 py-0.5 text-xs font-medium text-blue-300 sm:px-3 sm:text-sm">
                     {product.flavor}
                   </span>
                 )}
                 {product.strength && (
-                  <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 sm:px-3 sm:text-sm">
+                  <span className="inline-flex items-center rounded-full bg-yellow-900/50 px-2 py-0.5 text-xs font-medium text-yellow-300 sm:px-3 sm:text-sm">
                     Strength: {product.strength}/5
                   </span>
                 )}
                 {product.category && (
-                  <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 sm:px-3 sm:text-sm">
+                  <span className="inline-flex items-center rounded-full bg-green-900/50 px-2 py-0.5 text-xs font-medium text-green-300 sm:px-3 sm:text-sm">
                     {product.category}
                   </span>
                 )}
@@ -190,8 +203,8 @@ export default function ProductDetailPage() {
               {/* Price */}
               <div className="mt-4">
                 <div className="flex flex-wrap items-end gap-2">
-                  <p className="text-2xl font-bold text-gray-900 sm:text-3xl">
-                    ${currentPrice.toFixed(2)}
+                  <p className="text-2xl font-bold text-gray-100 sm:text-3xl">
+                    ${currentPrice.toFixed(2)} <span className="text-sm text-gray-400">each</span>
                   </p>
                   {showDiscount && (
                     <p className="text-base font-medium text-gray-500 line-through sm:text-lg">
@@ -200,7 +213,7 @@ export default function ProductDetailPage() {
                   )}
                 </div>
                 {showDiscount && (
-                  <p className="mt-1 text-xs font-medium text-red-600 sm:text-sm">
+                  <p className="mt-1 text-xs font-medium text-red-400 sm:text-sm">
                     Save ${(product.compare_at_price! - product.price).toFixed(2)} (
                     {Math.round((1 - product.price / product.compare_at_price!) * 100)}% off)
                   </p>
@@ -209,21 +222,42 @@ export default function ProductDetailPage() {
 
               {/* Description */}
               <div className="mt-4">
-                <h3 className="text-sm font-medium text-gray-900">Description</h3>
-                <div className="mt-2 space-y-4 text-base text-gray-500">
+                <h3 className="text-sm font-medium text-gray-200">Description</h3>
+                <div className="mt-2 space-y-4 text-base text-gray-300">
                   <p>{product.description || 'No description available.'}</p>
+                </div>
+              </div>
+
+              {/* Minimum order notice */}
+              <div className="mt-4 rounded-md bg-gold-900/20 p-2.5 text-sm text-gold-300">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-gold-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p>
+                      Minimum order quantity:{' '}
+                      <span className="font-medium">{minOrderQuantity} units</span>
+                    </p>
+                  </div>
                 </div>
               </div>
 
               {/* Quantity selector */}
               <div className="mt-5 sm:mt-6">
                 <div className="flex flex-wrap items-center gap-3">
-                  <h3 className="text-sm font-medium text-gray-900">Quantity:</h3>
-                  <div className="flex items-center rounded border border-gray-300">
+                  <h3 className="text-sm font-medium text-gray-200">Quantity:</h3>
+                  <div className="flex items-center rounded border border-gray-700 bg-gray-800">
                     <button
                       type="button"
-                      className="p-1.5 text-gray-500 hover:text-gray-700 sm:p-2"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="p-1.5 text-gray-400 hover:text-gray-200 sm:p-2"
+                      onClick={() => setQuantity(Math.max(minOrderQuantity, quantity - 1))}
                       aria-label="Decrease quantity"
                     >
                       <svg
@@ -240,12 +274,12 @@ export default function ProductDetailPage() {
                         />
                       </svg>
                     </button>
-                    <span className="w-10 py-1.5 text-center text-gray-700 sm:py-2">
+                    <span className="w-10 py-1.5 text-center text-gray-200 sm:py-2">
                       {quantity}
                     </span>
                     <button
                       type="button"
-                      className="p-1.5 text-gray-500 hover:text-gray-700 sm:p-2"
+                      className="p-1.5 text-gray-400 hover:text-gray-200 sm:p-2"
                       onClick={() => setQuantity(quantity + 1)}
                       aria-label="Increase quantity"
                     >
@@ -265,75 +299,42 @@ export default function ProductDetailPage() {
                     </button>
                   </div>
                 </div>
+                {/* Total amount info */}
+                <div className="mt-2 text-sm text-gray-400">
+                  <p>
+                    Total:{' '}
+                    <span className="font-medium text-gray-200">
+                      ${(quantity * product.price).toFixed(2)}
+                    </span>
+                  </p>
+                </div>
               </div>
 
               {/* Add to cart button */}
-              <div className="mt-5 sm:mt-6">
+              <div className="mt-6">
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className={`flex w-full items-center justify-center rounded-md border border-transparent px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-offset-2 focus:outline-none sm:px-8 sm:py-3 sm:text-base ${
-                    addedToCart
-                      ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
-                      : 'bg-primary-600 hover:bg-primary-700 focus:ring-primary-500'
+                  className={`flex w-full items-center justify-center rounded-md border border-transparent bg-gold-600 px-6 py-3 text-base font-medium text-black shadow-sm hover:bg-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 ${
+                    addedToCart ? 'bg-green-600 hover:bg-green-700' : ''
                   }`}
+                  disabled={addedToCart}
                 >
-                  {addedToCart ? (
-                    <>
-                      <svg
-                        className="mr-1.5 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      Added to Cart
-                    </>
-                  ) : (
-                    'Add to Cart'
-                  )}
+                  {addedToCart ? 'Added to Cart!' : 'Add to Cart'}
                 </button>
+
+                {/* Add to cart error message */}
+                {addToCartError && <p className="mt-2 text-sm text-red-400">{addToCartError}</p>}
               </div>
 
-              {/* View cart button (shows when item is added) */}
-              {addedToCart && (
-                <div className="mt-2 sm:mt-3">
-                  <Link
-                    href="/cart"
-                    className="focus:ring-primary-500 flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:outline-none sm:px-8 sm:py-3 sm:text-base"
-                  >
-                    View Cart
-                  </Link>
-                </div>
-              )}
-
-              {/* Features */}
-              <div className="mt-8">
-                <h3 className="text-sm font-medium text-gray-900">Highlights</h3>
-                <div className="mt-4">
-                  <ul className="list-disc space-y-2 pl-4 text-sm">
-                    <li className="text-gray-500">Premium quality nicotine pouches</li>
-                    <li className="text-gray-500">Discreet and convenient</li>
-                    <li className="text-gray-500">Long-lasting flavor</li>
-                    <li className="text-gray-500">Tobacco-free alternative</li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Social sharing */}
-              <div className="mt-8 border-t border-gray-200 pt-8">
-                <h3 className="text-sm font-medium text-gray-900">Share this product</h3>
-                <div className="mt-2">
+              {/* Social share */}
+              <div className="mt-6 border-t border-gray-700 pt-4">
+                <div className="flex items-center">
+                  <span className="mr-2 text-sm text-gray-400">Share this product:</span>
                   <SocialShare
-                    url={`/products/${product.id}`}
                     title={product.name}
                     description={product.description || ''}
+                    url={typeof window !== 'undefined' ? window.location.href : ''}
                   />
                 </div>
               </div>
@@ -346,7 +347,7 @@ export default function ProductDetailPage() {
               <div className="flex min-w-full space-x-4 px-1 sm:space-x-8">
                 <button
                   onClick={() => setActiveTab('description')}
-                  className={`border-b-2 border-transparent px-1 py-3 text-xs font-medium whitespace-nowrap text-gray-500 sm:py-4 sm:text-sm ${
+                  className={`whitespace-nowrap border-b-2 border-transparent px-1 py-3 text-xs font-medium text-gray-500 sm:py-4 sm:text-sm ${
                     activeTab === 'description'
                       ? 'border-primary-600 text-primary-600'
                       : 'hover:border-gray-300 hover:text-gray-700'
@@ -356,7 +357,7 @@ export default function ProductDetailPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('details')}
-                  className={`border-b-2 border-transparent px-1 py-3 text-xs font-medium whitespace-nowrap text-gray-500 sm:py-4 sm:text-sm ${
+                  className={`whitespace-nowrap border-b-2 border-transparent px-1 py-3 text-xs font-medium text-gray-500 sm:py-4 sm:text-sm ${
                     activeTab === 'details'
                       ? 'border-primary-600 text-primary-600'
                       : 'hover:border-gray-300 hover:text-gray-700'
@@ -366,7 +367,7 @@ export default function ProductDetailPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('shipping')}
-                  className={`border-b-2 border-transparent px-1 py-3 text-xs font-medium whitespace-nowrap text-gray-500 sm:py-4 sm:text-sm ${
+                  className={`whitespace-nowrap border-b-2 border-transparent px-1 py-3 text-xs font-medium text-gray-500 sm:py-4 sm:text-sm ${
                     activeTab === 'shipping'
                       ? 'border-primary-600 text-primary-600'
                       : 'hover:border-gray-300 hover:text-gray-700'

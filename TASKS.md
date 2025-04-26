@@ -26,6 +26,10 @@ The Hockey Pouches e-commerce application is being refactored to a dark mode onl
   - Added consistent gold accent colors throughout the interface
   - Implemented consistent shadow and border styles with the `shadow-gold-sm` utility
   - Updated form input styling for dark mode compatibility
+- Cart pages have been updated to dark mode:
+  - Cart page fully converted with consistent styling
+  - CartSidebar component updated
+  - CartIcon component updated with gold accent colors
 
 ## Next Steps
 
@@ -72,6 +76,7 @@ The Hockey Pouches e-commerce application is being refactored to a dark mode onl
    - ✅ User management pages
    - ✅ Inventory management pages
    - ✅ Commission management pages
+   - ✅ Cart pages
    - ⬜ Reporting pages
    - ⬜ User dashboard pages
    - ⬜ Distributor dashboard pages
@@ -102,6 +107,12 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [x] Add CSRF protection for all forms
 - [ ] Implement proper SEO optimization
 - [ ] Set up monitoring and error tracking
+- [ ] **Update all product prices to $15 per unit**
+- [ ] **Implement 5-unit minimum order requirement for all customers**
+- [ ] **Add Wholesale Buyer user role with approval flow**
+- [ ] **Implement 100+ unit criterion for wholesale accounts**
+- [ ] **Fix non-working links in admin dashboard**
+- [ ] **Add Wholesale management section to admin dashboard**
 
 ## 👑 Admin Role Tasks
 
@@ -124,6 +135,7 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [x] Add product image upload and management
 - [ ] Implement product categories and tags
 - [ ] Add product search and filtering in admin dashboard
+- [ ] **Update product admin interface to enforce $15 pricing**
 
 ### Order Management
 
@@ -134,6 +146,8 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [ ] Implement returns and refunds processing
 - [ ] Implement order search and filtering
 - [ ] Add order export functionality
+- [ ] **Add minimum order quantity enforcement**
+- [ ] **Add special handling for wholesale orders**
 
 ### User Management
 
@@ -144,10 +158,21 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [ ] Implement user activity logs
 - [ ] Add user search and filtering
 - [ ] Implement user export functionality
+- [ ] **Add wholesale account approval workflow**
+- [ ] **Implement wholesale account management**
 
 ## Priority Order for Implementation
 
-1. **Dark Mode Implementation**
+1. **New Feature Implementation**
+
+   - ✅ Dark mode styling across pages
+   - ⬜ **Update all product prices to $15**
+   - ⬜ **Implement 5-unit minimum order requirement**
+   - ⬜ **Add Wholesale Buyer user role**
+   - ⬜ **Implement wholesale order processing**
+   - ⬜ **Fix non-working admin dashboard links**
+
+2. **Dark Mode Implementation**
 
    - ✅ Homepage and About page
    - ✅ Contact page
@@ -157,41 +182,44 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
    - ✅ User management pages
    - ✅ Inventory management pages
    - ✅ Commission management pages
+   - ✅ Cart pages
    - ⬜ Reporting pages
    - ⬜ User dashboard pages
    - ⬜ Distributor dashboard pages
    - ⬜ Checkout flow
 
-2. **Critical Functionality**
+3. **Critical Functionality**
 
    - ✅ Fix authentication and redirection issues
    - ✅ Complete product variations functionality
    - ✅ Implement payment processing
    - ✅ Finish order processing workflow
    - ✅ Fix deployment issues
+   - ⬜ **Fix broken admin dashboard links**
 
-3. **Core User Journeys**
+4. **Core User Journeys**
 
    - ✅ Implement enhanced product filtering and sorting
    - ✅ Distributor order fulfillment
    - ✅ Admin order management
    - ✅ Retail customer purchase flow
    - ✅ Referral tracking and commissions
+   - ⬜ **Wholesale customer journey**
 
-4. **Financial Systems**
+5. **Financial Systems**
 
    - ✅ Commission calculation and tracking
    - ⬜ Payout processing
    - ⬜ Financial reporting
 
-5. **User Experience Enhancements**
+6. **User Experience Enhancements**
 
    - ✅ Form validation and error handling
    - ✅ UI/UX improvements
    - ✅ Mobile responsiveness
    - ⬜ Performance optimization
 
-6. **Marketing and Growth Features**
+7. **Marketing and Growth Features**
    - ✅ Referral program implementation
    - ⬜ Product reviews and ratings
    - ✅ Discount codes and promotions
@@ -247,7 +275,7 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [x] Convert about page to dark mode
 - [x] Convert contact page to dark mode
 - [ ] Convert product pages to dark mode
-- [ ] Convert shopping cart pages to dark mode
+- [x] Convert shopping cart pages to dark mode
 - [ ] Convert checkout flow to dark mode
 - [ ] Convert user dashboard pages to dark mode
 
@@ -260,6 +288,7 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [ ] Implement product recommendations
 - [ ] Add wishlist functionality
 - [ ] Implement recently viewed products
+- [ ] **Enforce 5-unit minimum order**
 
 ### Account Management
 
@@ -282,6 +311,30 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [x] Add discount code functionality (Backend implementation complete)
 - [x] Add admin interface for discount code management
 - [ ] Add guest checkout option
+- [ ] **Validate minimum order quantities during checkout**
+
+## 🏭 Wholesale Buyer Role Tasks
+
+### UI Implementation
+
+- [ ] **Create wholesale dashboard**
+- [ ] **Implement wholesale ordering interface**
+- [ ] **Add bulk product selection tools**
+- [ ] **Create wholesale-specific product views**
+
+### Account Management
+
+- [ ] **Implement wholesale registration flow**
+- [ ] **Create admin approval process for wholesale accounts**
+- [ ] **Add verification of 100+ unit orders**
+- [ ] **Design order history and reordering for wholesale**
+
+### Ordering Process
+
+- [ ] **Implement bulk order functionality**
+- [ ] **Create wholesale-specific pricing display**
+- [ ] **Add dedicated shipping options for larger orders**
+- [ ] **Implement special payment terms if needed**
 
 ## 🔗 Referral Program Tasks
 
@@ -326,6 +379,8 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [ ] Set up staging environment
 - [ ] Add backup and recovery procedures
 - [ ] Implement proper logging and monitoring
+- [ ] **Update database schema for wholesale user role**
+- [ ] **Add order quantity validation across all endpoints**
 
 ## 📱 Mobile Responsiveness
 

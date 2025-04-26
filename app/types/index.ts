@@ -14,10 +14,18 @@ export interface User {
   updated_at?: string | null;
   last_login?: string | null;
   location?: string | null;
+  wholesale_eligibility?: boolean;
+  wholesale_approved_at?: string | null;
+  wholesale_approved_by?: string | null;
 }
 
-export type UserRole = 'Admin' | 'Distributor' | 'Retail Customer' | 'Wholesale Buyer';
-export type UserStatus = 'Active' | 'Suspended' | 'Pending Verification';
+export type UserRole =
+  | 'Admin'
+  | 'Distributor'
+  | 'Retail Customer'
+  | 'Wholesale Buyer'
+  | 'Referral Partner';
+export type UserStatus = 'Active' | 'Suspended' | 'Pending Verification' | 'Pending Approval';
 
 // Product types
 export interface Product {
@@ -68,6 +76,8 @@ export interface Order {
   tracking_number?: string | null;
   notes?: string | null;
   assigned_distributor_id?: string | null;
+  is_wholesale?: boolean;
+  total_quantity?: number;
 }
 
 export type OrderStatus =
@@ -144,6 +154,25 @@ export interface Inventory {
   product_id: number;
   location: string;
   quantity: number;
+  updated_at: string;
+}
+
+// Order requirement types
+export interface OrderRequirement {
+  id: number;
+  min_order_quantity: number;
+  applies_to_role: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Wholesale requirement types
+export interface WholesaleRequirement {
+  id: number;
+  min_order_quantity: number;
+  is_active: boolean;
+  created_at: string;
   updated_at: string;
 }
 

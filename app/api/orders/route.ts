@@ -7,6 +7,7 @@ import { sendOrderConfirmationEmail } from '../../lib/email';
 // --- Interfaces ---
 interface JwtPayload {
   userId: string;
+  role: string;
 }
 interface OrderItemInput {
   productId: number;
@@ -38,7 +39,9 @@ interface ProductInfo {
 }
 
 // --- Helper Functions (Moved outside POST handler) ---
-async function getUserIdFromToken(request: NextRequest): Promise<string | null> {
+async function getUserFromToken(
+  request: NextRequest
+): Promise<{ userId: string; role: string } | null> {
   const authHeader = request.headers.get('authorization');
   const token = authHeader?.split(' ')[1];
   if (!token) return null;
@@ -48,7 +51,7 @@ async function getUserIdFromToken(request: NextRequest): Promise<string | null> 
   }
   try {
     const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
-    return decoded.userId;
+    return { userId: decoded.userId, role: decoded.role };
   } catch (error) {
     console.warn('Token verification failed:', error);
     return null;
@@ -67,17 +70,98 @@ function getTargetLocation(address: AddressInput | undefined): string {
   return 'Toronto';
 }
 
+// Fetch order requirements for validation
+async function getOrderRequirements(
+  client: PoolClient,
+  userRole: string
+): Promise<{ minOrderQuantity: number }> {
+  // Default minimum quantities
+  const defaultMin = 5;
+
+  try {
+    // First check for role-specific requirements
+    const roleSpecificResult = await client.query(
+      'SELECT min_order_quantity FROM order_requirements WHERE applies_to_role = $1 AND is_active = TRUE',
+      [userRole]
+    );
+
+    if (roleSpecificResult.rows.length > 0) {
+      return {
+        minOrderQuantity: parseInt(roleSpecificResult.rows[0].min_order_quantity),
+      };
+    }
+
+    // If no role-specific requirement, check for general requirement ('ALL')
+    const generalResult = await client.query(
+      'SELECT min_order_quantity FROM order_requirements WHERE applies_to_role = $1 AND is_active = TRUE',
+      ['ALL']
+    );
+
+    if (generalResult.rows.length > 0) {
+      return {
+        minOrderQuantity: parseInt(generalResult.rows[0].min_order_quantity),
+      };
+    }
+
+    // If no requirements found in database, return default
+    return { minOrderQuantity: defaultMin };
+  } catch (error) {
+    console.error('Error fetching order requirements:', error);
+    return { minOrderQuantity: defaultMin };
+  }
+}
+
+// Check if user is eligible for wholesale (either approved or meets criteria)
+async function checkWholesaleEligibility(
+  client: PoolClient,
+  userId: string,
+  userRole: string,
+  totalQuantity: number
+): Promise<boolean> {
+  try {
+    // If not a wholesale buyer, not eligible
+    if (userRole !== 'Wholesale Buyer') {
+      return false;
+    }
+
+    // Check if user is already approved for wholesale
+    const userResult = await client.query('SELECT wholesale_eligibility FROM users WHERE id = $1', [
+      userId,
+    ]);
+
+    if (userResult.rows.length > 0 && userResult.rows[0].wholesale_eligibility) {
+      return true;
+    }
+
+    // Get wholesale requirements
+    const reqResult = await client.query(
+      'SELECT min_order_quantity FROM wholesale_requirements WHERE is_active = TRUE'
+    );
+
+    const minWholesaleQuantity =
+      reqResult.rows.length > 0 ? parseInt(reqResult.rows[0].min_order_quantity) : 100;
+
+    // Check if current order meets wholesale criteria
+    return totalQuantity >= minWholesaleQuantity;
+  } catch (error) {
+    console.error('Error checking wholesale eligibility:', error);
+    return false;
+  }
+}
+
 // --- Main POST Handler ---
 export async function POST(request: NextRequest) {
   // Declare variables needed across try/catch/finally
-  let userId: string | null = null;
+  let userInfo: { userId: string; role: string } | null = null;
   let client: PoolClient | null = null;
   let orderCreated = false; // Moved declaration outside try
   let newOrderId: number | null = null;
 
   try {
-    userId = await getUserIdFromToken(request);
-    if (!userId) return NextResponse.json({ message: 'Unauthorized.' }, { status: 401 });
+    userInfo = await getUserFromToken(request);
+    if (!userInfo) return NextResponse.json({ message: 'Unauthorized.' }, { status: 401 });
+
+    const { userId, role } = userInfo;
 
     const body: CreateOrderBody = await request.json();
     const { items, shippingAddress, billingAddress, paymentMethod, discountCode } = body;
@@ -98,6 +182,28 @@ export async function POST(request: NextRequest) {
     // Get a client connection from the pool
     client = await pool.connect();
     console.log('DB client connected for transaction.');
+
+    // --- Validate minimum order quantity ---
+    const orderRequirements = await getOrderRequirements(client, role);
+    const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+
+    if (totalQuantity < orderRequirements.minOrderQuantity) {
+      return NextResponse.json(
+        {
+          message: `Minimum order quantity is ${orderRequirements.minOrderQuantity} units. Your order has ${totalQuantity} units.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // --- Check wholesale eligibility ---
+    const isWholesaleEligible = await checkWholesaleEligibility(
+      client,
+      userId,
+      role,
+      totalQuantity
+    );
+    const isWholesaleOrder = role === 'Wholesale Buyer' && isWholesaleEligible;
 
     // --- Pre-computation & Checks ---
     const productIds = items.map(item => item.productId);
@@ -227,7 +333,15 @@ export async function POST(request: NextRequest) {
     const shippingAddrJson = JSON.stringify(shippingAddress);
     const billingAddrJson = JSON.stringify(billingAddress);
 
-    const orderInsertQuery = `INSERT INTO orders (user_id, status, subtotal, discount_code, discount_amount, shipping_cost, taxes, total_amount, shipping_address, billing_address, payment_method, payment_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`;
+    const orderInsertQuery = `
+      INSERT INTO orders (
+        user_id, status, subtotal, discount_code, discount_amount, 
+        shipping_cost, taxes, total_amount, shipping_address, billing_address, 
+        payment_method, payment_status, is_wholesale, total_quantity
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+      ) RETURNING id`;
+
     const orderInsertParams = [
       userId,
       initialStatus,
@@ -241,11 +355,23 @@ export async function POST(request: NextRequest) {
       billingAddrJson,
       paymentMethod,
       initialPaymentStatus,
+      isWholesaleOrder,
+      totalQuantity,
     ];
+
     const orderResult = await client.query(orderInsertQuery, orderInsertParams);
     newOrderId = orderResult.rows[0]?.id;
     if (!newOrderId) throw new Error('Failed to create order record.');
     console.log(`Order record inserted (ID: ${newOrderId})`);
+
+    // If this is the user's first wholesale order and they're eligible, update their status
+    if (isWholesaleOrder && role === 'Wholesale Buyer' && !isWholesaleEligible) {
+      await client.query(
+        'UPDATE users SET wholesale_eligibility = TRUE, wholesale_approved_at = NOW() WHERE id = $1',
+        [userId]
+      );
+      console.log(`User ${userId} marked as wholesale eligible`);
+    }
 
     // 5. Create Order Items
     const itemInsertQuery =
@@ -427,7 +553,7 @@ export async function POST(request: NextRequest) {
         console.error('Failed to rollback transaction:', rollbackError);
       }
     }
-    console.error(`POST /api/orders - Failed for user ${userId || '(unknown)'}:`, error);
+    console.error(`POST /api/orders - Failed for user ${userInfo?.userId || '(unknown)'}:`, error);
     return NextResponse.json(
       { message: error instanceof Error ? error.message : 'Internal Server Error' },
       { status: 500 }

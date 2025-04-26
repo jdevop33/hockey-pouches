@@ -18,7 +18,15 @@ interface AddressData {
 export default function CheckoutPage() {
   const router = useRouter();
   const { user, token, isLoading: authLoading, logout } = useAuth();
-  const { items, itemCount, subtotal, clearCart } = useCart();
+  const {
+    items,
+    itemCount,
+    subtotal,
+    clearCart,
+    totalQuantity,
+    validateMinimumOrder,
+    minOrderQuantity,
+  } = useCart();
 
   const [shippingAddress, setShippingAddress] = useState<AddressData>({
     street: '',
@@ -67,9 +75,30 @@ export default function CheckoutPage() {
         router.push('/login?redirect=/checkout');
       } else if (itemCount === 0) {
         router.push('/products');
+      } else {
+        // Check minimum order quantity
+        const orderValidation = validateMinimumOrder();
+        if (!orderValidation.isValid) {
+          setError(
+            orderValidation.message || `Minimum order quantity is ${minOrderQuantity} units.`
+          );
+          // After showing the error for 3 seconds, redirect to cart
+          setTimeout(() => {
+            router.push('/cart');
+          }, 3000);
+        }
       }
     }
-  }, [user, token, authLoading, itemCount, router]);
+  }, [
+    user,
+    token,
+    authLoading,
+    itemCount,
+    totalQuantity,
+    router,
+    validateMinimumOrder,
+    minOrderQuantity,
+  ]);
 
   const validateForm = (): boolean => {
     const newFormErrors = {
@@ -79,6 +108,13 @@ export default function CheckoutPage() {
     };
 
     let isValid = true;
+
+    // Validate minimum order quantity
+    const orderValidation = validateMinimumOrder();
+    if (!orderValidation.isValid) {
+      setError(orderValidation.message || `Minimum order quantity is ${minOrderQuantity} units.`);
+      return false;
+    }
 
     // Validate shipping address
     if (!shippingAddress.street?.trim()) {
