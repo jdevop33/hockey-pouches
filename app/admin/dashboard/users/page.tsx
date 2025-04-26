@@ -82,9 +82,10 @@ export default function AdminUsersPage() {
           const pendingData = await pendingResponse.json();
           setPendingUsers(pendingData.users || []);
         }
-      } catch (err) {
+      } catch (err: unknown) {
+        const error = err as Error;
         setError('Failed to load users data.');
-        console.error(err);
+        console.error(error);
       } finally {
         setIsLoading(false);
       }
@@ -190,34 +191,34 @@ export default function AdminUsersPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-900/40 text-green-300';
       case 'Suspended':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-900/40 text-red-300';
       case 'Pending Approval':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-900/40 text-yellow-300';
       case 'Pending Verification':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-900/40 text-blue-300';
       case 'Rejected':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-900/40 text-red-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-900/40 text-gray-300';
     }
   };
 
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'Admin':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-900/40 text-purple-300';
       case 'Distributor':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-900/40 text-blue-300';
       case 'Wholesale Buyer':
-        return 'bg-indigo-100 text-indigo-800';
+        return 'bg-indigo-900/40 text-indigo-300';
       case 'Referral Partner':
-        return 'bg-teal-100 text-teal-800';
+        return 'bg-teal-900/40 text-teal-300';
       case 'Retail Customer':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-900/40 text-gray-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-900/40 text-gray-300';
     }
   };
 
@@ -239,93 +240,99 @@ export default function AdminUsersPage() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-100 p-8">
+      <div className="min-h-screen bg-gray-900 p-8 text-gray-100">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-800">Manage Users</h1>
+          <h1 className="text-3xl font-bold text-gray-100">Manage Users</h1>
         </div>
 
         {/* Pending Approval Users Section */}
         {pendingUsers.length > 0 && (
           <div className="mb-8">
-            <h2 className="mb-4 text-xl font-semibold text-gray-800">Pending Approval Requests</h2>
-            <div className="overflow-x-auto rounded-lg bg-white shadow-md">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+            <h2 className="mb-4 text-xl font-semibold text-gray-100">Pending Approval Requests</h2>
+            <div className="overflow-x-auto rounded-lg bg-gray-800 shadow-gold-sm">
+              <table className="min-w-full divide-y divide-gray-700">
+                <thead className="bg-gray-700">
                   <tr>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
                     >
                       Name
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
                     >
                       Email
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
                     >
-                      Role
+                      Requested Role
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
+                    >
+                      Status
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
                     >
                       Joined
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500"
-                    >
-                      Actions
+                    <th scope="col" className="relative px-6 py-3">
+                      <span className="sr-only">Actions</span>
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
+                <tbody className="divide-y divide-gray-700 bg-gray-800">
                   {pendingUsers.map(user => (
-                    <tr key={user.id} className="bg-yellow-50">
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                    <tr key={user.id}>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-200">
                         {user.name}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-300">
                         {user.email}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
                         <span
-                          className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getRoleColor(user.role)}`}
+                          className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getRoleColor(
+                            user.role
+                          )}`}
                         >
                           {user.role}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        {user.joinDate}
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
+                        <span
+                          className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(
+                            user.status
+                          )}`}
+                        >
+                          {user.status}
+                        </span>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                        <div className="flex items-center justify-end space-x-2">
-                          <button
-                            onClick={() => handleApproveUser(user.id)}
-                            disabled={processingAction === user.id}
-                            className="rounded bg-green-500 px-3 py-1 text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            {processingAction === user.id ? 'Processing...' : 'Approve'}
-                          </button>
-                          <button
-                            onClick={() => handleRejectUser(user.id)}
-                            disabled={processingAction === user.id}
-                            className="rounded bg-red-500 px-3 py-1 text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            Reject
-                          </button>
-                          <Link
-                            href={`/admin/dashboard/users/${user.id}`}
-                            className="text-primary-600 hover:text-primary-900"
-                          >
-                            View
-                          </Link>
-                        </div>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-400">
+                        {new Date(user.joinDate).toLocaleDateString()}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
+                        <button
+                          onClick={() => handleApproveUser(user.id)}
+                          disabled={processingAction === user.id}
+                          className="mr-2 text-green-400 hover:text-green-300 disabled:opacity-50"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleRejectUser(user.id)}
+                          disabled={processingAction === user.id}
+                          className="text-red-400 hover:text-red-300 disabled:opacity-50"
+                        >
+                          Reject
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -336,9 +343,9 @@ export default function AdminUsersPage() {
         )}
 
         {/* Filters */}
-        <div className="mb-6 flex flex-wrap gap-4 rounded-md bg-white p-4 shadow">
+        <div className="mb-6 flex flex-wrap gap-4 rounded-md bg-gray-800 p-4 shadow">
           <div>
-            <label htmlFor="roleFilter" className="mr-2 text-sm font-medium text-gray-700">
+            <label htmlFor="roleFilter" className="mr-2 text-sm font-medium text-gray-300">
               Role:
             </label>
             <select
@@ -348,7 +355,7 @@ export default function AdminUsersPage() {
                 setFilterRole(e.target.value);
                 setCurrentPage(1);
               }}
-              className="rounded-md border-gray-300 shadow-sm sm:text-sm"
+              className="rounded-md border-gray-700 shadow-sm sm:text-sm"
             >
               <option value="">All Roles</option>
               <option value="Admin">Admin</option>
@@ -359,7 +366,7 @@ export default function AdminUsersPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="statusFilter" className="mr-2 text-sm font-medium text-gray-700">
+            <label htmlFor="statusFilter" className="mr-2 text-sm font-medium text-gray-300">
               Status:
             </label>
             <select
@@ -369,7 +376,7 @@ export default function AdminUsersPage() {
                 setFilterStatus(e.target.value);
                 setCurrentPage(1);
               }}
-              className="rounded-md border-gray-300 shadow-sm sm:text-sm"
+              className="rounded-md border-gray-700 shadow-sm sm:text-sm"
             >
               <option value="">All Statuses</option>
               <option value="Active">Active</option>
@@ -387,37 +394,37 @@ export default function AdminUsersPage() {
         {isLoading ? (
           <div className="p-8 text-center">Loading users data...</div>
         ) : (
-          <div className="overflow-x-auto rounded-lg bg-white shadow-md">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div className="overflow-x-auto rounded-lg bg-gray-800 shadow-gold-sm">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead className="bg-gray-700">
                 <tr>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
                   >
                     Name
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
                   >
                     Email
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
                   >
                     Role
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
                   >
                     Status
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
                   >
                     Joined
                   </th>
@@ -426,34 +433,34 @@ export default function AdminUsersPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
+              <tbody className="divide-y divide-gray-700 bg-gray-800">
                 {users.length > 0 ? (
                   users.map(usr => (
                     <tr key={usr.id}>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-200">
                         {usr.name}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-300">
                         {usr.email}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
                         <span
-                          className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getRoleColor(usr.role)}`}
+                          className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getRoleColor(usr.role)}`}
                         >
                           {usr.role}
                         </span>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
                         <span
-                          className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getStatusColor(usr.status)}`}
+                          className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(usr.status)}`}
                         >
                           {usr.status}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        {usr.joinDate}
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-400">
+                        {new Date(usr.joinDate).toLocaleDateString()}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
                         <Link
                           href={`/admin/dashboard/users/${usr.id}`}
                           className="text-primary-600 hover:text-primary-900"
@@ -475,26 +482,26 @@ export default function AdminUsersPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="border-t border-gray-200 px-4 py-3 sm:px-6">
+              <div className="border-t border-gray-700 px-4 py-3 sm:px-6">
                 <div className="flex flex-1 justify-between sm:hidden">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="relative inline-flex items-center rounded-md border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="relative ml-3 inline-flex items-center rounded-md border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700"
                   >
                     Next
                   </button>
                 </div>
                 <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm text-gray-300">
                       Showing page <span className="font-medium">{currentPage}</span> of{' '}
                       <span className="font-medium">{totalPages}</span>
                     </p>
@@ -507,7 +514,7 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => handlePageChange(1)}
                         disabled={currentPage === 1}
-                        className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                        className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-700 hover:bg-gray-700 focus:z-20 focus:outline-offset-0"
                       >
                         <span className="sr-only">First</span>
                         &laquo;
@@ -515,7 +522,7 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                        className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-700 hover:bg-gray-700 focus:z-20 focus:outline-offset-0"
                       >
                         <span className="sr-only">Previous</span>
                         &lsaquo;
@@ -539,7 +546,7 @@ export default function AdminUsersPage() {
                               className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
                                 pageNumber === currentPage
                                   ? 'z-10 bg-primary-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600'
-                                  : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                                  : 'text-gray-300 ring-1 ring-inset ring-gray-700 hover:bg-gray-700 focus:z-20 focus:outline-offset-0'
                               }`}
                             >
                               {pageNumber}
@@ -555,7 +562,7 @@ export default function AdminUsersPage() {
                           return (
                             <span
                               key={pageNumber}
-                              className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0"
+                              className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-500 ring-1 ring-inset ring-gray-700 focus:outline-offset-0"
                             >
                               &hellip;
                             </span>
@@ -568,7 +575,7 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                        className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-700 hover:bg-gray-700 focus:z-20 focus:outline-offset-0"
                       >
                         <span className="sr-only">Next</span>
                         &rsaquo;
@@ -576,7 +583,7 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => handlePageChange(totalPages)}
                         disabled={currentPage === totalPages}
-                        className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                        className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-700 hover:bg-gray-700 focus:z-20 focus:outline-offset-0"
                       >
                         <span className="sr-only">Last</span>
                         &raquo;

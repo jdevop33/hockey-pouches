@@ -397,18 +397,15 @@ export default function AdminProductDetailPage() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-100 p-8">
+      <div className="min-h-screen bg-gray-900 p-8 text-gray-100">
         <div className="mb-6">
-          <Link
-            href="/admin/dashboard/products"
-            className="text-primary-600 hover:text-primary-700"
-          >
+          <Link href="/admin/dashboard/products" className="text-gold-400 hover:text-gold-300">
             &larr; Back to Products
           </Link>
         </div>
         <form onSubmit={handleSaveChanges}>
           <div className="mb-6 flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-800">
+            <h1 className="text-3xl font-bold text-gray-100">
               {isEditing ? 'Edit Product' : 'Product Details'}: {product.name}
             </h1>
             <div className="space-x-3">
@@ -421,14 +418,14 @@ export default function AdminProductDetailPage() {
                       setIsEditing(false);
                       setError(null);
                     }}
-                    className="rounded bg-gray-500 px-4 py-2 font-bold text-white hover:bg-gray-600"
+                    className="rounded bg-gray-700 px-4 py-2 font-bold text-white hover:bg-gray-600"
                     disabled={isSaving}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600"
+                    className="rounded bg-green-600 px-4 py-2 font-bold text-white hover:bg-green-500"
                     disabled={isSaving}
                   >
                     {isSaving ? 'Saving...' : 'Save Changes'}
@@ -438,7 +435,7 @@ export default function AdminProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-600"
+                  className="rounded bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-500"
                 >
                   Edit Product
                 </button>
@@ -446,14 +443,14 @@ export default function AdminProductDetailPage() {
             </div>
           </div>
 
-          {error && <p className="mb-4 rounded bg-red-100 p-3 text-red-500">Error: {error}</p>}
+          {error && <p className="mb-4 rounded bg-red-900/50 p-3 text-red-300">Error: {error}</p>}
 
-          <div className="space-y-6 rounded-lg bg-white p-6 shadow-lg">
+          <div className="space-y-6 rounded-lg bg-gray-800 p-6 shadow-gold-sm">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {/* Basic Information */}
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-300">
                     Product Name*
                   </label>
                   <input
@@ -463,13 +460,13 @@ export default function AdminProductDetailPage() {
                     value={editData.name || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing || isSaving}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
+                    className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500 disabled:bg-gray-800"
                     required
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-300">
                     Category
                   </label>
                   <input
@@ -479,12 +476,12 @@ export default function AdminProductDetailPage() {
                     value={editData.category || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing || isSaving}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
+                    className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500 disabled:bg-gray-800"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="price" className="block text-sm font-medium text-gray-300">
                     Price* ($)
                   </label>
                   <input
@@ -494,7 +491,7 @@ export default function AdminProductDetailPage() {
                     value={editData.price || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing || isSaving}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
+                    className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500 disabled:bg-gray-800"
                     step="0.01"
                     min="0"
                     required
@@ -504,7 +501,7 @@ export default function AdminProductDetailPage() {
                 <div>
                   <label
                     htmlFor="compare_at_price"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-300"
                   >
                     Compare At Price ($)
                   </label>
@@ -515,7 +512,7 @@ export default function AdminProductDetailPage() {
                     value={editData.compare_at_price || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing || isSaving}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
+                    className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500 disabled:bg-gray-800"
                     step="0.01"
                     min="0"
                   />
@@ -525,7 +522,7 @@ export default function AdminProductDetailPage() {
               {/* Additional Information */}
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-300">
                     Description
                   </label>
                   <textarea
@@ -535,12 +532,12 @@ export default function AdminProductDetailPage() {
                     onChange={handleInputChange}
                     disabled={!isEditing || isSaving}
                     rows={4}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
+                    className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500 disabled:bg-gray-800"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="strength" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="strength" className="block text-sm font-medium text-gray-300">
                     Strength
                   </label>
                   <input
@@ -550,16 +547,16 @@ export default function AdminProductDetailPage() {
                     value={editData.strength || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing || isSaving}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100"
+                    className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500 disabled:bg-gray-800"
                     min="0"
                     max="5"
                     step="1"
                   />
-                  <p className="mt-1 text-sm text-gray-500">Strength level (0-5)</p>
+                  <p className="mt-1 text-sm text-gray-400">Strength level (0-5)</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Product Image</label>
+                  <label className="block text-sm font-medium text-gray-300">Product Image</label>
                   {isEditing ? (
                     token ? (
                       <ImageUploader
@@ -570,14 +567,14 @@ export default function AdminProductDetailPage() {
                         disabled={isSaving}
                       />
                     ) : (
-                      <div className="mt-1 text-sm text-red-500">
+                      <div className="mt-1 text-sm text-red-400">
                         Authentication required for image upload
                       </div>
                     )
                   ) : (
                     <div className="mt-1">
                       {editData.image_url ? (
-                        <div className="relative h-48 w-48 overflow-hidden rounded-md border border-gray-300">
+                        <div className="relative h-48 w-48 overflow-hidden rounded-md border border-gray-600">
                           <Image
                             src={editData.image_url}
                             alt={editData.name || 'Product image'}
@@ -586,8 +583,8 @@ export default function AdminProductDetailPage() {
                           />
                         </div>
                       ) : (
-                        <div className="flex h-48 w-48 items-center justify-center rounded-md border-2 border-dashed border-gray-300 bg-gray-50">
-                          <p className="text-sm text-gray-500">No image</p>
+                        <div className="flex h-48 w-48 items-center justify-center rounded-md border-2 border-dashed border-gray-600 bg-gray-800">
+                          <p className="text-sm text-gray-400">No image</p>
                         </div>
                       )}
                     </div>
@@ -602,9 +599,9 @@ export default function AdminProductDetailPage() {
                     checked={editData.is_active || false}
                     onChange={handleInputChange}
                     disabled={!isEditing || isSaving}
-                    className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-gold-500 focus:ring-gold-500"
                   />
-                  <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
+                  <label htmlFor="is_active" className="ml-2 block text-sm text-gray-300">
                     Active (visible to customers)
                   </label>
                 </div>
@@ -612,62 +609,64 @@ export default function AdminProductDetailPage() {
             </div>
           </div>
         </form>
-        <div className="mt-8 rounded-lg bg-white p-6 shadow-lg">
+        <div className="mt-8 rounded-lg bg-gray-800 p-6 shadow-gold-sm">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-800">Product Variations</h2>
+            <h2 className="text-xl font-bold text-gray-100">Product Variations</h2>
             <button
               type="button"
               onClick={handleAddVariation}
-              className="rounded bg-green-500 px-4 py-2 text-sm font-bold text-white hover:bg-green-600"
+              className="rounded bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-500"
             >
               Add Variation
             </button>
           </div>
 
           {variationError && (
-            <div className="mb-4 rounded bg-red-100 p-3 text-red-500">Error: {variationError}</div>
+            <div className="mb-4 rounded bg-red-900/50 p-3 text-red-300">
+              Error: {variationError}
+            </div>
           )}
 
           {isLoadingVariations ? (
-            <div className="py-4 text-center">Loading variations...</div>
+            <div className="py-4 text-center text-gray-300">Loading variations...</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-gray-700">
+                <thead className="bg-gray-700">
                   <tr>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
                     >
                       Name
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
                     >
                       Flavor
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-300"
                     >
                       Strength
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500"
+                      className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-300"
                     >
                       Price
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500"
+                      className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-300"
                     >
                       Stock
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500"
+                      className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-300"
                     >
                       Status
                     </th>
@@ -676,37 +675,37 @@ export default function AdminProductDetailPage() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
+                <tbody className="divide-y divide-gray-700 bg-gray-800">
                   {variations.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-400">
                         No variations found. Add your first variation!
                       </td>
                     </tr>
                   ) : (
                     variations.map(variation => (
                       <tr key={variation.id}>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-200">
                           {variation.name}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-200">
                           {variation.flavor || '-'}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-400">
                           {variation.strength || '-'}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm text-gray-900">
+                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm text-gray-200">
                           ${variation.price.toFixed(2)}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500">
+                        <td className="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-400">
                           {variation.inventory_quantity}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-center">
                           <span
                             className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                               variation.is_active
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
+                                ? 'bg-green-900/40 text-green-300'
+                                : 'bg-red-900/40 text-red-300'
                             }`}
                           >
                             {variation.is_active ? 'Active' : 'Inactive'}
@@ -715,13 +714,13 @@ export default function AdminProductDetailPage() {
                         <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
                           <button
                             onClick={() => handleEditVariation(variation.id)}
-                            className="mr-3 text-indigo-600 hover:text-indigo-900"
+                            className="mr-3 text-gold-400 hover:text-gold-300"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDeleteVariation(variation.id)}
-                            className="text-red-600 hover:text-red-900"
+                            className="text-red-400 hover:text-red-300"
                           >
                             Delete
                           </button>
@@ -740,7 +739,7 @@ export default function AdminProductDetailPage() {
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
               <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-                <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+                <div className="absolute inset-0 bg-gray-900 opacity-75"></div>
               </div>
               <span
                 className="hidden sm:inline-block sm:h-screen sm:align-middle"
@@ -748,16 +747,16 @@ export default function AdminProductDetailPage() {
               >
                 &#8203;
               </span>
-              <div className="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
-                <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+              <div className="inline-block transform overflow-hidden rounded-lg bg-gray-800 text-left align-bottom shadow-gold-sm transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+                <div className="bg-gray-800 px-4 pb-4 pt-5 text-gray-200 sm:p-6 sm:pb-4">
                   <div className="sm:flex sm:items-start">
                     <div className="mt-3 w-full text-center sm:mt-0 sm:text-left">
-                      <h3 className="text-lg font-medium leading-6 text-gray-900">
+                      <h3 className="text-lg font-medium leading-6 text-gray-100">
                         {currentVariation.id ? 'Edit Variation' : 'Add Variation'}
                       </h3>
 
                       {variationError && (
-                        <div className="mt-2 rounded bg-red-100 p-2 text-red-500">
+                        <div className="mt-2 rounded bg-red-900/50 p-2 text-red-300">
                           {variationError}
                         </div>
                       )}
@@ -766,7 +765,7 @@ export default function AdminProductDetailPage() {
                         <div>
                           <label
                             htmlFor="variation-name"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-300"
                           >
                             Name*
                           </label>
@@ -777,7 +776,7 @@ export default function AdminProductDetailPage() {
                             onChange={e =>
                               setCurrentVariation({ ...currentVariation, name: e.target.value })
                             }
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500"
                             required
                           />
                         </div>
@@ -785,7 +784,7 @@ export default function AdminProductDetailPage() {
                         <div>
                           <label
                             htmlFor="variation-flavor"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-300"
                           >
                             Flavor
                           </label>
@@ -796,14 +795,14 @@ export default function AdminProductDetailPage() {
                             onChange={e =>
                               setCurrentVariation({ ...currentVariation, flavor: e.target.value })
                             }
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500"
                           />
                         </div>
 
                         <div>
                           <label
                             htmlFor="variation-strength"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-300"
                           >
                             Strength
                           </label>
@@ -819,14 +818,14 @@ export default function AdminProductDetailPage() {
                             }
                             min="0"
                             max="5"
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500"
                           />
                         </div>
 
                         <div>
                           <label
                             htmlFor="variation-price"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-300"
                           >
                             Price* ($)
                           </label>
@@ -842,7 +841,7 @@ export default function AdminProductDetailPage() {
                             }
                             step="0.01"
                             min="0"
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500"
                             required
                           />
                         </div>
@@ -850,7 +849,7 @@ export default function AdminProductDetailPage() {
                         <div>
                           <label
                             htmlFor="variation-compare-price"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-300"
                           >
                             Compare At Price ($)
                           </label>
@@ -868,14 +867,14 @@ export default function AdminProductDetailPage() {
                             }
                             step="0.01"
                             min="0"
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500"
                           />
                         </div>
 
                         <div>
                           <label
                             htmlFor="variation-sku"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-300"
                           >
                             SKU
                           </label>
@@ -886,14 +885,14 @@ export default function AdminProductDetailPage() {
                             onChange={e =>
                               setCurrentVariation({ ...currentVariation, sku: e.target.value })
                             }
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500"
                           />
                         </div>
 
                         <div>
                           <label
                             htmlFor="variation-inventory"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-300"
                           >
                             Inventory Quantity
                           </label>
@@ -908,12 +907,12 @@ export default function AdminProductDetailPage() {
                               })
                             }
                             min="0"
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label className="block text-sm font-medium text-gray-300">
                             Product Image
                           </label>
                           {token ? (
@@ -931,7 +930,7 @@ export default function AdminProductDetailPage() {
                               className="mt-1"
                             />
                           ) : (
-                            <div className="mt-1 text-sm text-red-500">
+                            <div className="mt-1 text-sm text-red-300">
                               Authentication required for image upload
                             </div>
                           )}
@@ -948,11 +947,11 @@ export default function AdminProductDetailPage() {
                                 is_active: e.target.checked,
                               })
                             }
-                            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                            className="h-4 w-4 rounded border-gray-700 bg-gray-700 text-gold-500 focus:ring-gold-500"
                           />
                           <label
                             htmlFor="variation-active"
-                            className="ml-2 block text-sm text-gray-900"
+                            className="ml-2 block text-sm text-gray-300"
                           >
                             Active (visible to customers)
                           </label>
@@ -961,12 +960,12 @@ export default function AdminProductDetailPage() {
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                <div className="bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                   <button
                     type="button"
                     onClick={handleSaveVariation}
                     disabled={isSavingVariation}
-                    className="inline-flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="inline-flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
                   >
                     {isSavingVariation ? 'Saving...' : 'Save'}
                   </button>
@@ -978,7 +977,7 @@ export default function AdminProductDetailPage() {
                       setVariationError(null);
                     }}
                     disabled={isSavingVariation}
-                    className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
+                    className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-600 bg-gray-800 px-4 py-2 text-base font-medium text-gray-300 shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
                   >
                     Cancel
                   </button>
