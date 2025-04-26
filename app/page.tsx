@@ -4,14 +4,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Layout from './components/layout/NewLayout';
 
-// Define product data directly in the component
+// Define product data directly in the component with corrected image paths
 const featuredProducts = [
   {
     id: 'cool-mint',
     name: 'PUXX Classic Mint',
     description: 'Refined flavor profile with subtle cooling effect',
     price: 15.0,
-    image: '/images/products/mint/mint-pack.webp',
+    image: '/images/products/puxxcoolmint22mg.png',
     badge: { text: 'BEST SELLER', color: 'bg-gold-500' },
   },
   {
@@ -19,14 +19,14 @@ const featuredProducts = [
     name: 'PUXX Peppermint',
     description: 'Crisp peppermint with exceptional clarity',
     price: 15.0,
-    image: '/images/products/mint/peppermint-pack.webp',
+    image: '/images/products/puxxperpermint22mg.png',
   },
   {
     id: 'spearmint',
     name: 'PUXX Spearmint',
     description: 'Sophisticated spearmint with lasting freshness',
     price: 15.0,
-    image: '/images/products/mint/spearmint-pack.webp',
+    image: '/images/products/puxxspearmint22mg.png',
     badge: { text: 'POPULAR', color: 'bg-gold-500' },
   },
   {
@@ -34,7 +34,7 @@ const featuredProducts = [
     name: 'PUXX Watermelon',
     description: 'Premium watermelon with balanced sweetness',
     price: 15.0,
-    image: '/images/products/berry/berry-pack.webp',
+    image: '/images/products/puxxwatermelon16mg.png',
     badge: { text: 'NEW', color: 'bg-blue-500' },
   },
 ];
@@ -42,9 +42,9 @@ const featuredProducts = [
 export default function Home() {
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative min-h-[80vh] overflow-hidden bg-dark-500 py-16 text-white md:py-24">
-        {/* Background Image with Overlay */}
+      {/* Hero Section with Parallax Effect */}
+      <section className="relative min-h-[90vh] overflow-hidden bg-black py-16 text-white md:py-24">
+        {/* Background Image with Enhanced Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/images/products/banner.png"
@@ -53,39 +53,69 @@ export default function Home() {
             className="object-cover object-center"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-dark-500 via-dark-500/80 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
         </div>
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative z-10 grid gap-8 lg:grid-cols-2 lg:gap-12">
+          <div className="relative z-10 grid gap-8 lg:grid-cols-2 lg:gap-16">
             <div className="flex flex-col justify-center">
-              <div className="mb-4 inline-block rounded-full bg-gold-500/20 px-3 py-1 text-sm font-medium uppercase tracking-wider text-gold-500">
+              <div className="mb-6 inline-block rounded-full bg-gold-500/20 px-4 py-1.5 text-sm font-medium uppercase tracking-wider text-gold-500 backdrop-blur-sm">
                 Premium Nicotine Pouches
               </div>
 
-              <h1 className="mb-6 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                <span className="bg-gradient-gold bg-clip-text text-transparent">PUXX</span>
-                <span className="mt-2 block text-3xl sm:text-4xl">World's Best Pouches</span>
+              <h1 className="mb-8 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+                <span className="bg-gradient-gold bg-clip-text text-transparent">Elevate Your</span>
+                <span className="mt-3 block text-3xl sm:text-4xl">
+                  Premium Crafted for Those Who Demand Excellence
+                </span>
               </h1>
 
-              <p className="mb-8 max-w-xl text-lg leading-relaxed text-gray-300">
+              <p className="mb-10 max-w-xl text-lg leading-relaxed text-gray-300">
                 Experience unparalleled quality with PUXX premium tobacco-free nicotine pouches.
                 Crafted with meticulous attention to detail and pharmaceutical-grade ingredients for
                 the most discerning adults.
               </p>
 
-              <div className="flex flex-col gap-4 sm:flex-row">
+              <div className="flex flex-col gap-6 sm:flex-row">
                 <Link
                   href="/products"
-                  className="inline-block rounded-md bg-gold-500 px-6 py-3 text-base font-medium text-dark-900 shadow-gold transition-all hover:bg-gold-400 hover:shadow-gold-lg"
+                  className="group flex items-center justify-center rounded-md bg-gold-500 px-8 py-3.5 text-base font-medium text-dark-900 shadow-gold transition-all duration-300 hover:bg-gold-400 hover:shadow-gold-lg"
                 >
-                  Explore Collection
+                  <span>Explore Collection</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="ml-2 h-5 w-5 transform transition-transform duration-300 group-hover:translate-x-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    />
+                  </svg>
                 </Link>
                 <Link
                   href="/about"
-                  className="inline-block rounded-md border border-gold-500/30 bg-dark-500/50 px-6 py-3 text-base font-medium text-white shadow-sm backdrop-blur-sm transition-all hover:border-gold-500/60 hover:bg-dark-400"
+                  className="group flex items-center justify-center rounded-md border border-gold-500/30 bg-dark-800/50 px-8 py-3.5 text-base font-medium text-white shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-gold-500/60 hover:bg-dark-700"
                 >
-                  Our Story
+                  <span>Our Story</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="ml-2 h-5 w-5 transform opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:opacity-100"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    />
+                  </svg>
                 </Link>
               </div>
             </div>
@@ -94,18 +124,18 @@ export default function Home() {
               <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-gold-500/10 blur-3xl"></div>
               <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gold-500/10 blur-3xl"></div>
 
-              <div className="relative z-10 rounded-2xl border border-gold-500/10 bg-dark-400/30 p-6 shadow-2xl backdrop-blur-md transition-transform hover:scale-[1.02]">
+              <div className="relative z-10 rounded-2xl border border-gold-500/10 bg-dark-800/30 p-8 shadow-2xl backdrop-blur-md transition-transform duration-300 hover:scale-[1.02]">
                 <Image
-                  src="/images/products/mint/mint-pack.webp"
+                  src="/images/products/puxxcoolmint22mg.png"
                   alt="PUXX Premium Nicotine Pouch"
                   width={300}
                   height={300}
                   className="mx-auto rounded-lg object-contain shadow-lg"
                   priority
                 />
-                <div className="mt-4 text-center">
+                <div className="mt-6 text-center">
                   <h3 className="text-xl font-bold text-gold-500">PUXX Classic Mint</h3>
-                  <p className="mt-1 text-sm text-gray-300">
+                  <p className="mt-2 text-sm text-gray-300">
                     Exceptional craftsmanship, superior satisfaction
                   </p>
                 </div>
@@ -113,24 +143,104 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Section Divider - Curved Wave */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 overflow-hidden">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+            className="absolute bottom-0 h-full w-full fill-dark-900"
+          >
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
+          </svg>
+        </div>
       </section>
 
-      {/* Brand Promise Section with secondary image */}
-      <section className="relative overflow-hidden bg-dark-400 py-16 text-white">
-        <div className="absolute right-0 top-0 hidden h-full w-1/2 overflow-hidden opacity-20 lg:block lg:opacity-40">
-          <Image
-            src="/images/products/hero.png"
-            alt="PUXX Craftsmanship"
-            fill
-            className="object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-l from-transparent to-dark-400"></div>
-        </div>
+      {/* Symphony of Sensations Section */}
+      <section className="relative overflow-hidden bg-dark-900 pb-32 pt-20 text-white">
+        <div className="absolute right-0 top-0 h-64 w-full bg-gradient-to-b from-black/20 to-transparent"></div>
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
+          <div className="mb-16 text-center">
+            <h2 className="mb-4 text-3xl font-bold sm:text-4xl">
+              <span className="bg-gradient-gold bg-clip-text text-transparent">
+                A Symphony of Sensations
+              </span>
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-300">
+              Each PUXX creation represents the perfect blend of precision, offering distinct
+              profiles from bold intensity to subtle refinement.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {featuredProducts.map(product => (
+              <div
+                key={product.id}
+                className="group rounded-xl border border-gold-500/10 bg-dark-800/70 p-6 transition-all duration-500 hover:translate-y-[-8px] hover:shadow-gold"
+              >
+                <div className="aspect-square relative mb-6 overflow-hidden rounded-lg bg-dark-800/80">
+                  {product.badge && (
+                    <span
+                      className={`absolute right-2 top-2 z-10 rounded-full ${product.badge.color} px-2 py-1 text-xs font-bold text-dark-900`}
+                    >
+                      {product.badge.text}
+                    </span>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-br from-dark-800/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"></div>
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    className="object-contain p-3 transition-transform duration-700 group-hover:scale-110"
+                  />
+                </div>
+                <h3 className="mb-2 text-xl font-bold text-gold-500">{product.name}</h3>
+                <p className="mb-4 text-sm text-gray-400">{product.description}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-bold text-white">${product.price.toFixed(2)}</span>
+                  <Link
+                    href={`/products/${product.id}`}
+                    className="rounded-full bg-gold-500 px-5 py-2 text-sm font-medium text-dark-900 transition-all duration-300 hover:bg-gold-400 hover:shadow-gold-sm"
+                  >
+                    Add to Cart
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Section Divider - Flowing Lines */}
+        <div className="absolute bottom-0 left-0 right-0 h-20 overflow-hidden">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+            className="absolute bottom-0 h-full w-full fill-dark-800"
+          >
+            <path
+              d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+              opacity=".25"
+            ></path>
+            <path
+              d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+              opacity=".5"
+            ></path>
+            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"></path>
+          </svg>
+        </div>
+      </section>
+
+      {/* The Artistry Behind PUXX */}
+      <section className="relative overflow-hidden bg-dark-800 py-24 text-white">
+        <div className="absolute right-0 top-0 h-32 w-full bg-gradient-to-b from-dark-900/30 to-transparent"></div>
+
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-16 max-w-3xl">
             <h2 className="mb-6 bg-gradient-gold bg-clip-text text-3xl font-bold text-transparent sm:text-4xl">
-              The PUXX Difference
+              The Artistry Behind PUXX
             </h2>
 
             <div className="prose prose-lg prose-invert">
@@ -145,178 +255,86 @@ export default function Home() {
                 that meets the standards of the most discerning adults.
               </p>
             </div>
-
-            <div className="mt-10 grid gap-8 sm:grid-cols-2">
-              <div className="rounded-xl border border-gold-500/10 bg-dark-500/50 p-6 shadow-lg">
-                <h3 className="mb-3 text-lg font-bold text-gold-500">Craftsmanship</h3>
-                <p className="text-gray-300">
-                  Meticulous attention to every detail, from sourcing to production to packaging.
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-gold-500/10 bg-dark-500/50 p-6 shadow-lg">
-                <h3 className="mb-3 text-lg font-bold text-gold-500">Excellence</h3>
-                <p className="text-gray-300">
-                  Uncompromising commitment to superior quality in every aspect of our products.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits Section */}
-      <section className="bg-dark-500 py-16 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="bg-gradient-gold bg-clip-text text-3xl font-bold text-transparent sm:text-4xl">
-              Superior Experience by Design
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-300">
-              Crafted with exceptional care for those who appreciate sophisticated design and
-              premium quality.
-            </p>
           </div>
 
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
-            {/* Benefit 1 */}
-            <div className="rounded-lg border border-gold-500/10 bg-dark-400/70 p-6 transition-all hover:translate-y-[-5px] hover:shadow-gold-sm">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gold-500/10">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-gold-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-              </div>
-              <h3 className="mb-3 text-lg font-bold text-white">Instant Satisfaction</h3>
-              <p className="text-gray-300">
-                Experience immediate enjoyment with our innovative pouch design, engineered for
-                optimal nicotine delivery and comfort.
-              </p>
-            </div>
+          <div className="grid gap-12 lg:grid-cols-2">
+            <div className="relative transform rounded-2xl border border-gold-500/10 bg-dark-900/50 p-8 shadow-lg backdrop-blur-sm transition-transform duration-500 hover:translate-y-[-5px]">
+              <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-gold-500/5 blur-2xl"></div>
+              <div className="absolute bottom-0 left-0 h-24 w-24 rounded-full bg-gold-500/10 blur-2xl"></div>
 
-            {/* Benefit 2 */}
-            <div className="rounded-lg border border-gold-500/10 bg-dark-400/70 p-6 transition-all hover:translate-y-[-5px] hover:shadow-gold-sm">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gold-500/10">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-gold-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                  />
-                </svg>
-              </div>
-              <h3 className="mb-3 text-lg font-bold text-white">Refined Discretion</h3>
-              <p className="text-gray-300">
-                Sophisticated elegance meets practical convenience. Enjoy PUXX anywhere with our
-                discreet, mess-free pouches.
-              </p>
-            </div>
+              <Image
+                src="/images/products/hero.png"
+                alt="PUXX Craftsmanship"
+                width={500}
+                height={500}
+                className="mx-auto mb-8 rounded-lg object-contain"
+              />
 
-            {/* Benefit 3 */}
-            <div className="rounded-lg border border-gold-500/10 bg-dark-400/70 p-6 transition-all hover:translate-y-[-5px] hover:shadow-gold-sm">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gold-500/10">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-gold-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-                  />
-                </svg>
-              </div>
-              <h3 className="mb-3 text-lg font-bold text-white">Superior Ingredients</h3>
-              <p className="text-gray-300">
-                Pharmaceutical-grade components and premium flavorings create an exceptional
-                experience for discerning users.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      <section className="bg-dark-400 py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="mb-8 text-center text-3xl font-bold text-white">Premium Collection</h2>
-          <p className="mx-auto mb-12 max-w-2xl text-center text-gray-300">
-            Discover our meticulously crafted selection of tobacco-free nicotine pouches, each
-            designed to deliver an unparalleled experience.
-          </p>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredProducts.map(product => (
-              <div
-                key={product.id}
-                className="group rounded-lg border border-gold-500/10 bg-dark-500/70 p-6 transition-all hover:translate-y-[-5px] hover:shadow-gold"
-              >
-                <div className="aspect-square relative mb-4 overflow-hidden rounded-md bg-dark-400/50">
-                  {product.badge && (
-                    <span
-                      className={`absolute right-2 top-2 z-10 rounded-full ${product.badge.color} px-2 py-1 text-xs font-bold ${product.badge.color === 'bg-gold-500' ? 'text-dark-500' : 'text-white'}`}
-                    >
-                      {product.badge.text}
-                    </span>
-                  )}
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    className="object-cover transition-transform group-hover:scale-105"
-                  />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-lg border border-gold-500/5 bg-dark-800/70 p-4">
+                  <h3 className="mb-2 text-lg font-bold text-gold-500">Master Blending</h3>
+                  <p className="text-sm text-gray-400">
+                    Precisely calculated formulas create the perfect balance of flavor and effect
+                  </p>
                 </div>
-                <h3 className="mb-1 text-lg font-bold text-gold-500">{product.name}</h3>
-                <p className="mb-3 text-sm text-gray-400">{product.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-white">${product.price.toFixed(2)}</span>
-                  <Link
-                    href={`/products/${product.id}`}
-                    className="rounded-full bg-gold-500 px-4 py-1.5 text-sm font-medium text-dark-900 transition-all hover:bg-gold-400"
-                  >
-                    Add to Cart
-                  </Link>
+
+                <div className="rounded-lg border border-gold-500/5 bg-dark-800/70 p-4">
+                  <h3 className="mb-2 text-lg font-bold text-gold-500">Uncompromising Quality</h3>
+                  <p className="text-sm text-gray-400">
+                    Every ingredient selected to meet our exacting standards for purity
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
 
-          <div className="mt-12 text-center">
-            <Link
-              href="/products"
-              className="inline-block rounded-md border border-gold-500/30 bg-dark-500 px-8 py-3 font-medium text-gold-500 shadow-sm transition-all hover:border-gold-500 hover:shadow-gold-sm"
-            >
-              View Full Collection →
-            </Link>
+            <div className="flex flex-col space-y-8">
+              <div className="transform rounded-xl border border-gold-500/10 bg-dark-900/40 p-6 transition-all duration-500 hover:translate-x-1 hover:translate-y-[-5px]">
+                <h3 className="mb-3 text-xl font-bold text-white">Superior Ingredients</h3>
+                <p className="mb-5 text-gray-300">
+                  We source only the finest pharmaceutical-grade ingredients, ensuring a
+                  consistently exceptional experience with every pouch.
+                </p>
+                <div className="h-1 w-16 rounded-full bg-gradient-to-r from-gold-400 to-gold-600"></div>
+              </div>
+
+              <div className="transform rounded-xl border border-gold-500/10 bg-dark-900/40 p-6 transition-all duration-500 hover:translate-x-1 hover:translate-y-[-5px]">
+                <h3 className="mb-3 text-xl font-bold text-white">Precise Calibration</h3>
+                <p className="mb-5 text-gray-300">
+                  Each PUXX variant is meticulously formulated to deliver consistent strength,
+                  flavor, and satisfaction throughout the entire experience.
+                </p>
+                <div className="h-1 w-16 rounded-full bg-gradient-to-r from-gold-400 to-gold-600"></div>
+              </div>
+
+              <div className="transform rounded-xl border border-gold-500/10 bg-dark-900/40 p-6 transition-all duration-500 hover:translate-x-1 hover:translate-y-[-5px]">
+                <h3 className="mb-3 text-xl font-bold text-white">Elegant Design</h3>
+                <p className="mb-5 text-gray-300">
+                  Our proprietary pouch construction ensures optimal comfort, balanced release, and
+                  discreet use in any setting.
+                </p>
+                <div className="h-1 w-16 rounded-full bg-gradient-to-r from-gold-400 to-gold-600"></div>
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* Section Divider - Diamond Pattern */}
+        <div className="absolute bottom-0 left-0 right-0 h-20 overflow-hidden">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+            className="absolute bottom-0 h-full w-full fill-dark-500"
+          >
+            <path d="M1200 0L0 0 598.97 114.72 1200 0z"></path>
+          </svg>
         </div>
       </section>
 
-      {/* Join the Community CTA Section */}
-      <section className="bg-gradient-to-b from-dark-500 to-dark-600 py-16 md:py-24">
+      {/* Join the Premium PUXX Movement */}
+      <section className="relative bg-dark-500 pb-24 pt-20 text-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="overflow-hidden rounded-2xl border border-gold-500/10 bg-dark-400/50 shadow-xl backdrop-blur-sm">
+          <div className="overflow-hidden rounded-2xl border border-gold-500/10 bg-dark-800/60 shadow-xl backdrop-blur-sm">
             <div className="grid grid-cols-1 gap-8 p-8 lg:grid-cols-2 lg:p-12">
               <div>
                 <span className="inline-block text-sm font-medium uppercase tracking-wider text-gold-500">
@@ -333,15 +351,43 @@ export default function Home() {
                 <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                   <Link
                     href="/products"
-                    className="inline-flex items-center justify-center rounded-md bg-gold-500 px-6 py-3 text-base font-medium text-dark-900 shadow-gold transition-all hover:bg-gold-400"
+                    className="group inline-flex items-center justify-center rounded-md bg-gold-500 px-6 py-3 text-base font-medium text-dark-900 shadow-gold transition-all duration-300 hover:bg-gold-400"
                   >
-                    Explore Products
+                    <span>Explore Products</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="ml-2 h-5 w-5 transform transition-transform duration-300 group-hover:translate-x-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
                   </Link>
                   <Link
                     href="/account"
-                    className="inline-flex items-center justify-center rounded-md border border-gold-500/30 bg-dark-500/50 px-6 py-3 text-base font-medium text-white shadow-sm transition-all hover:border-gold-500/60 hover:bg-dark-400"
+                    className="group inline-flex items-center justify-center rounded-md border border-gold-500/30 bg-dark-800/50 px-6 py-3 text-base font-medium text-white shadow-sm transition-all duration-300 hover:border-gold-500/60 hover:bg-dark-700"
                   >
-                    Create Account
+                    <span>Create Account</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="ml-2 h-5 w-5 transform opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:opacity-100"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
                   </Link>
                 </div>
               </div>
@@ -410,8 +456,25 @@ export default function Home() {
                 </div>
 
                 <div className="mt-6">
-                  <Link href="/about" className="text-gold-500 hover:text-gold-400">
-                    Learn more about our craftsmanship →
+                  <Link
+                    href="/about"
+                    className="group inline-flex items-center text-gold-500 transition-colors duration-300 hover:text-gold-400"
+                  >
+                    <span>Learn more about our craftsmanship</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="ml-2 h-5 w-5 transform transition-transform duration-300 group-hover:translate-x-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
                   </Link>
                 </div>
               </div>

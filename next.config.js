@@ -6,6 +6,8 @@ import bundleAnalyzer from '@next/bundle-analyzer';
 const withBundleAnalyzer =
   process.env.ANALYZE === 'true' ? bundleAnalyzer({ enabled: true }) : config => config;
 
+// Fix for the "t.mask is not a function" error in deployment
+// This removes the problematic Sentry integration causing the issue
 const nextConfig = {
   reactStrictMode: true,
   // Disable ESLint during build
@@ -71,7 +73,6 @@ const nextConfig = {
   poweredByHeader: false,
   // Generate ETags for improved caching
   generateEtags: true,
-  // Optimize bundle size
   // Configure compiler options
   compiler: {
     // Remove console.log in production
@@ -123,7 +124,19 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ['localhost:3000', 'nicotinetins.com'],
     },
+    // Disable instrumentation which is causing the t.mask error
+    instrumentationHook: false,
+  },
+  // Fix the module typeless warning
+  webpack: config => {
+    // Resolve ESM/CJS conflicts
+    config.resolve.extensionAlias = {
+      '.js': ['.js', '.ts', '.tsx'],
+      '.jsx': ['.jsx', '.tsx'],
+    };
+    return config;
   },
 };
 
+// Add type: module to package.json to fix ESM/CJS warning
 export default withBundleAnalyzer(nextConfig);
