@@ -1,4 +1,4 @@
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
 
 // Function to execute shell commands and log output
 function runCommand(command) {
@@ -18,12 +18,12 @@ function runCommand(command) {
 async function fixGitBranches() {
   console.log('Starting Git branch cleanup...');
 
-  // 1. Add changes to next.config.cjs
-  runCommand('git add next.config.cjs');
+  // 1. Add changes to next.config.mjs
+  runCommand('git add next.config.mjs');
 
   // 2. Commit changes
   runCommand(
-    'git commit -m "Fix: Update next.config.cjs experimental options to fix Vercel build warnings"'
+    'git commit -m "Fix: Update next.config.mjs to use ES modules and fix Vercel build warnings"'
   );
 
   // 3. Push to master

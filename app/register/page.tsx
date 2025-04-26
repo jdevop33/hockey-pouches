@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import Layout from '../components/layout/NewLayout';
 import { useToast } from '../context/ToastContext';
 import { useCsrf } from '../context/CsrfContext';
-import Button from '../components/ui/Button';
+import { Button } from '../components/ui/Button';
 import FormFeedback from '../components/ui/FormFeedback';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import FormInput from '../components/ui/FormInput';
@@ -43,6 +43,9 @@ function RegisterForm() {
   // Get referral code from URL if present
   const initialReferralCode = searchParams.get('ref') || '';
 
+  // Use a ref to track if this is the first render
+  const isFirstRender = React.useRef(true);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -59,9 +62,6 @@ function RegisterForm() {
 
   // Check for referral code in localStorage (from referral landing page)
   useEffect(() => {
-    // Use a ref to track if this is the first render
-    const isFirstRender = React.useRef(true);
-
     if (isFirstRender.current) {
       isFirstRender.current = false;
 
@@ -168,8 +168,9 @@ function RegisterForm() {
       // Handle successful registration
       setSuccess(true);
       showToast('Registration successful! You can now log in.', 'success');
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred.');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred.';
+      setError(errorMessage);
       showToast('Registration failed. Please check your information.', 'error');
     } finally {
       setIsLoading(false);
@@ -185,7 +186,7 @@ function RegisterForm() {
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{' '}
-            <Link href="/login" className="text-primary-600 hover:text-primary-500 font-medium">
+            <Link href="/login" className="font-medium text-primary-600 hover:text-primary-500">
               sign in to your existing account
             </Link>
           </p>
@@ -297,7 +298,7 @@ function RegisterForm() {
                     type="text"
                     className={`relative block w-full appearance-none rounded-md border ${
                       referrerName ? 'border-green-500 bg-green-50' : 'border-gray-300'
-                    } focus:border-primary-500 focus:ring-primary-500 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm`}
+                    } px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm`}
                     placeholder="Referral Code (Optional)"
                     value={formData.referralCode}
                     onChange={handleChange}

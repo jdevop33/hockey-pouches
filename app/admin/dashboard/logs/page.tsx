@@ -4,18 +4,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import Layout from '@/components/layout/NewLayout';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { LogEntry, LogLevel } from '@/lib/logger';
-
-// Type guard for checking if an object is error-like (renamed with underscore since not used yet)
-const _isErrorLike = (obj: unknown): obj is { message: string; name?: string; stack?: string } => {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    'message' in obj &&
-    typeof (obj as any).message === 'string'
-  );
-};
 
 // Helper to safely stringify unknown values
 const safeStringify = (value: unknown): string => {
@@ -75,8 +65,10 @@ export default function LogsPage() {
       const data = await response.json();
       setLogs(data.logs || []);
       setIsDevelopment(true);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while fetching logs');
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'An error occurred while fetching logs';
+      setError(errorMessage);
       console.error('Error fetching logs:', err);
     } finally {
       setIsLoading(false);
@@ -105,8 +97,10 @@ export default function LogsPage() {
 
       showToast('Logs cleared successfully', 'success');
       fetchLogs();
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while clearing logs');
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'An error occurred while clearing logs';
+      setError(errorMessage);
       showToast('Failed to clear logs', 'error');
       console.error('Error clearing logs:', err);
     }
