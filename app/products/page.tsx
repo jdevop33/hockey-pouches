@@ -96,7 +96,7 @@ export default function ProductsPage() {
         flavor: 'Mint',
         strength: 6,
         price: 6.99,
-        image_url: '/images/products/mint/mint-6mg.png',
+        image_url: '/images/products/cool-mint-6mg.png',
         category: 'Mild',
         description: 'Cool and refreshing mint flavor, lower strength.',
       },

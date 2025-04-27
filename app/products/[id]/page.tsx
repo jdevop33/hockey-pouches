@@ -166,7 +166,7 @@ export default function ProductDetailPage() {
             <div className="overflow-hidden rounded-lg bg-gray-800 shadow-gold-sm">
               <div className="relative h-72 w-full sm:h-80 md:h-96">
                 <Image
-                  src={product.image_url || '/images/products/placeholder.svg'}
+                  src={product.image_url || '/images/products/fallback.jpg'}
                   alt={product.name}
                   fill
                   style={{ objectFit: 'contain' }}

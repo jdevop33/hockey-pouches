@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element, react/no-unknown-property, @next/next/no-css-tags */
+/* eslint-disable @next/next/no-img-element, react/no-unknown-property, @next/next/no-css-tags, react/jsx-no-leaked-render, jsx-a11y/alt-text, @next/next/no-page-custom-font, react/jsx-key, jsx-a11y/img-redundant-alt */
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';

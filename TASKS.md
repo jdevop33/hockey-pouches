@@ -52,32 +52,40 @@ The Hockey Pouches e-commerce application is being refined for improved user exp
    - Create missing dashboard sections (financial)
    - Ensure all navigation links function correctly
 
-3. **Dark Mode Implementation (Week 1, 8 hours)**
+3. **Code Quality Improvements (Week 1, 5 hours)**
+
+   - Fix accessibility issues in components (aria-labels, discernible text)
+   - Resolve ESLint errors (unused variables, explicit any types)
+   - Properly type error handling throughout the application
+   - Update React hooks with proper dependency arrays
+   - Fix remaining linting issues in markdown files
+
+4. **Dark Mode Implementation (Week 1, 8 hours)**
 
    - Convert remaining interfaces to dark mode:
      - User dashboard pages
      - Distributor dashboard
      - Checkout flow
 
-4. **Wholesale Buyer Workflow (Week 2, 15 hours)**
+5. **Wholesale Buyer Workflow (Week 2, 15 hours)**
 
    - Complete wholesale application validation
    - Implement admin approval process
    - Create wholesale-specific order processing
 
-5. **Financial Systems (Week 2, 12 hours)**
+6. **Financial Systems (Week 2, 12 hours)**
 
    - Finish commission calculation
    - Implement payout processing
    - Create financial reporting
 
-6. **Mobile Optimization (Week 2, 8 hours)**
+7. **Mobile Optimization (Week 2, 8 hours)**
 
    - Test all interfaces on mobile devices
    - Fix any responsive issues
    - Optimize for touch interactions
 
-7. **Performance Improvements (Week 2, 10 hours)**
+8. **Performance Improvements (Week 2, 10 hours)**
 
    - Implement image optimization
    - Add proper caching strategies
@@ -190,9 +198,11 @@ The project includes `scripts/run-migrations.js` which handles migrations proper
 
 1. Install dependencies: `npm install pg dotenv`
 2. Set your DATABASE_URL in `.env.local`:
-   ```
-   DATABASE_URL=postgres://user:password@your-neon-host/dbname
-   ```
+
+```bash
+DATABASE_URL=postgres://user:password@your-neon-host/dbname
+```
+
 3. Run: `node scripts/run-migrations.js`
 
 This script:

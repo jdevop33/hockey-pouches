@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/layout/NewLayout';
 import { useAuth } from '@/context/AuthContext';
@@ -26,41 +26,44 @@ export default function AdminProductsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Function to fetch products
-  const loadProducts = async (page = 1) => {
-    setIsLoadingData(true);
-    setError(null);
-    setActionError(null); // Clear action errors on reload
-    try {
-      const query = new URLSearchParams({
-        page: page.toString(),
-        limit: '15',
-        // TODO: Add filters
-      }).toString();
+  // Function to fetch products - wrapped in useCallback
+  const loadProducts = useCallback(
+    async (page = 1) => {
+      setIsLoadingData(true);
+      setError(null);
+      setActionError(null); // Clear action errors on reload
+      try {
+        const query = new URLSearchParams({
+          page: page.toString(),
+          limit: '15',
+          // TODO: Add filters
+        }).toString();
 
-      const response = await fetch(`/api/admin/products?${query}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        if (response.status === 401) {
-          logout();
-          router.push('/login');
-          return;
+        const response = await fetch(`/api/admin/products?${query}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          if (response.status === 401) {
+            logout();
+            router.push('/login');
+            return;
+          }
+          throw new Error(`Failed to fetch products (${response.status})`);
         }
-        throw new Error(`Failed to fetch products (${response.status})`);
+        const data = await response.json();
+        setProducts(data.products || []);
+        setTotalPages(data.pagination?.totalPages || 1);
+        setCurrentPage(data.pagination?.page || 1);
+      } catch (err: unknown) {
+        const error = err as Error;
+        setError('Failed to load products.');
+        console.error(error);
+      } finally {
+        setIsLoadingData(false);
       }
-      const data = await response.json();
-      setProducts(data.products || []);
-      setTotalPages(data.pagination?.totalPages || 1);
-      setCurrentPage(data.pagination?.page || 1);
-    } catch (err: unknown) {
-      const error = err as Error;
-      setError('Failed to load products.');
-      console.error(error);
-    } finally {
-      setIsLoadingData(false);
-    }
-  };
+    },
+    [token, logout, router]
+  );
 
   // Auth and Role Check Effect
   useEffect(() => {
@@ -78,7 +81,7 @@ export default function AdminProductsPage() {
     if (!authLoading && user && token && user.role === 'Admin') {
       loadProducts(currentPage);
     }
-  }, [user, token, authLoading, currentPage]); // Removed router, logout dependencies here
+  }, [user, token, authLoading, currentPage, loadProducts]); // Added loadProducts to dependency array
 
   // --- CRUD Handlers ---
   const handleAddProduct = () => {

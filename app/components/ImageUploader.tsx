@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 interface ImageUploaderProps {
   currentImageUrl: string | null | undefined;
-  onImageUpload: (imageUrl: string) => void;
+  onImageUploadAction: (imageUrl: string) => void;
   token: string;
   folder?: string;
   className?: string;
@@ -14,7 +14,7 @@ interface ImageUploaderProps {
 
 export default function ImageUploader({
   currentImageUrl,
-  onImageUpload,
+  onImageUploadAction,
   token,
   folder = 'products',
   className = '',
@@ -63,9 +63,9 @@ export default function ImageUploader({
       const response = await fetch('/api/upload', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: formData
+        body: formData,
       });
 
       if (!response.ok) {
@@ -74,18 +74,20 @@ export default function ImageUploader({
       }
 
       const result = await response.json();
-      
+
       // Call the callback with the new image URL
-      onImageUpload(result.url);
-      
+      onImageUploadAction(result.url);
+
       // Clean up the temporary preview URL
       URL.revokeObjectURL(objectUrl);
-      
+
       // Set the preview to the actual uploaded image URL
       setPreviewUrl(result.url);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading image:', error);
-      setUploadError(error.message || 'Failed to upload image. Please try again.');
+      setUploadError(
+        error instanceof Error ? error.message : 'Failed to upload image. Please try again.'
+      );
       // Revert to the previous image if there was an error
       setPreviewUrl(currentImageUrl || null);
     } finally {
@@ -99,7 +101,7 @@ export default function ImageUploader({
 
   const handleRemoveImage = () => {
     setPreviewUrl(null);
-    onImageUpload('');
+    onImageUploadAction('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -110,22 +112,27 @@ export default function ImageUploader({
       {previewUrl ? (
         <div className="relative">
           <div className="relative h-48 w-48 overflow-hidden rounded-md border border-gray-300">
-            <Image
-              src={previewUrl}
-              alt="Product image"
-              fill
-              className="object-contain"
-            />
+            <Image src={previewUrl} alt="Product image" fill className="object-contain" />
           </div>
           {!disabled && (
             <button
               type="button"
               onClick={handleRemoveImage}
-              className="absolute top-2 right-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+              className="absolute right-2 top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
               disabled={isUploading}
+              aria-label="Remove image"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
               </svg>
             </button>
           )}
@@ -133,8 +140,18 @@ export default function ImageUploader({
       ) : (
         <div className="flex h-48 w-48 items-center justify-center rounded-md border-2 border-dashed border-gray-300 bg-gray-50">
           <div className="text-center">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
             <p className="mt-1 text-sm text-gray-500">No image</p>
           </div>
@@ -149,7 +166,7 @@ export default function ImageUploader({
           <div className="mt-1 flex items-center">
             <label
               htmlFor="image-upload"
-              className="focus:ring-primary-500 cursor-pointer rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2"
+              className="cursor-pointer rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             >
               {isUploading ? 'Uploading...' : 'Browse'}
               <input

@@ -23,14 +23,18 @@ export default function AccountPage() {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // For demo purposes, just show a message
-      alert(isLogin ? 'Login successful!' : 'Account created successfully!');
+      alert(
+        isLogin
+          ? 'Welcome back to your premium experience!'
+          : 'Your exclusive account has been created. Welcome to the club!'
+      );
 
       // Reset form
       setEmail('');
       setPassword('');
       setName('');
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError('An unexpected issue occurred. Please try again or contact our concierge team.');
       console.error(err);
     } finally {
       setIsSubmitting(false);
@@ -46,12 +50,12 @@ export default function AccountPage() {
           <div className="mx-auto max-w-md">
             <div className="mb-8 text-center">
               <h1 className="text-3xl font-extrabold text-gray-900">
-                {isLogin ? 'Sign In' : 'Create Account'}
+                {isLogin ? 'Access Your Premium Experience' : 'Join Our Exclusive Circle'}
               </h1>
               <p className="mt-2 text-gray-600">
                 {isLogin
-                  ? 'Sign in to access your Hockey Pouches account'
-                  : 'Create an account to start shopping with Hockey Pouches'}
+                  ? 'Return to your curated selection and premium benefits'
+                  : 'Create your account and discover a new standard of excellence'}
               </p>
             </div>
 
@@ -169,9 +173,9 @@ export default function AccountPage() {
                           Processing...
                         </>
                       ) : isLogin ? (
-                        'Sign In'
+                        'Secure Your Access'
                       ) : (
-                        'Create Account'
+                        'Create Your Exclusive Account'
                       )}
                     </button>
                   </div>
@@ -233,13 +237,13 @@ export default function AccountPage() {
 
               <div className="border-t border-gray-200 bg-gray-50 px-6 py-4 sm:px-8">
                 <p className="text-center text-sm text-gray-700">
-                  {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
+                  {isLogin ? "Don't have an account yet?" : 'Already part of our exclusive circle?'}{' '}
                   <button
                     type="button"
                     onClick={() => setIsLogin(!isLogin)}
                     className="font-medium text-primary-600 hover:text-primary-500"
                   >
-                    {isLogin ? 'Sign up now' : 'Sign in'}
+                    {isLogin ? 'Create your exclusive account' : 'Sign in'}
                   </button>
                 </p>
               </div>
@@ -247,7 +251,9 @@ export default function AccountPage() {
 
             <div className="mt-8 text-center">
               <p className="text-sm text-gray-600">
-                By signing in or creating an account, you agree to our{' '}
+                {isLogin
+                  ? 'Secure access to your premium experience'
+                  : 'Join thousands of discerning members who demand the best'}{' '}
                 <Link href="/terms" className="font-medium text-primary-600 hover:text-primary-500">
                   Terms of Service
                 </Link>{' '}

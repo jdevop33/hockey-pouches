@@ -679,13 +679,12 @@ export default function CheckoutPage() {
                   {items.map(({ product, quantity }) => (
                     <li key={product.id} className="flex items-center py-3">
                       <Image
-                        src={product.image_url || '/images/products/placeholder.svg'}
+                        src={product.image_url || '/images/products/fallback.jpg'}
                         alt={product.name}
                         width={48}
                         height={48}
                         className="mr-3 h-12 w-12 rounded-md border object-contain p-1"
-                      />{' '}
-                      {/* Corrected: image_url */}
+                      />
                       <div className="flex-1 text-sm">
                         <p className="font-medium text-gray-800">{product.name}</p>
                         <p className="text-gray-500">Qty: {quantity}</p>

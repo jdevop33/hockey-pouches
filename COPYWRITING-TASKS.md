@@ -81,6 +81,23 @@ This document tracks the progress of copywriting updates across the PUXX website
   - Updated system error messages with appropriate tone and recovery options
   - Added touch of brand personality to technical error states
 
+### User Account Pages
+
+- ✅ Login/Register Page (app/account/page.tsx)
+
+  - Update heading from "Sign In" to "Access Your Premium Experience"
+  - Enhance form descriptions with brand-consistent premium language
+  - Add trust indicators and social proof ("Join thousands of discerning members")
+  - Update CTA buttons with more compelling language ("Secure Your Account")
+  - Add premium copywriting to the account creation success message
+
+- ✅ Profile Management Page (app/dashboard/profile/page.tsx)
+  - Update page heading to "Your Personal Profile" (more ownership-focused)
+  - Change "Personal Information" to "Your Exclusive Details"
+  - Enhance form labels and buttons with premium language
+  - Add reassuring copy about data privacy and security
+  - Incorporate brand voice in success/error messages
+
 ## Copywriting Guidelines Applied
 
 - **Reciprocation:** Offering value before asking for purchase

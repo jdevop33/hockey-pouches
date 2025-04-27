@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -73,56 +73,59 @@ export default function AdminInventoryPage() {
   }, [user, authLoading, router]);
 
   // --- Data Fetching Function ---
-  const loadInventory = async (page = pagination.page) => {
-    // Ensure token/user are available before fetching
-    if (!token || !user) {
-      console.log('Inventory: Skipping fetch, no user/token');
-      setIsLoadingData(false); // Stop loading if auth isn't ready
-      return;
-    }
-    console.log(`Inventory: Loading page ${page} with location filter: '${filterLocation}'`);
-    setIsLoadingData(true);
-    setError(null);
-    setActionError(null);
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: pagination.limit.toString(),
-        ...(filterLocation && { location: filterLocation }),
-      });
-      const response = await fetch(`/api/admin/inventory?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        if (response.status === 401) {
-          logout();
-          router.push('/login');
-          return;
+  const loadInventory = useCallback(
+    async (page = pagination.page) => {
+      // Ensure token/user are available before fetching
+      if (!token || !user) {
+        console.log('Inventory: Skipping fetch, no user/token');
+        setIsLoadingData(false); // Stop loading if auth isn't ready
+        return;
+      }
+      console.log(`Inventory: Loading page ${page} with location filter: '${filterLocation}'`);
+      setIsLoadingData(true);
+      setError(null);
+      setActionError(null);
+      try {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: pagination.limit.toString(),
+          ...(filterLocation && { location: filterLocation }),
+        });
+        const response = await fetch(`/api/admin/inventory?${params.toString()}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          if (response.status === 401) {
+            logout();
+            router.push('/login');
+            return;
+          }
+          const errData = await response
+            .json()
+            .catch(() => ({ message: 'Failed to fetch inventory' }));
+          throw new Error(errData.message || `Failed to fetch inventory (${response.status})`);
         }
-        const errData = await response
-          .json()
-          .catch(() => ({ message: 'Failed to fetch inventory' }));
-        throw new Error(errData.message || `Failed to fetch inventory (${response.status})`);
-      }
-      const data = await response.json();
-      setInventory(data.inventory || []);
-      setPagination(data.pagination || { page: 1, limit: 20, total: 0, totalPages: 1 });
+        const data = await response.json();
+        setInventory(data.inventory || []);
+        setPagination(data.pagination || { page: 1, limit: 20, total: 0, totalPages: 1 });
 
-      // Extract unique locations for transfer dropdown
-      if (data.inventory && Array.isArray(data.inventory)) {
-        const locations = [
-          ...new Set(data.inventory.map((item: InventoryItemAdmin) => item.location)),
-        ] as string[];
-        setAvailableLocations(locations);
+        // Extract unique locations for transfer dropdown
+        if (data.inventory && Array.isArray(data.inventory)) {
+          const locations = [
+            ...new Set(data.inventory.map((item: InventoryItemAdmin) => item.location)),
+          ] as string[];
+          setAvailableLocations(locations);
+        }
+      } catch (err: unknown) {
+        const error = err as Error;
+        setError(error.message || 'Failed to load inventory.');
+        console.error(err);
+      } finally {
+        setIsLoadingData(false);
       }
-    } catch (err: unknown) {
-      const error = err as Error;
-      setError(error.message || 'Failed to load inventory.');
-      console.error(err);
-    } finally {
-      setIsLoadingData(false);
-    }
-  };
+    },
+    [token, user, filterLocation, pagination.limit, pagination.page, logout, router]
+  );
 
   // --- Initial Data Load & Filter Change Effect ---
   useEffect(() => {
@@ -131,7 +134,7 @@ export default function AdminInventoryPage() {
     } else if (!authLoading) {
       setIsLoadingData(false); // Ensure loading stops if not authorized
     }
-  }, [user, token, filterLocation]); // Depend on user/token and filters
+  }, [user, token, filterLocation, authLoading, loadInventory]); // Added missing dependencies
 
   // --- Page Change Effect ---
   useEffect(() => {
@@ -142,7 +145,7 @@ export default function AdminInventoryPage() {
         loadInventory(pagination.page);
       }
     }
-  }, [pagination.page]); // Only trigger refetch on page change
+  }, [pagination.page, user, token, isLoadingData, loadInventory]); // Added missing dependencies
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.totalPages && newPage !== pagination.page) {
