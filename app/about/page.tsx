@@ -170,7 +170,7 @@ function AboutContent() {
               <div className="text-center">
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold-500/20">
                   <Image
-                    src="/images/products/mint/mint-12mg.png"
+                    src="/images/products/cool-mint-6mg.png"
                     alt="Superior Quality"
                     width={40}
                     height={40}
