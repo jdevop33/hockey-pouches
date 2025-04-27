@@ -171,3 +171,93 @@ To provide a comprehensive solution for managing the Hockey Pouches business, we
 - Comprehensive testing coverage for core functionality
 - System handles projected load with <2s response times
 - Zero critical security vulnerabilities
+
+## SQL Migration Guide for Neon PostgreSQL
+
+### Common Issues with Neon SQL Console
+
+When running SQL scripts in the Neon console, comments and multi-statement scripts may cause problems:
+
+1. **Comment Formatting**: Neon's SQL editor sometimes misinterprets certain comment styles
+2. **Multiple Statements**: Running multiple statements at once can be problematic
+3. **Transaction Management**: Neon may handle transactions differently than expected
+
+### Running SQL Scripts with Neon
+
+#### Method 1: Use the Migration Script (Recommended)
+
+The project includes `scripts/run-migrations.js` which handles migrations properly:
+
+1. Install dependencies: `npm install pg dotenv`
+2. Set your DATABASE_URL in `.env.local`:
+   ```
+   DATABASE_URL=postgres://user:password@your-neon-host/dbname
+   ```
+3. Run: `node scripts/run-migrations.js`
+
+This script:
+
+- Automatically tracks applied migrations
+- Runs migrations in transaction blocks (rollback on error)
+- Handles comments correctly
+- Executes migrations in alphabetical order
+
+#### Method 2: Modified SQL in Neon Console
+
+When using Neon's SQL editor directly:
+
+1. **For Comments**:
+
+   - Use `--` single-line comments instead of `/* */` multi-line comments
+   - Avoid trailing comments on the same line as SQL statements
+
+2. **Split Complex Scripts**:
+
+   - Run one statement at a time
+   - Separate CREATE TABLE, CREATE INDEX, etc. into individual runs
+
+3. **Handling Transactions**:
+   - Run BEGIN/COMMIT explicitly for multi-statement operations
+
+#### Method 3: Using psql CLI with Neon
+
+Connect directly with psql using your Neon connection string:
+
+```bash
+psql postgresql://user:password@your-neon-host/dbname
+```
+
+Then either:
+
+- Run statements interactively
+- Execute a script file: `\i path/to/script.sql`
+
+This method handles comments and multi-statements properly.
+
+### Database Schema Validation
+
+After running migrations, verify your schema:
+
+```sql
+-- List all tables
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public';
+
+-- View table structure
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'table_name_here';
+
+-- Check indexes
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE tablename = 'table_name_here';
+```
+
+### Troubleshooting
+
+1. **"Syntax error near..."**: Usually caused by comment format or multiple statements
+2. **"Relation already exists"**: Add IF NOT EXISTS to CREATE statements
+3. **"Failed to parse query"**: Try running one statement at a time
+
+When all else fails, the migration script in `scripts/run-migrations.js` should work reliably as it handles these edge cases.

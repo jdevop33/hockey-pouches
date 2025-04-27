@@ -1,14 +1,15 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
+import { CartService } from '@/lib/services/cart-service';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
+// Initialize the cart service
+const cartService = new CartService();
+
 // PUT handler - Update cart item quantity
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { cartItemId: string } }
-) {
+export async function PUT(request: NextRequest, { params }: { params: { cartItemId: string } }) {
   const { cartItemId } = params;
 
   try {
@@ -19,7 +20,7 @@ export async function PUT(
     }
 
     const userId = authResult.userId;
-    
+
     // Parse request body
     const body = await request.json();
     const { quantity } = body;
@@ -28,52 +29,40 @@ export async function PUT(
       return NextResponse.json({ message: 'Quantity is required' }, { status: 400 });
     }
 
-    console.log(`PUT /api/cart/${cartItemId} - User: ${userId}, Quantity: ${quantity}`);
+    logger.info(`PUT /api/cart/${cartItemId} - User: ${userId}, Quantity: ${quantity}`);
 
-    if (quantity <= 0) {
-      // If quantity is 0 or negative, remove the item from cart
-      await sql`
-        DELETE FROM cart_items 
-        WHERE id = ${cartItemId} AND user_id = ${userId}
-      `;
-      
-      return NextResponse.json({ message: 'Item removed from cart' });
-    } else {
-      // Check if cart item exists and belongs to the user
-      const cartCheck = await sql`
-        SELECT id FROM cart_items 
-        WHERE id = ${cartItemId} AND user_id = ${userId}
-      `;
+    try {
+      // Update cart item using the cart service
+      const result = await cartService.updateCartItem(userId, cartItemId, quantity);
 
-      if (cartCheck.length === 0) {
-        return NextResponse.json({ message: 'Cart item not found or not authorized' }, { status: 404 });
+      // If the item was removed (quantity <= 0)
+      if ('message' in result) {
+        return NextResponse.json({ message: result.message });
       }
 
-      // Update cart item quantity
-      await sql`
-        UPDATE cart_items 
-        SET quantity = ${quantity}, updated_at = CURRENT_TIMESTAMP 
-        WHERE id = ${cartItemId}
-      `;
-
-      return NextResponse.json({ 
+      // Item was updated
+      return NextResponse.json({
         message: 'Cart item updated',
-        cartItemId,
-        quantity
+        cartItemId: result.cartItemId,
+        quantity: result.quantity,
       });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) {
+        return NextResponse.json({ message: error.message }, { status: 404 });
+      }
+      throw error; // Re-throw for the outer catch block
     }
-
   } catch (error) {
-    console.error(`Failed to update cart item ${cartItemId}:`, error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    logger.error(`Failed to update cart item ${cartItemId}:`, error);
+    return NextResponse.json(
+      { message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { status: 500 }
+    );
   }
 }
 
 // DELETE handler - Remove item from cart
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { cartItemId: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { cartItemId: string } }) {
   const { cartItemId } = params;
 
   try {
@@ -84,25 +73,23 @@ export async function DELETE(
     }
 
     const userId = authResult.userId;
-    console.log(`DELETE /api/cart/${cartItemId} - User: ${userId}`);
+    logger.info(`DELETE /api/cart/${cartItemId} - User: ${userId}`);
 
-    // Check if cart item exists and belongs to the user
-    const cartCheck = await sql`
-      SELECT id FROM cart_items 
-      WHERE id = ${cartItemId} AND user_id = ${userId}
-    `;
-
-    if (cartCheck.length === 0) {
-      return NextResponse.json({ message: 'Cart item not found or not authorized' }, { status: 404 });
+    try {
+      // Remove cart item using the cart service
+      await cartService.removeCartItem(userId, cartItemId);
+      return NextResponse.json({ message: 'Item removed from cart' });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) {
+        return NextResponse.json({ message: error.message }, { status: 404 });
+      }
+      throw error; // Re-throw for the outer catch block
     }
-
-    // Delete cart item
-    await sql`DELETE FROM cart_items WHERE id = ${cartItemId}`;
-
-    return NextResponse.json({ message: 'Item removed from cart' });
-
   } catch (error) {
-    console.error(`Failed to remove cart item ${cartItemId}:`, error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    logger.error(`Failed to remove cart item ${cartItemId}:`, error);
+    return NextResponse.json(
+      { message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { status: 500 }
+    );
   }
 }
