@@ -21,13 +21,35 @@ This document outlines the detailed implementation steps for the new features an
 - Modify product display components to handle the fixed pricing
 - Update cart calculations to reflect the new pricing
 
-### Implementation Steps:
+### Implementation Steps (Week 1):
 
 1. Create database migration scripts
+
+   - Script to update existing products in the products table
+   - Script to update product variations table
+   - Test script in development before running in production
+
 2. Update product API endpoints with validation
+
+   - Modify `/api/products/[productId]` endpoint to enforce $15 pricing
+   - Add validation in product creation endpoint
+   - Update any price calculation logic in API routes
+
 3. Modify admin UI to enforce $15 pricing
+
+   - Update product creation form to set $15 as default and read-only
+   - Modify product editing UI to prevent price changes
+   - Add clear messaging explaining the fixed pricing model
+
 4. Test all price-related functionality
+
+   - Verify prices show correctly in product listings
+   - Test cart calculations with the new pricing
+   - Check discount application with fixed pricing
+
 5. Update product listing pages to reflect new pricing
+   - Ensure consistency across all product displays
+   - Update any filter components that use price ranges
 
 ## 2. Implement 5-Unit Minimum Order Requirement
 
@@ -45,17 +67,40 @@ This document outlines the detailed implementation steps for the new features an
 
 ### UI Updates
 
-- Update product detail pages to show minimum order quantity
+- Update product detail pages to show minimum order requirement
 - Modify cart UI to display minimum order requirements
 - Update error messaging when minimum is not met
 
-### Implementation Steps:
+### Implementation Steps (Week 1):
 
 1. Update CartContext with minimum order validation
+
+   - Modify `/app/context/CartContext.tsx` to add minimum order validation
+   - Update the addToCart function to enforce minimum total quantities
+   - Add clear error messaging for quantity requirements
+
 2. Modify the checkout process validation
+
+   - Update `/app/api/orders/route.ts` to validate minimum order quantity
+   - Add quantity checks in the `/app/api/checkout` endpoint
+   - Implement consistent error handling for minimum quantity violations
+
 3. Update the UI to clearly indicate minimum requirements
+
+   - Add minimum quantity indicators to product pages
+   - Update cart UI to show progress toward minimum order requirement
+   - Create helpful tooltip explaining the minimum order policy
+
 4. Add server-side validation for all order endpoints
+
+   - Ensure all API routes that create orders enforce the minimum quantity
+   - Add validation to the order management endpoints
+   - Update error responses with clear messaging
+
 5. Test various order quantities and combinations
+   - Verify cart prevents checkout with insufficient quantities
+   - Test server-side validation with direct API calls
+   - Check that proper error messages are displayed
 
 ## 3. Add Wholesale Buyer Role & 100+ Unit Orders
 
@@ -123,33 +168,54 @@ This document outlines the detailed implementation steps for the new features an
 
 ## Timeline and Priorities
 
-### Week 1: Pricing Updates and Basic Fixes
+### Week 1 (Sep 11-17): Pricing Updates and Order Requirements
 
 - Update all product prices to $15
-- Fix critical admin dashboard links
-- Update database schema for pricing standardization
-- Begin UI updates to reflect new pricing
-
-### Week 2: Minimum Order Implementation and Dashboard Fixes
-
 - Implement 5-unit minimum order requirement
-- Complete admin dashboard link fixes
-- Update UI to indicate minimum order requirements
-- Begin wholesale role implementation
+- Fix critical linting errors (completed)
+- Begin testing API error handling edge cases
+- Continue dark mode implementation for remaining UIs
 
-### Week 3: Wholesale Role Implementation
+### Week 2 (Sep 18-24): Wholesale Implementation and Dashboard Fixes
 
-- Complete wholesale user role database updates
-- Implement wholesale registration and approval flow
-- Create wholesale-specific admin views
-- Build wholesale order validation (100+ units)
+- Complete Wholesale Buyer role implementation
+- Add 100+ unit order processing for wholesale
+- Fix all non-working admin dashboard links
+- Complete Distributor dashboard dark mode conversion
+- Finalize checkout flow with all validations
 
-### Week 4: Testing and Refinement
+### Week 3 (Sep 25-Oct 1): Testing and Optimization
 
-- Comprehensive testing of all new features
-- Fix any issues identified during testing
-- Optimize user experience
-- Prepare for deployment
+- Implement comprehensive test suite
+- Conduct UX testing across all user journeys
+- Optimize database queries for better performance
+- Implement image optimization and caching strategies
+- Add analytics tracking for user behavior
+
+### Week 4 (Oct 2-8): Quality Assurance and Security
+
+- Conduct load testing with expected traffic patterns
+- Address all issues discovered during testing
+- Optimize mobile experience and performance
+- Complete security audit and fix vulnerabilities
+- Update documentation for all new features
+
+### Week 5 (Oct 9-15): Pre-Launch Preparation
+
+- Set up production environment with proper CI/CD
+- Configure SSL certificates and security headers
+- Implement automated database backup solutions
+- Set up monitoring and alerting systems
+- Create detailed launch checklist and rollback plan
+
+### Week 6 (Oct 16-22): Launch and Initial Support
+
+- Prepare marketing materials for product launch
+- Conduct soft launch with limited user access
+- Official public launch
+- Closely monitor system performance
+- Provide immediate support for any issues
+- Collect and analyze initial user feedback
 
 ## Technical Considerations
 
@@ -170,3 +236,13 @@ This document outlines the detailed implementation steps for the new features an
 - Ensure proper authentication for wholesale accounts
 - Validate all price calculations server-side
 - Implement proper authorization for admin functions
+
+## Success Criteria
+
+- All pages render correctly in dark mode on both mobile and desktop
+- Orders successfully enforce minimum 5-unit requirement
+- Products are consistently priced at $15 per unit
+- Wholesale accounts function properly with 100+ unit orders
+- All dashboard links function correctly
+- System handles projected load with <2s response times
+- Zero critical security vulnerabilities

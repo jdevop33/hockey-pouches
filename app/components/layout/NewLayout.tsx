@@ -85,11 +85,11 @@ const Navigation: React.FC = () => {
                 />
                 <span className="hidden text-xl font-bold text-white sm:inline-block">PUXX</span>
               </Link>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 {visibleNavItems.map(item => (
                   <button
                     key={item.href}
-                    className={`rounded-md px-4 py-2 text-sm font-bold tracking-wider transition-all ${
+                    className={`rounded-lg px-4 py-2 text-sm font-bold tracking-wider transition-all ${
                       pathname === item.href
                         ? 'bg-gold-500 text-black shadow-gold-sm'
                         : 'bg-dark-800/80 text-white hover:bg-gold-500 hover:text-black'
@@ -116,7 +116,7 @@ const Navigation: React.FC = () => {
 
               <button
                 onClick={() => router.push(user ? '/dashboard' : '/login')}
-                className="flex items-center rounded-md bg-gradient-gold px-4 py-2 text-xs font-bold text-dark-500 shadow-gold-sm transition-all hover:shadow-gold"
+                className="flex items-center rounded-lg bg-gradient-gold px-5 py-2 text-xs font-bold text-dark-500 shadow-gold-sm transition-all hover:shadow-gold"
               >
                 {user ? (
                   <>

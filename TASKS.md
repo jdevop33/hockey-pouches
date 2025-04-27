@@ -402,3 +402,75 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [ ] Create launch checklist
 - [ ] Prepare marketing materials
 - [ ] Plan post-launch support
+
+# Updated Roadmap to Production (September 2023)
+
+## Phase 1: Feature Completion (2 weeks)
+
+- **Week 1 (Sep 11-17)**
+
+  - [x] Fix all linting errors in codebase
+  - [ ] Complete implementation of $15 product pricing
+  - [ ] Implement 5-unit minimum order requirement
+  - [ ] Test API error handling edge cases
+  - [ ] Complete dark mode for remaining user interfaces
+
+- **Week 2 (Sep 18-24)**
+  - [ ] Implement Wholesale Buyer role
+  - [ ] Add wholesale order processing (100+ units)
+  - [ ] Fix all remaining admin dashboard links
+  - [ ] Complete Distributor dashboard interfaces
+  - [ ] Finalize checkout flow with minimum quantity validation
+
+## Phase 2: Testing & Optimization (2 weeks)
+
+- **Week 3 (Sep 25-Oct 1)**
+
+  - [ ] Implement comprehensive test suite
+  - [ ] Conduct UX testing for all user flows
+  - [ ] Optimize database queries for performance
+  - [ ] Implement image optimization and caching
+  - [ ] Add analytics tracking
+
+- **Week 4 (Oct 2-8)**
+  - [ ] Conduct load testing
+  - [ ] Fix any issues discovered in testing
+  - [ ] Optimize mobile performance
+  - [ ] Complete security audit
+  - [ ] Update documentation
+
+## Phase 3: Pre-Launch (1 week)
+
+- **Week 5 (Oct 9-15)**
+  - [ ] Set up production environment
+  - [ ] Configure SSL certificates
+  - [ ] Set up database backups
+  - [ ] Implement monitoring and alerts
+  - [ ] Create launch checklist
+
+## Phase 4: Launch & Support (1 week)
+
+- **Week 6 (Oct 16-22)**
+  - [ ] Prepare marketing materials
+  - [ ] Soft launch for internal testing
+  - [ ] Official launch
+  - [ ] Monitor system performance
+  - [ ] Address any post-launch issues
+  - [ ] Gather initial user feedback
+
+## Critical Path Dependencies
+
+1. $15 pricing update ➡️ Minimum order validation ➡️ Wholesale role implementation
+2. Admin dashboard fixes must be completed before final testing phase
+3. Dark mode implementation must be completed before UX testing
+4. Complete testing is required before production environment setup
+
+## Success Metrics
+
+- All pages render correctly in dark mode on mobile and desktop
+- Orders correctly enforce minimum 5-unit requirement
+- Products are consistently priced at $15 per unit
+- Wholesale accounts work with 100+ unit orders
+- All dashboard links function correctly
+- System handles projected load with <2s response times
+- Zero critical security vulnerabilities
