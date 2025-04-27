@@ -4,7 +4,7 @@ import React, { ReactNode, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import Image from 'next/image';
-import { ShoppingCart, Menu, User, LogOut, LogIn } from 'lucide-react';
+import { ShoppingCart, Menu, User, LogOut, LogIn, X } from 'lucide-react';
 import Footer from './Footer';
 import Link from 'next/link';
 
@@ -16,15 +16,28 @@ interface NavItem {
 }
 
 const Navigation: React.FC = () => {
+  const { user, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, logout } = useAuth();
 
-  const handleLogout = () => {
-    logout();
-    setMobileMenuOpen(false);
+  const handleLogout = async () => {
+    await logout();
     router.push('/');
+  };
+
+  // Helper function to get the correct dashboard route
+  const getDashboardRoute = () => {
+    if (!user) return '/login';
+
+    // Route based on user role
+    if (user.role === 'Admin') {
+      return '/admin/dashboard';
+    } else if (user.role === 'Distributor') {
+      return '/distributor/dashboard';
+    } else {
+      return '/dashboard';
+    }
   };
 
   const baseNavItems: NavItem[] = [
@@ -64,57 +77,52 @@ const Navigation: React.FC = () => {
     return true;
   });
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
   return (
     <>
-      {/* Desktop nav */}
-      <nav className="sticky top-0 z-50 border-b border-gold-500/20 bg-dark-500 shadow-lg backdrop-blur-xl transition-all duration-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/" className="flex items-center gap-2">
-                <Image
-                  src="/images/logo/logo3.svg"
-                  alt="PUXX Logo"
-                  width={40}
-                  height={40}
-                  priority
-                  className="h-9 w-9"
-                />
-                <span className="hidden text-xl font-bold text-white sm:inline-block">PUXX</span>
+      <nav className="fixed top-0 z-30 w-full bg-dark-900 shadow-gold-sm backdrop-blur-lg">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-20 items-center justify-between">
+            <div className="flex items-center">
+              {/* Logo */}
+              <Link href="/" className="flex-shrink-0 focus:outline-none">
+                <div className="h-full w-28 rounded-lg bg-dark-900 p-2">
+                  <Image
+                    src="/images/logo/logo3.svg"
+                    alt="PUXX"
+                    width={100}
+                    height={40}
+                    className="object-contain"
+                  />
+                </div>
               </Link>
 
-              {/* Mobile menu button */}
-              <button
-                type="button"
-                aria-label="Toggle menu"
-                onClick={toggleMobileMenu}
-                className="rounded-xl border border-gold-500/30 bg-dark-800/80 p-2.5 text-white hover:bg-dark-700 md:hidden"
-              >
-                <Menu className="h-5 w-5" />
-              </button>
+              {/* Desktop navigation links */}
+              <div className="hidden md:ml-6 md:block">
+                <div className="flex items-center space-x-4">
+                  {visibleNavItems
+                    .filter(
+                      item =>
+                        !item.authRequired ||
+                        (user && (!item.roles || item.roles.includes(user.role)))
+                    )
+                    .map(item => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`rounded-xl px-4 py-2.5 text-xs font-bold transition-colors ${
+                          pathname === item.href
+                            ? 'bg-dark-800/80 text-gold-500 shadow-sm'
+                            : 'text-white hover:bg-dark-800 hover:text-gold-500'
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                </div>
+              </div>
             </div>
 
-            {/* Desktop navigation */}
-            <div className="hidden md:flex md:items-center md:gap-2">
-              {visibleNavItems.map(item => (
-                <button
-                  key={item.href}
-                  className={`rounded-xl px-4 py-2 text-sm font-bold tracking-wider transition-all ${
-                    pathname === item.href
-                      ? 'bg-gold-500 text-black shadow-gold-sm'
-                      : 'bg-dark-800/80 text-white hover:bg-gold-500 hover:text-black'
-                  }`}
-                  onClick={() => router.push(item.href)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-
+            {/* Desktop right-side buttons */}
             <div className="flex items-center gap-4">
               <button
                 onClick={() => router.push('/cart')}
@@ -127,22 +135,8 @@ const Navigation: React.FC = () => {
                 </span>
               </button>
 
-              <button
-                onClick={() => {
-                  if (!user) {
-                    router.push('/login');
-                    return;
-                  }
-
-                  // Route based on user role
-                  if (user.role === 'Admin') {
-                    router.push('/admin/dashboard');
-                  } else if (user.role === 'Distributor') {
-                    router.push('/distributor/dashboard');
-                  } else {
-                    router.push('/dashboard');
-                  }
-                }}
+              <Link
+                href={getDashboardRoute()}
                 className="hidden items-center rounded-xl bg-gradient-gold px-5 py-2 text-xs font-bold text-dark-500 shadow-gold-sm transition-all hover:shadow-gold md:flex"
               >
                 {user ? (
@@ -156,6 +150,23 @@ const Navigation: React.FC = () => {
                     SIGN IN
                   </>
                 )}
+              </Link>
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="flex md:hidden">
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="-mx-2 inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-dark-800 hover:text-white focus:outline-none"
+                aria-expanded="false"
+              >
+                <span className="sr-only">Open main menu</span>
+                {mobileMenuOpen ? (
+                  <X className="block h-6 w-6" aria-hidden="true" />
+                ) : (
+                  <Menu className="block h-6 w-6" aria-hidden="true" />
+                )}
               </button>
             </div>
           </div>
@@ -163,47 +174,35 @@ const Navigation: React.FC = () => {
 
         {/* Mobile menu dropdown */}
         <div
-          className={`absolute left-0 right-0 z-50 border-b border-gold-500/20 bg-dark-900/95 shadow-lg backdrop-blur-xl transition-all duration-300 md:hidden ${
-            mobileMenuOpen ? 'h-auto opacity-100' : 'pointer-events-none h-0 opacity-0'
-          }`}
+          className={`${
+            mobileMenuOpen ? 'block' : 'hidden'
+          } absolute left-0 right-0 top-20 z-50 border-t border-dark-700 bg-dark-900 md:hidden`}
         >
-          <div className="space-y-2 px-4 py-4">
-            {visibleNavItems.map(item => (
-              <button
-                key={item.href}
-                className={`block w-full rounded-xl px-4 py-3 text-left text-sm font-bold ${
-                  pathname === item.href
-                    ? 'bg-gold-500 text-black shadow-md'
-                    : 'bg-dark-800/80 text-white hover:bg-gold-500 hover:text-black'
-                }`}
-                onClick={() => {
-                  router.push(item.href);
-                  setMobileMenuOpen(false);
-                }}
-              >
-                {item.label}
-              </button>
-            ))}
+          <div className="space-y-1 px-3 py-3 sm:px-5">
+            {visibleNavItems
+              .filter(
+                item =>
+                  !item.authRequired || (user && (!item.roles || item.roles.includes(user.role)))
+              )
+              .map(item => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`block rounded-xl px-3 py-3 text-sm font-medium transition-colors ${
+                    pathname === item.href
+                      ? 'bg-dark-800 text-gold-500'
+                      : 'text-white hover:bg-dark-800 hover:text-gold-500'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
 
-            <button
-              onClick={() => {
-                if (!user) {
-                  router.push('/login');
-                  setMobileMenuOpen(false);
-                  return;
-                }
-
-                // Route based on user role
-                if (user.role === 'Admin') {
-                  router.push('/admin/dashboard');
-                } else if (user.role === 'Distributor') {
-                  router.push('/distributor/dashboard');
-                } else {
-                  router.push('/dashboard');
-                }
-                setMobileMenuOpen(false);
-              }}
+            <Link
+              href={getDashboardRoute()}
               className="mt-3 flex w-full items-center rounded-xl bg-gradient-gold px-4 py-3 text-sm font-bold text-dark-900 shadow-md transition-all hover:shadow-gold-sm"
+              onClick={() => setMobileMenuOpen(false)}
             >
               {user ? (
                 <>
@@ -216,7 +215,7 @@ const Navigation: React.FC = () => {
                   SIGN IN
                 </>
               )}
-            </button>
+            </Link>
 
             {user && (
               <button

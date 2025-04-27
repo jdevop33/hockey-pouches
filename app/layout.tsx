@@ -72,6 +72,11 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION || '',
   },
+  appleWebApp: {
+    title: 'Nicotine Tins by PUXX',
+    statusBarStyle: 'default',
+    capable: true,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -80,6 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="canonical" href="https://nicotinetins.com" />
         <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/images/logo/logo3.svg" />
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

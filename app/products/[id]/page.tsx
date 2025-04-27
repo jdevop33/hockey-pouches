@@ -26,136 +26,133 @@ interface Product {
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const { addToCart, minOrderQuantity } = useCart();
+  const productId =
+    typeof params.id === 'string' ? params.id : Array.isArray(params.id) ? params.id[0] : null;
 
-  // Debug the parameter
-  console.log('Product detail params:', params);
-
-  const productIdString = params.id as string;
-  // Sanitize the productId string before parsing
-  const sanitizedIdString = productIdString?.replace(/\D/g, '');
-  const productId = sanitizedIdString ? parseInt(sanitizedIdString, 10) : undefined;
-
-  console.log('Product ID (string):', productIdString);
-  console.log('Sanitized ID string:', sanitizedIdString);
-  console.log('Product ID (number):', productId);
-
-  const [product, setProduct] = useState<Product | null>(null);
+  const { addToCart } = useCart();
+  const [product, setProduct] = useState<Product>({
+    id: 0,
+    name: '',
+    price: 0,
+    is_active: false,
+  });
+  const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(minOrderQuantity);
-  const [addedToCart, setAddedToCart] = useState(false);
-  const [addToCartError, setAddToCartError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('description');
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-  const [isLoadingRelated, setIsLoadingRelated] = useState(false);
+  const [isLoadingRelated, setIsLoadingRelated] = useState(true);
 
   useEffect(() => {
-    if (productId === undefined || isNaN(productId)) {
-      setError('Invalid Product ID.');
-      setIsLoading(false);
-      return;
-    }
+    if (!productId) return;
 
-    // Create a controller for aborting fetch requests if component unmounts
-    const controller = new AbortController();
-    const { signal } = controller;
-
-    async function fetchProductData() {
+    async function fetchProduct() {
       setIsLoading(true);
       setError(null);
-
       try {
-        // Fetch main product data
-        const productResponse = await fetch(`/api/products/${productId}`, { signal });
+        console.log(`Fetching product details for ID: ${productId}`);
+        const response = await fetch(`/api/products/${productId}`);
 
-        if (!productResponse.ok) {
-          if (productResponse.status === 404)
-            throw new Error('Product not found or not available.');
-          else throw new Error(`Failed to fetch product (${productResponse.status})`);
-        }
-
-        const productData = await productResponse.json();
-        setProduct(productData as Product);
-
-        // After successfully fetching product, get related products
-        try {
-          setIsLoadingRelated(true);
-          const relatedResponse = await fetch(`/api/products/${productId}/related?limit=4`, {
-            signal,
-          });
-
-          if (relatedResponse.ok) {
-            const relatedData = await relatedResponse.json();
-            setRelatedProducts(relatedData.products || []);
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError('Product not found or not available');
+          } else {
+            setError('An error occurred while fetching the product');
           }
-        } catch (relatedError) {
-          // Don't let related products error affect main product display
-          console.error('Error fetching related products:', relatedError);
-        } finally {
-          setIsLoadingRelated(false);
+          console.error(`Error fetching product: ${response.status} ${response.statusText}`);
+          return;
         }
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : 'Could not load product details.';
-        setError(errorMessage);
-        console.error(err);
+
+        const data = await response.json();
+        console.log('Product data received:', data);
+        setProduct(data);
+
+        // Once we have product, fetch related products
+        fetchRelatedProducts(data.id);
+      } catch (err) {
+        console.error('Failed to fetch product:', err);
+        setError('Failed to load product details. Please try again.');
       } finally {
         setIsLoading(false);
       }
     }
 
-    fetchProductData();
+    async function fetchRelatedProducts(id: number) {
+      setIsLoadingRelated(true);
+      try {
+        const response = await fetch(`/api/products/${id}/related`);
+        if (!response.ok) {
+          console.error(`Error fetching related products: ${response.status}`);
+          return;
+        }
 
-    // Cleanup function to abort fetch if component unmounts
-    return () => {
-      controller.abort();
-    };
-  }, [productId, minOrderQuantity]);
-
-  const handleAddToCart = () => {
-    if (!product) return;
-
-    // Reset any previous errors
-    setAddToCartError(null);
-
-    // Check minimum quantity
-    if (quantity < minOrderQuantity) {
-      setAddToCartError(`Minimum order quantity is ${minOrderQuantity} units.`);
-      return;
+        const data = await response.json();
+        setRelatedProducts(data);
+      } catch (err) {
+        console.error('Failed to fetch related products:', err);
+      } finally {
+        setIsLoadingRelated(false);
+      }
     }
 
-    // Pass the fetched product directly - CartContext Product type should now match
-    const result = addToCart(product, quantity);
+    fetchProduct();
+  }, [productId]);
 
-    if (result.success) {
-      setAddedToCart(true);
-      setTimeout(() => setAddedToCart(false), 2000);
-    } else if (result.message) {
-      setAddToCartError(result.message);
+  const handleAddToCart = async () => {
+    if (!product.id || isAddingToCart) return;
+
+    setIsAddingToCart(true);
+    try {
+      await addToCart(product, quantity);
+      // Success message or redirect to cart could be added here
+    } catch (error) {
+      console.error('Failed to add product to cart:', error);
+    } finally {
+      setIsAddingToCart(false);
     }
   };
 
-  if (isLoading)
+  if (isLoading) {
     return (
       <Layout>
-        <div className="p-8 text-center text-gray-200">Loading product...</div>
+        <div className="mx-auto max-w-7xl p-8">
+          <div className="flex h-96 items-center justify-center">
+            <div className="text-center">
+              <p className="text-xl text-gray-400">Loading product details...</p>
+            </div>
+          </div>
+        </div>
       </Layout>
     );
-  if (error)
-    return (
-      <Layout>
-        <div className="rounded bg-red-900/30 p-8 text-center text-red-300">Error: {error}</div>
-      </Layout>
-    );
-  if (!product)
-    return (
-      <Layout>
-        <div className="p-8 text-center text-gray-200">Product not found.</div>
-      </Layout>
-    );
+  }
 
-  const currentPrice = product.price;
-  const showDiscount = product.compare_at_price && product.compare_at_price > product.price;
+  if (error || !product.id) {
+    return (
+      <Layout>
+        <div className="mx-auto max-w-7xl p-8">
+          <div className="flex h-96 items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-red-500">
+                {error || 'Product not found or not available'}
+              </h2>
+              <p className="mt-4 text-gray-400">
+                The product you are looking for might have been removed or is temporarily
+                unavailable.
+              </p>
+              <div className="mt-8">
+                <Link
+                  href="/products"
+                  className="rounded-md bg-gold-500 px-6 py-3 text-base font-medium text-black shadow-sm hover:bg-gold-600"
+                >
+                  Continue Shopping
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -206,7 +203,8 @@ export default function ProductDetailPage() {
               </li>
             </ol>
           </nav>
-          <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
+
+          <div className="lg:grid lg:grid-cols-2 lg:gap-x-8">
             {/* Product image */}
             <div className="overflow-hidden rounded-lg bg-gray-800 shadow-gold-sm">
               <div className="relative h-72 w-full sm:h-80 md:h-96">
@@ -220,6 +218,7 @@ export default function ProductDetailPage() {
                 />
               </div>
             </div>
+
             {/* Product details */}
             <div className="mt-6 px-2 sm:mt-10 sm:px-4 md:px-0 lg:mt-0">
               <h1 className="text-2xl font-extrabold tracking-tight text-gray-100 sm:text-3xl">
@@ -249,18 +248,18 @@ export default function ProductDetailPage() {
               <div className="mt-4">
                 <div className="flex flex-wrap items-end gap-2">
                   <p className="text-2xl font-bold text-gray-100 sm:text-3xl">
-                    ${currentPrice.toFixed(2)} <span className="text-sm text-gray-400">each</span>
+                    ${product.price.toFixed(2)} <span className="text-sm text-gray-400">each</span>
                   </p>
-                  {showDiscount && (
+                  {product.compare_at_price && product.compare_at_price > product.price && (
                     <p className="text-base font-medium text-gray-500 line-through sm:text-lg">
-                      ${product.compare_at_price?.toFixed(2)}
+                      ${product.compare_at_price.toFixed(2)}
                     </p>
                   )}
                 </div>
-                {showDiscount && (
+                {product.compare_at_price && product.compare_at_price > product.price && (
                   <p className="mt-1 text-xs font-medium text-red-400 sm:text-sm">
-                    Save ${(product.compare_at_price! - product.price).toFixed(2)} (
-                    {Math.round((1 - product.price / product.compare_at_price!) * 100)}% off)
+                    Save ${(product.compare_at_price - product.price).toFixed(2)} (
+                    {Math.round((1 - product.price / product.compare_at_price) * 100)}% off)
                   </p>
                 )}
               </div>
@@ -290,8 +289,8 @@ export default function ProductDetailPage() {
                   </div>
                   <div className="ml-3">
                     <p>
-                      <span className="font-medium">{minOrderQuantity} unit minimum</span> • Secure
-                      your premium experience
+                      <span className="font-medium">1 unit minimum</span> • Secure your premium
+                      experience
                     </p>
                   </div>
                 </div>
@@ -305,7 +304,7 @@ export default function ProductDetailPage() {
                     <button
                       type="button"
                       className="p-1.5 text-gray-400 hover:text-gray-200 sm:p-2"
-                      onClick={() => setQuantity(Math.max(minOrderQuantity, quantity - 1))}
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       aria-label="Decrease quantity"
                     >
                       <svg
@@ -364,15 +363,12 @@ export default function ProductDetailPage() {
                   type="button"
                   onClick={handleAddToCart}
                   className={`flex w-full items-center justify-center rounded-md border border-transparent bg-gold-600 px-6 py-3 text-base font-medium text-black shadow-sm hover:bg-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 ${
-                    addedToCart ? 'bg-green-600 hover:bg-green-700' : ''
+                    isAddingToCart ? 'bg-green-600 hover:bg-green-700' : ''
                   }`}
-                  disabled={addedToCart}
+                  disabled={isAddingToCart}
                 >
-                  {addedToCart ? 'Added to Your Collection!' : 'Add to Collection'}
+                  {isAddingToCart ? 'Adding to Your Collection...' : 'Add to Collection'}
                 </button>
-
-                {/* Add to cart error message */}
-                {addToCartError && <p className="mt-2 text-sm text-red-400">{addToCartError}</p>}
               </div>
 
               {/* Social share */}
@@ -389,155 +385,12 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Product tabs */}
-          <div className="mt-12 border-t border-gray-200 pt-8 sm:mt-16 sm:pt-10">
-            <div className="scrollbar-hide overflow-x-auto border-b border-gray-200">
-              <div className="flex min-w-full space-x-4 px-1 sm:space-x-8">
-                <button
-                  onClick={() => setActiveTab('description')}
-                  className={`whitespace-nowrap border-b-2 border-transparent px-1 py-3 text-xs font-medium text-gray-500 sm:py-4 sm:text-sm ${
-                    activeTab === 'description'
-                      ? 'border-primary-600 text-primary-600'
-                      : 'hover:border-gray-300 hover:text-gray-700'
-                  }`}
-                >
-                  Description
-                </button>
-                <button
-                  onClick={() => setActiveTab('details')}
-                  className={`whitespace-nowrap border-b-2 border-transparent px-1 py-3 text-xs font-medium text-gray-500 sm:py-4 sm:text-sm ${
-                    activeTab === 'details'
-                      ? 'border-primary-600 text-primary-600'
-                      : 'hover:border-gray-300 hover:text-gray-700'
-                  }`}
-                >
-                  Details
-                </button>
-                <button
-                  onClick={() => setActiveTab('shipping')}
-                  className={`whitespace-nowrap border-b-2 border-transparent px-1 py-3 text-xs font-medium text-gray-500 sm:py-4 sm:text-sm ${
-                    activeTab === 'shipping'
-                      ? 'border-primary-600 text-primary-600'
-                      : 'hover:border-gray-300 hover:text-gray-700'
-                  }`}
-                >
-                  Shipping
-                </button>
-              </div>
-            </div>
-
-            <div className="py-6">
-              {activeTab === 'description' && (
-                <div className="prose prose-sm max-w-none text-gray-500">
-                  <p className="mb-4">
-                    {product.description ||
-                      'An elevated nicotine experience crafted for the discerning user.'}
-                  </p>
-                  <p className="mb-4">
-                    PUXX premium nicotine pouches represent the pinnacle of sophistication and
-                    satisfaction. Meticulously crafted with pharmaceutical-grade ingredients and
-                    innovative technology, each pouch delivers a consistent, refined experience that
-                    sets a new standard in the industry.
-                  </p>
-                  <p>
-                    Enjoy the perfect balance of flavor complexity and nicotine delivery in a
-                    discreet, elegant format that complements your lifestyle. No compromise, no
-                    shortcuts—just pure excellence in every detail.
-                  </p>
-                </div>
-              )}
-
-              {activeTab === 'details' && (
-                <div className="prose prose-sm max-w-none text-gray-500">
-                  <h3>Premium Specifications</h3>
-                  <ul>
-                    <li>
-                      <strong>Flavor Profile:</strong> {product.flavor || 'Signature blend'}
-                    </li>
-                    <li>
-                      <strong>Strength Calibration:</strong>{' '}
-                      {product.strength
-                        ? `Precision-balanced ${product.strength}mg`
-                        : 'Expertly balanced'}
-                    </li>
-                    <li>
-                      <strong>Category:</strong> {product.category || 'Premium Collection'}
-                    </li>
-                    <li>
-                      <strong>Contents:</strong> 20 artisan-crafted pouches per designer container
-                    </li>
-                    <li>
-                      <strong>Nicotine Type:</strong> Pharmaceutical-grade synthetic nicotine
-                      (tobacco-free)
-                    </li>
-                    <li>
-                      <strong>Composition:</strong> Premium microcrystalline cellulose,
-                      triple-filtered water, proprietary flavor compounds, pharmaceutical-grade
-                      nicotine, pH-optimizing salts, precise acidity regulators, natural sweeteners
-                    </li>
-                  </ul>
-                  <p className="mt-4 text-sm">
-                    <strong>Warning:</strong> This product contains nicotine. Nicotine is an
-                    addictive chemical. Not for sale to minors. Keep out of reach of children.
-                  </p>
-                </div>
-              )}
-
-              {activeTab === 'shipping' && (
-                <div className="prose prose-sm max-w-none text-gray-500">
-                  <h3>White Glove Delivery Service</h3>
-                  <p>
-                    We provide premium shipping throughout Canada with careful handling to ensure
-                    your PUXX products arrive in perfect condition. Each order is thoughtfully
-                    packaged and expedited by our logistics specialists.
-                  </p>
-
-                  <h4>Delivery Options:</h4>
-                  <ul>
-                    <li>
-                      <strong>Classic Delivery:</strong> 3-5 business days ($5.99) with tracking
-                    </li>
-                    <li>
-                      <strong>Priority Service:</strong> 1-2 business days ($12.99) with enhanced
-                      tracking
-                    </li>
-                    <li>
-                      <strong>Complimentary Shipping:</strong> On collections valued over $50
-                      (Classic Delivery)
-                    </li>
-                  </ul>
-
-                  <h4>Our Quality Guarantee:</h4>
-                  <p>
-                    We stand behind the exceptional quality of PUXX products. If your order doesn't
-                    meet our exacting standards, we accept returns of unopened products within 30
-                    days. Our dedicated concierge team is available to assist with any concerns.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Related products section */}
-          <div className="mt-12 border-t border-gray-200 pt-8 sm:mt-16 sm:pt-10">
-            <h2 className="text-xl font-extrabold tracking-tight text-gray-900 sm:text-2xl">
-              Customers also purchased
-            </h2>
-            <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 sm:mt-8 sm:gap-x-6 sm:gap-y-10 md:grid-cols-3 lg:grid-cols-4">
-              {isLoadingRelated ? (
-                // Loading placeholders for related products
-                Array(4)
-                  .fill(0)
-                  .map((_, index) => (
-                    <div key={`loading-${index}`} className="group relative animate-pulse">
-                      <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-700"></div>
-                      <div className="mt-3 h-4 w-3/4 rounded bg-gray-700"></div>
-                      <div className="mt-1 h-3 w-1/2 rounded bg-gray-700"></div>
-                    </div>
-                  ))
-              ) : relatedProducts.length > 0 ? (
-                // Display actual related products
-                relatedProducts.map(relatedProduct => (
+          {!isLoadingRelated && relatedProducts.length > 0 && (
+            <div className="mt-16">
+              <h2 className="text-xl font-bold text-gray-100">You may also enjoy</h2>
+              <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                {relatedProducts.map(relatedProduct => (
                   <div key={relatedProduct.id} className="group relative">
                     <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-200 group-hover:opacity-75">
                       <div className="relative h-full w-full">
@@ -570,15 +423,10 @@ export default function ProductDetailPage() {
                       </p>
                     </div>
                   </div>
-                ))
-              ) : (
-                // Fallback message when no related products
-                <div className="col-span-4 py-10 text-center text-gray-500">
-                  No related products found.
-                </div>
-              )}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </Layout>
