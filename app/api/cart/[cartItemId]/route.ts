@@ -20,6 +20,9 @@ export async function PUT(request: NextRequest, { params }: { params: { cartItem
     }
 
     const userId = authResult.userId;
+    if (!userId) {
+      return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
+    }
 
     // Parse request body
     const body = await request.json();
@@ -53,7 +56,9 @@ export async function PUT(request: NextRequest, { params }: { params: { cartItem
       throw error; // Re-throw for the outer catch block
     }
   } catch (error) {
-    logger.error(`Failed to update cart item ${cartItemId}:`, error);
+    logger.error(`Failed to update cart item ${cartItemId}:`, {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json(
       { message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
@@ -73,6 +78,10 @@ export async function DELETE(request: NextRequest, { params }: { params: { cartI
     }
 
     const userId = authResult.userId;
+    if (!userId) {
+      return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
+    }
+
     logger.info(`DELETE /api/cart/${cartItemId} - User: ${userId}`);
 
     try {
@@ -86,7 +95,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { cartI
       throw error; // Re-throw for the outer catch block
     }
   } catch (error) {
-    logger.error(`Failed to remove cart item ${cartItemId}:`, error);
+    logger.error(`Failed to remove cart item ${cartItemId}:`, {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json(
       { message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }

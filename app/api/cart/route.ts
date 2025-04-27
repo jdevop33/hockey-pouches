@@ -18,6 +18,10 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = authResult.userId;
+    if (!userId) {
+      return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
+    }
+
     logger.info(`GET /api/cart - User: ${userId}`);
 
     // Get cart items using the cart service
@@ -25,7 +29,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(cartSummary);
   } catch (error) {
-    logger.error('Failed to get cart items:', error);
+    logger.error('Failed to get cart items:', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json(
       { message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
@@ -43,6 +49,9 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = authResult.userId;
+    if (!userId) {
+      return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
+    }
 
     // Parse request body
     const body = await request.json();
@@ -76,7 +85,9 @@ export async function POST(request: NextRequest) {
       throw error; // Re-throw for the outer catch block
     }
   } catch (error) {
-    logger.error('Failed to add item to cart:', error);
+    logger.error('Failed to add item to cart:', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json(
       { message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
@@ -94,6 +105,10 @@ export async function DELETE(request: NextRequest) {
     }
 
     const userId = authResult.userId;
+    if (!userId) {
+      return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
+    }
+
     logger.info(`DELETE /api/cart - User: ${userId}`);
 
     // Clear cart using the cart service
@@ -101,7 +116,9 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ message: 'Cart cleared successfully' });
   } catch (error) {
-    logger.error('Failed to clear cart:', error);
+    logger.error('Failed to clear cart:', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json(
       { message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
