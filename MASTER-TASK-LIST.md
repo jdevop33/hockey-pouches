@@ -27,6 +27,8 @@ Hockey Pouches is a premium e-commerce platform for nicotine pouches that suppor
    - ✅ Dark mode implementation for majority of interfaces (homepage, admin dashboard, etc.)
    - ✅ Improved responsive design for most pages
    - ✅ Enhanced cart and checkout experience
+   - ✅ Fixed product links directing to product detail pages
+   - ✅ Fixed role-based navigation for admin, distributor, and regular users
 
 3. **Administrative Features**
 
@@ -34,6 +36,7 @@ Hockey Pouches is a premium e-commerce platform for nicotine pouches that suppor
    - ✅ Fixed missing Settings page with store configuration options
    - ✅ Converted Reports page to dark mode with enhanced data visualization
    - ✅ Fixed accessibility issues in the Settings page
+   - ✅ Fixed admin account navigation
 
 4. **Copywriting & Content**
 
@@ -67,91 +70,31 @@ Hockey Pouches is a premium e-commerce platform for nicotine pouches that suppor
    - ✅ Added proper loading states in the UI with skeleton components
    - ✅ Implemented error handling and fallback content
 
-## In-Progress Tasks (Priority Order)
+## Priority Tasks for Next Sprint
 
-### 1. Database Implementation & API Development (URGENT PRIORITY)
+### 1. Fix Remaining UI Issues (CRITICAL PRIORITY)
 
-- [ ] **Database Connection Improvements**
+- [ ] **Product Display & Interaction**
 
-  - [ ] Finalize production database connection setup
-  - [ ] Add monitoring and query logging
-  - [ ] Implement connection pooling optimization
-  - [ ] Create database utility functions for common operations
+  - [x] Fix product links on main product listing page
+  - [x] Repair product ID handling in product detail pages
+  - [ ] Ensure consistent product image sizing across all pages
+  - [ ] Fix remaining layout issues on product detail pages for mobile devices
 
-- [x] **Database Schema Finalization**
+- [ ] **Navigation & User Flow**
 
-  - [x] Complete normalized schema design for all entities
-  - [x] Create migration scripts for production database
-    - [x] 01_create_products_schema - Created products and categories tables
-    - [x] product_variations - Added product variations table
-    - [x] update_product_prices - Standardized pricing and created backup tables
-    - [x] standardize_product_naming - Implemented consistent naming conventions
-    - [x] cart_items - Added cart functionality and basic inventory
-    - [x] order_history - Added order history tracking
-    - [x] create_payments_table - Created base payments table structure
-    - [x] payment_integration - Enhanced payment tracking and task management
-    - [x] add_wholesale_buyer_role - Added wholesale buyer functionality
-    - [x] add_inventory_system - Implemented advanced inventory management
-    - [x] 000_migration_helper - Added migration tracking system
-    - [x] 001_create_user_roles - Created enum for user roles
-    - [x] 002_extend_users_table - Added commission and referral fields
-    - [x] 003_create_commissions_table - Added commission tracking
-  - [ ] Document relationships between tables with ERD diagrams
+  - [x] Fix admin dashboard access from account buttons
+  - [x] Repair role-based navigation in header for desktop and mobile
+  - [ ] Ensure breadcrumb navigation works properly on all pages
+  - [ ] Fix cart indicator showing correct number of items
 
-- [x] **Replace Mock Database with Production Database**
+- [ ] **Checkout Process**
+  - [ ] Complete checkout flow testing with sample orders
+  - [ ] Fix payment method selection interface
+  - [ ] Ensure order confirmation works properly
+  - [ ] Test email notifications for orders
 
-  - [x] Remove all instances of mockPool and mockSql from app/lib/db.ts
-  - [x] Implement proper database connection pooling with error handling
-  - [x] Add database monitoring and logging for production
-
-- [ ] **Data Migration & Seeding**
-  - [x] Create initial seed data scripts for products, categories, and configs
-  - [ ] Implement data validation before inserting into production database
-  - [ ] Test database performance with realistic data volumes
-
-### 2. API Development & Real Services Implementation
-
-- [x] **Product Service Enhancement**
-
-  - [x] Replace mock product data with real database queries
-  - [x] Implement complete CRUD operations in ProductService
-  - [x] Add proper error handling and validation for all product endpoints
-  - [x] Create robust product search with filters and pagination
-
-- [x] **Order Service Implementation**
-
-  - [x] Create full order lifecycle management
-  - [x] Implement order status tracking and transitions
-  - [x] Add order history functionality
-  - [x] Integrate with inventory and commission services
-
-- [x] **Inventory Service Development**
-
-  - [x] Build stock level tracking across multiple locations
-  - [x] Implement stock movement history
-  - [x] Create reservation system for order processing
-  - [x] Add low stock reporting functionality
-
-- [x] **Commission Service Implementation**
-
-  - [x] Create commission calculation for referrals and distributors
-  - [x] Implement commission approval workflow
-  - [x] Add payout processing functionality
-  - [x] Build reporting for commission statistics
-
-- [x] **Cart Service Enhancement**
-
-  - [x] Implement cart validation with minimum quantities
-  - [x] Add wholesale eligibility checks
-  - [x] Create cart persistence and item management
-  - [x] Integrate with inventory for availability checks
-
-- [x] **Analytics Service Development**
-
-  - [x] Build sales reporting by various dimensions
-  - [x] Implement product performance tracking
-  - [x] Create distributor performance analytics
-  - [x] Add geographic distribution reporting
+### 2. Authentication & User Management (HIGH PRIORITY)
 
 - [ ] **User & Authentication Service**
 
@@ -160,113 +103,31 @@ Hockey Pouches is a premium e-commerce platform for nicotine pouches that suppor
   - [ ] Develop secure password reset and account verification flows
   - [x] Replace placeholder authentication in all pages
     - [x] Fixed distributor dashboard pages
-    - [ ] Fix remaining admin dashboard pages
+    - [x] Fixed admin dashboard access
+    - [ ] Fix remaining user dashboard pages
 
-- [ ] **Authentication System**
+- [ ] **User Profile Management**
+  - [ ] Complete user profile editing functionality
+  - [ ] Implement address management system
+  - [ ] Add order history view with detailed status tracking
+  - [ ] Create commission tracking dashboard for distributors
 
-  - [ ] Implement JWT-based authentication
-  - [ ] Create login/registration API endpoints
-  - [ ] Add role-based authorization middleware
-  - [x] Replace isAuthenticated placeholders in all pages
-    - [x] Fixed distributor dashboard pages
-    - [ ] Fix remaining admin dashboard pages
+### 3. Order & Inventory Management (HIGH PRIORITY)
 
-- [ ] **Frontend Integration**
+- [ ] **Order Management**
 
-  - [ ] Connect UI components to real API endpoints
-  - [ ] Implement proper loading states and error handling
-  - [ ] Create comprehensive form validation
-  - [ ] Build user notification system
+  - [ ] Complete end-to-end order processing flow
+  - [ ] Implement order history with status updates
+  - [ ] Create order notification system
+  - [ ] Build distributor assignment workflow
 
-- [ ] **Checkout Process Implementation**
+- [ ] **Inventory Management**
+  - [ ] Finalize inventory tracking system
+  - [ ] Complete stock adjustment workflow
+  - [ ] Implement low stock alerts
+  - [ ] Create inventory reports for admin dashboard
 
-  - [ ] Create secure checkout flow with proper validation
-  - [ ] Implement payment processing integration
-  - [ ] Add order confirmation and receipt generation
-  - [ ] Build shipping options and calculation
-
-### 3. Product Pricing & Display Fixes (Critical Priority)
-
-- [ ] **Product Pricing Corrections**
-
-  - [x] Fix product pricing on /products page to show correct retail price ($15 CAD)
-  - [x] Ensure all products display standard $15 CAD pricing by default
-  - [ ] Implement role-based pricing visibility (retail vs. wholesale)
-  - [ ] Create admin interface for setting custom pricing for wholesale accounts
-
-- [ ] **Age Verification Update**
-
-  - [ ] Update age verification to reflect Canadian requirement (19+ not 21+)
-  - [ ] Ensure verification notices appear consistently across the platform
-  - [ ] Add regional age verification logic based on user location
-
-- [ ] **Product Detail Pages Enhancement**
-  - [ ] Create compelling product detail pages with consistent brand voice
-  - [ ] Implement proper product image galleries
-  - [ ] Add customer reviews section
-  - [ ] Ensure all product variations are properly displayed
-
-### 4. User Interface Completion (High Priority)
-
-- [ ] **Dark Mode Implementation**
-
-  - [ ] Complete user dashboard pages conversion
-  - [ ] Finish distributor dashboard pages
-  - [ ] Finalize checkout flow dark mode styling
-
-- [ ] **Mobile Optimization**
-
-  - [ ] Test all interfaces on mobile devices
-  - [ ] Fix any responsive issues
-  - [ ] Optimize for touch interactions
-
-- [ ] **User Dashboard**
-  - [ ] Complete profile management functionality
-  - [ ] Add order history with status tracking
-  - [ ] Implement saved addresses management
-
-### 5. Testing & Validation
-
-- [ ] **API Testing Suite**
-
-  - [ ] Create comprehensive unit tests for all services
-  - [ ] Implement integration tests for critical API workflows
-  - [ ] Develop load testing for high-traffic endpoints
-  - [ ] Set up continuous integration for API tests
-
-- [ ] **Data Integrity & Validation**
-
-  - [ ] Implement Zod schemas for all API request/response validation
-  - [ ] Add database constraints and triggers for data integrity
-  - [ ] Create data validation middleware for all endpoints
-  - [ ] Test edge cases and boundary conditions
-
-- [ ] **End-to-End Testing**
-
-  - [ ] Create comprehensive test suite for critical user flows
-  - [ ] Implement automated API testing
-  - [ ] Test all payment flows
-
-- [ ] **Cross-Browser & Device Testing**
-  - [ ] Test on major browsers (Chrome, Firefox, Safari, Edge)
-  - [ ] Verify functionality on iOS and Android devices
-  - [ ] Test different screen sizes and resolutions
-
-### 6. Performance & Security (Medium Priority)
-
-- [ ] **Performance Improvements**
-
-  - [ ] Implement image optimization
-  - [ ] Add proper caching strategies
-  - [ ] Optimize database queries
-
-- [ ] **Security Enhancements**
-  - [ ] Implement CSRF protection
-  - [ ] Add input sanitization
-  - [ ] Implement rate limiting
-  - [ ] Add audit logging
-
-### 3. Placeholder & Production Assets
+### 4. Content & Asset Replacement (MEDIUM PRIORITY)
 
 - [ ] **Replace Placeholder Images & Assets**
 
@@ -278,34 +139,97 @@ Hockey Pouches is a premium e-commerce platform for nicotine pouches that suppor
   - [ ] Create standardized image sizes for all product photos
   - [ ] Update any placeholder text in the application
 
+- [ ] **Age Verification Update**
+  - [ ] Update age verification to reflect Canadian requirement (19+ not 21+)
+  - [ ] Ensure verification notices appear consistently across the platform
+  - [ ] Add regional age verification logic based on user location
+
+### 5. Testing & Performance (MEDIUM PRIORITY)
+
+- [ ] **Testing & Validation**
+
+  - [ ] Complete end-to-end testing of critical user flows
+  - [ ] Test all API endpoints with realistic data
+  - [ ] Verify payment processing with test transactions
+  - [ ] Cross-browser testing on major platforms
+
+- [ ] **Performance Optimization**
+  - [ ] Implement image optimization and CDN configuration
+  - [ ] Add proper caching strategies for static assets
+  - [ ] Optimize database queries for frequently accessed data
+  - [ ] Implement lazy loading for product images
+
+### 6. Production Deployment Configuration (MEDIUM PRIORITY)
+
 - [ ] **Configure Production Environment**
+
   - [x] Update Google verification code to use environment variable
   - [ ] Set up proper environment variables for all services
   - [ ] Configure production Sentry integration for error tracking
   - [ ] Enable production analytics tracking
   - [ ] Set up uptime monitoring for production
 
-## Week 2 Focus: Order & Inventory Management
+- [ ] **Payment Processing**
+  - [ ] Configure production payment processor integration
+  - [ ] Set up webhooks for payment status updates
+  - [ ] Implement manual payment confirmation workflow
+  - [ ] Test payment flows in staging environment
 
-1. **Order Management**
+## Next Steps for Implementation
 
-   - [ ] Implement order history API
-   - [ ] Create order status tracking system
-   - [ ] Build order detail pages with real data
-   - [ ] Develop order notification system
+1. **Complete Critical UI Fixes**
 
-2. **Inventory Management**
+   - Fix remaining navigation issues
+   - Resolve product display inconsistencies
+   - Test user role-based access to different sections
 
-   - [ ] Implement inventory tracking system
-   - [ ] Create stock level adjustment API
-   - [ ] Build inventory reporting endpoints
-   - [ ] Add low stock alerts
+2. **Finalize Authentication System**
 
-3. **Admin Product Management**
-   - [ ] Create product creation/editing API
-   - [ ] Build admin product management interface
-   - [ ] Implement product image upload and storage
-   - [ ] Add product variation management
+   - Complete JWT implementation
+   - Test user registration and login flows
+   - Implement password reset functionality
+
+3. **Complete Order Processing**
+
+   - Finish order creation workflow
+   - Implement order status management
+   - Create distributor assignment process
+
+4. **Prepare for Production Launch**
+   - Complete asset replacement
+   - Configure environment variables
+   - Set up monitoring and analytics
+   - Perform security review
+
+## Technical Debt to Address
+
+1. **Code Quality**
+
+   - Address remaining TypeScript errors
+   - Improve error handling in API routes
+   - Add proper validation for all user inputs
+
+2. **Documentation**
+
+   - Complete API documentation
+   - Add comprehensive JSDocs
+   - Create architectural diagrams
+
+3. **Performance**
+   - Implement image optimization
+   - Add proper caching strategies
+   - Optimize API responses for frequent calls
+
+## Resources & Documentation
+
+- **Database**: See `db/migrations/` for schema definitions
+- **API Documentation**: Visit `/docs/api` in development environment
+- **Testing Guide**: See `TESTING.md` for manual and automated testing procedures
+- **Codebase Navigation**: See `PROJECT-STRUCTURE.md` for detailed information
+
+---
+
+_Last Updated: May 2025_
 
 ## End-to-End Business Management System
 
