@@ -316,6 +316,136 @@ JOIN products p ON cp.product_id = p.id
 WHERE cp.user_id = '[UUID_GOES_HERE]';
 ```
 
+## UPDATED: Database Implementation & API Development (URGENT PRIORITY)
+
+### 1. Database Architecture & Implementation
+
+- [ ] **Database Schema Finalization**
+
+  - [ ] Complete normalized schema design for all entities
+  - [ ] Create migration scripts for production database
+  - [ ] Document relationships between tables with ERD diagrams
+
+- [ ] **Replace Mock Database with Production Database**
+
+  - [ ] Remove all instances of mockPool and mockSql from app/lib/db.ts
+  - [ ] Implement proper database connection pooling with error handling
+  - [ ] Add database monitoring and logging for production
+
+- [ ] **Data Migration & Seeding**
+  - [ ] Create initial seed data scripts for products, categories, and configs
+  - [ ] Implement data validation before inserting into production database
+  - [ ] Test database performance with realistic data volumes
+
+### 2. API Development & Real Services Implementation
+
+- [ ] **Product Service Enhancement**
+
+  - [ ] Replace mock product data in app/products/page.tsx with real API calls
+  - [ ] Implement complete CRUD operations in ProductService
+  - [ ] Add proper error handling and validation for all product endpoints
+  - [ ] Create robust product search with filters and pagination
+
+- [ ] **User & Authentication Service**
+
+  - [ ] Implement JWT or session-based authentication system
+  - [ ] Create role-based authorization middleware
+  - [ ] Develop secure password reset and account verification flows
+  - [ ] Replace placeholder authentication in all pages
+
+- [ ] **Order & Checkout Service**
+
+  - [ ] Implement real order processing workflow
+  - [ ] Create order status tracking and management
+  - [ ] Develop robust cart validation and price calculation
+  - [ ] Build secure checkout process with payment integration
+
+- [ ] **Commission & Distributor Service**
+
+  - [ ] Replace placeholder distributor dashboard data with real API calls
+  - [ ] Implement commission calculation based on actual sales data
+  - [ ] Create commission payout tracking and history
+  - [ ] Build distributor performance analytics
+
+- [ ] **Inventory & Warehouse Management**
+  - [ ] Create real-time inventory tracking system
+  - [ ] Implement multi-location inventory management
+  - [ ] Develop low stock alerts and reordering system
+  - [ ] Build inventory audit and reconciliation tools
+
+### 3. Testing & Validation
+
+- [ ] **API Testing Suite**
+
+  - [ ] Create comprehensive unit tests for all services
+  - [ ] Implement integration tests for critical API workflows
+  - [ ] Develop load testing for high-traffic endpoints
+  - [ ] Set up continuous integration for API tests
+
+- [ ] **Data Integrity & Validation**
+  - [ ] Implement Zod schemas for all API request/response validation
+  - [ ] Add database constraints and triggers for data integrity
+  - [ ] Create data validation middleware for all endpoints
+  - [ ] Test edge cases and boundary conditions
+
+## Mock Data Replacement Plan
+
+### Identified Mock Data Sources
+
+1. **Product System**
+
+   - [ ] Replace mockProducts in app/products/page.tsx
+   - [ ] Implement real product detail fetching in app/products/[id]/page.tsx
+   - [ ] Replace placeholder product images with actual product photos
+
+2. **User Authentication**
+
+   - [ ] Replace isAuthenticated placeholders in all pages
+   - [ ] Implement proper session management and user role verification
+   - [ ] Create real user profile management system
+
+3. **Distributor Dashboard**
+
+   - [ ] Replace placeholder distributor data in dashboard pages
+   - [ ] Implement real order assignment and fulfillment system
+   - [ ] Create actual commission calculation and reporting
+
+4. **Admin Dashboard**
+
+   - [ ] Replace placeholder inventory and product management
+   - [ ] Implement real user management and permissions
+   - [ ] Create actual reporting and analytics
+
+5. **Checkout & Payment**
+   - [ ] Replace fake transaction IDs with real payment processing
+   - [ ] Implement secure payment gateway integration
+   - [ ] Create proper order confirmation and receipt system
+
+### Implementation Sequence
+
+1. **Week 1: Database & Core Services**
+
+   - Set up production database with proper schema
+   - Implement ProductService and UserService
+   - Create base API endpoints for products and authentication
+
+2. **Week 2: Order & Inventory Systems**
+
+   - Develop OrderService and InventoryService
+   - Implement cart and checkout flows
+   - Create inventory management system
+
+3. **Week 3: Distributor & Commission Systems**
+
+   - Build CommissionService and DistributorService
+   - Implement commission calculation and tracking
+   - Create distributor assignment and fulfillment system
+
+4. **Week 4: Admin & Reporting Systems**
+   - Develop AdminService and ReportingService
+   - Implement comprehensive admin dashboard
+   - Create analytics and reporting tools
+
 ---
 
 _Last Updated: May 2025_
