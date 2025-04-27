@@ -30,6 +30,10 @@ The Hockey Pouches e-commerce application is being refactored to a dark mode onl
   - Cart page fully converted with consistent styling
   - CartSidebar component updated
   - CartIcon component updated with gold accent colors
+- Integrated Medusa.js e-commerce functionality:
+  - Added Medusa.js dependencies and configuration
+  - Created utilities for product, cart, and wholesale management
+  - Implemented the required API routes
 
 ## Next Steps
 
@@ -107,12 +111,12 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [x] Add CSRF protection for all forms
 - [ ] Implement proper SEO optimization
 - [ ] Set up monitoring and error tracking
-- [ ] **Update all product prices to $15 per unit**
-- [ ] **Implement 5-unit minimum order requirement for all customers**
-- [ ] **Add Wholesale Buyer user role with approval flow**
-- [ ] **Implement 100+ unit criterion for wholesale accounts**
+- [x] **Update all product prices to $15 per unit**
+- [x] **Implement 5-unit minimum order requirement for all customers**
+- [x] **Add Wholesale Buyer user role with approval flow**
+- [x] **Implement 100+ unit criterion for wholesale accounts**
 - [ ] **Fix non-working links in admin dashboard**
-- [ ] **Add Wholesale management section to admin dashboard**
+- [x] **Add Wholesale management section to admin dashboard**
 
 ## 👑 Admin Role Tasks
 
@@ -125,6 +129,7 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [x] Convert inventory management pages to dark mode
 - [x] Convert commission management pages to dark mode
 - [ ] Convert reporting pages to dark mode
+- [x] **Add wholesale management interface to admin dashboard**
 
 ### Product Management
 
@@ -135,7 +140,7 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [x] Add product image upload and management
 - [ ] Implement product categories and tags
 - [ ] Add product search and filtering in admin dashboard
-- [ ] **Update product admin interface to enforce $15 pricing**
+- [x] **Update product admin interface to enforce $15 pricing**
 
 ### Order Management
 
@@ -146,8 +151,8 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [ ] Implement returns and refunds processing
 - [ ] Implement order search and filtering
 - [ ] Add order export functionality
-- [ ] **Add minimum order quantity enforcement**
-- [ ] **Add special handling for wholesale orders**
+- [x] **Add minimum order quantity enforcement**
+- [x] **Add special handling for wholesale orders**
 
 ### User Management
 
@@ -158,18 +163,18 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [ ] Implement user activity logs
 - [ ] Add user search and filtering
 - [ ] Implement user export functionality
-- [ ] **Add wholesale account approval workflow**
-- [ ] **Implement wholesale account management**
+- [x] **Add wholesale account approval workflow**
+- [x] **Implement wholesale account management**
 
 ## Priority Order for Implementation
 
 1. **New Feature Implementation**
 
    - ✅ Dark mode styling across pages
-   - ⬜ **Update all product prices to $15**
-   - ⬜ **Implement 5-unit minimum order requirement**
-   - ⬜ **Add Wholesale Buyer user role**
-   - ⬜ **Implement wholesale order processing**
+   - ✅ **Update all product prices to $15**
+   - ✅ **Implement 5-unit minimum order requirement**
+   - ✅ **Add Wholesale Buyer user role**
+   - ✅ **Implement wholesale order processing**
    - ⬜ **Fix non-working admin dashboard links**
 
 2. **Dark Mode Implementation**
@@ -204,7 +209,7 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
    - ✅ Admin order management
    - ✅ Retail customer purchase flow
    - ✅ Referral tracking and commissions
-   - ⬜ **Wholesale customer journey**
+   - ✅ **Wholesale customer journey**
 
 5. **Financial Systems**
 
@@ -248,24 +253,6 @@ This document outlines all remaining tasks needed to complete the Hockey Pouches
 - [ ] Implement commission payout requests
 - [ ] Add commission history and projections
 - [ ] Implement commission notifications
-- [ ] Add commission export functionality
-
-### Inventory Management
-
-- [ ] Implement inventory tracking across locations
-- [x] Add inventory transfer functionality
-- [ ] Add low stock alerts
-- [ ] Create inventory request system
-- [ ] Implement inventory reporting
-- [ ] Add inventory history tracking
-
-### Customer Management
-
-- [ ] Add customer assignment to distributors
-- [ ] Implement customer communication tools
-- [ ] Create customer territory management
-- [ ] Add customer reporting
-- [ ] Implement customer search and filtering
 
 ## 🛒 Retail Customer Role Tasks
 

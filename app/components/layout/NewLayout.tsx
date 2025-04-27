@@ -33,6 +33,7 @@ const Navigation: React.FC = () => {
     { href: '/research', label: 'BENEFITS' },
     { href: '/about', label: 'OUR STORY' },
     { href: '/contact', label: 'CONTACT' },
+    { href: '/wholesale/apply', label: 'WHOLESALE' },
   ];
 
   const dynamicNavItems: NavItem[] = [...baseNavItems];
