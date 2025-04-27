@@ -98,11 +98,11 @@ Hockey Pouches is a premium e-commerce platform for nicotine pouches that suppor
     - [x] 003_create_commissions_table - Added commission tracking
   - [ ] Document relationships between tables with ERD diagrams
 
-- [ ] **Replace Mock Database with Production Database**
+- [x] **Replace Mock Database with Production Database**
 
-  - [ ] Remove all instances of mockPool and mockSql from app/lib/db.ts
-  - [ ] Implement proper database connection pooling with error handling
-  - [ ] Add database monitoring and logging for production
+  - [x] Remove all instances of mockPool and mockSql from app/lib/db.ts
+  - [x] Implement proper database connection pooling with error handling
+  - [x] Add database monitoring and logging for production
 
 - [ ] **Data Migration & Seeding**
   - [x] Create initial seed data scripts for products, categories, and configs
@@ -261,6 +261,25 @@ Hockey Pouches is a premium e-commerce platform for nicotine pouches that suppor
   - [ ] Add input sanitization
   - [ ] Implement rate limiting
   - [ ] Add audit logging
+
+### 3. Placeholder & Production Assets
+
+- [ ] **Replace Placeholder Images & Assets**
+
+  - [ ] Update `/public/images/og/hockey-pouches-og.svg` with final logo
+  - [ ] Replace `/public/images/og/hockey-pouches-og.png` with final OG image
+  - [ ] Update `/public/images/og/hockey-logo.png` with final logo
+  - [ ] Replace `/public/favicon.ico` with branded favicon
+  - [ ] Optimize all product images for web performance
+  - [ ] Create standardized image sizes for all product photos
+  - [ ] Update any placeholder text in the application
+
+- [ ] **Configure Production Environment**
+  - [x] Update Google verification code to use environment variable
+  - [ ] Set up proper environment variables for all services
+  - [ ] Configure production Sentry integration for error tracking
+  - [ ] Enable production analytics tracking
+  - [ ] Set up uptime monitoring for production
 
 ## Week 2 Focus: Order & Inventory Management
 

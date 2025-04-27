@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Layout from '@/components/layout/NewLayout';
@@ -57,103 +57,6 @@ export default function ProductsPage() {
   });
   console.log('ProductsPage: State initialized.');
 
-  // Mock data wrapped in useMemo to prevent re-creation on every render
-  const mockProducts = useMemo<Product[]>(
-    () => [
-      {
-        id: 1,
-        name: 'Apple Mint (12mg)',
-        flavor: 'Apple Mint',
-        strength: 12,
-        price: 6.99,
-        image_url: '/images/products/apple-mint/apple-mint-12mg.png',
-        category: 'Regular Strength',
-        description: 'Crisp apple and cool mint flavor.',
-      },
-      {
-        id: 2,
-        name: 'Apple Mint (6mg)',
-        flavor: 'Apple Mint',
-        strength: 6,
-        price: 6.99,
-        image_url: '/images/products/apple-mint/apple-mint-6mg.png',
-        category: 'Mild',
-        description: 'Crisp apple and cool mint flavor, lower strength.',
-      },
-      {
-        id: 3,
-        name: 'Mint (12mg)',
-        flavor: 'Mint',
-        strength: 12,
-        price: 6.99,
-        image_url: '/images/products/cool-mint-6mg.png',
-        category: 'Regular Strength',
-        description: 'Cool and refreshing mint flavor.',
-      },
-      {
-        id: 4,
-        name: 'Mint (6mg)',
-        flavor: 'Mint',
-        strength: 6,
-        price: 6.99,
-        image_url: '/images/products/cool-mint-6mg.png',
-        category: 'Mild',
-        description: 'Cool and refreshing mint flavor, lower strength.',
-      },
-      {
-        id: 5,
-        name: 'PUXX Classic Mint',
-        flavor: 'Mint',
-        strength: 22,
-        price: 14.99,
-        image_url: '/images/products/puxxcoolmint22mg.png',
-        category: 'Strong',
-        description: 'Refined flavor profile with subtle cooling effect.',
-      },
-      {
-        id: 6,
-        name: 'PUXX Peppermint',
-        flavor: 'Peppermint',
-        strength: 22,
-        price: 14.99,
-        image_url: '/images/products/puxxperpermint22mg.png',
-        category: 'Strong',
-        description: 'Crisp peppermint with exceptional clarity.',
-      },
-      {
-        id: 7,
-        name: 'PUXX Spearmint',
-        flavor: 'Spearmint',
-        strength: 22,
-        price: 14.99,
-        image_url: '/images/products/puxxspearmint22mg.png',
-        category: 'Strong',
-        description: 'Sophisticated spearmint with lasting freshness.',
-      },
-      {
-        id: 8,
-        name: 'PUXX Watermelon',
-        flavor: 'Watermelon',
-        strength: 16,
-        price: 14.99,
-        image_url: '/images/products/puxxwatermelon16mg.png',
-        category: 'Medium',
-        description: 'Sweet and refreshing watermelon flavor.',
-      },
-      {
-        id: 9,
-        name: 'PUXX Cola',
-        flavor: 'Cola',
-        strength: 16,
-        price: 14.99,
-        image_url: '/images/products/puxxcola16mg.png',
-        category: 'Medium',
-        description: 'Classic cola flavor with a refreshing twist.',
-      },
-    ],
-    []
-  );
-
   // useEffect for Data Fetching
   useEffect(() => {
     console.log('*** Product Page useEffect Running! ***');
@@ -183,14 +86,13 @@ export default function ProductsPage() {
           if (!response.ok) {
             if (response.status === 500) {
               console.error('Server error when fetching products');
-              setError('The server encountered an error. Using mock data instead.');
-              // Set mock data
-              setProducts(mockProducts);
+              setError('The server encountered an error. Please try again later.');
+              setProducts([]);
               setPagination({
                 page: 1,
                 limit: 12,
-                total: mockProducts.length,
-                totalPages: Math.ceil(mockProducts.length / 12),
+                total: 0,
+                totalPages: 0,
               });
               return;
             } else {
@@ -229,14 +131,13 @@ export default function ProductsPage() {
           }
         } catch (fetchError) {
           console.error('Fetch error:', fetchError);
-          setError('Could not load products from the server. Using fallback data.');
-          // Use mock data as fallback
-          setProducts(mockProducts);
+          setError('Could not load products from the server. Please try again later.');
+          setProducts([]);
           setPagination({
             page: 1,
             limit: 12,
-            total: mockProducts.length,
-            totalPages: Math.ceil(mockProducts.length / 12),
+            total: 0,
+            totalPages: 0,
           });
         }
       } catch (err: unknown) {
@@ -258,7 +159,6 @@ export default function ProductsPage() {
     maxPriceFilter,
     sortBy,
     sortOrder,
-    mockProducts,
   ]);
 
   // State for available filters

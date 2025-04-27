@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import sql from '../../../lib/db';
-import { mockProductsData } from '../../../api/mockData';
 import { unstable_cache } from 'next/cache';
 
 interface Product {
@@ -57,20 +56,10 @@ export async function GET(request: NextRequest, { params }: { params: { productI
     // Try to get product from database
     const product = await getProductFromDb(productId);
 
-    // If database query fails or product not found in DB, fall back to mock data
+    // If product not found, return 404
     if (!product) {
-      console.warn(`Product ${productId} not found in database, checking mock data`);
-      const mockProduct = mockProductsData.find(p => p.id === productId);
-
-      if (!mockProduct) {
-        return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-      }
-
-      return NextResponse.json(mockProduct);
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
-
-    // Get related products by category (for future implementation)
-    // This would be implemented as another endpoint or included in this response
 
     return NextResponse.json(product);
   } catch (error) {

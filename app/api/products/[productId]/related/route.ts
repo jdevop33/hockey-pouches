@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import sql from '../../../../lib/db';
-import { mockProductsData } from '../../../../api/mockData';
 import { unstable_cache } from 'next/cache';
 
 interface Product {
@@ -54,21 +53,7 @@ export async function GET(request: NextRequest, { params }: { params: { productI
     // Try to get related products from database
     const relatedProducts = await getRelatedProductsFromDb(productId, limit);
 
-    // If database query fails or no related products, fall back to mock data
-    if (!relatedProducts || relatedProducts.length === 0) {
-      console.warn(`Related products for ${productId} not found in database, using mock data`);
-
-      // Filter mock products that aren't the current product
-      // In a real implementation, we would filter by category
-      const mockRelated = mockProductsData.filter(p => p.id !== productId).slice(0, limit);
-
-      if (mockRelated.length === 0) {
-        return NextResponse.json({ products: [] });
-      }
-
-      return NextResponse.json({ products: mockRelated });
-    }
-
+    // Even if no related products, return empty array (no fallback)
     return NextResponse.json({ products: relatedProducts });
   } catch (error) {
     console.error('Error fetching related products:', error);

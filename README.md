@@ -168,6 +168,90 @@ const response = await fetch('/api/users/me', {
 
 Deployed on Vercel. Automatic preview branches created via GitHub Actions workflow (`.github/workflows/neon_workflow.yml`).
 
+## Production Deployment Checklist
+
+Before deploying to production, ensure that you complete the following tasks:
+
+### 1. Database and API Setup
+
+- [ ] Configure production database connection in Vercel environment variables
+- [ ] Remove all mock data implementations (completed)
+- [ ] Ensure all API endpoints use proper database queries (completed)
+- [ ] Validate database schema is complete and has proper indexes
+- [ ] Create database backup strategy
+
+### 2. Authentication and Security
+
+- [ ] Implement JWT-based authentication system with proper role-based access
+- [ ] Set up CSRF protection for all forms
+- [ ] Add rate limiting to prevent abuse
+- [ ] Configure proper CORS settings
+- [ ] Enable audit logging for security events
+
+### 3. Assets and Content
+
+- [ ] Replace all placeholder images:
+  - [ ] Update `/public/images/og/hockey-pouches-og.svg` with final logo
+  - [ ] Replace `/public/images/og/hockey-pouches-og.png` with final OG image
+  - [ ] Update `/public/images/og/hockey-logo.png` with final logo
+  - [ ] Replace `/public/favicon.ico` with branded favicon
+- [ ] Ensure all product images are optimized for web
+- [ ] Verify all content is finalized (product descriptions, etc.)
+- [ ] Set up Google verification code in environment variables
+
+### 4. Payment Processing
+
+- [ ] Configure production payment gateway credentials
+- [ ] Test complete payment flow end-to-end
+- [ ] Set up webhook handling for payment events
+- [ ] Configure email notifications for successful/failed payments
+
+### 5. Performance & Monitoring
+
+- [ ] Implement proper caching strategies
+- [ ] Set up error monitoring (Sentry, LogRocket, etc.)
+- [ ] Configure analytics tracking
+- [ ] Set up uptime monitoring
+- [ ] Implement performance monitoring
+
+### 6. Environment Variables
+
+Ensure all environment variables are configured in Vercel:
+
+```bash
+# Base URL
+NEXT_PUBLIC_BASE_URL=https://nicotinetins.com
+
+# Database
+POSTGRES_URL=postgresql://username:password@host:port/database
+
+# Authentication
+JWT_SECRET=your_jwt_secret_here
+COOKIE_SECRET=your_cookie_secret_here
+
+# Google Analytics
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+GOOGLE_SITE_VERIFICATION=your_google_verification_code
+
+# Additional environment variables as in .env.example
+```
+
+### 7. Final Testing
+
+- [ ] Test all user flows (registration, login, checkout, etc.)
+- [ ] Verify mobile responsiveness
+- [ ] Test on multiple browsers (Chrome, Firefox, Safari, Edge)
+- [ ] Verify all emails are sending correctly
+- [ ] Test all payment methods
+
+### 8. Launch Steps
+
+1. Run final build: `npm run build`
+2. Deploy to production: `vercel --prod`
+3. Verify DNS settings
+4. Submit sitemap to search engines
+5. Monitor initial traffic and performance
+
 ## Next Steps
 
 1. **Complete Frontend Pages**: Implement remaining frontend pages and components

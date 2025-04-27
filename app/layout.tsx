@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: 'google-site-verification-code', // Replace with actual code when available
+    google: process.env.GOOGLE_SITE_VERIFICATION || '',
   },
 };
 
