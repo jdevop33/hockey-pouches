@@ -212,10 +212,9 @@ export function generateAndSetCsrfToken(): string {
 
 /**
  * API route to get a CSRF token
- * @param req Next.js request
  * @returns Next.js response with CSRF token
  */
-export async function getCsrfTokenHandler(req: NextRequest): Promise<NextResponse> {
+export async function getCsrfTokenHandler(): Promise<NextResponse> {
   const token = generateAndSetCsrfToken();
   return NextResponse.json({ token });
 }

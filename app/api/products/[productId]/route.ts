@@ -31,11 +31,12 @@ const getProductFromDb = unstable_cache(
         WHERE p.id = ${productId} AND p.is_active = true
       `;
 
-      if (result.rows.length === 0) {
+      // Check if any results were returned
+      if (!result || result.length === 0) {
         return null;
       }
 
-      return result.rows[0] as Product;
+      return result[0] as Product;
     } catch (error) {
       console.error(`Database error fetching product ${productId}:`, error);
       return null;

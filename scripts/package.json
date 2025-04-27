@@ -1,0 +1,10 @@
+{
+  "name": "hockey-pouches-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for hockey-pouches project",
+  "type": "module",
+  "scripts": {
+    "rename-images": "node rename_product_images.js"
+  },
+  "private": true
+}
