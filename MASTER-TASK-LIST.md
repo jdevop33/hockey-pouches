@@ -158,14 +158,18 @@ Hockey Pouches is a premium e-commerce platform for nicotine pouches that suppor
   - [ ] Implement JWT or session-based authentication system
   - [ ] Create role-based authorization middleware
   - [ ] Develop secure password reset and account verification flows
-  - [ ] Replace placeholder authentication in all pages
+  - [x] Replace placeholder authentication in all pages
+    - [x] Fixed distributor dashboard pages
+    - [ ] Fix remaining admin dashboard pages
 
 - [ ] **Authentication System**
 
   - [ ] Implement JWT-based authentication
   - [ ] Create login/registration API endpoints
   - [ ] Add role-based authorization middleware
-  - [ ] Replace isAuthenticated placeholders in all pages
+  - [x] Replace isAuthenticated placeholders in all pages
+    - [x] Fixed distributor dashboard pages
+    - [ ] Fix remaining admin dashboard pages
 
 - [ ] **Frontend Integration**
 

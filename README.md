@@ -175,14 +175,16 @@ Before deploying to production, ensure that you complete the following tasks:
 ### 1. Database and API Setup
 
 - [ ] Configure production database connection in Vercel environment variables
-- [ ] Remove all mock data implementations (completed)
-- [ ] Ensure all API endpoints use proper database queries (completed)
-- [ ] Validate database schema is complete and has proper indexes
+- [x] Remove all mock data implementations (completed)
+- [x] Ensure all API endpoints use proper database queries (completed)
+- [x] Validate database schema is complete and has proper indexes
 - [ ] Create database backup strategy
 
 ### 2. Authentication and Security
 
 - [ ] Implement JWT-based authentication system with proper role-based access
+  - [x] Replaced placeholder authentication in distributor dashboard
+  - [ ] Replace placeholder authentication in admin dashboard
 - [ ] Set up CSRF protection for all forms
 - [ ] Add rate limiting to prevent abuse
 - [ ] Configure proper CORS settings
@@ -208,6 +210,7 @@ Before deploying to production, ensure that you complete the following tasks:
 
 ### 5. Performance & Monitoring
 
+- [x] Fix linter errors including apple-touch-icon placement
 - [ ] Implement proper caching strategies
 - [ ] Set up error monitoring (Sentry, LogRocket, etc.)
 - [ ] Configure analytics tracking
