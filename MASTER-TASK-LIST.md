@@ -1,6 +1,6 @@
 # Hockey Pouches Master Task List
 
-This document serves as the single source of truth for all tasks related to the Hockey Pouches e-commerce platform, consolidating information from various project documents to keep everyone aligned and organized.
+This document serves as the single source of truth for all tasks related to the Hockey Pouches e-commerce platform.
 
 ## Project Overview
 
@@ -39,12 +39,116 @@ Hockey Pouches is a premium e-commerce platform for nicotine pouches that suppor
    - ✅ Updated legal pages with more user-friendly language
 
 5. **Database & Pricing**
+
    - ✅ Updated all product prices to standard $15 CAD
    - ✅ Created custom_pricing table for wholesale-specific pricing
 
+6. **Database Schema Foundation**
+
+   - ✅ Created normalized schema for products and categories tables
+   - ✅ Implemented migration scripts with proper indexes and constraints
+   - ✅ Added automatic timestamp updates via triggers
+   - ✅ Set up seed data for initial product catalog
+
+7. **Product Detail API Implementation**
+
+   - ✅ Replaced mock data in `/api/products/[productId]` with database queries
+   - ✅ Added caching for performance optimization
+   - ✅ Implemented graceful fallback to mock data when DB unavailable
+   - ✅ Created proper error handling with appropriate status codes
+
+8. **Related Products Feature**
+   - ✅ Implemented `/api/products/[productId]/related` endpoint
+   - ✅ Created SQL query to find products in the same category
+   - ✅ Added proper loading states in the UI with skeleton components
+   - ✅ Implemented error handling and fallback content
+
 ## In-Progress Tasks (Priority Order)
 
-### 1. Product Pricing & Display Fixes (Critical Priority)
+### 1. Database Implementation & API Development (URGENT PRIORITY)
+
+- [ ] **Database Connection Improvements**
+
+  - [ ] Finalize production database connection setup
+  - [ ] Add monitoring and query logging
+  - [ ] Implement connection pooling optimization
+  - [ ] Create database utility functions for common operations
+
+- [ ] **Database Schema Finalization**
+
+  - [ ] Complete normalized schema design for all entities
+  - [ ] Create migration scripts for production database
+  - [ ] Document relationships between tables with ERD diagrams
+
+- [ ] **Replace Mock Database with Production Database**
+
+  - [ ] Remove all instances of mockPool and mockSql from app/lib/db.ts
+  - [ ] Implement proper database connection pooling with error handling
+  - [ ] Add database monitoring and logging for production
+
+- [ ] **Data Migration & Seeding**
+  - [ ] Create initial seed data scripts for products, categories, and configs
+  - [ ] Implement data validation before inserting into production database
+  - [ ] Test database performance with realistic data volumes
+
+### 2. API Development & Real Services Implementation
+
+- [ ] **Product Service Enhancement**
+
+  - [ ] Replace mock product data in app/products/page.tsx with real API calls
+  - [ ] Implement complete CRUD operations in ProductService
+  - [ ] Add proper error handling and validation for all product endpoints
+  - [ ] Create robust product search with filters and pagination
+
+- [ ] **Product Listing API**
+
+  - [ ] Replace mock data in `/api/products` endpoint
+  - [ ] Implement filtering by category, flavor, strength
+  - [ ] Add sorting options (price, popularity)
+  - [ ] Create robust pagination with proper counts
+
+- [ ] **User & Authentication Service**
+
+  - [ ] Implement JWT or session-based authentication system
+  - [ ] Create role-based authorization middleware
+  - [ ] Develop secure password reset and account verification flows
+  - [ ] Replace placeholder authentication in all pages
+
+- [ ] **Authentication System**
+
+  - [ ] Implement JWT-based authentication
+  - [ ] Create login/registration API endpoints
+  - [ ] Add role-based authorization middleware
+  - [ ] Replace isAuthenticated placeholders in all pages
+
+- [ ] **Order & Checkout Service**
+
+  - [ ] Implement real order processing workflow
+  - [ ] Create order status tracking and management
+  - [ ] Develop robust cart validation and price calculation
+  - [ ] Build secure checkout process with payment integration
+
+- [ ] **Cart & Checkout Implementation**
+
+  - [ ] Create persistent cart storage in database
+  - [ ] Implement cart validation with inventory checks
+  - [ ] Build checkout process API endpoints
+  - [ ] Add proper order creation and payment processing
+
+- [ ] **Commission & Distributor Service**
+
+  - [ ] Replace placeholder distributor dashboard data with real API calls
+  - [ ] Implement commission calculation based on actual sales data
+  - [ ] Create commission payout tracking and history
+  - [ ] Build distributor performance analytics
+
+- [ ] **Inventory & Warehouse Management**
+  - [ ] Create real-time inventory tracking system
+  - [ ] Implement multi-location inventory management
+  - [ ] Develop low stock alerts and reordering system
+  - [ ] Build inventory audit and reconciliation tools
+
+### 3. Product Pricing & Display Fixes (Critical Priority)
 
 - [ ] **Product Pricing Corrections**
 
@@ -65,27 +169,7 @@ Hockey Pouches is a premium e-commerce platform for nicotine pouches that suppor
   - [ ] Add customer reviews section
   - [ ] Ensure all product variations are properly displayed
 
-### 2. Backend Refinement (High Priority)
-
-- [ ] **API Route Fixes**
-
-  - [ ] Fix remaining TypeScript and accessibility issues in API routes
-  - [ ] Implement proper error handling for all endpoints
-  - [ ] Complete input validation with Zod schemas
-
-- [ ] **Financial Systems Completion**
-
-  - [ ] Finish commission calculation edge cases
-  - [ ] Implement payout processing workflows
-  - [ ] Create financial reporting dashboard
-
-- [ ] **Wholesale Functionality**
-  - [ ] Complete wholesale application validation
-  - [ ] Implement admin approval process UI
-  - [ ] Create wholesale-specific order processing
-  - [ ] Add custom pricing management for individual wholesale accounts
-
-### 3. User Interface Completion (High Priority)
+### 4. User Interface Completion (High Priority)
 
 - [ ] **Dark Mode Implementation**
 
@@ -104,7 +188,34 @@ Hockey Pouches is a premium e-commerce platform for nicotine pouches that suppor
   - [ ] Add order history with status tracking
   - [ ] Implement saved addresses management
 
-### 4. Performance & Security (Medium Priority)
+### 5. Testing & Validation
+
+- [ ] **API Testing Suite**
+
+  - [ ] Create comprehensive unit tests for all services
+  - [ ] Implement integration tests for critical API workflows
+  - [ ] Develop load testing for high-traffic endpoints
+  - [ ] Set up continuous integration for API tests
+
+- [ ] **Data Integrity & Validation**
+
+  - [ ] Implement Zod schemas for all API request/response validation
+  - [ ] Add database constraints and triggers for data integrity
+  - [ ] Create data validation middleware for all endpoints
+  - [ ] Test edge cases and boundary conditions
+
+- [ ] **End-to-End Testing**
+
+  - [ ] Create comprehensive test suite for critical user flows
+  - [ ] Implement automated API testing
+  - [ ] Test all payment flows
+
+- [ ] **Cross-Browser & Device Testing**
+  - [ ] Test on major browsers (Chrome, Firefox, Safari, Edge)
+  - [ ] Verify functionality on iOS and Android devices
+  - [ ] Test different screen sizes and resolutions
+
+### 6. Performance & Security (Medium Priority)
 
 - [ ] **Performance Improvements**
 
@@ -118,18 +229,65 @@ Hockey Pouches is a premium e-commerce platform for nicotine pouches that suppor
   - [ ] Implement rate limiting
   - [ ] Add audit logging
 
-### 5. Testing & Quality Assurance (Medium Priority)
+## Week 2 Focus: Order & Inventory Management
 
-- [ ] **End-to-End Testing**
+1. **Order Management**
 
-  - [ ] Create comprehensive test suite for critical user flows
-  - [ ] Implement automated API testing
-  - [ ] Test all payment flows
+   - [ ] Implement order history API
+   - [ ] Create order status tracking system
+   - [ ] Build order detail pages with real data
+   - [ ] Develop order notification system
 
-- [ ] **Cross-Browser & Device Testing**
-  - [ ] Test on major browsers (Chrome, Firefox, Safari, Edge)
-  - [ ] Verify functionality on iOS and Android devices
-  - [ ] Test different screen sizes and resolutions
+2. **Inventory Management**
+
+   - [ ] Implement inventory tracking system
+   - [ ] Create stock level adjustment API
+   - [ ] Build inventory reporting endpoints
+   - [ ] Add low stock alerts
+
+3. **Admin Product Management**
+   - [ ] Create product creation/editing API
+   - [ ] Build admin product management interface
+   - [ ] Implement product image upload and storage
+   - [ ] Add product variation management
+
+## End-to-End Business Management System
+
+The platform provides a comprehensive solution with interconnected systems:
+
+1. **Inventory Management**
+
+   - Real-time inventory tracking across variations
+   - Low stock alerts with automatic reordering suggestions
+   - Supplier management with integration to purchasing workflows
+   - Warehouse location tracking for efficient fulfillment
+
+2. **Order Processing Workflow**
+
+   - End-to-end order lifecycle management:
+     - Order received → Payment verification → Inventory allocation → Distributor assignment → Fulfillment → Shipping → Delivery confirmation
+   - Status tracking dashboard for all stakeholders
+   - Automated notifications at each stage of processing
+
+3. **Multi-tiered User Management**
+
+   - Customer tier: Retail (5+ units) and wholesale (100+ units)
+   - Distributor tier: Order fulfillment, commission tracking, performance metrics
+   - Admin tier: Complete system management, reporting, approval workflows
+
+4. **Commission and Payment System**
+
+   - Automated commission calculation based on fulfilled orders
+   - Distributor payout processing with payment schedule
+   - Commission history and projection tools
+   - Tax documentation generation for distributors
+
+5. **Analytics and Reporting**
+   - Sales analytics with trend identification
+   - Inventory forecasting based on historical data
+   - Distributor performance metrics
+   - Financial reporting with revenue, costs, and profit tracking
+   - Customer behavior analysis to optimize marketing
 
 ## Content & Copywriting
 
@@ -174,39 +332,106 @@ Added several new tables to support our custom implementation:
 3. **notifications** - System notifications for users
 4. **custom_pricing** - Stores user-specific pricing set by admins for wholesale accounts
 
-## End-to-End Business Management System
+### Database Tables to Implement
 
-The platform provides a comprehensive solution with interconnected systems:
+1. **users**
 
-1. **Inventory Management**
+   - id (PK)
+   - email
+   - password_hash
+   - name
+   - role (customer, distributor, admin)
+   - created_at
+   - updated_at
 
-   - Real-time inventory tracking across variations
-   - Low stock alerts
-   - Warehouse location tracking
+2. **products**
 
-2. **Order Processing Workflow**
+   - id (PK)
+   - name
+   - description
+   - price
+   - compare_at_price
+   - image_url
+   - category_id (FK)
+   - flavor
+   - strength
+   - is_active
+   - created_at
+   - updated_at
 
-   - End-to-end order lifecycle management
-   - Status tracking for all stakeholders
-   - Automated notifications
+3. **categories**
 
-3. **Multi-tiered User Management**
+   - id (PK)
+   - name
+   - description
+   - parent_id (FK, self-referencing)
 
-   - Customer tier: Retail ($15 CAD pricing) and wholesale (custom pricing)
-   - Distributor tier: Order fulfillment and commission tracking
-   - Admin tier: System management, reporting, and wholesale pricing control
+4. **inventory_items**
 
-4. **Commission and Payment System**
+   - id (PK)
+   - product_id (FK)
+   - location_id (FK)
+   - quantity
+   - sku
+   - created_at
+   - updated_at
 
-   - Automated commission calculation
-   - Distributor payout processing
-   - Commission history and projections
+5. **locations**
 
-5. **Analytics and Reporting**
-   - Sales analytics with trend identification
-   - Inventory forecasting
-   - Distributor performance metrics
-   - Financial reporting
+   - id (PK)
+   - name
+   - address
+   - is_active
+
+6. **orders**
+
+   - id (PK)
+   - user_id (FK)
+   - status
+   - total_amount
+   - distributor_id (FK, optional)
+   - commission_amount
+   - shipping_address
+   - payment_method
+   - created_at
+   - updated_at
+
+7. **order_items**
+
+   - id (PK)
+   - order_id (FK)
+   - product_id (FK)
+   - quantity
+   - price_at_purchase
+   - subtotal
+
+8. **wholesale_applications**
+
+   - id (PK)
+   - user_id (FK)
+   - company_name
+   - tax_id
+   - status
+   - submitted_at
+   - approved_at
+   - rejected_at
+
+9. **custom_pricing**
+
+   - id (PK)
+   - user_id (FK)
+   - product_id (FK)
+   - price
+   - created_at
+   - updated_at
+
+10. **commissions**
+    - id (PK)
+    - order_id (FK)
+    - distributor_id (FK)
+    - amount
+    - status
+    - payout_date
 
 ## Production Deployment Checklist
 
@@ -253,10 +478,16 @@ The platform provides a comprehensive solution with interconnected systems:
    - Push notifications
 
 4. **International Expansion**
+
    - Multi-currency support
    - Localization for different markets
    - International shipping and tax calculation
    - Region-specific age verification requirements
+
+5. **B2B Portal Enhancement**
+   - Dedicated wholesale buyer interface
+   - Bulk ordering tools
+   - Custom pricing tiers for different wholesale volumes
 
 ## Technical Debt Tracking
 
@@ -316,135 +547,202 @@ JOIN products p ON cp.product_id = p.id
 WHERE cp.user_id = '[UUID_GOES_HERE]';
 ```
 
-## UPDATED: Database Implementation & API Development (URGENT PRIORITY)
+### SQL Migration Guide for Neon PostgreSQL
 
-### 1. Database Architecture & Implementation
+When running SQL scripts in the Neon console, comments and multi-statement scripts may cause problems:
 
-- [ ] **Database Schema Finalization**
+1. **Comment Formatting**: Neon's SQL editor sometimes misinterprets certain comment styles
+2. **Multiple Statements**: Running multiple statements at once can be problematic
+3. **Transaction Management**: Neon may handle transactions differently than expected
 
-  - [ ] Complete normalized schema design for all entities
-  - [ ] Create migration scripts for production database
-  - [ ] Document relationships between tables with ERD diagrams
+#### Method 1: Use the Migration Script (Recommended)
 
-- [ ] **Replace Mock Database with Production Database**
+The project includes `scripts/run-migrations.js` which handles migrations properly:
 
-  - [ ] Remove all instances of mockPool and mockSql from app/lib/db.ts
-  - [ ] Implement proper database connection pooling with error handling
-  - [ ] Add database monitoring and logging for production
+1. Install dependencies: `npm install pg dotenv`
+2. Set your DATABASE_URL in `.env.local`:
 
-- [ ] **Data Migration & Seeding**
-  - [ ] Create initial seed data scripts for products, categories, and configs
-  - [ ] Implement data validation before inserting into production database
-  - [ ] Test database performance with realistic data volumes
+```bash
+DATABASE_URL=postgres://user:password@your-neon-host/dbname
+```
 
-### 2. API Development & Real Services Implementation
+3. Run: `node scripts/run-migrations.js`
 
-- [ ] **Product Service Enhancement**
+This script:
 
-  - [ ] Replace mock product data in app/products/page.tsx with real API calls
-  - [ ] Implement complete CRUD operations in ProductService
-  - [ ] Add proper error handling and validation for all product endpoints
-  - [ ] Create robust product search with filters and pagination
+- Automatically tracks applied migrations
+- Runs migrations in transaction blocks (rollback on error)
+- Handles comments correctly
+- Executes migrations in alphabetical order
 
-- [ ] **User & Authentication Service**
+#### Method 2: Modified SQL in Neon Console
 
-  - [ ] Implement JWT or session-based authentication system
-  - [ ] Create role-based authorization middleware
-  - [ ] Develop secure password reset and account verification flows
-  - [ ] Replace placeholder authentication in all pages
+When using Neon's SQL editor directly:
 
-- [ ] **Order & Checkout Service**
+1. **For Comments**:
 
-  - [ ] Implement real order processing workflow
-  - [ ] Create order status tracking and management
-  - [ ] Develop robust cart validation and price calculation
-  - [ ] Build secure checkout process with payment integration
+   - Use `--` single-line comments instead of `/* */` multi-line comments
+   - Avoid trailing comments on the same line as SQL statements
 
-- [ ] **Commission & Distributor Service**
+2. **Split Complex Scripts**:
 
-  - [ ] Replace placeholder distributor dashboard data with real API calls
-  - [ ] Implement commission calculation based on actual sales data
-  - [ ] Create commission payout tracking and history
-  - [ ] Build distributor performance analytics
+   - Run one statement at a time
+   - Separate CREATE TABLE, CREATE INDEX, etc. into individual runs
 
-- [ ] **Inventory & Warehouse Management**
-  - [ ] Create real-time inventory tracking system
-  - [ ] Implement multi-location inventory management
-  - [ ] Develop low stock alerts and reordering system
-  - [ ] Build inventory audit and reconciliation tools
+3. **Handling Transactions**:
+   - Run BEGIN/COMMIT explicitly for multi-statement operations
 
-### 3. Testing & Validation
+#### Method 3: Using psql CLI with Neon
 
-- [ ] **API Testing Suite**
+Connect directly with psql using your Neon connection string:
 
-  - [ ] Create comprehensive unit tests for all services
-  - [ ] Implement integration tests for critical API workflows
-  - [ ] Develop load testing for high-traffic endpoints
-  - [ ] Set up continuous integration for API tests
+```bash
+psql postgresql://user:password@your-neon-host/dbname
+```
 
-- [ ] **Data Integrity & Validation**
-  - [ ] Implement Zod schemas for all API request/response validation
-  - [ ] Add database constraints and triggers for data integrity
-  - [ ] Create data validation middleware for all endpoints
-  - [ ] Test edge cases and boundary conditions
+Then either:
 
-## Mock Data Replacement Plan
+- Run statements interactively
+- Execute a script file: `\i path/to/script.sql`
 
-### Identified Mock Data Sources
+This method handles comments and multi-statements properly.
 
-1. **Product System**
+### Database Schema Validation
 
-   - [ ] Replace mockProducts in app/products/page.tsx
-   - [ ] Implement real product detail fetching in app/products/[id]/page.tsx
-   - [ ] Replace placeholder product images with actual product photos
+After running migrations, verify your schema:
 
-2. **User Authentication**
+```sql
+-- List all tables
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public';
 
-   - [ ] Replace isAuthenticated placeholders in all pages
-   - [ ] Implement proper session management and user role verification
-   - [ ] Create real user profile management system
+-- View table structure
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'table_name_here';
 
-3. **Distributor Dashboard**
+-- Check indexes
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE tablename = 'table_name_here';
+```
 
-   - [ ] Replace placeholder distributor data in dashboard pages
-   - [ ] Implement real order assignment and fulfillment system
-   - [ ] Create actual commission calculation and reporting
+### Database Connection Example
 
-4. **Admin Dashboard**
+```typescript
+// Example implementation for app/lib/db.ts
+import { Pool } from 'pg';
+import { neon, neonConfig } from '@neondatabase/serverless';
 
-   - [ ] Replace placeholder inventory and product management
-   - [ ] Implement real user management and permissions
-   - [ ] Create actual reporting and analytics
+let pool: Pool;
+let sql: any;
 
-5. **Checkout & Payment**
-   - [ ] Replace fake transaction IDs with real payment processing
-   - [ ] Implement secure payment gateway integration
-   - [ ] Create proper order confirmation and receipt system
+if (!process.env.POSTGRES_URL) {
+  throw new Error('POSTGRES_URL is not defined');
+}
 
-### Implementation Sequence
+// Initialize connection pool
+const initializePool = () => {
+  try {
+    neonConfig.fetchConnectionCache = true;
+    pool = new Pool({
+      connectionString: process.env.POSTGRES_URL,
+    });
+    sql = neon(process.env.POSTGRES_URL);
+    console.log('Database connection initialized');
+    return { pool, sql };
+  } catch (error) {
+    console.error('Failed to initialize database connection:', error);
+    throw error;
+  }
+};
 
-1. **Week 1: Database & Core Services**
+// Get or initialize pool
+export function getDb() {
+  if (!pool || !sql) {
+    const db = initializePool();
+    pool = db.pool;
+    sql = db.sql;
+  }
+  return { pool, sql };
+}
+```
 
-   - Set up production database with proper schema
-   - Implement ProductService and UserService
-   - Create base API endpoints for products and authentication
+### Service Implementation Example
 
-2. **Week 2: Order & Inventory Systems**
+```typescript
+// Example ProductService implementation
+import { getDb } from '../db';
 
-   - Develop OrderService and InventoryService
-   - Implement cart and checkout flows
-   - Create inventory management system
+export class ProductService {
+  async findAll({ page = 1, limit = 20, category, search, minPrice, maxPrice }) {
+    const { sql } = getDb();
 
-3. **Week 3: Distributor & Commission Systems**
+    let query = `
+      SELECT p.*, c.name as category_name 
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.is_active = true
+    `;
 
-   - Build CommissionService and DistributorService
-   - Implement commission calculation and tracking
-   - Create distributor assignment and fulfillment system
+    const params = [];
+    let paramIndex = 1;
 
-4. **Week 4: Admin & Reporting Systems**
-   - Develop AdminService and ReportingService
-   - Implement comprehensive admin dashboard
-   - Create analytics and reporting tools
+    if (category) {
+      query += ` AND c.name = $${paramIndex}`;
+      params.push(category);
+      paramIndex++;
+    }
+
+    if (search) {
+      query += ` AND (p.name ILIKE $${paramIndex} OR p.description ILIKE $${paramIndex})`;
+      params.push(`%${search}%`);
+      paramIndex++;
+    }
+
+    if (minPrice !== undefined) {
+      query += ` AND p.price >= $${paramIndex}`;
+      params.push(minPrice);
+      paramIndex++;
+    }
+
+    if (maxPrice !== undefined) {
+      query += ` AND p.price <= $${paramIndex}`;
+      params.push(maxPrice);
+      paramIndex++;
+    }
+
+    // Add pagination
+    const offset = (page - 1) * limit;
+    query += ` ORDER BY p.id LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    params.push(limit, offset);
+
+    // Get total count for pagination
+    const countQuery = query
+      .replace('SELECT p.*, c.name as category_name', 'SELECT COUNT(*)')
+      .split('ORDER BY')[0];
+
+    const [products, countResult] = await Promise.all([
+      sql.query(query, params),
+      sql.query(countQuery, params.slice(0, -2)),
+    ]);
+
+    const total = parseInt(countResult.rows[0].count);
+
+    return {
+      products: products.rows,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  // Other methods...
+}
+```
 
 ---
 

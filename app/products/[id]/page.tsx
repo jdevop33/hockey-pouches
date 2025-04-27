@@ -38,6 +38,8 @@ export default function ProductDetailPage() {
   const [addedToCart, setAddedToCart] = useState(false);
   const [addToCartError, setAddToCartError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('description');
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [isLoadingRelated, setIsLoadingRelated] = useState(false);
 
   useEffect(() => {
     if (productId === undefined || isNaN(productId)) {
@@ -45,17 +47,45 @@ export default function ProductDetailPage() {
       setIsLoading(false);
       return;
     }
-    const fetchProduct = async () => {
+
+    // Create a controller for aborting fetch requests if component unmounts
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    async function fetchProductData() {
       setIsLoading(true);
       setError(null);
+
       try {
-        const response = await fetch(`/api/products/${productId}`);
-        if (!response.ok) {
-          if (response.status === 404) throw new Error('Product not found or not available.');
-          else throw new Error(`Failed to fetch product (${response.status})`);
+        // Fetch main product data
+        const productResponse = await fetch(`/api/products/${productId}`, { signal });
+
+        if (!productResponse.ok) {
+          if (productResponse.status === 404)
+            throw new Error('Product not found or not available.');
+          else throw new Error(`Failed to fetch product (${productResponse.status})`);
         }
-        const data = await response.json();
-        setProduct(data as Product);
+
+        const productData = await productResponse.json();
+        setProduct(productData as Product);
+
+        // After successfully fetching product, get related products
+        try {
+          setIsLoadingRelated(true);
+          const relatedResponse = await fetch(`/api/products/${productId}/related?limit=4`, {
+            signal,
+          });
+
+          if (relatedResponse.ok) {
+            const relatedData = await relatedResponse.json();
+            setRelatedProducts(relatedData.products || []);
+          }
+        } catch (relatedError) {
+          // Don't let related products error affect main product display
+          console.error('Error fetching related products:', relatedError);
+        } finally {
+          setIsLoadingRelated(false);
+        }
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Could not load product details.';
         setError(errorMessage);
@@ -63,9 +93,15 @@ export default function ProductDetailPage() {
       } finally {
         setIsLoading(false);
       }
+    }
+
+    fetchProductData();
+
+    // Cleanup function to abort fetch if component unmounts
+    return () => {
+      controller.abort();
     };
-    fetchProduct();
-  }, [productId]);
+  }, [productId, minOrderQuantity]);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -479,36 +515,59 @@ export default function ProductDetailPage() {
               Customers also purchased
             </h2>
             <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 sm:mt-8 sm:gap-x-6 sm:gap-y-10 md:grid-cols-3 lg:grid-cols-4">
-              {/* We'll show placeholder related products for now */}
-              {[1, 2, 3, 4].map(item => (
-                <div key={item} className="group relative">
-                  <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-200 group-hover:opacity-75">
-                    <div className="relative h-full w-full">
-                      <Image
-                        src="/images/products/placeholder.svg"
-                        alt="Related product"
-                        fill
-                        style={{ objectFit: 'contain' }}
-                        className="p-2"
-                      />
+              {isLoadingRelated ? (
+                // Loading placeholders for related products
+                Array(4)
+                  .fill(0)
+                  .map((_, index) => (
+                    <div key={`loading-${index}`} className="group relative animate-pulse">
+                      <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-700"></div>
+                      <div className="mt-3 h-4 w-3/4 rounded bg-gray-700"></div>
+                      <div className="mt-1 h-3 w-1/2 rounded bg-gray-700"></div>
+                    </div>
+                  ))
+              ) : relatedProducts.length > 0 ? (
+                // Display actual related products
+                relatedProducts.map(relatedProduct => (
+                  <div key={relatedProduct.id} className="group relative">
+                    <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-200 group-hover:opacity-75">
+                      <div className="relative h-full w-full">
+                        <Image
+                          src={relatedProduct.image_url || '/images/products/placeholder.svg'}
+                          alt={relatedProduct.name}
+                          fill
+                          style={{ objectFit: 'contain' }}
+                          className="p-2"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-col sm:mt-4 sm:flex-row sm:justify-between">
+                      <div>
+                        <h3 className="text-xs text-gray-700 sm:text-sm">
+                          <Link
+                            href={`/products/${relatedProduct.id}`}
+                            className="hover:text-primary-600"
+                          >
+                            <span aria-hidden="true" className="absolute inset-0" />
+                            {relatedProduct.name}
+                          </Link>
+                        </h3>
+                        <p className="mt-1 text-xs text-gray-500 sm:text-sm">
+                          {relatedProduct.flavor || 'Various flavors'}
+                        </p>
+                      </div>
+                      <p className="mt-1 text-xs font-medium text-gray-900 sm:mt-0 sm:text-sm">
+                        ${relatedProduct.price.toFixed(2)}
+                      </p>
                     </div>
                   </div>
-                  <div className="mt-3 flex flex-col sm:mt-4 sm:flex-row sm:justify-between">
-                    <div>
-                      <h3 className="text-xs text-gray-700 sm:text-sm">
-                        <Link href={`/products/${item}`} className="hover:text-primary-600">
-                          <span aria-hidden="true" className="absolute inset-0" />
-                          Similar Product {item}
-                        </Link>
-                      </h3>
-                      <p className="mt-1 text-xs text-gray-500 sm:text-sm">Various flavors</p>
-                    </div>
-                    <p className="mt-1 text-xs font-medium text-gray-900 sm:mt-0 sm:text-sm">
-                      ${(19.99).toFixed(2)}
-                    </p>
-                  </div>
+                ))
+              ) : (
+                // Fallback message when no related products
+                <div className="col-span-4 py-10 text-center text-gray-500">
+                  No related products found.
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>

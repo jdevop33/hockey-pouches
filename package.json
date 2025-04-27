@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "deploy": "node scripts/deploy.js",
     "git:push": "node scripts/git-push.js",
-    "test:api": "node scripts/test-api.js"
+    "test:api": "node scripts/test-api.js",
+    "db:migrate": "node scripts/run-migrations.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
