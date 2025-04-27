@@ -381,7 +381,7 @@ export default function ProductsPage() {
                 key={product.id}
                 className="group overflow-hidden rounded-lg border border-gold-500/10 bg-dark-700 p-4 shadow-md transition-all duration-300 hover:border-gold-500/30 hover:shadow-gold"
               >
-                <Link href={`/products/${product.id}`}>
+                <Link href={`/products/${product.id.toString()}`}>
                   <div className="aspect-square relative mb-4 overflow-hidden rounded-md bg-dark-800">
                     <Image
                       src={product.image_url || '/images/products/fallback.jpg'}
@@ -398,7 +398,11 @@ export default function ProductsPage() {
                   </div>
                 </Link>
 
-                <h3 className="mb-1 text-lg font-semibold text-gold-500">{product.name}</h3>
+                <Link href={`/products/${product.id.toString()}`}>
+                  <h3 className="mb-1 text-lg font-semibold text-gold-500 hover:underline">
+                    {product.name}
+                  </h3>
+                </Link>
 
                 <div className="mb-2 flex items-center gap-2">
                   {product.category && (

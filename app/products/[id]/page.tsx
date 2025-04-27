@@ -28,8 +28,17 @@ export default function ProductDetailPage() {
   const params = useParams();
   const { addToCart, minOrderQuantity } = useCart();
 
+  // Debug the parameter
+  console.log('Product detail params:', params);
+
   const productIdString = params.id as string;
-  const productId = productIdString ? parseInt(productIdString) : undefined;
+  // Sanitize the productId string before parsing
+  const sanitizedIdString = productIdString?.replace(/\D/g, '');
+  const productId = sanitizedIdString ? parseInt(sanitizedIdString, 10) : undefined;
+
+  console.log('Product ID (string):', productIdString);
+  console.log('Sanitized ID string:', sanitizedIdString);
+  console.log('Product ID (number):', productId);
 
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);

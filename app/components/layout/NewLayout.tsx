@@ -128,7 +128,21 @@ const Navigation: React.FC = () => {
               </button>
 
               <button
-                onClick={() => router.push(user ? '/dashboard' : '/login')}
+                onClick={() => {
+                  if (!user) {
+                    router.push('/login');
+                    return;
+                  }
+
+                  // Route based on user role
+                  if (user.role === 'Admin') {
+                    router.push('/admin/dashboard');
+                  } else if (user.role === 'Distributor') {
+                    router.push('/distributor/dashboard');
+                  } else {
+                    router.push('/dashboard');
+                  }
+                }}
                 className="hidden items-center rounded-xl bg-gradient-gold px-5 py-2 text-xs font-bold text-dark-500 shadow-gold-sm transition-all hover:shadow-gold md:flex"
               >
                 {user ? (
@@ -173,7 +187,20 @@ const Navigation: React.FC = () => {
 
             <button
               onClick={() => {
-                router.push(user ? '/dashboard' : '/login');
+                if (!user) {
+                  router.push('/login');
+                  setMobileMenuOpen(false);
+                  return;
+                }
+
+                // Route based on user role
+                if (user.role === 'Admin') {
+                  router.push('/admin/dashboard');
+                } else if (user.role === 'Distributor') {
+                  router.push('/distributor/dashboard');
+                } else {
+                  router.push('/dashboard');
+                }
                 setMobileMenuOpen(false);
               }}
               className="mt-3 flex w-full items-center rounded-xl bg-gradient-gold px-4 py-3 text-sm font-bold text-dark-900 shadow-md transition-all hover:shadow-gold-sm"
