@@ -317,29 +317,33 @@ export default function ProductsPage() {
         <div className="mb-12 text-center">
           <h1 className="mb-4 text-3xl font-bold text-white">
             <span className="bg-gradient-gold bg-clip-text text-transparent">
-              Premium Pouches, Exceptional Experience
+              The PUXX Collection: Excellence Refined
             </span>
           </h1>
           <p className="mx-auto mb-6 max-w-2xl text-lg text-gray-300">
-            Join thousands who've chosen PUXX for our superior quality and unmatched flavor. Limited
-            batches available—crafted with care, not mass-produced.
+            Experience our meticulously crafted nicotine pouches—a statement of discernment and
+            sophistication. Each limited batch is made with pharmaceutical-grade ingredients for
+            those who expect more.
           </p>
           <div className="flex flex-wrap items-center justify-center space-x-2 text-sm text-gold-400">
             <span className="flex items-center">
               <svg className="mr-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
-              4.9/5 rating
+              4.9/5 rating from connoisseurs
             </span>
             <span className="mx-2">•</span>
-            <span>2,000+ satisfied customers</span>
+            <span>2,000+ loyal patrons</span>
             <span className="mx-2">•</span>
-            <span>Free shipping over $50</span>
+            <span>Complimentary shipping on orders over $50</span>
           </div>
         </div>
 
         {/* Filter and Sort Bar */}
         <div className="mb-8 rounded-lg border border-gold-500/20 bg-dark-600 p-4 shadow-md">
+          <div className="mb-2 text-center text-sm text-gold-400">
+            Curate your experience with our precision filters
+          </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* Category Filter */}
             <div>
@@ -488,7 +492,7 @@ export default function ProductsPage() {
                     />
                     {product.compare_at_price && (
                       <div className="absolute right-0 top-0 rounded-bl-md bg-gold-500 px-2 py-1 text-xs font-bold text-dark-900">
-                        SALE
+                        EXCLUSIVE
                       </div>
                     )}
                   </div>
@@ -509,13 +513,14 @@ export default function ProductsPage() {
                   )}
                   {product.strength && (
                     <span className="rounded-full bg-dark-800 px-2 py-0.5 text-xs text-gray-300">
-                      {product.strength}mg
+                      {product.strength}mg Precision
                     </span>
                   )}
                 </div>
 
                 <p className="mb-4 text-sm text-gray-400">
-                  {product.description || 'Premium nicotine pouches with exceptional quality.'}
+                  {product.description ||
+                    'Exceptionally crafted for those who appreciate refined indulgence.'}
                 </p>
 
                 <div className="flex items-center justify-between">
@@ -539,7 +544,7 @@ export default function ProductsPage() {
                         : 'bg-gold-500 text-black hover:bg-gold-600'
                     }`}
                   >
-                    {addedToCartId === product.id ? 'Added!' : 'Add to Cart'}
+                    {addedToCartId === product.id ? 'Added to Collection' : 'Select'}
                   </button>
                 </div>
               </div>
@@ -550,7 +555,10 @@ export default function ProductsPage() {
         {/* No Products Found */}
         {!isLoading && products.length === 0 && !error && (
           <div className="rounded-lg border border-gold-500/10 bg-dark-600 p-8 text-center">
-            <p className="text-gray-300">No products found matching your criteria.</p>
+            <p className="text-gray-300">
+              Your refined taste requires specific products that are currently unavailable. Please
+              adjust your criteria or contact our concierge service for personalized assistance.
+            </p>
           </div>
         )}
 

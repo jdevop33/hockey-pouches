@@ -222,9 +222,12 @@ export default function ProductDetailPage() {
 
               {/* Description */}
               <div className="mt-4">
-                <h3 className="text-sm font-medium text-gray-200">Description</h3>
+                <h3 className="text-sm font-medium text-gray-200">Why You'll Love It</h3>
                 <div className="mt-2 space-y-4 text-base text-gray-300">
-                  <p>{product.description || 'No description available.'}</p>
+                  <p>
+                    {product.description ||
+                      'Crafted for those who demand excellence in every aspect of their lifestyle.'}
+                  </p>
                 </div>
               </div>
 
@@ -242,8 +245,8 @@ export default function ProductDetailPage() {
                   </div>
                   <div className="ml-3">
                     <p>
-                      Minimum order quantity:{' '}
-                      <span className="font-medium">{minOrderQuantity} units</span>
+                      <span className="font-medium">{minOrderQuantity} unit minimum</span> • Secure
+                      your premium experience
                     </p>
                   </div>
                 </div>
@@ -320,7 +323,7 @@ export default function ProductDetailPage() {
                   }`}
                   disabled={addedToCart}
                 >
-                  {addedToCart ? 'Added to Cart!' : 'Add to Cart'}
+                  {addedToCart ? 'Added to Your Collection!' : 'Add to Collection'}
                 </button>
 
                 {/* Add to cart error message */}
@@ -382,40 +385,50 @@ export default function ProductDetailPage() {
               {activeTab === 'description' && (
                 <div className="prose prose-sm max-w-none text-gray-500">
                   <p className="mb-4">
-                    {product.description || 'No detailed description available for this product.'}
+                    {product.description ||
+                      'An elevated nicotine experience crafted for the discerning user.'}
+                  </p>
+                  <p className="mb-4">
+                    PUXX premium nicotine pouches represent the pinnacle of sophistication and
+                    satisfaction. Meticulously crafted with pharmaceutical-grade ingredients and
+                    innovative technology, each pouch delivers a consistent, refined experience that
+                    sets a new standard in the industry.
                   </p>
                   <p>
-                    Our premium nicotine pouches are designed for those seeking a discreet and
-                    convenient alternative to traditional tobacco products. Enjoy the perfect
-                    balance of flavor and satisfaction without the mess or odor of traditional
-                    products.
+                    Enjoy the perfect balance of flavor complexity and nicotine delivery in a
+                    discreet, elegant format that complements your lifestyle. No compromise, no
+                    shortcuts—just pure excellence in every detail.
                   </p>
                 </div>
               )}
 
               {activeTab === 'details' && (
                 <div className="prose prose-sm max-w-none text-gray-500">
-                  <h3>Product Specifications</h3>
+                  <h3>Premium Specifications</h3>
                   <ul>
                     <li>
-                      <strong>Flavor:</strong> {product.flavor || 'N/A'}
+                      <strong>Flavor Profile:</strong> {product.flavor || 'Signature blend'}
                     </li>
                     <li>
-                      <strong>Strength:</strong>{' '}
-                      {product.strength ? `${product.strength}mg` : 'N/A'}
+                      <strong>Strength Calibration:</strong>{' '}
+                      {product.strength
+                        ? `Precision-balanced ${product.strength}mg`
+                        : 'Expertly balanced'}
                     </li>
                     <li>
-                      <strong>Category:</strong> {product.category || 'N/A'}
+                      <strong>Category:</strong> {product.category || 'Premium Collection'}
                     </li>
                     <li>
-                      <strong>Contents:</strong> 20 pouches per can
+                      <strong>Contents:</strong> 20 artisan-crafted pouches per designer container
                     </li>
                     <li>
-                      <strong>Nicotine Type:</strong> Synthetic nicotine (tobacco-free)
+                      <strong>Nicotine Type:</strong> Pharmaceutical-grade synthetic nicotine
+                      (tobacco-free)
                     </li>
                     <li>
-                      <strong>Ingredients:</strong> Microcrystalline cellulose, water, flavorings,
-                      nicotine, salt, acidity regulators, sweeteners
+                      <strong>Composition:</strong> Premium microcrystalline cellulose,
+                      triple-filtered water, proprietary flavor compounds, pharmaceutical-grade
+                      nicotine, pH-optimizing salts, precise acidity regulators, natural sweeteners
                     </li>
                   </ul>
                   <p className="mt-4 text-sm">
@@ -427,29 +440,33 @@ export default function ProductDetailPage() {
 
               {activeTab === 'shipping' && (
                 <div className="prose prose-sm max-w-none text-gray-500">
-                  <h3>Shipping Information</h3>
+                  <h3>White Glove Delivery Service</h3>
                   <p>
-                    We ship to all provinces in Canada. Orders are typically processed within 1-2
-                    business days.
+                    We provide premium shipping throughout Canada with careful handling to ensure
+                    your PUXX products arrive in perfect condition. Each order is thoughtfully
+                    packaged and expedited by our logistics specialists.
                   </p>
 
-                  <h4>Shipping Options:</h4>
+                  <h4>Delivery Options:</h4>
                   <ul>
                     <li>
-                      <strong>Standard Shipping:</strong> 3-5 business days ($5.99)
+                      <strong>Classic Delivery:</strong> 3-5 business days ($5.99) with tracking
                     </li>
                     <li>
-                      <strong>Express Shipping:</strong> 1-2 business days ($12.99)
+                      <strong>Priority Service:</strong> 1-2 business days ($12.99) with enhanced
+                      tracking
                     </li>
                     <li>
-                      <strong>Free Shipping:</strong> On orders over $50 (Standard shipping)
+                      <strong>Complimentary Shipping:</strong> On collections valued over $50
+                      (Classic Delivery)
                     </li>
                   </ul>
 
-                  <h4>Return Policy:</h4>
+                  <h4>Our Quality Guarantee:</h4>
                   <p>
-                    We accept returns of unopened products within 30 days of delivery. Please
-                    contact our customer service team to initiate a return.
+                    We stand behind the exceptional quality of PUXX products. If your order doesn't
+                    meet our exacting standards, we accept returns of unopened products within 30
+                    days. Our dedicated concierge team is available to assist with any concerns.
                   </p>
                 </div>
               )}

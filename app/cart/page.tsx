@@ -24,7 +24,7 @@ export default function CartPage() {
     <Layout>
       <div className="min-h-screen bg-gray-900 py-12">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <h1 className="mb-8 text-3xl font-bold text-gray-100">Your Shopping Cart</h1>
+          <h1 className="mb-8 text-3xl font-bold text-gray-100">Your Curated Selection</h1>
 
           {itemCount === 0 ? (
             <div className="rounded-lg bg-gray-800 p-6 text-center shadow-gold-sm sm:p-8">
@@ -41,12 +41,17 @@ export default function CartPage() {
                   d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                 />
               </svg>
-              <p className="mb-4 mt-4 text-lg text-gray-300 sm:text-xl">Your cart is empty.</p>
+              <p className="mb-4 mt-4 text-lg text-gray-300 sm:text-xl">
+                Your collection awaits its first selection.
+              </p>
+              <p className="mb-6 text-sm text-gray-400">
+                Discover our premium nicotine pouches crafted for those with refined tastes.
+              </p>
               <Link
                 href="/products"
                 className="inline-flex items-center justify-center rounded-md border border-transparent bg-gold-600 px-4 py-2 text-sm font-medium text-black shadow-sm hover:bg-gold-500 sm:px-6 sm:py-3 sm:text-base"
               >
-                Browse Products
+                Explore The Collection
               </Link>
             </div>
           ) : (
@@ -81,11 +86,13 @@ export default function CartPage() {
                             </h4>
                             <div className="mt-1 flex flex-wrap gap-x-4">
                               {product.flavor && (
-                                <p className="text-xs text-gray-400 sm:text-sm">{product.flavor}</p>
+                                <p className="text-xs text-gray-400 sm:text-sm">
+                                  {product.flavor} Profile
+                                </p>
                               )}
                               {product.strength && (
                                 <p className="text-xs text-gray-400 sm:text-sm">
-                                  {product.strength}mg
+                                  {product.strength}mg Precision
                                 </p>
                               )}
                             </div>
@@ -142,18 +149,55 @@ export default function CartPage() {
               {/* Order summary */}
               <div className="border-t border-gray-700 px-4 py-5 sm:px-6 sm:py-6">
                 <div className="flex justify-between text-base font-medium text-gray-100">
-                  <p>Subtotal</p>
+                  <p>Collection Subtotal</p>
                   <p>${subtotal.toFixed(2)}</p>
                 </div>
                 <p className="mt-1 text-xs text-gray-400 sm:text-sm">
-                  Shipping and taxes calculated at checkout.
+                  Premium shipping and applicable taxes calculated at checkout.
                 </p>
+
+                {/* Trust indicators */}
+                <div className="mt-4 flex justify-center space-x-6 text-xs text-gray-400">
+                  <span className="flex items-center">
+                    <svg
+                      className="mr-1 h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                    Secure Checkout
+                  </span>
+                  <span className="flex items-center">
+                    <svg
+                      className="mr-1 h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                      />
+                    </svg>
+                    Discreet Billing
+                  </span>
+                </div>
+
                 <div className="mt-5 sm:mt-6">
                   <button
                     onClick={handleCheckout}
                     className="flex w-full items-center justify-center rounded-md border border-transparent bg-gold-600 px-4 py-2.5 text-sm font-medium text-black shadow-sm hover:bg-gold-500 sm:px-6 sm:py-3 sm:text-base"
                   >
-                    Proceed to Checkout
+                    Complete Your Selection
                   </button>
                 </div>
                 <div className="mt-4 flex justify-center text-center text-xs text-gray-400 sm:mt-6 sm:text-sm">
@@ -163,7 +207,7 @@ export default function CartPage() {
                       href="/products"
                       className="font-medium text-gold-400 hover:text-gold-300"
                     >
-                      Continue Shopping<span aria-hidden="true"> &rarr;</span>
+                      Continue Curating<span aria-hidden="true"> &rarr;</span>
                     </Link>
                   </p>
                 </div>
@@ -172,7 +216,7 @@ export default function CartPage() {
                     onClick={() => clearCart()}
                     className="text-xs font-medium text-red-400 hover:text-red-300 sm:text-sm"
                   >
-                    Clear Cart
+                    Clear Selection
                   </button>
                 </div>
               </div>
