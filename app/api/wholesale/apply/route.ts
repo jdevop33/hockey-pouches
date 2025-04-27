@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       const result = await wholesaleService.submitApplication(validatedData);
 
       return NextResponse.json(result, { status: 201 });
-    } catch (validationError: unknown) {
+    } catch (validationError) {
       // Handle validation errors
       if (validationError instanceof z.ZodError) {
         return NextResponse.json(

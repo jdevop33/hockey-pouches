@@ -34,7 +34,7 @@ export async function POST(request: NextRequest, { params }: { params: { custome
       const result = await wholesaleService.rejectApplication(customerId, reason);
 
       return NextResponse.json(result);
-    } catch (validationError: unknown) {
+    } catch (validationError) {
       // Handle validation errors
       if (validationError instanceof z.ZodError) {
         return NextResponse.json(

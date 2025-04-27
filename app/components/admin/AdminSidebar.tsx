@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
   LayoutDashboard,
@@ -25,7 +25,6 @@ interface NavItem {
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   const navItems: NavItem[] = [
