@@ -70,10 +70,10 @@ const Navigation: React.FC = () => {
   return (
     <>
       {/* Desktop nav */}
-      <nav className="sticky top-0 z-50 hidden border-b border-gold-500/20 bg-dark-500 shadow-lg backdrop-blur-xl transition-all duration-200 md:block">
+      <nav className="sticky top-0 z-50 border-b border-gold-500/20 bg-dark-500 shadow-lg backdrop-blur-xl transition-all duration-200">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-20 items-center justify-between">
-            <div className="flex items-center gap-10">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center gap-4">
               <Link href="/" className="flex items-center gap-2">
                 <Image
                   src="/images/logo/logo3.svg"
@@ -81,42 +81,54 @@ const Navigation: React.FC = () => {
                   width={40}
                   height={40}
                   priority
-                  className="h-10 w-10"
+                  className="h-9 w-9"
                 />
                 <span className="hidden text-xl font-bold text-white sm:inline-block">PUXX</span>
               </Link>
-              <div className="flex items-center gap-1.5">
-                {visibleNavItems.map(item => (
-                  <button
-                    key={item.href}
-                    className={`rounded-lg px-4 py-2 text-sm font-bold tracking-wider transition-all ${
-                      pathname === item.href
-                        ? 'bg-gold-500 text-black shadow-gold-sm'
-                        : 'bg-dark-800/80 text-white hover:bg-gold-500 hover:text-black'
-                    }`}
-                    onClick={() => router.push(item.href)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
+
+              {/* Mobile menu button */}
+              <button
+                type="button"
+                aria-label="Toggle menu"
+                onClick={toggleMobileMenu}
+                className="rounded-xl border border-gold-500/30 bg-dark-800/80 p-2.5 text-white hover:bg-dark-700 md:hidden"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Desktop navigation */}
+            <div className="hidden md:flex md:items-center md:gap-2">
+              {visibleNavItems.map(item => (
+                <button
+                  key={item.href}
+                  className={`rounded-xl px-4 py-2 text-sm font-bold tracking-wider transition-all ${
+                    pathname === item.href
+                      ? 'bg-gold-500 text-black shadow-gold-sm'
+                      : 'bg-dark-800/80 text-white hover:bg-gold-500 hover:text-black'
+                  }`}
+                  onClick={() => router.push(item.href)}
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
 
             <div className="flex items-center gap-4">
               <button
                 onClick={() => router.push('/cart')}
-                className="relative rounded-full p-2 text-white hover:bg-dark-400 hover:text-gold-500"
+                className="relative rounded-xl p-2.5 text-white hover:bg-dark-400 hover:text-gold-500"
                 aria-label="Shopping cart"
               >
                 <ShoppingCart className="h-5 w-5" />
-                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold-500 text-xs font-bold text-dark-500">
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold-500 text-xs font-bold text-dark-500">
                   0
                 </span>
               </button>
 
               <button
                 onClick={() => router.push(user ? '/dashboard' : '/login')}
-                className="flex items-center rounded-lg bg-gradient-gold px-5 py-2 text-xs font-bold text-dark-500 shadow-gold-sm transition-all hover:shadow-gold"
+                className="hidden items-center rounded-xl bg-gradient-gold px-5 py-2 text-xs font-bold text-dark-500 shadow-gold-sm transition-all hover:shadow-gold md:flex"
               >
                 {user ? (
                   <>
@@ -133,74 +145,21 @@ const Navigation: React.FC = () => {
             </div>
           </div>
         </div>
-      </nav>
 
-      {/* Mobile bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-gold-500/30 bg-dark-900/90 shadow-xl backdrop-blur-md transition-all duration-200 md:hidden">
-        <div className="flex h-16 flex-1 items-center justify-around">
-          {visibleNavItems.slice(0, 4).map(item => (
-            <button
-              key={item.href}
-              className={`flex flex-col items-center justify-center px-2 py-1 text-xs font-bold ${
-                pathname === item.href ? 'text-gold-500' : 'text-white hover:text-gold-500'
-              }`}
-              onClick={() => router.push(item.href)}
-            >
-              {item.label}
-            </button>
-          ))}
-          <button
-            type="button"
-            aria-label="Open menu"
-            onClick={toggleMobileMenu}
-            className="flex flex-col items-center justify-center px-2 py-1 text-xs font-bold text-white hover:text-gold-500"
-          >
-            <Menu className="h-5 w-5" />
-            <span>MORE</span>
-          </button>
-        </div>
-
-        {/* Mobile menu overlay */}
+        {/* Mobile menu dropdown */}
         <div
-          className={`bg-black/85 fixed inset-0 z-50 backdrop-blur-md transition-opacity duration-200 ${
-            mobileMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-          }`}
-          onClick={() => setMobileMenuOpen(false)}
-        />
-
-        {/* Mobile menu panel */}
-        <div
-          className={`fixed bottom-0 left-0 right-0 z-50 rounded-t-xl border-t-2 border-gold-500/30 bg-dark-800/95 p-6 shadow-xl backdrop-blur-xl transition-transform duration-300 ${
-            mobileMenuOpen ? 'translate-y-0' : 'translate-y-full'
+          className={`absolute left-0 right-0 z-50 border-b border-gold-500/20 bg-dark-900/95 shadow-lg backdrop-blur-xl transition-all duration-300 md:hidden ${
+            mobileMenuOpen ? 'h-auto opacity-100' : 'pointer-events-none h-0 opacity-0'
           }`}
         >
-          <div className="mb-6 flex justify-between">
-            <h2 className="text-xl font-bold text-gold-500">Menu</h2>
-            <button
-              type="button"
-              aria-label="Close menu"
-              className="rounded-full bg-dark-900/80 p-2 text-white hover:bg-dark-700 hover:text-gold-500"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-
-          <div className="space-y-3">
+          <div className="space-y-2 px-4 py-4">
             {visibleNavItems.map(item => (
               <button
                 key={item.href}
-                className={`block w-full rounded-lg px-4 py-3 text-left text-sm font-bold ${
+                className={`block w-full rounded-xl px-4 py-3 text-left text-sm font-bold ${
                   pathname === item.href
                     ? 'bg-gold-500 text-black shadow-md'
-                    : 'bg-dark-900/90 text-white hover:bg-gold-500 hover:text-black'
+                    : 'bg-dark-800/80 text-white hover:bg-gold-500 hover:text-black'
                 }`}
                 onClick={() => {
                   router.push(item.href);
@@ -210,15 +169,13 @@ const Navigation: React.FC = () => {
                 {item.label}
               </button>
             ))}
-          </div>
 
-          <div className="mt-6 border-t border-gold-500/20 pt-6">
             <button
               onClick={() => {
                 router.push(user ? '/dashboard' : '/login');
                 setMobileMenuOpen(false);
               }}
-              className="flex w-full items-center justify-center rounded-lg bg-gradient-gold px-4 py-3 text-sm font-bold text-dark-900 shadow-md transition-all hover:shadow-gold-sm"
+              className="mt-3 flex w-full items-center rounded-xl bg-gradient-gold px-4 py-3 text-sm font-bold text-dark-900 shadow-md transition-all hover:shadow-gold-sm"
             >
               {user ? (
                 <>
@@ -235,11 +192,8 @@ const Navigation: React.FC = () => {
 
             {user && (
               <button
-                onClick={() => {
-                  handleLogout();
-                  setMobileMenuOpen(false);
-                }}
-                className="mt-3 flex w-full items-center justify-center rounded-lg border border-gold-500/30 bg-dark-900/80 px-4 py-3 text-sm font-bold text-white hover:bg-dark-700"
+                onClick={handleLogout}
+                className="mt-3 flex w-full items-center rounded-xl border border-gold-500/30 bg-dark-800/80 px-4 py-3 text-sm font-bold text-white hover:bg-dark-700"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 SIGN OUT

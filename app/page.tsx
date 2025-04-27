@@ -49,7 +49,7 @@ export default function Home() {
           <div
             className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage: "url('/images/hero-test.jpg')",
+              backgroundImage: "url('/images/hero/hero-test.jpg')",
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
@@ -74,7 +74,7 @@ export default function Home() {
             <div className="flex flex-col gap-6 sm:flex-row">
               <Link
                 href="/products"
-                className="group flex items-center justify-center rounded-md bg-gold-500 px-8 py-3.5 text-base font-bold text-black shadow-gold transition-all duration-300 hover:bg-gold-400 hover:shadow-gold-lg"
+                className="group flex items-center justify-center rounded-xl bg-gold-500 px-8 py-3.5 text-base font-bold text-black shadow-gold transition-all duration-300 hover:bg-gold-400 hover:shadow-gold-lg"
               >
                 <span>Explore Collection</span>
                 <svg
@@ -94,7 +94,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/about"
-                className="group flex items-center justify-center rounded-md border border-gold-500/50 bg-dark-800/70 px-8 py-3.5 text-base font-medium text-white shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-gold-500/80 hover:bg-dark-700/80"
+                className="group flex items-center justify-center rounded-xl border border-gold-500/50 bg-dark-800/70 px-8 py-3.5 text-base font-medium text-white shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-gold-500/80 hover:bg-dark-700/80"
               >
                 <span>Our Story</span>
                 <svg
