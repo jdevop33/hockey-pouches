@@ -247,6 +247,70 @@ export class CommissionService {
   }
 
   /**
+   * Calculate commission for an order
+   * This method is called when an order is fulfilled
+   * @param orderId Order ID
+   * @returns Commission details
+   */
+  async calculateCommissionForOrder(orderId: string): Promise<{
+    success: boolean;
+    commissionId?: string;
+    amount: number;
+    message: string;
+  }> {
+    try {
+      // Get order details
+      const orderResult = await sql`
+        SELECT
+          o.id,
+          o.total_amount,
+          o.distributor_id,
+          u.referral_code
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.id
+        WHERE o.id = ${orderId}
+      `;
+
+      const orders = getRows(orderResult);
+      if (orders.length === 0) {
+        throw new Error(`Order not found: ${orderId}`);
+      }
+
+      const order = orders[0];
+      const { total_amount, distributor_id } = order;
+
+      if (!distributor_id) {
+        return {
+          success: false,
+          amount: 0,
+          message: 'No distributor assigned to order',
+        };
+      }
+
+      // Calculate fulfillment commission
+      const commission = await this.calculateDistributorFulfillmentCommission(
+        parseInt(orderId, 10),
+        parseFloat(total_amount),
+        distributor_id
+      );
+
+      return {
+        success: commission.success,
+        commissionId: commission.commissionId,
+        amount: commission.amount || 0,
+        message: commission.message,
+      };
+    } catch (error) {
+      console.error(`Failed to calculate commission for order ${orderId}:`, error);
+      return {
+        success: false,
+        amount: 0,
+        message: error instanceof Error ? error.message : 'Unknown error calculating commission',
+      };
+    }
+  }
+
+  /**
    * Get pending commissions for payout
    */
   async getPendingCommissions(): Promise<Commission[]> {
@@ -474,3 +538,6 @@ export class CommissionService {
     }
   }
 }
+
+// Export singleton instance
+export const commissionService = new CommissionService();

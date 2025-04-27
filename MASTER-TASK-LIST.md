@@ -74,7 +74,7 @@ Hockey Pouches is a premium e-commerce platform for nicotine pouches that suppor
   - [ ] Implement connection pooling optimization
   - [ ] Create database utility functions for common operations
 
-- [ ] **Database Schema Finalization**
+- [x] **Database Schema Finalization**
 
   - [x] Complete normalized schema design for all entities
   - [x] Create migration scripts for production database
@@ -88,6 +88,10 @@ Hockey Pouches is a premium e-commerce platform for nicotine pouches that suppor
     - [x] payment_integration - Enhanced payment tracking and task management
     - [x] add_wholesale_buyer_role - Added wholesale buyer functionality
     - [x] add_inventory_system - Implemented advanced inventory management
+    - [x] 000_migration_helper - Added migration tracking system
+    - [x] 001_create_user_roles - Created enum for user roles
+    - [x] 002_extend_users_table - Added commission and referral fields
+    - [x] 003_create_commissions_table - Added commission tracking
   - [ ] Document relationships between tables with ERD diagrams
 
 - [ ] **Replace Mock Database with Production Database**
