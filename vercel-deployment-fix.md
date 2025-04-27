@@ -13,10 +13,13 @@ We've fixed this by:
 
 This should resolve the deployment issue.
 
-## April 2025 Dependency Resolution Fix
+## April 2025 Deployment Strategy
 
-Fixed deployment failure by downgrading React from v19.1.0 to v18.2.0 to resolve compatibility issues with Medusa.js packages that require React ^18.0.0 as a peer dependency.
+After evaluating options, we decided to:
 
-1. Updated package.json to use React 18.2.0
-2. Added .npmrc to ensure proper dependency resolution
-3. Fixed linter warning in WholesaleApplicationForm.tsx for unused catch variable
+1. Continue using React 19.1.0 for our application
+2. Implement our own custom solution rather than adopting Medusa.js
+3. Fix compatibility issues through custom implementation
+4. Fixed linter warning in WholesaleApplicationForm.tsx for unused catch variable
+
+The previous attempt to downgrade React to 18.2.0 for Medusa.js compatibility was reverted in favor of continuing with our custom implementation.
