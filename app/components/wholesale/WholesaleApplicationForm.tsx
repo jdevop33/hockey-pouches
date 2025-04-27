@@ -74,7 +74,7 @@ export default function WholesaleApplicationForm() {
           message: result.error || 'Failed to submit application. Please try again.',
         });
       }
-    } catch (error) {
+    } catch {
       setSubmitResult({
         success: false,
         message: 'An error occurred while submitting your application. Please try again later.',
