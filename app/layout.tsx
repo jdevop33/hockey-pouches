@@ -25,10 +25,8 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/images/logo/logo3.svg', sizes: 'any' },
-      { url: '/images/logo/logo3.svg', sizes: '64x64', type: 'image/svg+xml' },
-      { url: '/images/logo/logo3.svg', sizes: '48x48', type: 'image/svg+xml' },
-      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/images/logo/logo3.svg', sizes: 'any', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
     ],
     apple: [{ url: '/images/logo/logo3.svg', sizes: '256x256', type: 'image/svg+xml' }],
     shortcut: [{ url: '/images/logo/logo3.svg' }],

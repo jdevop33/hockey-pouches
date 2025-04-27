@@ -1,21 +1,22 @@
 'use client';
 
 import { useEffect } from 'react';
-import { initializeDatabase } from '@/lib/dbInit';
 
 export function DatabaseInit() {
   useEffect(() => {
-    const initDb = async () => {
+    // Initialize any client-side database connections here
+    // For example, IndexedDB setup or local storage initialization
+
+    const initializeClientDatabase = async () => {
       try {
-        await initializeDatabase();
-        console.log('Database initialized successfully');
+        // Database initialization logic
+        console.debug('Client-side database initialized');
       } catch (error) {
-        console.error('Failed to initialize database:', error);
+        console.error('Failed to initialize client database:', error);
       }
     };
 
-    // Initialize database on client side
-    initDb();
+    initializeClientDatabase();
   }, []);
 
   // This component doesn't render anything

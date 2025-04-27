@@ -1,29 +1,22 @@
-'use client'
+'use client';
 
-import { useReportWebVitals } from 'next/web-vitals'
+import { useReportWebVitals } from 'next/web-vitals';
 
 export function WebVitals() {
-  useReportWebVitals((metric) => {
-    const body = JSON.stringify(metric)
-    
-    // Use `navigator.sendBeacon()` if available, falling back to `fetch()`
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon('/api/analytics', body)
-    } else {
-      fetch('/api/analytics', { body, method: 'POST', keepalive: true })
-    }
+  useReportWebVitals(metric => {
+    // You can send the metrics to your analytics service
+    // console.log(metric);
 
-    // Send to Google Analytics
-    if (window.gtag) {
+    // Example: send to Google Analytics if available
+    if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', metric.name, {
-        value: Math.round(
-          metric.name === 'CLS' ? metric.value * 1000 : metric.value
-        ), // values must be integers
-        event_label: metric.id, // id unique to current page load
-        non_interaction: true, // avoids affecting bounce rate
-      })
+        event_category: 'web-vitals',
+        event_label: metric.id,
+        value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
+        non_interaction: true,
+      });
     }
-  })
-  
-  return null
+  });
+
+  return null;
 }
