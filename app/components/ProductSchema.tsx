@@ -1,78 +1,63 @@
 'use client';
 
 import React from 'react';
-// Removed static import: import { Product } from '../data/products';
+import Script from 'next/script';
 
-// Define the type for the product prop, aligning with API/DB data
-// Make potentially missing fields optional
-interface SchemaProduct {
+interface Product {
   id: number;
   name: string;
-  description?: string | null; // Optional
-  image_url?: string | null; // Use image_url and make optional
+  description?: string | null;
   price: number;
-  is_active?: boolean;
-  inventory_quantity?: number;
+  image_url?: string | null;
+  category?: string | null;
 }
 
 interface ProductSchemaProps {
-  product: SchemaProduct; // Use the updated interface
+  product: Product;
 }
 
-const ProductSchema: React.FC<ProductSchemaProps> = ({ product }) => {
-  // Construct absolute image URL if image_url is relative
-  const absoluteImageUrl = product.image_url
-    ? product.image_url.startsWith('http')
-      ? product.image_url
-      : `https://nicotinetins.com${product.image_url}` // Assuming base URL
-    : undefined;
+export default function ProductSchema({ product }: ProductSchemaProps) {
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
-  const schemaData = {
+  // Create structured data for search engines
+  const structuredData = {
     '@context': 'https://schema.org/',
     '@type': 'Product',
     name: product.name,
-    description: product.description || product.name, // Use name as fallback description
-    ...(absoluteImageUrl && { image: [absoluteImageUrl] }), // Conditionally add image
-    sku: `NT-${product.id}`,
-    mpn: `HPNT-${product.id}`,
+    description: product.description || `Premium ${product.name} nicotine pouches by PUXX`,
+    image: product.image_url
+      ? `${baseUrl}${product.image_url}`
+      : `${baseUrl}/images/products/fallback.jpg`,
     brand: {
       '@type': 'Brand',
-      name: 'Hockey Puxx', // Assuming static brand
+      name: 'PUXX',
     },
+    sku: `PUXX-${product.id}`,
+    mpn: `PUXX-${product.id}`,
+    category: product.category || 'Nicotine Pouches',
     offers: {
       '@type': 'Offer',
-      url: `https://nicotinetins.com/products/${product.id}`,
+      url: typeof window !== 'undefined' ? window.location.href : '',
       priceCurrency: 'CAD',
       price: product.price,
       priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
         .toISOString()
         .split('T')[0],
-      availability:
-        product.is_active === false
-          ? 'https://schema.org/OutOfStock'
-          : product.inventory_quantity !== undefined && product.inventory_quantity <= 0
-            ? 'https://schema.org/OutOfStock'
-            : 'https://schema.org/InStock',
+      availability: 'https://schema.org/InStock',
       seller: {
         '@type': 'Organization',
-        name: 'Nicotine Tins by Hockey Puxx',
+        name: 'PUXX Premium Nicotine Pouches',
       },
-      itemCondition: 'https://schema.org/NewCondition',
-    },
-    // Keep aggregateRating and review as placeholders or fetch dynamically later
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      reviewCount: '24',
     },
   };
 
   return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
-    />
+    <>
+      <Script
+        id={`product-schema-${product.id}`}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+    </>
   );
-};
-
-export default ProductSchema;
+}
