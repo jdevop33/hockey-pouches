@@ -90,6 +90,13 @@
       inset 0 0 0 1px rgba(var(--primary-gold), 0.05);
   }
 
+  /* Hero background image */
+  .hero-background {
+    background-image: url('/images/products/hero.png');
+    background-size: cover;
+    background-position: center;
+  }
+
   /* For all buttons, add a gold hover effect */
   button,
   .button,

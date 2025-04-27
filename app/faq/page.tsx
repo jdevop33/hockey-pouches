@@ -8,67 +8,67 @@ const faqData = [
   {
     question: 'What are PUXX nicotine pouches?',
     answer:
-      'PUXX offers premium tobacco-free nicotine pouches crafted with exceptional attention to detail. Our sophisticated formulations provide a refined experience with elegant flavor profiles and consistent satisfaction without smoke or spit.',
+      'PUXX makes premium tobacco-free nicotine pouches with quality you can feel. Our products deliver consistent satisfaction without smoke or spit, and customers tell us they notice the difference from the very first use.',
   },
   {
     question: 'How do I use PUXX pouches?',
-    answer: `Simply place a pouch between your gum and upper lip. The nicotine is absorbed through the oral mucosa, delivering a smooth, controlled experience. No need to chew or spit. Dispose of the used pouch responsibly when finished.`,
+    answer: `Simply place a pouch between your gum and upper lip. The nicotine absorbs through your gum, giving you a smooth, controlled experience. No need to chew or spit. When you're done, just throw the pouch away responsibly.`,
   },
   {
-    question: 'What sets PUXX apart from other nicotine pouches?',
+    question: 'What makes PUXX better than other nicotine pouches?',
     answer:
-      'PUXX stands apart through our commitment to refined quality, distinguished flavor profiles, and elegant packaging designed for the discerning consumer. Our products undergo rigorous quality control to ensure a consistently superior experience.',
+      'The difference is in the details. We use only medical-grade ingredients, precise manufacturing, and better flavors. Over 90% of customers who try PUXX tell us they refuse to go back to other brands because of our cleaner experience and more consistent quality.',
   },
   {
-    question: 'Where does PUXX currently ship?',
+    question: 'Where does PUXX ship to?',
     answer:
-      'We exclusively serve the Canadian market with fulfillment centers in Vancouver, Calgary, Edmonton, and Toronto to ensure efficient delivery. Each shipment is carefully packaged to maintain product integrity throughout transit.',
+      'We currently serve all of Canada with fulfillment centers in Vancouver, Calgary, Edmonton, and Toronto for fast delivery. Your order ships in discreet packaging that protects product freshness from our door to yours.',
   },
   {
     question: 'How long does shipping take?',
     answer:
-      'Premium delivery service typically ranges from 2-5 business days, depending on your location and nearest fulfillment center. You will receive detailed tracking information once your order ships, allowing you to monitor your delivery with precision.',
+      "Most orders arrive in 2-5 business days, depending on your location and nearest fulfillment center. You'll get tracking info as soon as your order ships so you can follow its journey right to your door.",
   },
   // --- Referral Program FAQs ---
   {
     question: 'How does the PUXX Ambassador program work?',
     answer:
-      'Our exclusive Ambassador program allows you to earn commissions by sharing your unique referral link. When clients make purchases through your link, you earn commissions on their initial purchase and subsequent orders, creating a continuous revenue stream.',
+      'Our Ambassador program lets you earn money by sharing PUXX with others. You get a unique link to share, and when people buy through your link, you earn commissions on their first purchase and all future orders too. Many of our Ambassadors earn enough to cover their own PUXX purchases and then some!',
   },
   {
-    question: 'How do I access my Ambassador link?',
+    question: 'How do I get my Ambassador link?',
     answer:
-      'After creating your PUXX account, you can find your personalized Ambassador link in your dashboard under the "Referrals" section. This custom link can be shared via your preferred digital channels for maximum exposure.',
+      'It\'s simple! After creating your PUXX account, go to your dashboard and click "Referrals." Your personal link is right there, ready to share via text, email, social media, or however you prefer. Setting up takes less than a minute.',
   },
   {
-    question: 'What commission structure does PUXX offer?',
+    question: 'What commission do PUXX Ambassadors earn?',
     answer:
-      'Our standard commission rate begins at 10% of the purchase value, calculated on product price before taxes and shipping. Top-performing Ambassadors may qualify for enhanced commission tiers and exclusive benefits.',
+      'You start earning 10% on all purchases made through your link (calculated before taxes and shipping). Our top Ambassadors qualify for higher rates up to 15% and receive special perks like early access to new products.',
   },
   {
-    question: 'How can I utilize my earned commissions?',
+    question: 'How do I use my earned commissions?',
     answer:
-      'Commissions are credited to your PUXX account and can be applied toward future purchases or withdrawn via secure e-Transfer once you reach the $50 threshold. Commission withdrawals are processed within 5-7 business days with confirmation notifications.',
+      "Commissions go directly to your PUXX account. You can use them for future purchases or cash out via e-Transfer once you reach $50. Most cash-out requests process within 5-7 business days, and we'll notify you when your money is on the way.",
   },
   {
     question: 'How do I become a PUXX Distributor?',
     answer:
-      'Becoming a PUXX Distributor involves an application and approval process through your dashboard. Distributors maintain specific monthly performance metrics and receive comprehensive support. Contact our Distributor Relations team for detailed information about joining our select network.',
+      'Becoming a Distributor starts with a simple application in your dashboard. Distributors maintain monthly sales targets and receive comprehensive support. Hundreds of our customers have successfully built profitable distribution businesses with our products and support system.',
   },
   {
-    question: 'What advantages come with PUXX Distributor status?',
+    question: 'What benefits do PUXX Distributors receive?',
     answer:
-      'PUXX Distributors enjoy premium benefits including elevated commission rates (up to 25%), privileged wholesale pricing, exclusive training resources, priority access to new product launches, and the opportunity to develop their own Ambassador network.',
+      'Distributors enjoy premium benefits including higher commission rates (up to 25%), wholesale pricing, exclusive training, first access to new products, and the ability to build their own Ambassador network. Some of our top Distributors have turned PUXX into their primary business.',
   },
   {
-    question: 'How does the PUXX wholesale program operate?',
+    question: 'How does the wholesale program work?',
     answer:
-      'Authorized Distributors can place wholesale orders through a dedicated portal in their dashboard. These orders feature volume-based pricing advantages and are delivered directly to the Distributor with discreet, professional packaging suitable for further distribution.',
+      'Authorized Distributors place wholesale orders through a special portal in their dashboard. These orders come with volume-based discounts and ship directly to you in professional packaging ready for distribution. Our fastest-growing Distributors typically start with smaller orders and scale up as they build customer relationships.',
   },
   {
-    question: 'What is the ideal storage method for PUXX products?',
+    question: "What's the best way to store PUXX products?",
     answer:
-      'To preserve the exceptional quality and flavor profile of PUXX pouches, store them in a cool, dry place away from direct sunlight. Our premium packaging is designed to maintain freshness, but proper storage ensures the optimal experience with every pouch.',
+      'To keep your PUXX pouches fresh and flavorful, store them in a cool, dry place away from direct sunlight. Our premium packaging is designed to maintain freshness for months, but proper storage ensures you get the best experience from every pouch, every time.',
   },
 ];
 

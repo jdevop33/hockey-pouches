@@ -65,22 +65,18 @@ function AboutContent() {
             <div className="grid gap-8 md:grid-cols-2">
               <div className="space-y-4">
                 <p className="text-gray-300">
-                  PUXX was founded by connoisseurs and innovators seeking to redefine the premium
-                  nicotine experience through sophisticated, high-performance pouches crafted for
-                  those who demand excellence.
+                  PUXX began with a simple question: "Why settle for less?" We're a team of experts
+                  who set out to create the best nicotine pouch experience possible.
                 </p>
                 <p className="text-gray-300">
-                  As enthusiasts of refined experiences, we understood the importance of maintaining
-                  peak performance while enjoying the focus and clarity that premium nicotine can
-                  provide. Our search for a solution that wouldn't compromise our standards led us
-                  to create something extraordinary.
+                  As users ourselves, we understand what matters most—consistent quality, great
+                  flavor, and a product that fits your active life. We couldn't find anything that
+                  met our standards, so we created something better.
                 </p>
                 <p className="text-gray-300">
-                  We began by sourcing the finest ingredients from across Europe, developing
-                  proprietary blends that deliver unparalleled satisfaction. What started as a
-                  pursuit of personal perfection quickly became PUXX – a luxury brand dedicated to
-                  providing connoisseurs with the highest quality nicotine pouches designed for
-                  those who accept nothing less than exceptional.
+                  Using only top-grade ingredients sourced from Europe, we developed PUXX—a premium
+                  brand built on quality you can taste and feel. Thousands of customers have already
+                  made the switch to something better.
                 </p>
               </div>
               <div className="relative flex h-64 items-center justify-center">
@@ -110,11 +106,10 @@ function AboutContent() {
                     />
                   </svg>
                 </div>
-                <h3 className="mb-2 text-xl font-semibold text-gold-500">Uncompromising Quality</h3>
+                <h3 className="mb-2 text-xl font-semibold text-gold-500">Quality First</h3>
                 <p className="text-gray-300">
-                  Excellence is non-negotiable. Every PUXX product represents our commitment to
-                  superior craftsmanship, with meticulous attention to detail and consistency in
-                  every pouch.
+                  We never compromise on ingredients or craftsmanship. Every PUXX pouch is made with
+                  the same care and attention to detail, guaranteed.
                 </p>
               </div>
               <div>
@@ -134,11 +129,12 @@ function AboutContent() {
                     />
                   </svg>
                 </div>
-                <h3 className="mb-2 text-xl font-semibold text-gold-500">Exclusive Community</h3>
+                <h3 className="mb-2 text-xl font-semibold text-gold-500">
+                  Community of Excellence
+                </h3>
                 <p className="text-gray-300">
-                  We cultivate a distinguished network of discerning individuals who recognize and
-                  demand superior experiences. Our commitment extends beyond products to fostering
-                  connections among those who share our passion for excellence.
+                  Join thousands who've upgraded to PUXX. Our customers share a common appreciation
+                  for the best things in life—no compromises, no settling.
                 </p>
               </div>
               <div>
@@ -158,11 +154,10 @@ function AboutContent() {
                     />
                   </svg>
                 </div>
-                <h3 className="mb-2 text-xl font-semibold text-gold-500">Relentless Innovation</h3>
+                <h3 className="mb-2 text-xl font-semibold text-gold-500">Constant Innovation</h3>
                 <p className="text-gray-300">
-                  We push boundaries, continuously refining our formulations to create experiences
-                  that anticipate and exceed expectations. Our commitment to innovation ensures PUXX
-                  remains at the forefront of luxury nicotine experiences.
+                  We never stop improving. Our team is always working on new flavors, better
+                  formulas, and improved experiences to stay ahead of what you need.
                 </p>
               </div>
             </div>
@@ -182,12 +177,10 @@ function AboutContent() {
                     className="object-contain"
                   />
                 </div>
-                <h3 className="mb-2 text-xl font-semibold text-gold-500">
-                  Exceptional Craftsmanship
-                </h3>
+                <h3 className="mb-2 text-xl font-semibold text-gold-500">Premium Ingredients</h3>
                 <p className="text-gray-300">
-                  Globally-sourced excellence in every pouch, with pharmaceutical-grade nicotine and
-                  premium ingredients for an unparalleled experience.
+                  We use only medical-grade nicotine and premium flavor extracts, sourced globally
+                  to ensure every pouch delivers exceptional quality.
                 </p>
               </div>
               <div className="text-center">
@@ -200,10 +193,10 @@ function AboutContent() {
                     className="object-contain"
                   />
                 </div>
-                <h3 className="mb-2 text-xl font-semibold text-gold-500">Sophisticated Balance</h3>
+                <h3 className="mb-2 text-xl font-semibold text-gold-500">Perfect Balance</h3>
                 <p className="text-gray-300">
-                  A masterful harmony of nuanced flavor profiles, optimal strength, and refined
-                  comfort designed for those who appreciate the extraordinary.
+                  Each PUXX variety delivers exactly the right balance of flavor, strength, and
+                  comfort—created for those who appreciate the details.
                 </p>
               </div>
               <div className="text-center">
@@ -216,10 +209,10 @@ function AboutContent() {
                     className="object-contain"
                   />
                 </div>
-                <h3 className="mb-2 text-xl font-semibold text-gold-500">Innovative Design</h3>
+                <h3 className="mb-2 text-xl font-semibold text-gold-500">Smart Design</h3>
                 <p className="text-gray-300">
-                  Engineered for discretion and comfort with refined contours that ensure a seamless
-                  experience in any setting or activity.
+                  Our specially designed pouches fit comfortably and stay discreet, making them
+                  perfect for any situation, anytime.
                 </p>
               </div>
             </div>
@@ -228,18 +221,13 @@ function AboutContent() {
           {/* Premium Experience */}
           <div className="mb-12 rounded-lg border border-gold-500/10 bg-gradient-to-r from-dark-700 to-dark-800 p-8 shadow-md">
             <div className="mb-8 text-center">
-              <h2 className="mb-2 text-2xl font-bold text-gold-500">
-                Elevated Nicotine Experience
-              </h2>
-              <p className="text-lg text-gray-300">
-                Meticulously Crafted for Those Who Demand Nothing Less Than Excellence
-              </p>
+              <h2 className="mb-2 text-2xl font-bold text-gold-500">A Superior Experience</h2>
+              <p className="text-lg text-gray-300">For those who refuse to compromise</p>
             </div>
             <p className="mx-auto mb-8 max-w-3xl text-center text-gray-300">
-              In a world of compromise, PUXX stands apart. We've meticulously crafted these premium
-              nicotine pouches from the highest-grade sources available, delivering an unparalleled
-              experience of sophistication without smoke or odor that integrates seamlessly into
-              your lifestyle.
+              While others cut corners, PUXX takes the extra steps. Each pouch is made with the
+              finest ingredients available, giving you a clean, consistent experience without smoke
+              or odor. It's the upgrade you'll notice from the very first use.
             </p>
             <div className="mt-10 grid gap-8 md:grid-cols-3">
               <div className="rounded-lg border border-gold-500/10 bg-dark-700/70 p-6 backdrop-blur-sm transition-all hover:border-gold-500/30">

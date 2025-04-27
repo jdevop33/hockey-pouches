@@ -8,10 +8,12 @@
 // ... existing code ...
 
 // Locate where links are defined and add this:
-{
+/*
+const wholesaleLink = {
   label: 'Wholesale',
   href: '/wholesale/apply',
   // Add any icon or additional properties as needed
-}
+};
+*/
 
-// ... rest of existing code ... 
+// ... rest of existing code ...

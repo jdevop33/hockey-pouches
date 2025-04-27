@@ -46,14 +46,7 @@ export default function Home() {
         {/* Hero Section */}
         <section className="relative flex min-h-[100vh] w-full flex-col items-center justify-center overflow-hidden px-4">
           {/* Background Image - Full view without black bars */}
-          <div
-            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: "url('/images/products/hero.png')",
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          >
+          <div className="hero-background absolute inset-0 z-0 bg-cover bg-center bg-no-repeat">
             {/* Lighter overlay to keep text readable but show more of the image */}
             <div className="absolute inset-0 bg-dark-900/40 backdrop-blur-[2px]"></div>
           </div>
@@ -62,13 +55,13 @@ export default function Home() {
             <h1 className="mb-6 max-w-4xl text-4xl font-bold tracking-tight text-white md:text-5xl lg:text-6xl">
               Premium Nicotine Pouches for{' '}
               <span className="bg-gradient-gold bg-clip-text text-transparent">
-                Discerning Adults
+                Those Who Choose Better
               </span>
             </h1>
 
             <p className="mb-8 max-w-2xl text-lg text-white">
-              Discreet, convenient, and perfect for your active lifestyle. Free shipping on orders
-              over $50.
+              Elegant, discreet, and perfect for your active lifestyle. Free shipping on orders over
+              $50.
             </p>
 
             <div className="flex flex-col gap-6 sm:flex-row">
@@ -124,12 +117,12 @@ export default function Home() {
             <div className="mb-16 text-center">
               <h2 className="mb-4 text-3xl font-bold sm:text-4xl">
                 <span className="bg-gradient-gold bg-clip-text text-transparent">
-                  A Symphony of Sensations
+                  Flavors That Stand Apart
                 </span>
               </h2>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-300">
-                Each PUXX creation represents the perfect blend of precision, offering distinct
-                profiles from bold intensity to subtle refinement.
+                Every PUXX variety is crafted to perfection, offering an experience that ranges from
+                bold intensity to subtle elegance.
               </p>
             </div>
 
@@ -201,19 +194,19 @@ export default function Home() {
           <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-16 max-w-3xl">
               <h2 className="mb-6 bg-gradient-gold bg-clip-text text-3xl font-bold text-transparent sm:text-4xl">
-                The Artistry Behind PUXX
+                Crafted to Be the Best
               </h2>
 
               <div className="prose prose-lg prose-invert">
                 <p className="mb-6 text-gray-300">
-                  PUXX represents the pinnacle of nicotine pouch craftsmanship. Born from a desire
-                  to elevate the experience beyond conventional options, PUXX stands for
-                  uncompromising quality, sophisticated design, and premium satisfaction.
+                  PUXX stands at the top of nicotine pouch quality. Created from our desire to offer
+                  something better than standard options, PUXX delivers exceptional quality, elegant
+                  design, and premium satisfaction.
                 </p>
                 <p className="text-gray-300">
-                  In a world of compromises, PUXX stands apart through meticulous attention to
-                  detail and pharmaceutical-grade ingredients. We deliver an unparalleled nicotine
-                  experience that meets the standards of the most discerning adults.
+                  While others cut corners, PUXX sets the standard with careful attention to detail
+                  and top-grade ingredients. Our customers agree—we provide a superior nicotine
+                  experience worthy of the most selective users.
                 </p>
               </div>
             </div>
@@ -233,16 +226,16 @@ export default function Home() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="rounded-lg border border-gold-500/5 bg-dark-800/70 p-4">
-                    <h3 className="mb-2 text-lg font-bold text-gold-500">Master Blending</h3>
+                    <h3 className="mb-2 text-lg font-bold text-gold-500">Expert Blending</h3>
                     <p className="text-sm text-gray-400">
-                      Precisely calculated formulas create the perfect balance of flavor and effect
+                      Perfect balance of flavor and effect in every pouch
                     </p>
                   </div>
 
                   <div className="rounded-lg border border-gold-500/5 bg-dark-800/70 p-4">
-                    <h3 className="mb-2 text-lg font-bold text-gold-500">Uncompromising Quality</h3>
+                    <h3 className="mb-2 text-lg font-bold text-gold-500">Pure Quality</h3>
                     <p className="text-sm text-gray-400">
-                      Every ingredient selected to meet our exacting standards for purity
+                      Only the finest ingredients make it into PUXX
                     </p>
                   </div>
                 </div>
@@ -250,28 +243,28 @@ export default function Home() {
 
               <div className="flex flex-col space-y-8">
                 <div className="transform rounded-xl border border-gold-500/10 bg-dark-900/40 p-6 transition-all duration-500 hover:translate-x-1 hover:translate-y-[-5px]">
-                  <h3 className="mb-3 text-xl font-bold text-white">Superior Ingredients</h3>
+                  <h3 className="mb-3 text-xl font-bold text-white">Top-Grade Ingredients</h3>
                   <p className="mb-5 text-gray-300">
-                    We source only the finest pharmaceutical-grade ingredients, ensuring a
-                    consistently exceptional experience with every pouch.
+                    We use only pharmaceutical-grade ingredients, ensuring you get a clean,
+                    consistent experience every time.
                   </p>
                   <div className="h-1 w-16 rounded-full bg-gradient-to-r from-gold-400 to-gold-600"></div>
                 </div>
 
                 <div className="transform rounded-xl border border-gold-500/10 bg-dark-900/40 p-6 transition-all duration-500 hover:translate-x-1 hover:translate-y-[-5px]">
-                  <h3 className="mb-3 text-xl font-bold text-white">Precise Calibration</h3>
+                  <h3 className="mb-3 text-xl font-bold text-white">Perfect Strength Control</h3>
                   <p className="mb-5 text-gray-300">
-                    Each PUXX variant is meticulously formulated to deliver consistent strength,
-                    flavor, and satisfaction throughout the entire experience.
+                    Each PUXX variety delivers exactly the right strength, flavor, and satisfaction
+                    from first use to last.
                   </p>
                   <div className="h-1 w-16 rounded-full bg-gradient-to-r from-gold-400 to-gold-600"></div>
                 </div>
 
                 <div className="transform rounded-xl border border-gold-500/10 bg-dark-900/40 p-6 transition-all duration-500 hover:translate-x-1 hover:translate-y-[-5px]">
-                  <h3 className="mb-3 text-xl font-bold text-white">Elegant Design</h3>
+                  <h3 className="mb-3 text-xl font-bold text-white">Comfort by Design</h3>
                   <p className="mb-5 text-gray-300">
-                    Our proprietary pouch construction ensures optimal comfort, balanced release,
-                    and discreet use in any setting.
+                    Our exclusive design ensures maximum comfort, perfect release, and discreet use
+                    anywhere you go.
                   </p>
                   <div className="h-1 w-16 rounded-full bg-gradient-to-r from-gold-400 to-gold-600"></div>
                 </div>
@@ -299,22 +292,21 @@ export default function Home() {
               <div className="grid grid-cols-1 gap-8 p-8 lg:grid-cols-2 lg:p-12">
                 <div>
                   <span className="inline-block text-sm font-medium uppercase tracking-wider text-gold-500">
-                    EXCLUSIVE EXPERIENCE
+                    JOIN THE ELITE
                   </span>
                   <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
-                    For Discerning Adults
+                    Experience the Difference
                   </h2>
                   <p className="mt-6 text-lg text-gray-300">
-                    Join the community of sophisticated individuals who value quality and
-                    craftsmanship. PUXX offers an exceptional alternative designed for those who
-                    demand the very best.
+                    Join thousands who have upgraded to PUXX. Whether you're new to nicotine pouches
+                    or looking for something better, PUXX delivers what others can't.
                   </p>
                   <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                     <Link
                       href="/products"
                       className="group inline-flex items-center justify-center rounded-md bg-gold-500 px-6 py-3 text-base font-bold text-black shadow-gold transition-all duration-300 hover:bg-gold-400"
                     >
-                      <span>Explore Products</span>
+                      <span>Shop Now</span>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="ml-2 h-5 w-5 transform transition-transform duration-300 group-hover:translate-x-1"
@@ -334,7 +326,7 @@ export default function Home() {
                       href="/account"
                       className="group inline-flex items-center justify-center rounded-md border border-gold-500/30 bg-dark-800/50 px-6 py-3 text-base font-medium text-white shadow-sm transition-all duration-300 hover:border-gold-500/60 hover:bg-dark-700"
                     >
-                      <span>Create Account</span>
+                      <span>Join PUXX</span>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="ml-2 h-5 w-5 transform opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:opacity-100"
@@ -354,7 +346,7 @@ export default function Home() {
                 </div>
 
                 <div className="space-y-4 lg:pt-8">
-                  <h3 className="text-xl font-bold text-gold-500">The PUXX Promise</h3>
+                  <h3 className="text-xl font-bold text-gold-500">What You Get with PUXX</h3>
 
                   <div className="flex items-start space-x-3">
                     <svg
@@ -368,7 +360,7 @@ export default function Home() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    <span className="text-gray-300">Premium, pharmaceutical-grade ingredients</span>
+                    <span className="text-gray-300">Medical-grade ingredients, nothing less</span>
                   </div>
 
                   <div className="flex items-start space-x-3">
@@ -383,7 +375,7 @@ export default function Home() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    <span className="text-gray-300">Sophisticated design for optimal comfort</span>
+                    <span className="text-gray-300">Designed for all-day comfort</span>
                   </div>
 
                   <div className="flex items-start space-x-3">
@@ -398,7 +390,7 @@ export default function Home() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    <span className="text-gray-300">Meticulously crafted flavor profiles</span>
+                    <span className="text-gray-300">Flavors crafted by flavor experts</span>
                   </div>
 
                   <div className="flex items-start space-x-3">
@@ -413,9 +405,7 @@ export default function Home() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    <span className="text-gray-300">
-                      Discreet, elegant packaging for any setting
-                    </span>
+                    <span className="text-gray-300">Stylish packaging that goes anywhere</span>
                   </div>
 
                   <div className="mt-6">
@@ -423,7 +413,7 @@ export default function Home() {
                       href="/about"
                       className="group inline-flex items-center text-gold-500 transition-colors duration-300 hover:text-gold-400"
                     >
-                      <span>Learn more about our craftsmanship</span>
+                      <span>See why customers choose PUXX</span>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="ml-2 h-5 w-5 transform transition-transform duration-300 group-hover:translate-x-1"

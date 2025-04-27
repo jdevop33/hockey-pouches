@@ -313,7 +313,30 @@ export default function ProductsPage() {
   return (
     <Layout>
       <div className="min-h-screen bg-dark-500 px-4 py-8 text-white sm:px-6 lg:px-8">
-        <h1 className="mb-8 text-3xl font-bold">Shop Premium Nicotine Pouches</h1>
+        {/* Add persuasive introduction */}
+        <div className="mb-12 text-center">
+          <h1 className="mb-4 text-3xl font-bold text-white">
+            <span className="bg-gradient-gold bg-clip-text text-transparent">
+              Premium Pouches, Exceptional Experience
+            </span>
+          </h1>
+          <p className="mx-auto mb-6 max-w-2xl text-lg text-gray-300">
+            Join thousands who've chosen PUXX for our superior quality and unmatched flavor. Limited
+            batches available—crafted with care, not mass-produced.
+          </p>
+          <div className="flex flex-wrap items-center justify-center space-x-2 text-sm text-gold-400">
+            <span className="flex items-center">
+              <svg className="mr-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              4.9/5 rating
+            </span>
+            <span className="mx-2">•</span>
+            <span>2,000+ satisfied customers</span>
+            <span className="mx-2">•</span>
+            <span>Free shipping over $50</span>
+          </div>
+        </div>
 
         {/* Filter and Sort Bar */}
         <div className="mb-8 rounded-lg border border-gold-500/20 bg-dark-600 p-4 shadow-md">

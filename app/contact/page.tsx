@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Layout from '../components/layout/NewLayout';
 import ReCaptcha from '../components/ui/ReCaptcha';
+import Link from 'next/link';
 
 type FormData = {
   name: string;
@@ -80,15 +81,17 @@ export default function ContactPage() {
     <Layout>
       <div className="bg-dark-800 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 className="mb-8 text-3xl font-extrabold text-white">Contact Us</h1>
+          <h1 className="mb-8 text-3xl font-extrabold text-white">
+            <span className="bg-gradient-gold bg-clip-text text-transparent">Let's Connect</span>
+          </h1>
 
           <div className="grid gap-8 md:grid-cols-2">
             {/* Contact Information */}
             <div className="rounded-lg border border-gold-500/20 bg-dark-900/95 p-8 shadow-gold-sm">
-              <h2 className="mb-6 text-2xl font-bold text-gold-500">Get in Touch</h2>
+              <h2 className="mb-6 text-2xl font-bold text-gold-500">We're Here For You</h2>
               <p className="mb-8 text-gray-300">
-                Have questions about our products or want to share your experience? We&apos;re here
-                to help! Fill out the form or use our contact information below.
+                Have a question about PUXX? Want to share your experience? Our team of passionate
+                experts is ready to help. We typically respond within 24 hours or less.
               </p>
 
               <div className="space-y-6">
@@ -213,15 +216,19 @@ export default function ContactPage() {
                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <h2 className="mb-2 text-2xl font-bold text-gold-500">Thank You!</h2>
+                  <h2 className="mb-2 text-2xl font-bold text-gold-500">Message Received!</h2>
                   <p className="text-gray-300">
-                    Your message has been sent successfully. We&apos;ll get back to you as soon as
-                    possible.
+                    Thanks for reaching out! One of our team members will get back to you within 24
+                    hours. In the meantime, why not check out our{' '}
+                    <Link href="/products" className="text-gold-400 hover:text-gold-300">
+                      latest products
+                    </Link>
+                    ?
                   </p>
                 </div>
               ) : (
                 <>
-                  <h2 className="mb-6 text-2xl font-bold text-gold-500">Send Us a Message</h2>
+                  <h2 className="mb-6 text-2xl font-bold text-gold-500">Share Your Thoughts</h2>
                   <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-4">
                       <label
