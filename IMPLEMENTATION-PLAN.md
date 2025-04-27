@@ -1,248 +1,232 @@
-# Hockey Pouches Implementation Plan
+# Hockey Pouches Implementation Plan (Updated May 2025)
 
-This document outlines the detailed implementation steps for the new features and fixes requested.
+This document outlines the detailed implementation steps for completing the Hockey Pouches e-commerce platform with our custom implementation after removing Medusa.js dependencies.
 
-## 1. Update Product Pricing to $15 Per Unit
+## 1. Custom Backend Services Implementation
 
-### Database Updates
+### Core Service Development
 
-- Create a database migration to update all product prices in the `products` table
-- Create a similar migration for product variations in the `product_variations` table
+- Create custom services for products, cart, orders, users, and inventory
+- Develop proper database schema that aligns with our business requirements
+- Implement comprehensive validation logic for all operations
 
-### API Updates
+### API Routes Refactoring
 
-- Modify the product creation and update endpoints to enforce the $15 price
-- Update any API endpoints that calculate product pricing
-- Fix discount calculations to work with the new fixed pricing
-
-### UI Updates
-
-- Update admin product creation/editing forms to default to $15 and potentially restrict editing
-- Modify product display components to handle the fixed pricing
-- Update cart calculations to reflect the new pricing
+- Update all API routes to use the new custom services
+- Ensure consistent error handling and response formats
+- Implement proper authentication and authorization checks
 
 ### Implementation Steps (Week 1):
 
-1. Create database migration scripts
+1. Implement Custom Product Service
 
-   - Script to update existing products in the products table
-   - Script to update product variations table
-   - Test script in development before running in production
+   - Create `lib/services/custom-product-service.ts` with CRUD operations
+   - Enforce $15 pricing in all product operations
+   - Implement product variation handling
 
-2. Update product API endpoints with validation
+2. Develop Cart Service with Validation
 
-   - Modify `/api/products/[productId]` endpoint to enforce $15 pricing
-   - Add validation in product creation endpoint
-   - Update any price calculation logic in API routes
+   - Create `lib/services/custom-cart-service.ts` with cart operations
+   - Implement 5-unit minimum order validation
+   - Add wholesale order detection (100+ units)
 
-3. Modify admin UI to enforce $15 pricing
+3. Build User Management Service
 
-   - Update product creation form to set $15 as default and read-only
-   - Modify product editing UI to prevent price changes
-   - Add clear messaging explaining the fixed pricing model
+   - Create `lib/services/custom-user-service.ts` with user operations
+   - Implement role-based access control
+   - Add wholesale application handling
 
-4. Test all price-related functionality
+4. Create Order Processing Service
 
-   - Verify prices show correctly in product listings
-   - Test cart calculations with the new pricing
-   - Check discount application with fixed pricing
+   - Develop `lib/services/custom-order-service.ts`
+   - Implement end-to-end order lifecycle management
+   - Add commission calculation functionality
 
-5. Update product listing pages to reflect new pricing
-   - Ensure consistency across all product displays
-   - Update any filter components that use price ranges
+5. Update API Routes
 
-## 2. Implement 5-Unit Minimum Order Requirement
+   - Refactor all product, cart, user, and order API routes
+   - Ensure proper validation and error handling
+   - Implement comprehensive testing
 
-### Shopping Cart Updates
+## 2. Wholesale Functionality Implementation
 
-- Modify the CartContext to validate minimum quantity
-- Update addToCart function to enforce minimum quantities
-- Add validation for the total cart quantity at checkout
+### Wholesale Application Process
 
-### Checkout Process Updates
+- Complete the wholesale application form and submission workflow
+- Implement admin approval interface for wholesale applications
+- Create wholesale status tracking for applicants
 
-- Add server-side validation in the order creation API
-- Update checkout UI to show minimum order requirement
-- Add helpful messaging to inform users about the minimum
+### Wholesale Order Processing
 
-### UI Updates
+- Add validation to ensure wholesale orders meet 100+ unit minimum
+- Implement special handling for wholesale orders in admin dashboard
+- Create wholesale-specific pricing calculations (if applicable)
 
-- Update product detail pages to show minimum order requirement
-- Modify cart UI to display minimum order requirements
-- Update error messaging when minimum is not met
+### Implementation Steps (Week 2):
 
-### Implementation Steps (Week 1):
+1. Complete Wholesale Application Workflow
 
-1. Update CartContext with minimum order validation
+   - Finalize `app/components/wholesale/WholesaleApplicationForm.tsx`
+   - Create API endpoint for application submission
+   - Implement database storage for applications
 
-   - Modify `/app/context/CartContext.tsx` to add minimum order validation
-   - Update the addToCart function to enforce minimum total quantities
-   - Add clear error messaging for quantity requirements
+2. Build Admin Approval Interface
 
-2. Modify the checkout process validation
+   - Create `app/admin/dashboard/wholesale/applications/page.tsx`
+   - Implement approval/rejection functionality
+   - Add notification system for status updates
 
-   - Update `/app/api/orders/route.ts` to validate minimum order quantity
-   - Add quantity checks in the `/app/api/checkout` endpoint
-   - Implement consistent error handling for minimum quantity violations
+3. Implement Wholesale Order Validation
 
-3. Update the UI to clearly indicate minimum requirements
+   - Add validation for 100+ unit minimum in cart service
+   - Create wholesale-specific checkout process
+   - Implement special handling in order management
 
-   - Add minimum quantity indicators to product pages
-   - Update cart UI to show progress toward minimum order requirement
-   - Create helpful tooltip explaining the minimum order policy
+4. Develop Wholesale Customer Dashboard
 
-4. Add server-side validation for all order endpoints
+   - Create dedicated dashboard for wholesale customers
+   - Add bulk ordering capabilities
+   - Implement order history and reordering functionality
 
-   - Ensure all API routes that create orders enforce the minimum quantity
-   - Add validation to the order management endpoints
-   - Update error responses with clear messaging
+## 3. Dark Mode Implementation Completion
 
-5. Test various order quantities and combinations
-   - Verify cart prevents checkout with insufficient quantities
-   - Test server-side validation with direct API calls
-   - Check that proper error messages are displayed
+### User Interface Updates
 
-## 3. Add Wholesale Buyer Role & 100+ Unit Orders
+- Complete dark mode styling for remaining pages
+- Ensure consistent design language across all interfaces
+- Implement proper color contrast for accessibility
 
-### Database Updates
+### Responsive Design Improvements
 
-- Update the `users` table to include "Wholesale Buyer" as a valid role
-- Add any necessary fields to track wholesale-specific data
-- Create migration to update the schema
+- Test and optimize all interfaces for mobile devices
+- Ensure proper component rendering across screen sizes
+- Implement touch-friendly controls for mobile users
 
-### User Registration Flow
+### Implementation Steps (Week 1-2):
 
-- Modify the registration page to include wholesale option
-- Update the admin approval process to handle wholesale accounts
-- Add validation to ensure only approved accounts can make wholesale orders
+1. Convert User Dashboard Pages
 
-### Order Processing
+   - Update `app/dashboard/` pages with dark mode styling
+   - Ensure proper responsive behavior on all screen sizes
+   - Implement accessibility improvements
 
-- Add logic to identify orders of 100+ units as wholesale orders
-- Create special handling for wholesale orders in the admin dashboard
-- Implement tracking of which users qualify for wholesale status
+2. Complete Distributor Dashboard
 
-### Admin Dashboard
+   - Apply dark mode to `app/distributor/dashboard/` pages
+   - Update commission tracking interfaces
+   - Ensure mobile optimization
 
-- Create wholesale user management section
-- Add wholesale order processing views
-- Implement approval workflow for wholesale accounts
+3. Finalize Checkout Flow
 
-### Implementation Steps:
+   - Convert checkout pages to dark mode
+   - Implement responsive payment form
+   - Add proper validation messaging
 
-1. Create database migrations for user role updates
-2. Modify user registration to include wholesale option
-3. Update admin approval workflow for wholesale accounts
-4. Add wholesale order validation (100+ units)
-5. Create wholesale-specific admin views
-6. Implement wholesale user dashboard
-7. Test the entire wholesale user journey
+4. Test and Refine
 
-## 4. Fix Non-Working Admin Dashboard Links
+   - Conduct cross-browser testing
+   - Verify accessibility compliance
+   - Optimize performance on mobile devices
 
-### Audit Phase
+## 4. Financial System Implementation
 
-- Systematically check all links in the admin dashboard
-- Document broken links and identify patterns
-- Categorize issues by type (404, incorrect route, permission issues)
+### Commission Calculation
 
-### Implementation Phase
+- Complete commission tracking for distributors
+- Implement automated calculation based on fulfilled orders
+- Create projection tools for future earnings
 
-- Fix routing issues in admin dashboard components
-- Ensure proper permission checks are in place
-- Update navigation components with correct routes
+### Payout Processing
 
-### Testing Phase
+- Implement payout request workflow
+- Create admin interface for payment approval
+- Add payment history tracking
 
-- Verify all links work as expected
-- Test with different user roles to ensure proper access control
-- Check mobile responsiveness of fixed links
+### Reporting Tools
 
-### Implementation Steps:
+- Develop comprehensive financial reporting dashboard
+- Implement revenue, cost, and profit tracking
+- Create exportable reports for accounting
 
-1. Audit all links in the admin dashboard
-2. Categorize and prioritize issues
-3. Fix routing and navigation components
-4. Implement proper permission checks
-5. Test with different user roles and devices
+### Implementation Steps (Week 2):
+
+1. Complete Commission System
+
+   - Finalize commission calculation logic
+   - Create commission tracking dashboard for distributors
+   - Implement admin overview of all commissions
+
+2. Build Payout Workflow
+
+   - Create payout request interface for distributors
+   - Implement admin approval process
+   - Add payment status tracking
+
+3. Develop Financial Reporting
+
+   - Create `app/admin/dashboard/reports/financial/page.tsx`
+   - Implement data visualization for financial metrics
+   - Add export functionality for reports
 
 ## Timeline and Priorities
 
-### Week 1 (Sep 11-17): Pricing Updates and Order Requirements
+### Week 1 (May 1-7): Custom Backend and Core UI
 
-- Update all product prices to $15
-- Implement 5-unit minimum order requirement
-- Fix critical linting errors (completed)
-- Begin testing API error handling edge cases
-- Continue dark mode implementation for remaining UIs
+- Implement core custom services (products, cart, users)
+- Update API routes to use custom services
+- Complete dark mode for user dashboard pages
+- Fix remaining admin dashboard issues
 
-### Week 2 (Sep 18-24): Wholesale Implementation and Dashboard Fixes
+### Week 2 (May 8-14): Wholesale, Financial, and Optimization
 
-- Complete Wholesale Buyer role implementation
-- Add 100+ unit order processing for wholesale
-- Fix all non-working admin dashboard links
-- Complete Distributor dashboard dark mode conversion
-- Finalize checkout flow with all validations
+- Complete wholesale application and approval workflow
+- Implement financial systems and reporting
+- Optimize mobile experience
+- Conduct comprehensive testing
 
-### Week 3 (Sep 25-Oct 1): Testing and Optimization
+### Week 3 (May 15-21): QA and Performance
 
-- Implement comprehensive test suite
-- Conduct UX testing across all user journeys
-- Optimize database queries for better performance
-- Implement image optimization and caching strategies
-- Add analytics tracking for user behavior
+- Complete end-to-end testing of all user flows
+- Optimize database queries and caching
+- Implement image optimization
+- Address any outstanding issues
 
-### Week 4 (Oct 2-8): Quality Assurance and Security
+### Week 4 (May 22-28): Final Preparation and Launch
 
-- Conduct load testing with expected traffic patterns
-- Address all issues discovered during testing
-- Optimize mobile experience and performance
-- Complete security audit and fix vulnerabilities
-- Update documentation for all new features
-
-### Week 5 (Oct 9-15): Pre-Launch Preparation
-
-- Set up production environment with proper CI/CD
-- Configure SSL certificates and security headers
-- Implement automated database backup solutions
-- Set up monitoring and alerting systems
-- Create detailed launch checklist and rollback plan
-
-### Week 6 (Oct 16-22): Launch and Initial Support
-
-- Prepare marketing materials for product launch
-- Conduct soft launch with limited user access
-- Official public launch
-- Closely monitor system performance
-- Provide immediate support for any issues
-- Collect and analyze initial user feedback
+- Final security audit
+- Set up production monitoring
+- Prepare documentation
+- Plan phased rollout strategy
 
 ## Technical Considerations
 
-### Backwards Compatibility
+### Data Migration
 
-- Handle existing orders with different pricing
-- Ensure existing accounts transition smoothly
-- Consider migration path for current cart items
+- Plan migration from Medusa schema to custom schema
+- Ensure no data loss during transition
+- Create backup strategies before major changes
 
-### Performance Impact
+### Performance Optimization
 
-- Monitor database performance after price updates
-- Evaluate impact of additional validation steps
-- Optimize checkout process with new validations
+- Implement proper caching strategies
+- Optimize database queries
+- Use code splitting for better loading times
+- Implement image optimization
 
-### Security Considerations
+### Security Enhancements
 
-- Ensure proper authentication for wholesale accounts
-- Validate all price calculations server-side
-- Implement proper authorization for admin functions
+- Implement comprehensive input validation
+- Add proper authentication and authorization checks
+- Use CSRF protection on all forms
+- Implement rate limiting for API routes
 
 ## Success Criteria
 
-- All pages render correctly in dark mode on both mobile and desktop
-- Orders successfully enforce minimum 5-unit requirement
-- Products are consistently priced at $15 per unit
-- Wholesale accounts function properly with 100+ unit orders
-- All dashboard links function correctly
+- Complete custom backend implementation without Medusa dependencies
+- Fully responsive dark mode across all interfaces
+- Operational wholesale application and approval workflow
+- Minimum order requirements enforced at all levels
+- All admin dashboard links and functionality working
+- Comprehensive testing coverage for core functionality
 - System handles projected load with <2s response times
 - Zero critical security vulnerabilities
