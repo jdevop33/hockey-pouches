@@ -10,8 +10,10 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-gold-500 text-dark-900 hover:bg-gold-600 shadow-gold-sm hover:shadow-gold',
-        primary: 'bg-gold-500 text-dark-900 hover:bg-gold-600 shadow-gold-sm hover:shadow-gold',
+        default:
+          'bg-gold-500 text-black font-semibold hover:bg-gold-600 shadow-gold-sm hover:shadow-gold',
+        primary:
+          'bg-gold-500 text-black font-semibold hover:bg-gold-600 shadow-gold-sm hover:shadow-gold',
         destructive: 'bg-alert-red text-white hover:bg-red-600',
         danger: 'bg-alert-red text-white hover:bg-red-600',
         outline: 'border border-gold-500/50 bg-transparent hover:bg-gold-500/10 text-gold-500',
@@ -19,7 +21,7 @@ const buttonVariants = cva(
           'bg-secondary-200 text-secondary-900 hover:bg-secondary-300 dark:bg-secondary-800 dark:text-secondary-50 dark:hover:bg-secondary-700',
         ghost: 'hover:bg-gold-500/10 text-gold-500 hover:text-gold-600',
         link: 'text-gold-500 underline-offset-4 hover:underline',
-        gold: 'bg-gold-700 text-secondary-950 hover:bg-gold-600 border border-gold-600 hover:shadow-gold',
+        gold: 'bg-gold-500 text-black font-bold hover:bg-gold-600 border border-gold-600 hover:shadow-gold',
       },
       size: {
         default: 'h-10 px-4 py-2',

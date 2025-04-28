@@ -25,6 +25,11 @@ const tailwindConfig = {
     'hover:border-gold-500/60',
     'text-gold-500',
     'hover:shadow-gold',
+    // Add text contrast classes for gold buttons
+    'text-black',
+    'text-gray-900',
+    'font-medium',
+    'font-semibold',
   ],
   darkMode: 'class', // Using class for manual toggling with next-themes
   theme: {
@@ -233,6 +238,22 @@ const tailwindConfig = {
           background: 'rgba(16,16,16,0.8)',
           'backdrop-filter': 'blur(10px)',
           border: '1px solid rgba(212, 175, 55, 0.1)',
+        },
+      };
+      addUtilities(newUtilities);
+    },
+    // Gold button text contrast utility
+    function ({ addUtilities }) {
+      const newUtilities = {
+        '.btn-gold': {
+          'background-color': '#d4af37',
+          color: '#000000',
+          'font-weight': '600',
+          'text-shadow': 'none',
+        },
+        '.btn-gold:hover': {
+          'background-color': '#b8860b',
+          color: '#000000',
         },
       };
       addUtilities(newUtilities);
