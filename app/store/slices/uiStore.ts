@@ -1,4 +1,4 @@
-import { BaseState, createBaseStore } from '..';
+import { BaseState, createStore } from '../config';
 
 export interface Toast {
   id: string;
@@ -28,43 +28,48 @@ export interface UIState extends BaseState {
   toggleSearch: () => void;
 }
 
-const uiStore = createBaseStore<UIState>(
+const initialState: Partial<UIState> = {
+  toasts: [],
+  currentModal: null,
+  isSidebarOpen: false,
+  isCartOpen: false,
+  isSearchOpen: false,
+  addToast: toast =>
+    useUIStore.setState(state => ({
+      toasts: [...state.toasts, { ...toast, id: Math.random().toString(36).substring(7) }],
+    })),
+  removeToast: id =>
+    useUIStore.setState(state => ({
+      toasts: state.toasts.filter(toast => toast.id !== id),
+    })),
+  showModal: modal =>
+    useUIStore.setState(() => ({
+      currentModal: { ...modal, id: Math.random().toString(36).substring(7) },
+    })),
+  hideModal: () =>
+    useUIStore.setState(() => ({
+      currentModal: null,
+    })),
+  toggleSidebar: () =>
+    useUIStore.setState(state => ({
+      isSidebarOpen: !state.isSidebarOpen,
+    })),
+  toggleCart: () =>
+    useUIStore.setState(state => ({
+      isCartOpen: !state.isCartOpen,
+    })),
+  toggleSearch: () =>
+    useUIStore.setState(state => ({
+      isSearchOpen: !state.isSearchOpen,
+    })),
+};
+
+export const useUIStore = createStore<UIState>(
   {
-    toasts: [],
-    currentModal: null,
-    isSidebarOpen: false,
-    isCartOpen: false,
-    isSearchOpen: false,
-    addToast: toast =>
-      uiStore.setState(state => ({
-        toasts: [...state.toasts, { ...toast, id: Math.random().toString(36).substring(7) }],
-      })),
-    removeToast: id =>
-      uiStore.setState(state => ({
-        toasts: state.toasts.filter(toast => toast.id !== id),
-      })),
-    showModal: modal =>
-      uiStore.setState(() => ({
-        currentModal: { ...modal, id: Math.random().toString(36).substring(7) },
-      })),
-    hideModal: () =>
-      uiStore.setState(() => ({
-        currentModal: null,
-      })),
-    toggleSidebar: () =>
-      uiStore.setState(state => ({
-        isSidebarOpen: !state.isSidebarOpen,
-      })),
-    toggleCart: () =>
-      uiStore.setState(state => ({
-        isCartOpen: !state.isCartOpen,
-      })),
-    toggleSearch: () =>
-      uiStore.setState(state => ({
-        isSearchOpen: !state.isSearchOpen,
-      })),
+    ...initialState,
+    toggleSidebar: () => useUIStore.setState(state => ({ isSidebarOpen: !state.isSidebarOpen })),
+    toggleCart: () => useUIStore.setState(state => ({ isCartOpen: !state.isCartOpen })),
+    toggleSearch: () => useUIStore.setState(state => ({ isSearchOpen: !state.isSearchOpen })),
   },
   'ui'
 );
-
-export const useUIStore = uiStore;

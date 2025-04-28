@@ -1,22 +1,19 @@
 import { StoreApi, UseBoundStore } from 'zustand';
 
-type WithSelectors<S> = S extends { getState: () => infer T }
-  ? S & { use: { [K in keyof T]: () => T[K] } }
-  : never;
+type StoreWithSelectors<T extends object> = UseBoundStore<StoreApi<T>> & {
+  use: { [K in keyof T]: () => T[K] };
+};
 
-/**
- * Creates selectors for a Zustand store that automatically memoize individual state slices
- * @param store The Zustand store to create selectors for
- * @returns The store enhanced with .use.{propertyName} selector functions
- */
-export const createSelectors = <S extends UseBoundStore<StoreApi<object>>>(store: S) => {
-  const storeWithSelectors = store as WithSelectors<typeof store>;
-  storeWithSelectors.use = {};
+export const createSelectors = <T extends object>(
+  store: UseBoundStore<StoreApi<T>>
+): StoreWithSelectors<T> => {
+  const storeWithSelectors = store as StoreWithSelectors<T>;
+  storeWithSelectors.use = {} as StoreWithSelectors<T>['use'];
 
-  Object.keys(store.getState()).forEach(key => {
-    const selector = (state: object) => state[key as keyof typeof state];
+  const keys = Object.keys(store.getState());
+  keys.forEach(key => {
     Object.defineProperty(storeWithSelectors.use, key, {
-      get: () => store(selector),
+      get: () => store(state => state[key as keyof T]),
       enumerable: true,
     });
   });

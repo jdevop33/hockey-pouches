@@ -1,115 +1,87 @@
-# Hockey Pouches Project Improvement Plan
-
-## Purpose
-
-This document serves as a living checklist for tracking improvements and enhancements to the Hockey Pouches application. It helps maintain context across development sessions and ensures we're systematically improving the codebase.
+# Project Improvement Plan
 
 ## Current Status
 
-- [x] Next.js 15.3.1 App Router implementation
-- [x] TypeScript integration
-- [x] Basic authentication system with JWT
-- [x] Rate limiting implementation
-- [x] CSRF protection
-- [x] Custom middleware for security
-- [x] Tailwind CSS configuration with custom design system
+- [x] Initial Zustand setup
+- [x] Store slices implementation (auth, cart, ui)
+- [x] Store middleware setup (logger, devtools, persist)
+- [x] Layout improvements and metadata configuration
+- [ ] Next.js SSR hydration fixes
+- [ ] Dashboard page initialization fixes
+- [ ] Store circular dependency resolution
+- [ ] Type safety improvements
 
-## Areas for Improvement
+## Immediate Tasks
 
-### 1. Authentication & Authorization Enhancements
+1. Fix store initialization order
 
-- [ ] Redis-based session management
-  - [ ] Implement SessionManager class
-  - [ ] Add session tracking alongside JWT
-  - [ ] Add session invalidation functionality
-- [ ] OAuth Integration
+   - [ ] Create proper store initialization sequence
+   - [ ] Move store creation to a separate initialization file
+   - [ ] Implement store provider with proper hydration
 
-  - [ ] Google OAuth implementation
-  - [ ] GitHub OAuth implementation
-  - [ ] OAuth service integration with existing auth system
+2. Fix dashboard page issues
 
-- [ ] Security Headers
-  - [ ] Implement enhanced security headers in middleware
-  - [ ] Add CSP (Content Security Policy)
-  - [ ] Configure HSTS headers for production
+   - [ ] Resolve initialization errors
+   - [ ] Implement proper SSR data fetching
+   - [ ] Add error boundaries
+   - [ ] Improve loading states
 
-### 2. Performance Optimization
+3. Improve store architecture
 
-- [ ] Build Optimization
+   - [x] Separate store configuration
+   - [x] Fix circular dependencies
+   - [ ] Implement proper type safety
+   - [ ] Add computed selectors
+   - [ ] Add middleware for persistence
 
-  - [ ] Implement bundle analysis
-  - [ ] Add CSS optimization
-  - [ ] Configure image optimization settings
+4. Performance Optimization
 
-- [ ] Caching Strategy
-  - [ ] Implement Redis caching for API responses
-  - [ ] Add stale-while-revalidate patterns
-  - [ ] Configure browser caching headers
+   - [ ] Implement code splitting
+   - [ ] Add proper caching strategies
+   - [ ] Optimize bundle size
+   - [ ] Add performance monitoring
 
-### 3. UI/UX Improvements
+5. Testing and Documentation
+   - [ ] Add unit tests for store slices
+   - [ ] Add integration tests
+   - [ ] Add documentation for store usage
+   - [ ] Add API documentation
 
-- [ ] Component Architecture
+## Long-term Goals
 
-  - [ ] Audit and refactor components for reusability
-  - [ ] Implement container/presenter pattern where needed
-  - [ ] Add proper loading states
+1. Authentication Improvements
 
-- [ ] Accessibility
-  - [ ] Add ARIA labels
-  - [ ] Implement keyboard navigation
-  - [ ] Add screen reader support
+   - [ ] Implement refresh token logic
+   - [ ] Add session management
+   - [ ] Add role-based access control
 
-### 4. State Management
+2. State Management
 
-- [ ] Global State
+   - [ ] Add more computed selectors
+   - [ ] Implement optimistic updates
+   - [ ] Add proper error handling
+   - [ ] Add proper loading states
 
-  - [ ] Implement Zustand store
-  - [ ] Add proper TypeScript types
-  - [ ] Create actions and selectors
+3. UI/UX Improvements
 
-- [ ] Data Fetching
-  - [ ] Implement React Query/SWR
-  - [ ] Add proper error boundaries
-  - [ ] Implement optimistic updates
+   - [ ] Add more animations
+   - [ ] Improve accessibility
+   - [ ] Add proper error messages
+   - [ ] Add proper loading states
 
-### 5. Testing Implementation
+4. Development Experience
+   - [ ] Add more TypeScript types
+   - [ ] Add proper documentation
+   - [ ] Add proper testing
+   - [ ] Add proper linting
 
-- [ ] Unit Tests
+## Notes
 
-  - [ ] Set up Jest configuration
-  - [ ] Add component tests
-  - [ ] Add utility function tests
-
-- [ ] Integration Tests
-  - [ ] Set up Cypress
-  - [ ] Add critical path tests
-  - [ ] Add API integration tests
-
-### 6. Documentation
-
-- [ ] Code Documentation
-
-  - [ ] Add JSDoc comments to components
-  - [ ] Document utility functions
-  - [ ] Add API documentation
-
-- [ ] Developer Documentation
-  - [ ] Update README.md
-  - [ ] Add contribution guidelines
-  - [ ] Document deployment process
-
-### 7. DevOps & CI/CD
-
-- [ ] GitHub Actions
-
-  - [ ] Add lint and type checking
-  - [ ] Add test automation
-  - [ ] Add deployment automation
-
-- [ ] Monitoring
-  - [ ] Add error tracking (Sentry)
-  - [ ] Add performance monitoring
-  - [ ] Add logging infrastructure
+- Need to fix store initialization order to prevent hydration issues
+- Need to improve error handling in store slices
+- Need to add proper TypeScript types
+- Need to add proper documentation
+- Need to add proper testing
 
 ## Progress Tracking
 

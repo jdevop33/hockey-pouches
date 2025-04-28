@@ -1,4 +1,4 @@
-import { BaseState, createBaseStore } from '..';
+import { BaseState, createStore } from '../config';
 
 export interface ProductVariant {
   id: string;
@@ -39,41 +39,45 @@ export interface ProductState extends BaseState {
   getFilteredProducts: () => Product[];
 }
 
-const productStore = createBaseStore<ProductState>({
+const initialState: Partial<ProductState> = {
   products: [],
   selectedProduct: null,
   filters: {},
-  setProducts: (products: Product[]) => productStore.setState({ products }),
-  setSelectedProduct: (product: Product | null) =>
-    productStore.setState({ selectedProduct: product }),
-  setFilters: (filters: Partial<ProductFilters>) =>
-    productStore.setState(state => ({
-      filters: { ...state.filters, ...filters },
-    })),
-  updateProduct: (id: string, updates: Partial<Product>) =>
-    productStore.setState(state => ({
-      products: state.products.map(product =>
-        product.id === id ? { ...product, ...updates } : product
-      ),
-    })),
-  getFilteredProducts: (): Product[] => {
-    const { filters, products } = productStore.getState();
+};
 
-    return products.filter((product: Product) => {
-      if (filters.category && product.category !== filters.category) return false;
-      if (filters.minPrice && product.price < filters.minPrice) return false;
-      if (filters.maxPrice && product.price > filters.maxPrice) return false;
-      if (filters.inStock && product.stock <= 0) return false;
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        return (
-          product.name.toLowerCase().includes(searchLower) ||
-          product.description.toLowerCase().includes(searchLower)
-        );
-      }
-      return true;
-    });
+export const useProductStore = createStore<ProductState>(
+  {
+    ...initialState,
+    setProducts: (products: Product[]) => useProductStore.setState(() => ({ products })),
+    setSelectedProduct: (product: Product | null) =>
+      useProductStore.setState(() => ({ selectedProduct: product })),
+    setFilters: (filters: Partial<ProductFilters>) =>
+      useProductStore.setState((state: ProductState) => ({
+        filters: { ...state.filters, ...filters },
+      })),
+    updateProduct: (id: string, updates: Partial<Product>) =>
+      useProductStore.setState((state: ProductState) => ({
+        products: state.products.map((product: Product) =>
+          product.id === id ? { ...product, ...updates } : product
+        ),
+      })),
+    getFilteredProducts: (): Product[] => {
+      const { filters, products } = useProductStore.getState();
+      return products.filter((product: Product) => {
+        if (filters.category && product.category !== filters.category) return false;
+        if (filters.minPrice && product.price < filters.minPrice) return false;
+        if (filters.maxPrice && product.price > filters.maxPrice) return false;
+        if (filters.inStock && product.stock <= 0) return false;
+        if (filters.search) {
+          const searchLower = filters.search.toLowerCase();
+          return (
+            product.name.toLowerCase().includes(searchLower) ||
+            product.description.toLowerCase().includes(searchLower)
+          );
+        }
+        return true;
+      });
+    },
   },
-});
-
-export const useProductStore = productStore;
+  'product'
+);

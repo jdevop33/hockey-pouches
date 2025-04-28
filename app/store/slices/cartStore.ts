@@ -1,4 +1,4 @@
-import { BaseState, createBaseStore } from '..';
+import { BaseState, createStore } from '../config';
 
 export interface CartItem {
   id: string;
@@ -7,49 +7,64 @@ export interface CartItem {
   price: number;
   name: string;
   image?: string;
-  variant?: string;
 }
 
 export interface CartState extends BaseState {
   items: CartItem[];
-  total: number;
-  addItem: (item: Omit<CartItem, 'id'>) => void;
+  addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
-  calculateTotal: () => void;
+  total: number;
 }
 
-const cartStore = createBaseStore<CartState>(
+const initialState: Partial<CartState> = {
+  items: [],
+  total: 0,
+};
+
+export const useCartStore = createStore<CartState>(
   {
-    items: [],
-    total: 0,
+    ...initialState,
     addItem: item =>
-      cartStore.setState(state => {
-        const id = Math.random().toString(36).substring(7);
+      useCartStore.setState(state => {
+        const existingItem = state.items.find(i => i.id === item.id);
+        if (existingItem) {
+          return {
+            items: state.items.map(i =>
+              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+            ),
+            total: state.total + item.price,
+          };
+        }
         return {
-          items: [...state.items, { ...item, id }],
+          items: [...state.items, item],
+          total: state.total + item.price,
         };
       }),
     removeItem: id =>
-      cartStore.setState(state => ({
-        items: state.items.filter(item => item.id !== id),
-      })),
+      useCartStore.setState(state => {
+        const item = state.items.find(i => i.id === id);
+        return {
+          items: state.items.filter(i => i.id !== id),
+          total: state.total - (item ? item.price * item.quantity : 0),
+        };
+      }),
     updateQuantity: (id, quantity) =>
-      cartStore.setState(state => ({
-        items: state.items.map(item => (item.id === id ? { ...item, quantity } : item)),
-      })),
+      useCartStore.setState(state => {
+        const item = state.items.find(i => i.id === id);
+        if (!item) return state;
+        const quantityDiff = quantity - item.quantity;
+        return {
+          items: state.items.map(i => (i.id === id ? { ...i, quantity } : i)),
+          total: state.total + item.price * quantityDiff,
+        };
+      }),
     clearCart: () =>
-      cartStore.setState(() => ({
+      useCartStore.setState(() => ({
         items: [],
         total: 0,
-      })),
-    calculateTotal: () =>
-      cartStore.setState(state => ({
-        total: state.items.reduce((acc, item) => acc + item.price * item.quantity, 0),
       })),
   },
   'cart'
 );
-
-export const useCartStore = cartStore;

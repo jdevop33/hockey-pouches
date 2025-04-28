@@ -1,46 +1,19 @@
-import { StateCreator, StoreMutatorIdentifier } from 'zustand';
+import { StateCreator } from 'zustand';
 
-type Logger = <
-  T extends object,
-  Mps extends [StoreMutatorIdentifier, unknown][] = [],
-  Mcs extends [StoreMutatorIdentifier, unknown][] = [],
->(
-  f: StateCreator<T, Mps, Mcs>,
-  name?: string
-) => StateCreator<T, Mps, Mcs>;
-
-type LoggerImpl = <T extends object>(
-  f: StateCreator<T, [], []>,
-  name?: string
-) => StateCreator<T, [], []>;
-
-const loggerImpl: LoggerImpl = (f, name) => (set, get, store) => {
-  type T = ReturnType<typeof f>;
-  const loggedSet: typeof set = args => {
-    const prevState = get();
-    const result = set(args);
-    const nextState = get();
-    const action = typeof args === 'function' ? args.name || 'unnamed action' : 'setState';
-
-    // Only log in development
-    if (process.env.NODE_ENV === 'development') {
-      console.group(`🐻 Zustand Store Update: ${name || 'unnamed store'}`);
-      console.log('Action:', action);
-      console.log('Prev State:', prevState);
-      console.log('Next State:', nextState);
-      console.log(
-        'Changed Keys:',
-        Object.keys(nextState).filter(
-          key => nextState[key as keyof T] !== prevState[key as keyof T]
-        )
-      );
-      console.groupEnd();
-    }
-
-    return result;
-  };
-
-  return f(loggedSet, get, store);
-};
-
-export const logger = loggerImpl as unknown as Logger;
+export const logger =
+  <T extends object>(config: StateCreator<T>, name = 'store'): StateCreator<T> =>
+  (set, get, api) =>
+    config(
+      args => {
+        if (process.env.NODE_ENV === 'development') {
+          const nextState = typeof args === 'function' ? args(get()) : args;
+          console.group(`%c${name} %cUpdate`, 'color: #12b886; font-weight: bold;', 'color: #666;');
+          console.log('Prev State:', get());
+          console.log('Next State:', nextState);
+          console.groupEnd();
+        }
+        return set(args);
+      },
+      get,
+      api
+    );

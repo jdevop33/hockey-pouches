@@ -1,54 +1,47 @@
-import { BaseState, createBaseStore } from '..';
+import { BaseState, createStore } from '../config';
 
 export interface User {
   id: string;
   email: string;
-  name: string;
+  name?: string;
   role: 'user' | 'admin' | 'distributor';
-  avatar?: string;
-  createdAt: string;
-  lastLoginAt: string;
+  isVerified: boolean;
 }
 
 export interface AuthState extends BaseState {
   user: User | null;
   isAuthenticated: boolean;
-  accessToken: string | null;
-  refreshToken: string | null;
-  setUser: (user: User | null) => void;
-  setTokens: (tokens: { accessToken: string; refreshToken: string }) => void;
-  clearAuth: () => void;
-  updateUser: (updates: Partial<User>) => void;
+  token: string | null;
+  login: (user: User, token: string) => void;
+  logout: () => void;
+  updateUser: (user: Partial<User>) => void;
 }
 
-const initialState = {
+const initialState: Partial<AuthState> = {
   user: null,
   isAuthenticated: false,
-  accessToken: null,
-  refreshToken: null,
-  setUser: (user: User | null) =>
-    authStore.setState({
-      user,
-      isAuthenticated: !!user,
-    }),
-  setTokens: (tokens: { accessToken: string; refreshToken: string }) =>
-    authStore.setState({
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-    }),
-  clearAuth: () =>
-    authStore.setState({
-      user: null,
-      isAuthenticated: false,
-      accessToken: null,
-      refreshToken: null,
-    }),
-  updateUser: (updates: Partial<User>) =>
-    authStore.setState(state => ({
-      user: state.user ? { ...state.user, ...updates } : null,
-    })),
+  token: null,
 };
 
-const authStore = createBaseStore<AuthState>(initialState, 'auth');
-
-export const useAuthStore = authStore;
+export const useAuthStore = createStore<AuthState>(
+  {
+    ...initialState,
+    login: (user, token) =>
+      useAuthStore.setState(() => ({
+        user,
+        token,
+        isAuthenticated: true,
+      })),
+    logout: () =>
+      useAuthStore.setState(() => ({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+      })),
+    updateUser: userData =>
+      useAuthStore.setState(state => ({
+        user: state.user ? { ...state.user, ...userData } : null,
+      })),
+  },
+  'auth'
+);
