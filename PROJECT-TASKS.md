@@ -1,123 +1,82 @@
-# Hockey Pouches Project Tasks
+# PUXX Website Refactoring Tasks
 
-## Current Status
+## Completed ✅
 
-The Hockey Pouches e-commerce platform is nearing completion with a focus on manual payment methods (e-transfer and Bitcoin) for the initial launch. Credit card payments via Stripe will be added in a future phase.
+- Fix Navbar component closing tags
+- Enhance homepage design with premium aesthetic
+- Fix button text legibility on gold backgrounds
+- Improve hero image positioning
 
-## Critical Tasks (MUST COMPLETE BEFORE LAUNCH)
+## High Priority 🔴
 
-### 1. Fix Payment Integration Issues
+- Product detail pages
 
-- [x] Remove direct Stripe initialization from create-payment-intent API route
-- [ ] Update checkout flow to handle manual payments correctly
-- [ ] Ensure payment method selection works consistently
-- [ ] Test end-to-end payment flow with e-transfer and Bitcoin
-- [ ] Add clear payment instructions in confirmation emails
+  - [ ] Create consistent premium product detail layout
+  - [ ] Add high-quality product imagery with proper positioning
+  - [ ] Implement product variants/options selection
+  - [ ] Add related/recommended products section
+  - [ ] Include customer reviews section
 
-### 2. Authentication System
+- Cart & Checkout Flow
+  - [ ] Design elegant cart summary
+  - [ ] Create seamless checkout process
+  - [ ] Implement responsive order summary
+  - [ ] Add discount code application UI
+  - [ ] Design order confirmation page
 
-- [ ] Complete JWT implementation for all protected routes
-- [ ] Test password reset and account verification flows
-- [ ] Implement role-based authorization middleware
-- [ ] Ensure token validation works reliably
+## Medium Priority 🟠
 
-### 3. Order Management
+- About Page
 
-- [ ] Complete order creation and status management
-- [ ] Test email notifications for all order statuses
-- [ ] Implement inventory updates when orders are placed
-- [ ] Create admin order processing workflow
+  - [ ] Tell brand story with premium visuals
+  - [ ] Create team/founders section
+  - [ ] Add quality/manufacturing process highlights
+  - [ ] Incorporate customer testimonials
 
-### 4. UI Polish
+- User Dashboard
 
-- [ ] Fix product image sizing and layout issues
-- [ ] Ensure consistent mobile experience across all pages
-- [ ] Fix apple-touch-icon placement in layout
-- [ ] Complete breadcrumb navigation on all pages
+  - [ ] Design cohesive account overview
+  - [ ] Create order history section
+  - [ ] Implement saved payment methods UI
+  - [ ] Add address book management
+  - [ ] Design referral program section
 
-## High Priority Tasks (PHASE 1)
+- Footer Component
+  - [ ] Create consistent branding with main design
+  - [ ] Add newsletter signup
+  - [ ] Include social media links
+  - [ ] Organize sitemap links
 
-### 1. Admin Dashboard
+## Lower Priority 🟢
 
-- [ ] Complete user management interface
-- [ ] Implement inventory management screens
-- [ ] Finalize order processing workflows
-- [ ] Add commission tracking and payout system
+- Contact Page
 
-### 2. Distributor Features
+  - [ ] Design premium contact form
+  - [ ] Add FAQ section
+  - [ ] Include business hours and contact methods
 
-- [ ] Complete order fulfillment interface
-- [ ] Implement inventory tracking for distributors
-- [ ] Add commission dashboards
-- [ ] Create distributor assignment tools
+- Blog/Content Pages
 
-### 3. Content & Assets
+  - [ ] Create consistent article layout
+  - [ ] Design category/tag navigation
+  - [ ] Implement featured posts section
 
-- [ ] Replace all placeholder images with final branded versions
-- [ ] Update product descriptions with final copy
-- [ ] Create standardized image sizes for products
-- [ ] Finalize legal pages (terms, privacy policy)
+- Mobile Optimization
+  - [ ] Ensure all pages are fully responsive
+  - [ ] Optimize touch targets for mobile
+  - [ ] Test and refine mobile navigation
 
-## Medium Priority Tasks (PHASE 2)
+## Technical Tasks ⚙️
 
-### 1. Analytics & Reporting
+- [ ] Optimize image loading and rendering
+- [ ] Implement proper SEO metadata across all pages
+- [ ] Add analytics tracking
+- [ ] Performance optimization
+- [ ] Accessibility improvements
 
-- [ ] Set up sales reports
-- [ ] Implement inventory forecasting
-- [ ] Create commission reports
-- [ ] Add user activity tracking
+## Design System Refinement 🎨
 
-### 2. Performance Optimization
-
-- [ ] Implement image optimization and CDN configuration
-- [ ] Add proper caching strategies for static assets
-- [ ] Optimize database queries
-- [ ] Implement lazy loading for images
-
-### 3. Marketing Features
-
-- [ ] Add referral system tracking
-- [ ] Implement discount code management
-- [ ] Create promotional tools
-- [ ] Set up email marketing integration
-
-## Low Priority Tasks (FUTURE)
-
-### 1. Credit Card Integration
-
-- [ ] Set up Stripe payment integration
-- [ ] Implement secure credit card processing
-- [ ] Add webhooks for payment status
-- [ ] Create reconciliation tools
-
-### 2. Advanced Features
-
-- [ ] Implement subscription options
-- [ ] Add product bundling
-- [ ] Create wholesale tier pricing
-- [ ] Develop loyalty program
-
-## Technical Debt
-
-- [ ] Address TypeScript errors in API routes
-- [ ] Improve error handling
-- [ ] Add comprehensive validation
-- [ ] Complete API documentation
-- [ ] Create architectural diagrams
-
-## Next Steps (IMMEDIATE ACTIONS)
-
-1. Fix Stripe initialization issue in create-payment-intent route
-2. Complete manual payment workflow testing
-3. Finalize authentication system
-4. Test order creation and email notifications
-5. Fix critical UI issues
-
-## Deployment Checklist
-
-- [ ] Set up environment variables in Vercel
-- [ ] Configure database connection
-- [ ] Set up email service
-- [ ] Enable analytics tracking
-- [ ] Perform security review
-- [ ] Test deployment in staging environment
+- [ ] Document color system
+- [ ] Create component library documentation
+- [ ] Define typography rules and usage
+- [ ] Establish spacing and layout guidelines
