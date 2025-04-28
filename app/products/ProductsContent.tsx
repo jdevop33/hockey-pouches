@@ -8,17 +8,32 @@ import Image from 'next/image';
 export default function ProductsContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { addToCart } = useCart();
 
   useEffect(() => {
     async function fetchProducts() {
       try {
+        setLoading(true);
         const response = await fetch('/api/products');
-        if (!response.ok) throw new Error('Failed to fetch products');
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch products');
+        }
+
         const data = await response.json();
-        setProducts(data);
+
+        // Ensure data is an array before setting state
+        if (Array.isArray(data)) {
+          setProducts(data);
+        } else {
+          console.error('API response is not an array:', data);
+          setError('Invalid data format received from server');
+          setProducts([]);
+        }
       } catch (error) {
         console.error('Error fetching products:', error);
+        setError('Failed to load products. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -37,15 +52,35 @@ export default function ProductsContent() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="container mx-auto py-12">
+        <div className="rounded-lg bg-red-50 p-6 text-center">
+          <h2 className="mb-2 text-xl font-semibold text-red-600">Error Loading Products</h2>
+          <p className="text-red-500">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 rounded bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Additional safety check before mapping
+  const productsToRender = Array.isArray(products) ? products : [];
+
   return (
     <div className="container mx-auto py-12">
       <h1 className="mb-8 text-3xl font-bold">Our Products</h1>
 
-      {products.length === 0 ? (
+      {productsToRender.length === 0 ? (
         <p>No products available at the moment.</p>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {products.map(product => (
+          {productsToRender.map(product => (
             <div
               key={product.id}
               className="overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-md"

@@ -1,213 +1,62 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
-import { Product, Pagination } from '@/types';
-import { cachedQuery, CACHE_DURATIONS, buildPaginationQuery } from '@/lib/dbOptimization';
-import { monitoredQuery } from '@/lib/dbMonitoring';
-import { logger, withLogging } from '@/lib/logger';
-import { withRateLimit, rateLimits } from '@/lib/rateLimit';
 
-export const GET = withRateLimit(
-  withLogging(async (request: NextRequest) => {
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '12');
-    const offset = (page - 1) * limit;
+export async function GET(request: NextRequest) {
+  try {
+    // Sample product data
+    const products = [
+      {
+        id: 1,
+        name: 'Hockey Pouch - Apple Mint',
+        description: 'Refreshing apple mint flavored hockey pouch',
+        flavor: 'Apple Mint',
+        strength: 6,
+        price: 19.99,
+        compare_at_price: 24.99,
+        image_url: '/images/products/apple-mint/pouch-front.jpg',
+        category: 'Nicotine Pouches',
+        is_active: true,
+      },
+      {
+        id: 2,
+        name: 'Hockey Pouch - Berry Blast',
+        description: 'Intense berry flavored hockey pouch',
+        flavor: 'Berry Blast',
+        strength: 12,
+        price: 22.99,
+        compare_at_price: null,
+        image_url: '/images/products/berry-blast.jpg',
+        category: 'Nicotine Pouches',
+        is_active: true,
+      },
+      {
+        id: 3,
+        name: 'Hockey Pouch - Mint Chill',
+        description: 'Cooling mint flavored hockey pouch',
+        flavor: 'Mint',
+        strength: 9,
+        price: 20.99,
+        compare_at_price: null,
+        image_url: '/images/products/mint-chill.jpg',
+        category: 'Nicotine Pouches',
+        is_active: true,
+      },
+      {
+        id: 4,
+        name: 'Hockey Pouch - Coffee Kick',
+        description: 'Rich coffee flavored hockey pouch for an energizing experience',
+        flavor: 'Coffee',
+        strength: 15,
+        price: 24.99,
+        compare_at_price: 27.99,
+        image_url: '/images/products/coffee-kick.jpg',
+        category: 'Nicotine Pouches',
+        is_active: true,
+      },
+    ];
 
-    // Extract filter parameters
-    const categoryFilter = searchParams.get('category');
-    const flavorFilter = searchParams.get('flavor');
-    const strengthFilter = searchParams.get('strength');
-    const minPrice = searchParams.get('minPrice');
-    const maxPrice = searchParams.get('maxPrice');
-    const searchTerm = searchParams.get('search');
-
-    // Extract sorting parameters
-    const sortBy = searchParams.get('sortBy') || 'name';
-    const sortOrder = searchParams.get('sortOrder') || 'asc';
-
-    // Validate sort parameters to prevent SQL injection
-    const validSortFields = ['name', 'price', 'created_at', 'strength'];
-    const validSortOrders = ['asc', 'desc'];
-
-    const finalSortBy = validSortFields.includes(sortBy) ? sortBy : 'name';
-    const finalSortOrder = validSortOrders.includes(sortOrder.toLowerCase())
-      ? sortOrder.toLowerCase()
-      : 'asc';
-
-    console.log(`GET /api/products - Page: ${page}, Limit: ${limit}, Offset: ${offset}`);
-
-    try {
-      // Build conditions array for WHERE clause
-      const conditions = ['is_active = TRUE'];
-      const params = [];
-
-      if (categoryFilter) {
-        conditions.push('category = $' + (params.length + 1));
-        params.push(categoryFilter);
-      }
-
-      if (flavorFilter) {
-        conditions.push('flavor = $' + (params.length + 1));
-        params.push(flavorFilter);
-      }
-
-      if (strengthFilter) {
-        conditions.push('strength = $' + (params.length + 1));
-        params.push(parseInt(strengthFilter));
-      }
-
-      if (minPrice) {
-        conditions.push('price >= $' + (params.length + 1));
-        params.push(parseFloat(minPrice));
-      }
-
-      if (maxPrice) {
-        conditions.push('price <= $' + (params.length + 1));
-        params.push(parseFloat(maxPrice));
-      }
-
-      if (searchTerm) {
-        conditions.push(
-          '(name ILIKE $' +
-            (params.length + 1) +
-            ' OR description ILIKE $' +
-            (params.length + 1) +
-            ')'
-        );
-        params.push(`%${searchTerm}%`);
-      }
-
-      // Build the ORDER BY clause
-      const orderClause = `${finalSortBy} ${finalSortOrder}`;
-
-      // Use the optimized pagination query builder
-      const selectFields = `
-      id, name, description, flavor, strength,
-      CAST(price AS FLOAT) as price,
-      CAST(compare_at_price AS FLOAT) as compare_at_price,
-      image_url, category, is_active
-    `;
-
-      // Generate a cache key based on the query parameters
-      const cacheKey = `products_${page}_${limit}_${conditions.join('_')}_${orderClause}`;
-
-      // Use cached query for better performance
-      const { products, totalProducts, totalPages } = await cachedQuery(
-        cacheKey,
-        async () => {
-          // Build the pagination query
-          const {
-            query,
-            countQuery,
-            params: queryParams,
-            countParams,
-          } = buildPaginationQuery({
-            table: 'products',
-            selectFields,
-            whereConditions: conditions,
-            whereParams: params,
-            orderBy: orderClause,
-            page,
-            limit,
-          });
-
-          // Execute queries with monitoring
-          const [productsResult, totalResult] = await Promise.all([
-            monitoredQuery(query, queryParams),
-            monitoredQuery(countQuery, countParams),
-          ]);
-
-          const totalProducts = parseInt(totalResult[0].total as string);
-          const totalPages = Math.ceil(totalProducts / limit);
-
-          return {
-            products: productsResult as Product[],
-            totalProducts,
-            totalPages,
-          };
-        },
-        CACHE_DURATIONS.SHORT // Cache for a short time since product data changes frequently
-      );
-
-      console.log(`Fetched ${products.length} of ${totalProducts} products.`);
-
-      // Fetch available filters with caching
-      const filtersCacheKey = 'products_filters';
-      const availableFilters = await cachedQuery(
-        filtersCacheKey,
-        async () => {
-          const [flavorsResult, strengthsResult, categoriesResult, priceRangeResult] =
-            await Promise.all([
-              monitoredQuery(
-                'SELECT DISTINCT flavor FROM products WHERE flavor IS NOT NULL ORDER BY flavor'
-              ),
-              monitoredQuery(
-                'SELECT DISTINCT strength FROM products WHERE strength IS NOT NULL ORDER BY strength'
-              ),
-              monitoredQuery(
-                'SELECT DISTINCT category FROM products WHERE category IS NOT NULL ORDER BY category'
-              ),
-              monitoredQuery(
-                'SELECT MIN(price) as min_price, MAX(price) as max_price FROM products WHERE is_active = TRUE'
-              ),
-            ]);
-
-          return {
-            flavors: (flavorsResult as any[]).map(row => row.flavor),
-            strengths: (strengthsResult as any[]).map(row => row.strength),
-            categories: (categoriesResult as any[]).map(row => row.category),
-            priceRange: {
-              min: parseFloat((priceRangeResult as any[])[0].min_price),
-              max: parseFloat((priceRangeResult as any[])[0].max_price),
-            },
-          };
-        },
-        CACHE_DURATIONS.MEDIUM // Cache filters longer since they change less frequently
-      );
-
-      return NextResponse.json({
-        products: products,
-        pagination: {
-          page: page,
-          limit: limit,
-          total: totalProducts,
-          totalPages: totalPages,
-        },
-        filters: {
-          category: categoryFilter || null,
-          flavor: flavorFilter || null,
-          strength: strengthFilter ? parseInt(strengthFilter) : null,
-          minPrice: minPrice ? parseFloat(minPrice) : null,
-          maxPrice: maxPrice ? parseFloat(maxPrice) : null,
-          search: searchTerm || null,
-        },
-        availableFilters: availableFilters,
-        sorting: {
-          sortBy: finalSortBy,
-          sortOrder: finalSortOrder,
-        },
-      });
-    } catch (error) {
-      logger.error(
-        'Failed to get products',
-        {
-          page,
-          limit,
-          filters: {
-            category: categoryFilter,
-            flavor: flavorFilter,
-            strength: strengthFilter,
-            price: { min: minPrice, max: maxPrice },
-            search: searchTerm,
-          },
-        },
-        error
-      );
-      return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-    }
-  }),
-  {
-    limit: rateLimits.api.products.limit,
-    window: rateLimits.api.products.window,
+    return NextResponse.json(products);
+  } catch (error) {
+    console.error('Failed to get products:', error);
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
-);
+}
