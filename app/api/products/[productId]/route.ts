@@ -15,20 +15,18 @@ interface Product {
   is_active: boolean;
   created_at?: string;
   updated_at?: string;
-  category_name?: string;
 }
 
 // Cache product details for 1 hour (3600 seconds)
 const getProductFromDb = unstable_cache(
   async (productId: number): Promise<Product | null> => {
     try {
-      // Query for product with category information
+      // Simplified query to just get the product without category join
       const result = await sql`
-        SELECT p.*, c.name as category_name
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.id
-        WHERE p.id = ${productId} AND p.is_active = true
-      `; // Restored the is_active check
+        SELECT *
+        FROM products
+        WHERE id = ${productId} AND is_active = true
+      `;
 
       // Check if any results were returned
       if (!result || result.length === 0) {

@@ -19,14 +19,34 @@ interface Product {
 const getRelatedProductsFromDb = unstable_cache(
   async (productId: number, limit = 4): Promise<Product[]> => {
     try {
-      // Query for related products by category
+      // First get the current product's category
+      const currentProduct = await sql`
+        SELECT category FROM products WHERE id = ${productId} AND is_active = true
+      `;
+
+      if (!currentProduct || currentProduct.length === 0) {
+        return [];
+      }
+
+      const category = currentProduct[0].category;
+
+      // If no category, just get some active products
+      if (!category) {
+        const result = await sql`
+          SELECT * FROM products 
+          WHERE id != ${productId}
+          AND is_active = true
+          LIMIT ${limit}
+        `;
+        return result as unknown as Product[];
+      }
+
+      // Query for related products by matching category
       const result = await sql`
-        SELECT p2.*
-        FROM products p1
-        JOIN products p2 ON p1.category_id = p2.category_id
-        WHERE p1.id = ${productId}
-          AND p2.id != ${productId}
-          AND p2.is_active = true
+        SELECT * FROM products 
+        WHERE category = ${category}
+        AND id != ${productId}
+        AND is_active = true
         LIMIT ${limit}
       `;
 

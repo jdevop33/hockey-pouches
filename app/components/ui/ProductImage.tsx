@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
@@ -29,8 +29,11 @@ const ProductImage: React.FC<ProductImageProps> = ({
   objectFit = 'contain',
   onClick,
 }) => {
+  const [imageError, setImageError] = useState(false);
   const fallbackImage = '/images/products/fallback.jpg';
-  const imageSrc = src || fallbackImage;
+
+  // Use fallback if src is null/undefined or if there was an error loading the image
+  const imageSrc = src && !imageError ? src : fallbackImage;
 
   // Configure size dimensions
   const getSizeClasses = () => {
@@ -46,6 +49,11 @@ const ProductImage: React.FC<ProductImageProps> = ({
       default:
         return 'h-48 w-48';
     }
+  };
+
+  const handleImageError = () => {
+    console.error(`Failed to load image: ${src}`);
+    setImageError(true);
   };
 
   return (
@@ -66,6 +74,14 @@ const ProductImage: React.FC<ProductImageProps> = ({
         priority={priority}
         style={{ objectFit }}
         className="p-2 transition-transform duration-300"
+        onError={handleImageError}
+        sizes={
+          size === 'small'
+            ? '(max-width: 768px) 36px, 40px'
+            : size === 'medium'
+              ? '(max-width: 768px) 48px, 60px'
+              : '(max-width: 768px) 64px, (max-width: 1024px) 80px, 96px'
+        }
       />
     </div>
   );

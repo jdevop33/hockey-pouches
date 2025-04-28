@@ -4,7 +4,7 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/layout/NewLayout';
-import { useCart, Product as CartProduct } from '@/context/CartContext';
+import { useCart } from '@/context/CartContext';
 import ProductImage from '../components/ui/ProductImage';
 import { formatCurrency } from '@/lib/utils';
 import Breadcrumbs from '../components/ui/Breadcrumbs';
@@ -22,7 +22,7 @@ interface Product {
   compare_at_price?: number | null;
   image_url?: string | null;
   category?: string | null;
-  is_active?: boolean;
+  is_active: boolean;
   bulkDiscounts?: { quantity: number; discountPercentage: number }[];
 }
 
@@ -49,7 +49,6 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [minPriceFilter, setMinPriceFilter] = useState<string | null>(null);
   const [maxPriceFilter, setMaxPriceFilter] = useState<string | null>(null);
-  const [addedToCartId, setAddedToCartId] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<string>('name');
   const [sortOrder, setSortOrder] = useState<string>('asc');
   const [pagination, setPagination] = useState<PaginationState>({
@@ -58,8 +57,8 @@ export default function ProductsPage() {
     total: 0,
     totalPages: 1,
   });
-  const [addedMessage, setAddedMessage] = useState<string | null>(null);
-  const [isAddedMessageVisible, setIsAddedMessageVisible] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
   console.log('ProductsPage: State initialized.');
 
   // useEffect for Data Fetching
@@ -180,12 +179,18 @@ export default function ProductsPage() {
   });
 
   const handleAddToCart = (product: Product) => {
-    const result = addToCart(product, 1);
+    // Ensure product has is_active property set to true if missing
+    const productToAdd = {
+      ...product,
+      is_active: product.is_active === undefined ? true : product.is_active,
+    };
+
+    const result = addToCart(productToAdd, 1);
     if (result.success) {
-      setAddedMessage('Added to collection');
-      setIsAddedMessageVisible(true);
+      setNotificationMessage('Added to collection');
+      setShowNotification(true);
       setTimeout(() => {
-        setIsAddedMessageVisible(false);
+        setShowNotification(false);
       }, 2000);
     } else {
       console.error(result.message);
@@ -412,7 +417,10 @@ export default function ProductsPage() {
                     key={product.id}
                     className="group overflow-hidden rounded-lg border border-gold-500/10 bg-dark-700 p-4 shadow-md transition-all duration-300 hover:border-gold-500/30 hover:shadow-gold"
                   >
-                    <Link href={`/products/${product.id}`}>
+                    {/* Make sure we have a valid product.id by converting to number if needed */}
+                    <Link
+                      href={`/products/${typeof product.id === 'string' ? parseInt(product.id) : product.id}`}
+                    >
                       <div className="aspect-square relative mb-4 overflow-hidden rounded-md bg-dark-800">
                         <ProductImage
                           src={product.image_url}
@@ -431,7 +439,10 @@ export default function ProductsPage() {
 
                     {/* Product details */}
                     <div className="space-y-2">
-                      <Link href={`/products/${product.id}`}>
+                      {/* Make sure we have a valid product.id by converting to number if needed */}
+                      <Link
+                        href={`/products/${typeof product.id === 'string' ? parseInt(product.id) : product.id}`}
+                      >
                         <h3 className="mb-1 text-lg font-semibold text-gold-500 hover:underline">
                           {product.name}
                         </h3>

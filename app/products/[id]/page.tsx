@@ -28,18 +28,6 @@ interface Product {
 
 export default function ProductDetailPage() {
   const params = useParams();
-  // Improved ID extraction with better error handling and logging
-  const productId =
-    typeof params.id === 'string'
-      ? parseInt(params.id, 10)
-      : Array.isArray(params.id)
-        ? parseInt(params.id[0], 10)
-        : null;
-
-  console.log(
-    `Product page received ID param: ${JSON.stringify(params.id)}, parsed as: ${productId}`
-  );
-
   const { addToCart } = useCart();
   const [product, setProduct] = useState<Product>({
     id: 0,
@@ -47,105 +35,124 @@ export default function ProductDetailPage() {
     price: 0,
     is_active: false,
   });
-  const [quantity, setQuantity] = useState(1);
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [isLoadingRelated, setIsLoadingRelated] = useState(true);
+  const [addedToCart, setAddedToCart] = useState(false);
 
   useEffect(() => {
-    if (!productId) {
-      console.error('No valid product ID found in URL params');
-      setError('Invalid product ID');
-      setIsLoading(false);
-      return;
-    }
-
-    async function fetchProduct() {
+    const fetchProductDetails = async () => {
       setIsLoading(true);
       setError(null);
       try {
+        // Ensure we have a valid ID
+        const productId = params?.id;
+        if (!productId) {
+          throw new Error('Product ID is missing');
+        }
+
+        // Fetch product details
         console.log(`Fetching product details for ID: ${productId}`);
         const response = await fetch(`/api/products/${productId}`);
 
         if (!response.ok) {
           if (response.status === 404) {
-            setError('Product not found or not available');
-          } else {
-            setError('An error occurred while fetching the product');
+            throw new Error('Product not found');
           }
-          console.error(`Error fetching product: ${response.status} ${response.statusText}`);
-          return;
+          throw new Error(`Error fetching product: ${response.statusText}`);
         }
 
-        const data = await response.json();
-        console.log('Product data received:', data);
-        setProduct(data);
+        const productData = await response.json();
+        console.log('Product data received:', productData);
 
-        // Once we have product, fetch related products
-        fetchRelatedProducts(data.id);
+        // Ensure product ID is a number
+        if (productData.id && typeof productData.id === 'string') {
+          productData.id = parseInt(productData.id);
+        }
+
+        // Ensure product is_active is a boolean
+        if (productData.is_active === undefined) {
+          productData.is_active = true; // Default to true if missing
+        }
+
+        setProduct(productData);
+
+        // Fetch related products
+        fetchRelatedProducts(productId);
       } catch (err) {
-        console.error('Failed to fetch product:', err);
-        setError('Failed to load product details. Please try again.');
+        console.error('Error fetching product:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load product');
       } finally {
         setIsLoading(false);
       }
-    }
+    };
 
-    async function fetchRelatedProducts(id: number) {
+    const fetchRelatedProducts = async (productId: string | string[]) => {
       setIsLoadingRelated(true);
       try {
-        console.log(`Fetching related products for product ID: ${id}`);
-        const response = await fetch(`/api/products/${id}/related`);
-
-        if (!response.ok) {
-          console.error(
-            `Error fetching related products: ${response.status} ${response.statusText}`
-          );
-          // Don't set error state for related products, just return empty array
+        const relatedResponse = await fetch(`/api/products/${productId}/related?limit=4`);
+        if (!relatedResponse.ok) {
+          console.warn(`Failed to fetch related products: ${relatedResponse.statusText}`);
           setRelatedProducts([]);
           return;
         }
 
-        const data = await response.json();
-        console.log(`Found ${data.length} related products`);
+        const relatedData = await relatedResponse.json();
+        console.log('Related products data:', relatedData);
 
-        // Ensure all related products have valid IDs
-        const validProducts = data.filter((product: Product) => {
-          const isValid = product && typeof product.id === 'number' && product.id > 0;
-          if (!isValid) {
-            console.warn(`Found invalid related product:`, product);
-          }
-          return isValid;
-        });
-
-        setRelatedProducts(validProducts);
-      } catch (err) {
-        console.error('Failed to fetch related products:', err);
-        // Don't set error state for related products failures
+        if (relatedData.products && Array.isArray(relatedData.products)) {
+          // Ensure all product IDs are numbers
+          const formattedProducts = relatedData.products.map((prod: any) => ({
+            ...prod,
+            id: typeof prod.id === 'string' ? parseInt(prod.id) : prod.id,
+            is_active: prod.is_active === undefined ? true : prod.is_active,
+          }));
+          setRelatedProducts(formattedProducts);
+        } else {
+          setRelatedProducts([]);
+        }
+      } catch (error) {
+        console.error('Error fetching related products:', error);
         setRelatedProducts([]);
       } finally {
         setIsLoadingRelated(false);
       }
+    };
+
+    if (params?.id) {
+      fetchProductDetails();
     }
+  }, [params?.id]);
 
-    fetchProduct();
-  }, [productId]);
+  const handleAddToCart = () => {
+    if (product.id === 0) return;
 
-  const handleAddToCart = async () => {
-    if (!product.id || isAddingToCart) return;
-
-    setIsAddingToCart(true);
-    try {
-      await addToCart(product, quantity);
-      // Success message or redirect to cart could be added here
-    } catch (error) {
-      console.error('Failed to add product to cart:', error);
-    } finally {
-      setIsAddingToCart(false);
+    const result = addToCart(product, quantity);
+    if (result.success) {
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000);
+    } else {
+      console.error(result.message);
     }
   };
+
+  const incrementQuantity = () => {
+    setQuantity(prev => prev + 1);
+  };
+
+  const decrementQuantity = () => {
+    if (quantity > 1) {
+      setQuantity(prev => prev - 1);
+    }
+  };
+
+  // Reset the quantity when the product changes
+  useEffect(() => {
+    setQuantity(1);
+    setAddedToCart(false);
+  }, [product.id]);
 
   if (isLoading) {
     return (
@@ -191,22 +198,19 @@ export default function ProductDetailPage() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-dark-900 py-8 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Breadcrumbs customLabels={{ '/products': 'Shop' }} />
+      {/* Add JSON-LD schema for the product */}
+      <ProductSchema product={product} />
 
-          <ProductSchema product={product} />
-          <div className="bg-gray-900 py-12">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              {/* Breadcrumbs */}
-              <nav className="mb-8 flex" aria-label="Breadcrumb">
-                <ol className="flex items-center space-x-2">
+      <div className="mx-auto max-w-7xl pt-10 sm:px-6 sm:pt-16 lg:px-8">
+        <div className="px-4 sm:px-0">
+          <div className="rounded-lg bg-dark-800 p-8">
+            {/* Breadcrumbs */}
+            <div className="mb-6">
+              <nav className="flex" aria-label="Breadcrumb">
+                <ol className="flex items-center space-x-4">
                   <li>
-                    <div className="flex items-center">
-                      <Link
-                        href="/"
-                        className="text-sm font-medium text-gray-400 hover:text-gray-200"
-                      >
+                    <div>
+                      <Link href="/" className="text-sm font-medium text-gray-400 hover:text-white">
                         Home
                       </Link>
                     </div>
@@ -222,7 +226,7 @@ export default function ProductDetailPage() {
                       </svg>
                       <Link
                         href="/products"
-                        className="ml-2 text-sm font-medium text-gray-400 hover:text-gray-200"
+                        className="ml-4 text-sm font-medium text-gray-400 hover:text-white"
                       >
                         Products
                       </Link>
@@ -258,7 +262,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Product details */}
-                <div className="mt-6 px-2 sm:mt-10 sm:px-4 md:px-0 lg:mt-0">
+                <div className="mt-10 lg:mt-0">
                   <h1 className="text-2xl font-extrabold tracking-tight text-gray-100 sm:text-3xl">
                     {product.name}
                   </h1>
@@ -295,126 +299,103 @@ export default function ProductDetailPage() {
                   </div>
 
                   {/* Description */}
-                  <div className="mt-4">
-                    <h3 className="text-sm font-medium text-gray-200">Why You'll Love It</h3>
-                    <div className="mt-2 space-y-4 text-base text-gray-300">
-                      <p>
-                        {product.description ||
-                          'Crafted for those who demand excellence in every aspect of their lifestyle.'}
-                      </p>
+                  <div className="mt-6">
+                    <h3 className="sr-only">Description</h3>
+                    <div className="prose prose-sm prose-invert max-w-none">
+                      <p>{product.description || 'No description available.'}</p>
                     </div>
                   </div>
 
-                  {/* Minimum order notice */}
-                  <div className="mt-4 rounded-md bg-gold-900/20 p-2.5 text-sm text-gold-300">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <svg
-                          className="h-5 w-5 text-gold-400"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                      <div className="ml-3">
-                        <p>
-                          <span className="font-medium">1 unit minimum</span> • Secure your premium
-                          experience
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Quantity selector */}
-                  <div className="mt-5 sm:mt-6">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h3 className="text-sm font-medium text-gray-200">Quantity:</h3>
-                      <div className="flex items-center rounded border border-gray-700 bg-gray-800">
+                  {/* Quantity selector and Add to Cart */}
+                  <div className="mt-8">
+                    <div className="flex items-center">
+                      <h3 className="text-sm font-medium text-gray-300">Quantity</h3>
+                      <div className="ml-4 flex items-center">
                         <button
+                          onClick={decrementQuantity}
                           type="button"
-                          className="p-1.5 text-gray-400 hover:text-gray-200 sm:p-2"
-                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                          aria-label="Decrease quantity"
+                          className="rounded-l-md border border-gray-700 bg-dark-700 px-3 py-2 text-gray-400 hover:bg-dark-600"
                         >
+                          <span className="sr-only">Decrease quantity</span>
                           <svg
                             className="h-4 w-4"
                             fill="none"
-                            stroke="currentColor"
                             viewBox="0 0 24 24"
+                            stroke="currentColor"
                           >
                             <path
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                              strokeWidth={2}
+                              strokeWidth="2"
                               d="M20 12H4"
                             />
                           </svg>
                         </button>
-                        <span className="w-10 py-1.5 text-center text-gray-200 sm:py-2">
-                          {quantity}
-                        </span>
+                        <input
+                          type="number"
+                          value={quantity}
+                          onChange={e => {
+                            const val = parseInt(e.target.value);
+                            setQuantity(val > 0 ? val : 1);
+                          }}
+                          min="1"
+                          className="w-16 border-gray-700 bg-dark-700 px-3 py-2 text-center text-white focus:border-gold-500 focus:outline-none focus:ring-1 focus:ring-gold-500"
+                        />
                         <button
+                          onClick={incrementQuantity}
                           type="button"
-                          className="p-1.5 text-gray-400 hover:text-gray-200 sm:p-2"
-                          onClick={() => setQuantity(quantity + 1)}
-                          aria-label="Increase quantity"
+                          className="rounded-r-md border border-gray-700 bg-dark-700 px-3 py-2 text-gray-400 hover:bg-dark-600"
                         >
+                          <span className="sr-only">Increase quantity</span>
                           <svg
                             className="h-4 w-4"
                             fill="none"
-                            stroke="currentColor"
                             viewBox="0 0 24 24"
+                            stroke="currentColor"
                           >
                             <path
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                              strokeWidth={2}
+                              strokeWidth="2"
                               d="M12 4v16m8-8H4"
                             />
                           </svg>
                         </button>
                       </div>
                     </div>
-                    {/* Total amount info */}
-                    <div className="mt-2 text-sm text-gray-400">
-                      <p>
-                        Total:{' '}
-                        <span className="font-medium text-gray-200">
-                          ${(quantity * product.price).toFixed(2)}
-                        </span>
-                      </p>
+
+                    <div className="mt-8 flex flex-col sm:flex-row">
+                      <button
+                        onClick={handleAddToCart}
+                        type="button"
+                        className={`flex w-full items-center justify-center rounded-md bg-gold-600 px-6 py-3 text-base font-medium text-black shadow-sm transition-all hover:bg-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${
+                          addedToCart
+                            ? 'animate-pulse bg-green-600 hover:bg-green-500'
+                            : 'bg-gold-600 hover:bg-gold-500'
+                        }`}
+                      >
+                        {addedToCart ? 'Added to Cart!' : 'Add to Cart'}
+                      </button>
+
+                      <Link
+                        href="/products"
+                        className="mt-4 flex w-full items-center justify-center rounded-md border border-gold-500/30 bg-dark-600 px-6 py-3 text-base font-medium text-gold-500 shadow-sm hover:bg-dark-500 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 focus:ring-offset-gray-900 sm:ml-4 sm:mt-0"
+                      >
+                        Continue Shopping
+                      </Link>
                     </div>
                   </div>
 
-                  {/* Add to cart button */}
-                  <div className="mt-6">
-                    <button
-                      type="button"
-                      onClick={handleAddToCart}
-                      className={`flex w-full items-center justify-center rounded-md border border-transparent bg-gold-600 px-6 py-3 text-base font-medium text-black shadow-sm hover:bg-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 ${
-                        isAddingToCart ? 'bg-green-600 hover:bg-green-700' : ''
-                      }`}
-                      disabled={isAddingToCart}
-                    >
-                      {isAddingToCart ? 'Adding to Your Collection...' : 'Add to Collection'}
-                    </button>
-                  </div>
-
-                  {/* Social share */}
-                  <div className="mt-6 border-t border-gray-700 pt-4">
-                    <div className="flex items-center">
-                      <span className="mr-2 text-sm text-gray-400">Share this product:</span>
+                  {/* Social sharing */}
+                  <div className="mt-8 border-t border-gray-700 pt-8">
+                    <h3 className="text-sm font-medium text-gray-300">Share</h3>
+                    <ul className="mt-4 flex items-center space-x-3">
                       <SocialShare
-                        title={product.name}
+                        url={`${window.location.origin}/products/${product.id}`}
+                        title={`Check out ${product.name} at PUXX Nicotine Pouches`}
                         description={product.description || ''}
-                        url={typeof window !== 'undefined' ? window.location.href : ''}
                       />
-                    </div>
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -450,7 +431,7 @@ export default function ProductDetailPage() {
                             </p>
                           </div>
                           <p className="mt-1 text-xs font-medium text-gray-900 sm:mt-0 sm:text-sm">
-                            ${relatedProduct.price.toFixed(2)}
+                            {formatCurrency(relatedProduct.price)}
                           </p>
                         </div>
                       </div>
