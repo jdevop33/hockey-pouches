@@ -85,13 +85,13 @@ const AuthenticatedNavigation: React.FC = () => {
   });
 
   return (
-    <nav className="fixed top-0 z-30 w-full bg-dark-900 shadow-gold-sm backdrop-blur-lg">
+    <nav className="fixed top-0 z-30 w-full backdrop-blur-sm">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
           <div className="flex items-center">
             {/* Logo */}
             <Link href="/" className="flex-shrink-0 focus:outline-none">
-              <div className="h-full w-28 rounded-lg bg-dark-900 p-2">
+              <div className="h-full w-28 rounded-lg p-2">
                 <Image
                   src="/images/logo/logo3.svg"
                   alt="PUXX"
@@ -117,8 +117,8 @@ const AuthenticatedNavigation: React.FC = () => {
                       href={item.href}
                       className={`rounded-xl px-4 py-2.5 text-xs font-bold transition-colors ${
                         pathname === item.href
-                          ? 'bg-dark-800/80 text-gold-500 shadow-sm'
-                          : 'text-white hover:bg-dark-800 hover:text-gold-500'
+                          ? 'bg-dark-800/60 text-gold-500 shadow-sm'
+                          : 'text-white hover:bg-dark-800/40 hover:text-gold-500'
                       }`}
                     >
                       {item.label}
@@ -184,7 +184,7 @@ const AuthenticatedNavigation: React.FC = () => {
       <div
         className={`${
           mobileMenuOpen ? 'block' : 'hidden'
-        } absolute left-0 right-0 top-20 z-50 border-t border-dark-700 bg-dark-900 md:hidden`}
+        } absolute left-0 right-0 top-20 z-50 border-t border-dark-700 bg-dark-900/90 backdrop-blur-md md:hidden`}
       >
         <div className="space-y-1 px-3 py-3 sm:px-5">
           {visibleNavItems
@@ -243,12 +243,12 @@ const AuthenticatedNavigation: React.FC = () => {
 // Fallback navigation when auth context isn't available
 const BasicNavigation: React.FC = () => {
   return (
-    <nav className="fixed top-0 z-30 w-full bg-dark-900 shadow-gold-sm backdrop-blur-lg">
+    <nav className="fixed top-0 z-30 w-full backdrop-blur-sm">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 focus:outline-none">
-              <div className="h-full w-28 rounded-lg bg-dark-900 p-2">
+              <div className="h-full w-28 rounded-lg p-2">
                 <Image
                   src="/images/logo/logo3.svg"
                   alt="PUXX"
