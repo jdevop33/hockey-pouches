@@ -10,6 +10,7 @@ export default function ProductsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { addToCart } = useCart();
+  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     async function fetchProducts() {
@@ -41,6 +42,14 @@ export default function ProductsContent() {
 
     fetchProducts();
   }, []);
+
+  // Handle image load errors
+  const handleImageError = (productId: number) => {
+    setImageErrors(prev => ({
+      ...prev,
+      [productId]: true,
+    }));
+  };
 
   if (loading) {
     return (
@@ -85,17 +94,22 @@ export default function ProductsContent() {
               key={product.id}
               className="overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-md"
             >
-              {product.image_url && (
-                <div className="relative h-48 w-full">
+              <div className="relative h-48 w-full bg-gray-100">
+                {product.image_url && !imageErrors[product.id as number] ? (
                   <Image
                     src={product.image_url}
                     alt={product.name}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover"
+                    className="object-contain"
+                    onError={() => handleImageError(product.id as number)}
                   />
-                </div>
-              )}
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400">
+                    <span>No image available</span>
+                  </div>
+                )}
+              </div>
               <div className="p-4">
                 <h2 className="mb-2 text-lg font-semibold">{product.name}</h2>
                 <p className="mb-3 line-clamp-2 text-sm text-gray-600">{product.description}</p>
