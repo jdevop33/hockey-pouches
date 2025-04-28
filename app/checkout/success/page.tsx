@@ -14,7 +14,44 @@ function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
   const paymentMethod = searchParams.get('method');
-  const { user } = useAuth();
+  const [isMounted, setIsMounted] = React.useState(false);
+  const auth = useAuth();
+  const { user } = auth;
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // If not mounted, show a simple loading state
+  if (!isMounted) {
+    return (
+      <div className="mx-auto max-w-xl rounded-lg bg-white p-8 text-center shadow-xl sm:p-12">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+          <svg
+            className="h-10 w-10 animate-pulse text-gray-400"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+        </div>
+        <h1 className="mb-3 text-3xl font-bold text-gray-900">Confirming Order...</h1>
+      </div>
+    );
+  }
 
   // Payment instructions based on method
   const renderPaymentInstructions = () => {
@@ -105,14 +142,14 @@ function SuccessContent() {
         {orderId && user && (
           <Link
             href={`/dashboard/orders/${orderId}`}
-            className="bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 inline-flex items-center justify-center rounded-md border border-transparent px-5 py-2.5 text-base font-medium text-white shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
+            className="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-600 px-5 py-2.5 text-base font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
           >
             View Order Details
           </Link>
         )}
         <Link
           href="/products"
-          className="focus:ring-primary-500 inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-5 py-2.5 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:outline-none"
+          className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-5 py-2.5 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
         >
           Continue Shopping
         </Link>

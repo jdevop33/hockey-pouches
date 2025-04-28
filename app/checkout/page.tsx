@@ -18,7 +18,12 @@ interface AddressData {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user, token, isLoading: authLoading, logout } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
+  const auth = useAuth();
+  const cart = useCart();
+
+  // Extract values only after mounted to prevent hydration issues
+  const { user, token, isLoading: authLoading, logout } = auth;
   const {
     items,
     itemCount,
@@ -27,7 +32,7 @@ export default function CheckoutPage() {
     totalQuantity,
     validateMinimumOrder,
     minOrderQuantity,
-  } = useCart();
+  } = cart;
 
   const [shippingAddress, setShippingAddress] = useState<AddressData>({
     street: '',
@@ -70,7 +75,15 @@ export default function CheckoutPage() {
     message: string;
   } | null>(null);
 
+  // Set mounted state
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Only run checkout validation after mounted
+  useEffect(() => {
+    if (!isMounted) return;
+
     if (!authLoading) {
       if (!user || !token) {
         router.push('/login?redirect=/checkout');
@@ -91,6 +104,7 @@ export default function CheckoutPage() {
       }
     }
   }, [
+    isMounted,
     user,
     token,
     authLoading,
@@ -100,6 +114,22 @@ export default function CheckoutPage() {
     validateMinimumOrder,
     minOrderQuantity,
   ]);
+
+  // If not mounted yet, show loading state
+  if (!isMounted) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gray-900 py-12">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <h1 className="mb-8 text-3xl font-bold text-gray-100">Checkout</h1>
+            <div className="rounded-lg bg-gray-800 p-6 text-center shadow-gold-sm sm:p-8">
+              <p className="text-gray-400">Loading checkout...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   const validateForm = (): boolean => {
     const newFormErrors = {
@@ -301,14 +331,6 @@ export default function CheckoutPage() {
       payment: null,
     }));
   };
-
-  if (authLoading || !user || itemCount === 0) {
-    return (
-      <Layout>
-        <div className="p-8 text-center">Loading checkout...</div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>

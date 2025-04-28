@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -8,17 +8,40 @@ import Layout from '../components/layout/NewLayout';
 import { useCart } from '../context/CartContext';
 
 export default function CartPage() {
-  const { items, itemCount, subtotal, updateQuantity, removeFromCart, clearCart } = useCart();
+  const [isMounted, setIsMounted] = useState(false);
+  const cart = useCart();
   const router = useRouter();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleQuantityChange = (productId: number, newQuantity: number) => {
     const quantity = Math.max(0, newQuantity);
-    updateQuantity(productId, quantity);
+    cart.updateQuantity(productId, quantity);
   };
 
   const handleCheckout = () => {
     router.push('/checkout');
   };
+
+  // Show a minimal loading state while client-side hydration is happening
+  if (!isMounted) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gray-900 py-12">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <h1 className="mb-8 text-3xl font-bold text-gray-100">Your Curated Selection</h1>
+            <div className="rounded-lg bg-gray-800 p-6 text-center shadow-gold-sm sm:p-8">
+              <p className="text-gray-400">Loading your selections...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const { items, itemCount, subtotal, removeFromCart, clearCart } = cart;
 
   return (
     <Layout>

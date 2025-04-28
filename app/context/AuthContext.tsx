@@ -25,6 +25,9 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  // Check if we're in a browser environment
+  const isBrowser = typeof window !== 'undefined';
+
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,6 +35,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check authentication status on mount - SIMPLIFIED VERSION
   useEffect(() => {
+    if (!isBrowser) return; // Skip on server
+
     console.log('AuthProvider useEffect: Checking authentication status...');
 
     const checkAuthStatus = async () => {
@@ -73,7 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     checkAuthStatus();
-  }, []);
+  }, [isBrowser]);
 
   const login = (userData: User, token: string) => {
     console.log('AuthProvider login: Setting authenticated state');
@@ -148,25 +153,54 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    console.error('CRITICAL: useAuth called outside of AuthProvider!');
-    // Provide a fallback context instead of throwing an error
+  // Use try-catch to safely access context
+  try {
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+      // Only log errors in browser environment to avoid build-time logs
+      if (typeof window !== 'undefined') {
+        console.error('CRITICAL: useAuth called outside of AuthProvider!');
+      }
+
+      // Provide a fallback context instead of throwing an error
+      return {
+        user: null,
+        token: null,
+        isLoading: false,
+        isAuthenticated: false,
+        login: () => {
+          if (typeof window !== 'undefined') {
+            console.error('Auth provider not initialized');
+          }
+        },
+        logout: async () => {
+          if (typeof window !== 'undefined') {
+            console.error('Auth provider not initialized');
+          }
+        },
+        updateUser: () => {
+          if (typeof window !== 'undefined') {
+            console.error('Auth provider not initialized');
+          }
+        },
+      };
+    }
+    return context;
+  } catch (error) {
+    // Handle errors that might occur during SSR or static generation
+    if (typeof window !== 'undefined') {
+      console.error('Error accessing AuthContext:', error);
+    }
+
+    // Return fallback data
     return {
       user: null,
       token: null,
       isLoading: false,
       isAuthenticated: false,
-      login: () => {
-        console.error('Auth provider not initialized');
-      },
-      logout: async () => {
-        console.error('Auth provider not initialized');
-      },
-      updateUser: () => {
-        console.error('Auth provider not initialized');
-      },
+      login: () => {},
+      logout: async () => {},
+      updateUser: () => {},
     };
   }
-  return context;
 };

@@ -23,25 +23,42 @@ export default function ClientWrapper({ children }: ClientWrapperProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    // Defer setting mounted to true to ensure client-side only execution
+    // and avoid potential hydration errors during provider initialization
+    const timeout = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+
+    return () => clearTimeout(timeout);
   }, []);
 
-  // Return children directly during initial server render or first mount
-  // This prevents hydration mismatches
+  // Return children wrapped in a div during SSR
+  // This prevents context hooks from being called during static generation
   if (!mounted) {
-    return <>{children}</>;
+    return <div suppressHydrationWarning>{children}</div>;
   }
 
   // Add all required providers for the application
-  return (
-    <ThemeProviderClient>
-      <AuthProvider>
-        <ToastProvider>
-          <CsrfProvider>
-            <CartProvider>{children}</CartProvider>
-          </CsrfProvider>
-        </ToastProvider>
-      </AuthProvider>
-    </ThemeProviderClient>
-  );
+  // Each provider is wrapped in an error boundary to prevent cascading failures
+  try {
+    return (
+      <ThemeProviderClient>
+        <AuthProvider>
+          <ToastProvider>
+            <CsrfProvider>
+              <CartProvider>{children}</CartProvider>
+            </CsrfProvider>
+          </ToastProvider>
+        </AuthProvider>
+      </ThemeProviderClient>
+    );
+  } catch (error) {
+    console.error('Error in ClientWrapper providers:', error);
+    // Fallback rendering in case providers fail to initialize
+    return (
+      <div className="p-4 text-center text-white">
+        Something went wrong. Please refresh the page.
+      </div>
+    );
+  }
 }

@@ -23,7 +23,7 @@ interface NavItem {
  * - De-emphasized inactive elements
  * - Reduced borders in favor of spacing and subtle backgrounds
  */
-export default function Navbar() {
+function NavbarContent() {
   const { user, logout } = useAuth();
   const { itemCount } = useCart();
   const pathname = usePathname();
@@ -248,4 +248,108 @@ export default function Navbar() {
       </div>
     </nav>
   );
+}
+
+/**
+ * Static placeholder navbar for SSR
+ */
+function StaticNavbar() {
+  return (
+    <nav className="fixed top-0 z-30 w-full bg-dark-900/80 backdrop-blur-sm">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link href="/" className="flex-shrink-0">
+              <div className="h-10 w-28">
+                <Image
+                  src="/images/logo/PUXX-LOGO-LONG-WHITE-650x195.png"
+                  alt="PUXX"
+                  width={180}
+                  height={54}
+                  className="h-10 w-auto object-contain"
+                  priority
+                />
+              </div>
+            </Link>
+
+            {/* Static nav items */}
+            <div className="hidden md:ml-8 md:block">
+              <div className="flex items-center space-x-1">
+                {[
+                  { href: '/', label: 'Home' },
+                  { href: '/products', label: 'Shop' },
+                  { href: '/research', label: 'Benefits' },
+                  { href: '/about', label: 'Our Story' },
+                  { href: '/contact', label: 'Contact' },
+                  { href: '/wholesale/apply', label: 'Wholesale' },
+                ].map(item => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-dark-800/50 hover:text-white"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right side actions - cart and account */}
+          <div className="flex items-center space-x-4">
+            {/* Cart button */}
+            <Link
+              href="/cart"
+              className="relative rounded-md p-2 text-gray-300 transition-colors hover:bg-dark-800/50 hover:text-white"
+              aria-label="Shopping cart"
+            >
+              <ShoppingCart className="h-5 w-5" />
+            </Link>
+
+            {/* Sign in button */}
+            <Link
+              href="/login"
+              className="hidden items-center rounded-md bg-gold-500 px-3 py-2 text-sm font-bold text-dark-900 shadow-sm transition-colors hover:bg-gold-400 md:flex"
+            >
+              <LogIn className="mr-2 h-4 w-4" />
+              Sign In
+            </Link>
+
+            {/* Mobile menu button (static) */}
+            <div className="flex md:hidden">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-dark-800 hover:text-white focus:outline-none"
+                aria-expanded="false"
+              >
+                <span className="sr-only">Open main menu</span>
+                <Menu className="block h-6 w-6" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+/**
+ * Safe wrapper component for the Navbar that safely handles hydration
+ * and prevents context errors during static generation
+ */
+export default function Navbar() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // During SSR or before hydration, use the static version
+  if (!isMounted) {
+    return <StaticNavbar />;
+  }
+
+  // After client-side hydration, render the full navbar
+  return <NavbarContent />;
 }

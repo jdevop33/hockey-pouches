@@ -144,10 +144,37 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const useCart = () => {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    console.error('CRITICAL: useCart called outside of CartProvider!');
-    // Provide a fallback context instead of throwing to prevent rendering errors
+  // Use a try-catch block to safely access context
+  try {
+    const context = useContext(CartContext);
+    if (context === undefined) {
+      // Detect if we're in a browser environment to provide better error messages
+      if (typeof window !== 'undefined') {
+        console.error('CRITICAL: useCart called outside of CartProvider!');
+      }
+
+      // Provide a fallback context instead of throwing to prevent rendering errors
+      return {
+        items: [],
+        addToCart: () => ({ success: false, message: 'Cart not initialized' }),
+        removeFromCart: () => {},
+        updateQuantity: () => ({ success: false, message: 'Cart not initialized' }),
+        clearCart: () => {},
+        itemCount: 0,
+        subtotal: 0,
+        totalQuantity: 0,
+        validateMinimumOrder: () => ({ isValid: false, message: 'Cart not initialized' }),
+        minOrderQuantity: MIN_ORDER_QUANTITY,
+      };
+    }
+    return context;
+  } catch (error) {
+    // This can happen during SSR or static generation
+    if (typeof window !== 'undefined') {
+      console.error('Error accessing CartContext:', error);
+    }
+
+    // Return fallback data
     return {
       items: [],
       addToCart: () => ({ success: false, message: 'Cart not initialized' }),
@@ -161,7 +188,6 @@ export const useCart = () => {
       minOrderQuantity: MIN_ORDER_QUANTITY,
     };
   }
-  return context;
 };
 
 interface CartProviderProps {
@@ -169,6 +195,9 @@ interface CartProviderProps {
 }
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
+  // Check if we're in a browser environment
+  const isBrowser = typeof window !== 'undefined';
+
   const [isInitialized, setIsInitialized] = useState(false);
   const [state, dispatch] = useReducer(cartReducer, {
     items: [],
@@ -184,7 +213,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   // Safely load cart from localStorage
   useEffect(() => {
-    if (typeof window === 'undefined') return; // Skip server-side execution
+    if (!isBrowser) return; // Skip server-side execution
 
     console.log('CartProvider useEffect: Loading state from localStorage.');
     try {
@@ -215,11 +244,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
 
     console.log('CartProvider useEffect: Finished initial load.');
-  }, []);
+  }, [isBrowser]);
 
   // Safely save cart to localStorage
   useEffect(() => {
-    if (typeof window === 'undefined' || !isInitialized) return; // Skip on server or before initialization
+    if (!isBrowser || !isInitialized) return; // Skip on server or before initialization
 
     try {
       if (items.length > 0) {
@@ -230,7 +259,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Failed to save cart to localStorage:', error);
     }
-  }, [items, isInitialized]);
+  }, [items, isInitialized, isBrowser]);
 
   // Validate minimum order quantity
   const validateMinimumOrder = useCallback(() => {
