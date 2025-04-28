@@ -8,7 +8,6 @@ import { useCart } from '../../context/CartContext';
 import SocialShare from '../../components/SocialShare';
 import ProductSchema from '../../components/ProductSchema';
 import ProductImage from '../../components/ui/ProductImage';
-import Breadcrumbs from '../../components/ui/Breadcrumbs';
 import { formatCurrency } from '@/lib/utils';
 import {
   Star,
@@ -16,8 +15,6 @@ import {
   Minus,
   Plus,
   ShoppingCart,
-  Heart,
-  Share2,
   Truck,
   Shield,
   RefreshCw,
@@ -86,19 +83,6 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Mock reviews data - this would typically come from your API
-  const reviews = {
-    average: 4.7,
-    count: 124,
-    distribution: [
-      { stars: 5, percentage: 82 },
-      { stars: 4, percentage: 12 },
-      { stars: 3, percentage: 4 },
-      { stars: 2, percentage: 1 },
-      { stars: 1, percentage: 1 },
-    ],
-  };
 
   useEffect(() => {
     const fetchProductDetails = async () => {
@@ -218,12 +202,12 @@ export default function ProductDetailPage() {
       {/* Add JSON-LD schema for the product */}
       <ProductSchema product={schemaProduct} />
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Breadcrumbs */}
-        <nav className="mb-8">
+      <div className="container mx-auto max-w-7xl px-4 py-8">
+        {/* Breadcrumbs - Smaller, lighter styling for secondary navigation */}
+        <nav className="mb-12" aria-label="Breadcrumb">
           <ol className="flex items-center space-x-2 text-sm">
             <li>
-              <Link href="/" className="text-gray-400 hover:text-gold-500">
+              <Link href="/" className="text-gray-400 transition-colors hover:text-gold-500">
                 Home
               </Link>
             </li>
@@ -231,33 +215,40 @@ export default function ProductDetailPage() {
               <ChevronRight className="h-4 w-4 text-gray-600" />
             </li>
             <li>
-              <Link href="/products" className="text-gray-400 hover:text-gold-500">
+              <Link
+                href="/products"
+                className="text-gray-400 transition-colors hover:text-gold-500"
+              >
                 Products
               </Link>
             </li>
             <li>
               <ChevronRight className="h-4 w-4 text-gray-600" />
             </li>
-            <li className="text-gold-500">{product.name}</li>
+            <li className="font-medium text-gold-500">{product.name}</li>
           </ol>
         </nav>
 
-        <div className="grid gap-12 md:grid-cols-2">
-          {/* Product Images */}
-          <div className="space-y-6">
-            <div className="aspect-square overflow-hidden rounded-lg bg-dark-800">
+        <div className="grid gap-16 md:grid-cols-2">
+          {/* Product Images - Left column with focus on image quality */}
+          <div className="space-y-8">
+            <div className="aspect-square overflow-hidden rounded-lg bg-dark-800 shadow-md">
               {selectedImage && (
                 <ProductImage
                   src={selectedImage}
                   alt={product.name}
                   size="large"
-                  className="h-full w-full object-contain"
+                  className="h-full w-full object-contain transition duration-300 ease-in-out"
                 />
               )}
             </div>
-            <div className="flex space-x-4 overflow-x-auto pb-2">
+            <div className="flex gap-4 overflow-x-auto pb-2">
               <button
-                className={`overflow-hidden rounded-lg border p-1 ${selectedImage === product.image_url ? 'border-gold-500' : 'border-gray-700 hover:border-gray-500'}`}
+                className={`overflow-hidden rounded-lg shadow-sm transition ${
+                  selectedImage === product.image_url
+                    ? 'ring-2 ring-gold-500'
+                    : 'hover:ring-1 hover:ring-gray-500'
+                }`}
                 onClick={() => setSelectedImage(product.image_url)}
                 aria-label="View product image"
               >
@@ -265,13 +256,17 @@ export default function ProductDetailPage() {
                   src={product.image_url}
                   alt={product.name}
                   size="small"
-                  className="h-16 w-16 object-contain"
+                  className="h-20 w-20 object-contain"
                 />
               </button>
               {product.gallery_images?.map((image, index) => (
                 <button
                   key={index}
-                  className={`overflow-hidden rounded-lg border p-1 ${selectedImage === image ? 'border-gold-500' : 'border-gray-700 hover:border-gray-500'}`}
+                  className={`overflow-hidden rounded-lg shadow-sm transition ${
+                    selectedImage === image
+                      ? 'ring-2 ring-gold-500'
+                      : 'hover:ring-1 hover:ring-gray-500'
+                  }`}
                   onClick={() => setSelectedImage(image)}
                   aria-label={`View product image ${index + 1}`}
                 >
@@ -279,17 +274,20 @@ export default function ProductDetailPage() {
                     src={image}
                     alt={`${product.name} - Image ${index + 1}`}
                     size="small"
-                    className="h-16 w-16 object-contain"
+                    className="h-20 w-20 object-contain"
                   />
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Product Details */}
-          <div className="space-y-6">
+          {/* Product Details - Right column with well-defined hierarchy */}
+          <div className="flex flex-col gap-8">
+            {/* Primary product information */}
             <div>
-              <h1 className="mb-2 text-4xl font-bold tracking-tight text-white">{product.name}</h1>
+              <h1 className="mb-2 text-3xl font-bold tracking-tight text-white md:text-4xl">
+                {product.name}
+              </h1>
               {product.brand && (
                 <p className="text-sm text-gray-400">
                   By <span className="text-gold-500">{product.brand}</span>
@@ -297,32 +295,36 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            {/* Price */}
-            <div className="border-b border-t border-gray-700 py-6">
-              <div className="flex items-center space-x-4">
+            {/* Price and availability - High visibility information */}
+            <div className="border-b border-gray-800 pb-4 pt-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <span className="text-3xl font-bold text-white">
                   {formatCurrency(product.price)}
                 </span>
                 {product.stock_quantity > 0 ? (
-                  <span className="rounded-full bg-green-900 px-3 py-1 text-xs font-medium text-green-300">
+                  <span className="inline-flex items-center rounded-full bg-green-900/30 px-3 py-1 text-xs font-medium text-green-300">
                     In Stock
                   </span>
                 ) : (
-                  <span className="rounded-full bg-red-900 px-3 py-1 text-xs font-medium text-red-300">
+                  <span className="inline-flex items-center rounded-full bg-red-900/30 px-3 py-1 text-xs font-medium text-red-300">
                     Out of Stock
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Rating */}
+            {/* Rating - Visual representation with stars */}
             {product.rating !== undefined && (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`h-5 w-5 ${i < Math.round(product.rating || 0) ? 'fill-gold-500 text-gold-500' : 'text-gray-600'}`}
+                      className={`h-5 w-5 ${
+                        i < Math.round(product.rating || 0)
+                          ? 'fill-gold-500 text-gold-500'
+                          : 'text-gray-600'
+                      }`}
                     />
                   ))}
                 </div>
@@ -332,24 +334,24 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Description */}
-            <div className="prose-dark prose prose-invert max-w-none">
-              <p className="text-gray-300">{product.description}</p>
+            {/* Description - Clean, readable text block with controlled width */}
+            <div className="prose prose-sm prose-invert max-w-none">
+              <p className="leading-relaxed text-gray-300">{product.description}</p>
             </div>
 
-            {/* SKU */}
-            <div className="text-sm text-gray-400">
-              SKU: <span className="text-gray-300">{product.sku}</span>
+            {/* Product SKU - De-emphasized label with inline value */}
+            <div className="text-sm text-gray-500">
+              SKU: <span className="text-gray-400">{product.sku}</span>
             </div>
 
-            {/* Add to Cart */}
+            {/* Add to Cart - Primary CTA with clear emphasis */}
             {product.stock_quantity > 0 && (
-              <div className="mt-8 space-y-4">
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center">
+              <div className="mt-4 space-y-6">
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex items-center overflow-hidden rounded-md border border-gray-800 shadow-sm">
                     <button
                       onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-                      className="flex h-10 w-10 items-center justify-center rounded-l border border-gray-700 bg-dark-700 text-white hover:bg-dark-600"
+                      className="flex h-10 w-10 items-center justify-center bg-dark-800 text-white transition-colors hover:bg-dark-700"
                       aria-label="Decrease quantity"
                     >
                       <Minus className="h-4 w-4" />
@@ -362,12 +364,12 @@ export default function ProductDetailPage() {
                         setQuantity(val > 0 ? val : 1);
                       }}
                       min="1"
-                      className="w-16 border-gray-700 bg-dark-700 px-3 py-2 text-center text-white focus:border-gold-500 focus:outline-none focus:ring-1 focus:ring-gold-500"
+                      className="w-16 border-x border-gray-800 bg-dark-900 px-3 py-2 text-center text-white focus:outline-none focus:ring-1 focus:ring-gold-500"
                       aria-label="Quantity"
                     />
                     <button
                       onClick={() => setQuantity(prev => prev + 1)}
-                      className="flex h-10 w-10 items-center justify-center rounded-r border border-gray-700 bg-dark-700 text-white hover:bg-dark-600"
+                      className="flex h-10 w-10 items-center justify-center bg-dark-800 text-white transition-colors hover:bg-dark-700"
                       aria-label="Increase quantity"
                     >
                       <Plus className="h-4 w-4" />
@@ -375,7 +377,7 @@ export default function ProductDetailPage() {
                   </div>
                   <button
                     onClick={handleAddToCart}
-                    className="flex flex-1 items-center justify-center space-x-2 rounded-lg bg-gold-500 px-6 py-3 font-bold text-dark-900 transition hover:bg-gold-600"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gold-500 px-8 py-3 font-bold text-dark-900 shadow-sm transition-colors hover:bg-gold-400"
                     aria-label="Add to cart"
                   >
                     <ShoppingCart className="h-5 w-5" />
@@ -385,21 +387,21 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Benefits */}
-            <div className="mt-10 grid grid-cols-2 gap-6">
+            {/* Benefits - Visual anchors with icons */}
+            <div className="mt-8 grid grid-cols-2 gap-6 border-t border-gray-800 pt-6">
               {productBenefits.map((benefit, index) => (
-                <div key={index} className="flex items-start space-x-3">
-                  <benefit.icon className="h-6 w-6 text-gold-500" />
+                <div key={index} className="flex items-start gap-3">
+                  <benefit.icon className="mt-0.5 h-6 w-6 flex-shrink-0 text-gold-500" />
                   <div>
-                    <h3 className="font-medium text-white">{benefit.title}</h3>
-                    <p className="text-sm text-gray-400">{benefit.description}</p>
+                    <h3 className="text-sm font-medium text-white">{benefit.title}</h3>
+                    <p className="text-xs text-gray-400">{benefit.description}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Social Sharing */}
-            <div className="mt-8 pt-6">
+            <div className="mt-6 border-t border-gray-800 pt-6">
               <SocialShare
                 url={`${typeof window !== 'undefined' ? window.location.origin : ''}/products/${product.id}`}
                 title={`Check out ${product.name}`}
@@ -409,14 +411,15 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* Reviews Section */}
-        <section className="mt-16 border-t border-gray-800 pt-10">
-          <h2 className="mb-8 text-3xl font-bold">Customer Reviews</h2>
-          {/* Reviews content would go here */}
-          <div className="py-10 text-center">
-            <p className="text-gray-400">No reviews yet. Be the first to review this product!</p>
+        {/* Reviews Section - Empty state with clear CTA */}
+        <section className="mt-24 border-t border-gray-800 pt-8">
+          <h2 className="mb-8 text-2xl font-bold">Customer Reviews</h2>
+          <div className="rounded-lg bg-dark-800 px-6 py-10 text-center shadow-sm">
+            <p className="mb-4 text-gray-400">
+              No reviews yet. Be the first to review this product!
+            </p>
             <button
-              className="mt-4 rounded-lg border border-gold-500 px-6 py-2 font-medium text-gold-500 hover:bg-gold-500 hover:text-dark-900"
+              className="inline-flex items-center justify-center rounded-lg border border-gold-500 px-6 py-2 font-medium text-gold-500 transition-colors hover:bg-gold-500 hover:text-dark-900"
               aria-label="Write a review"
             >
               Write a Review
@@ -424,16 +427,16 @@ export default function ProductDetailPage() {
           </div>
         </section>
 
-        {/* Related Products */}
+        {/* Related Products - Card-based layout with visual consistency */}
         {relatedProducts.length > 0 && (
-          <section className="mt-16 border-t border-gray-800 pt-10">
-            <h2 className="mb-8 text-3xl font-bold">You Might Also Like</h2>
-            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <section className="mt-24 border-t border-gray-800 pt-8">
+            <h2 className="mb-8 text-2xl font-bold">You Might Also Like</h2>
+            <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {relatedProducts.map(relatedProduct => (
                 <Link
                   key={relatedProduct.id}
                   href={`/products/${relatedProduct.id}`}
-                  className="group overflow-hidden rounded-lg border border-gray-800 bg-dark-800 transition hover:border-gold-500"
+                  className="group flex flex-col overflow-hidden rounded-lg bg-dark-800 shadow-sm transition-all hover:shadow-md"
                 >
                   <div className="aspect-square bg-dark-900 p-4">
                     <ProductImage
@@ -443,11 +446,11 @@ export default function ProductDetailPage() {
                       className="h-full w-full object-contain transition duration-300 group-hover:scale-105"
                     />
                   </div>
-                  <div className="p-4">
-                    <h3 className="mb-2 font-medium text-white group-hover:text-gold-500">
+                  <div className="flex flex-grow flex-col p-4">
+                    <h3 className="mb-2 font-medium text-white transition-colors group-hover:text-gold-500">
                       {relatedProduct.name}
                     </h3>
-                    <p className="font-bold text-gold-500">
+                    <p className="mt-auto font-bold text-gold-500">
                       {formatCurrency(relatedProduct.price)}
                     </p>
                   </div>
