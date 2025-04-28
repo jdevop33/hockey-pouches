@@ -281,7 +281,7 @@ function AboutContent() {
             </p>
             <Link
               href="/products"
-              className="inline-block rounded-md bg-gold-500 px-6 py-3 text-base font-medium text-dark-900 shadow-sm transition-all hover:bg-gold-400 hover:shadow-gold"
+              className="btn-gold-contrast inline-block rounded-md bg-gold-500 px-6 py-3 text-base font-medium text-dark-900 shadow-sm transition-all hover:bg-gold-400 hover:shadow-gold"
             >
               Explore Our Products
             </Link>
