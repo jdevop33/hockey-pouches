@@ -3,6 +3,7 @@
 import React, { ReactNode, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 import Image from 'next/image';
 import { ShoppingCart, Menu, User, LogOut, LogIn, X } from 'lucide-react';
 import Footer from './Footer';
@@ -17,6 +18,7 @@ interface NavItem {
 
 const Navigation: React.FC = () => {
   const { user, logout } = useAuth();
+  const { itemCount } = useCart();
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -130,9 +132,11 @@ const Navigation: React.FC = () => {
                 aria-label="Shopping cart"
               >
                 <ShoppingCart className="h-5 w-5" />
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold-500 text-xs font-bold text-dark-500">
-                  0
-                </span>
+                {itemCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold-500 text-xs font-bold text-dark-500">
+                    {itemCount > 99 ? '99+' : itemCount}
+                  </span>
+                )}
               </button>
 
               <Link

@@ -23,6 +23,7 @@ API_BASE_URL=https://hockey-pouches.vercel.app npm run test:api
 The automated tests check:
 
 1. **Public Endpoints**:
+
    - Products listing
    - Product details
 
@@ -98,6 +99,119 @@ The automated tests check:
 - [ ] Test all forms and interactive elements on mobile
 - [ ] Verify navigation works correctly on mobile
 - [ ] Check image scaling and layout on different screen sizes
+
+## Checkout Process Testing
+
+### Prerequisites
+
+- Create a test user account
+- Ensure there are products available in the database
+- Clear any existing items in the cart
+
+### Test Scenarios
+
+#### 1. Cart to Checkout Flow
+
+- [ ] Add at least 5 items to cart (ensuring minimum quantity is met)
+- [ ] Navigate to cart page and verify all items show correctly
+- [ ] Click "Proceed to Checkout" to navigate to checkout page
+- [ ] Verify user is redirected to login if not authenticated
+- [ ] After login, verify user is redirected back to checkout
+
+#### 2. Minimum Order Validation
+
+- [ ] Add fewer than 5 items to cart
+- [ ] Attempt to proceed to checkout
+- [ ] Verify proper error message about minimum order quantity
+- [ ] Add more items to meet minimum
+- [ ] Verify checkout page now loads correctly
+
+#### 3. Shipping Information
+
+- [ ] Fill in shipping information with valid data
+- [ ] Test address validation by submitting with missing fields
+- [ ] Verify proper error messages appear for each required field
+- [ ] Test postal code validation with invalid formats
+- [ ] Verify "Use shipping address for billing" checkbox functions correctly
+
+#### 4. Payment Method Selection
+
+- [ ] Test each payment method selection (e-transfer, bitcoin, credit card)
+- [ ] Verify appropriate instructions appear for each method
+- [ ] Test discount code application with:
+  - Valid discount code
+  - Invalid discount code
+  - Expired discount code
+- [ ] Verify correct discount is applied and shown in order summary
+
+#### 5. Order Placement
+
+- [ ] Submit order with all valid information
+- [ ] Verify order is created in database with correct status
+- [ ] Check that cart is cleared after successful order
+- [ ] Verify correct redirect to success page
+- [ ] Confirm order ID is displayed on success page
+- [ ] Verify payment instructions match selected method
+
+#### 6. Email Notifications
+
+- [ ] Check that order confirmation email is sent to customer
+- [ ] Verify order notification email is sent to admin
+- [ ] Check that payment instructions are included in customer email
+- [ ] Confirm email contains correct order details and totals
+
+#### 7. Order Status Tracking
+
+- [ ] Navigate to order details page from success page
+- [ ] Verify all order information displays correctly
+- [ ] Check that order status shows as "Pending Payment" or appropriate initial status
+- [ ] Test admin interface for order status updates
+- [ ] Verify status changes are reflected in customer order view
+
+#### 8. Mobile Responsiveness
+
+- [ ] Test entire checkout flow on mobile device or emulator
+- [ ] Verify all form fields are accessible and usable
+- [ ] Confirm payment method selection works on small screens
+- [ ] Check that error messages display properly on mobile
+
+### Integration Testing
+
+- [ ] Test complete flow from product selection through checkout to order confirmation
+- [ ] Verify inventory is updated correctly after order placement
+- [ ] Test with multiple browser sessions to check for race conditions
+
+### Error Recovery
+
+- [ ] Test checkout recovery after session timeout
+- [ ] Verify proper handling of network interruptions during checkout
+- [ ] Test browser refresh/reload during checkout process
+
+## How to Run Tests
+
+### Manual Testing
+
+Follow the scenarios above and document results in the project issue tracker.
+
+### Automated Testing
+
+Automated tests can be run with:
+
+```bash
+npm run test:e2e
+```
+
+This will execute end-to-end tests for the checkout process using Playwright.
+
+## Reporting Issues
+
+When reporting issues with the checkout process, please include:
+
+1. Test scenario being executed
+2. Expected behavior
+3. Actual behavior
+4. Screenshots if applicable
+5. Browser and device information
 
 ## Common Issues and Troubleshooting
 

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Layout from '../components/layout/NewLayout';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
+import PaymentMethodSelector, { PaymentMethod } from '../components/payment/PaymentMethodSelector';
 
 interface AddressData {
   street: string;
@@ -43,7 +44,7 @@ export default function CheckoutPage() {
     country: 'Canada',
   });
   const [useShippingForBilling, setUseShippingForBilling] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState<string>('etransfer');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('etransfer');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{
@@ -289,6 +290,16 @@ export default function CheckoutPage() {
       console.error(err);
       setIsLoading(false);
     }
+  };
+
+  // Event handler for payment method change
+  const handlePaymentMethodChange = (method: PaymentMethod) => {
+    setPaymentMethod(method);
+    // Clear any payment-related errors
+    setFormErrors(prev => ({
+      ...prev,
+      payment: null,
+    }));
   };
 
   if (authLoading || !user || itemCount === 0) {
@@ -537,135 +548,15 @@ export default function CheckoutPage() {
                 </div>
               )}
               {/* Payment Method */}
-              <div className="rounded-lg bg-white p-6 shadow-md">
-                {/* ... payment options ... */}
-                <h2 className="mb-4 text-xl font-semibold text-gray-700">Payment Method</h2>
-                {formErrors.payment && (
-                  <div className="mb-4 rounded-md bg-red-50 p-3">
-                    <p className="text-sm text-red-600">{formErrors.payment}</p>
-                  </div>
-                )}
-                <div className="space-y-4">
-                  <div
-                    className={`rounded-lg border p-4 ${paymentMethod === 'etransfer' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'}`}
-                  >
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        id="etransfer"
-                        name="paymentMethod"
-                        value="etransfer"
-                        checked={paymentMethod === 'etransfer'}
-                        onChange={e => setPaymentMethod(e.target.value)}
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500"
-                      />
-                      <label
-                        htmlFor="etransfer"
-                        className="ml-3 flex flex-grow cursor-pointer items-center"
-                      >
-                        <span className="text-sm font-medium text-gray-900">E-Transfer</span>
-                        <span className="ml-auto">
-                          <svg
-                            className="h-6 w-6 text-blue-600"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M11.944 17.97L4.58 13.62 11.943 24l7.37-10.38-7.372 4.35h.003zM12.056 0L4.69 12.223l7.365 4.354 7.365-4.35L12.056 0z" />
-                          </svg>
-                        </span>
-                      </label>
-                    </div>
-                    {paymentMethod === 'etransfer' && (
-                      <div className="mt-3 pl-7">
-                        <p className="text-sm text-gray-700">
-                          After placing your order, you'll receive an email with instructions for
-                          sending an Interac e-Transfer. Your order will be processed once payment
-                          is confirmed.
-                        </p>
-                      </div>
-                    )}
-                  </div>
+              <div className="mt-8 border-t border-gray-200 pt-8">
+                <h2 className="text-lg font-medium leading-6 text-gray-900">Payment Method</h2>
 
-                  <div
-                    className={`rounded-lg border p-4 ${paymentMethod === 'btc' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'}`}
-                  >
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        id="btc"
-                        name="paymentMethod"
-                        value="btc"
-                        checked={paymentMethod === 'btc'}
-                        onChange={e => setPaymentMethod(e.target.value)}
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500"
-                      />
-                      <label
-                        htmlFor="btc"
-                        className="ml-3 flex flex-grow cursor-pointer items-center"
-                      >
-                        <span className="text-sm font-medium text-gray-900">Bitcoin</span>
-                        <span className="ml-auto">
-                          <svg
-                            className="h-6 w-6 text-orange-500"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                          >
-                            <path d="M23.638 14.904c-1.602 6.43-8.113 10.34-14.542 8.736C2.67 22.05-1.244 15.525.362 9.105 1.962 2.67 8.475-1.243 14.9.358c6.43 1.605 10.342 8.115 8.738 14.548v-.002zm-6.35-4.613c.24-1.59-.974-2.45-2.64-3.03l.54-2.153-1.315-.33-.525 2.107c-.345-.087-.705-.167-1.064-.25l.526-2.127-1.32-.33-.54 2.165c-.285-.067-.565-.132-.84-.2l-1.815-.45-.35 1.407s.975.225.955.236c.535.136.63.486.615.766l-1.477 5.92c-.075.166-.24.406-.614.314.015.02-.96-.24-.96-.24l-.66 1.51 1.71.426.93.242-.54 2.19 1.32.327.54-2.17c.36.1.705.19 1.05.273l-.51 2.154 1.32.33.545-2.19c2.24.427 3.93.257 4.64-1.774.57-1.637-.03-2.58-1.217-3.196.854-.193 1.5-.76 1.68-1.93h.01zm-3.01 4.22c-.404 1.64-3.157.75-4.05.53l.72-2.9c.896.23 3.757.67 3.33 2.37zm.41-4.24c-.37 1.49-2.662.735-3.405.55l.654-2.64c.744.18 3.137.524 2.75 2.084v.006z" />
-                          </svg>
-                        </span>
-                      </label>
-                    </div>
-                    {paymentMethod === 'btc' && (
-                      <div className="mt-3 pl-7">
-                        <p className="text-sm text-gray-700">
-                          After placing your order, you'll receive an email with a Bitcoin address
-                          and the exact amount to send. Your order will be processed once the
-                          transaction is confirmed on the blockchain.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div
-                    className={`rounded-lg border p-4 ${paymentMethod === 'credit-card' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'}`}
-                  >
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        id="credit-card"
-                        name="paymentMethod"
-                        value="credit-card"
-                        checked={paymentMethod === 'credit-card'}
-                        onChange={e => setPaymentMethod(e.target.value)}
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500"
-                      />
-                      <label
-                        htmlFor="credit-card"
-                        className="ml-3 flex flex-grow cursor-pointer items-center"
-                      >
-                        <span className="text-sm font-medium text-gray-900">Credit Card</span>
-                        <span className="ml-auto flex space-x-1">
-                          <svg className="h-6 w-10" viewBox="0 0 40 24" fill="none">
-                            <rect width="40" height="24" rx="4" fill="#E6E6E6" />
-                            <path
-                              d="M11.5 17h17M11.5 13h17M11.5 9h17"
-                              stroke="#666"
-                              strokeWidth="1.5"
-                            />
-                          </svg>
-                        </span>
-                      </label>
-                    </div>
-                    {paymentMethod === 'credit-card' && (
-                      <div className="mt-3 pl-7">
-                        <p className="text-sm text-gray-700">
-                          After placing your order, you'll be redirected to our secure payment page
-                          to complete your purchase. Your order will be processed immediately after
-                          payment is confirmed.
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                <div className="mt-6">
+                  <PaymentMethodSelector
+                    selectedMethod={paymentMethod}
+                    onChange={handlePaymentMethodChange}
+                    error={formErrors.payment}
+                  />
                 </div>
               </div>
             </div>
