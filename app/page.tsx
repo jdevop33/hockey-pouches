@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import Layout from './components/layout/NewLayout';
+import ProductImage from './components/ui/ProductImage';
 import { ArrowRight, CheckCircle, Star } from 'lucide-react';
 
 // Define product data with more compelling descriptions and consistent image paths
@@ -175,23 +176,18 @@ export default function Home() {
                   key={product.id}
                   className="group rounded-xl border border-gold-500/10 bg-dark-800/70 p-6 transition-all duration-500 hover:-translate-y-2 hover:border-gold-500/30 hover:shadow-gold"
                 >
-                  <div className="aspect-square relative mb-6 overflow-hidden rounded-lg bg-dark-700/50">
-                    {product.badge && (
-                      <span
-                        className={`absolute right-2 top-2 z-10 rounded-full ${product.badge.color} px-3 py-1 text-xs font-bold text-dark-900`}
-                      >
-                        {product.badge.text}
-                      </span>
-                    )}
-                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gold-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"></div>
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      className="object-contain p-4 transition-transform duration-700 group-hover:scale-110"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                    />
-                  </div>
+                  <Link href={`/products/${product.id}`} className="block">
+                    <div className="aspect-square relative mb-6 overflow-hidden rounded-lg bg-dark-700/50">
+                      <ProductImage
+                        src={product.image}
+                        alt={product.name}
+                        size="square"
+                        className="h-full w-full transform transition-transform duration-700 group-hover:scale-110"
+                        badge={product.badge}
+                        priority={true}
+                      />
+                    </div>
+                  </Link>
 
                   {/* Product info with clear hierarchy */}
                   <div className="mb-1.5 flex items-center">

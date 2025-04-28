@@ -237,12 +237,15 @@ export default function ProductDetailPage() {
                 <ProductImage
                   src={selectedImage}
                   alt={product.name}
-                  size="large"
-                  className="h-full w-full object-contain transition duration-300 ease-in-out"
+                  size="square"
+                  priority
+                  className="h-full w-full"
+                  objectFit="contain"
+                  enableZoom={true}
                 />
               )}
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-2">
+            <div className="scrollbar-thin scrollbar-track-dark-700 scrollbar-thumb-gold-500/50 flex gap-4 overflow-x-auto pb-2">
               <button
                 className={`overflow-hidden rounded-lg shadow-sm transition ${
                   selectedImage === product.image_url
@@ -250,34 +253,65 @@ export default function ProductDetailPage() {
                     : 'hover:ring-1 hover:ring-gray-500'
                 }`}
                 onClick={() => setSelectedImage(product.image_url)}
-                aria-label="View product image"
+                aria-label="View main product image"
               >
                 <ProductImage
                   src={product.image_url}
-                  alt={product.name}
+                  alt={`${product.name} - Main`}
                   size="small"
-                  className="h-20 w-20 object-contain"
+                  className="h-20 w-20"
                 />
               </button>
-              {product.gallery_images?.map((image, index) => (
-                <button
-                  key={index}
-                  className={`overflow-hidden rounded-lg shadow-sm transition ${
-                    selectedImage === image
-                      ? 'ring-2 ring-gold-500'
-                      : 'hover:ring-1 hover:ring-gray-500'
-                  }`}
-                  onClick={() => setSelectedImage(image)}
-                  aria-label={`View product image ${index + 1}`}
+
+              {/* Gallery Images */}
+              {product.gallery_images &&
+                product.gallery_images.map((img, index) => (
+                  <button
+                    key={index}
+                    className={`overflow-hidden rounded-lg shadow-sm transition ${
+                      selectedImage === img
+                        ? 'ring-2 ring-gold-500'
+                        : 'hover:ring-1 hover:ring-gray-500'
+                    }`}
+                    onClick={() => setSelectedImage(img)}
+                    aria-label={`View product image ${index + 1}`}
+                  >
+                    <ProductImage
+                      src={img}
+                      alt={`${product.name} - View ${index + 1}`}
+                      size="small"
+                      className="h-20 w-20"
+                    />
+                  </button>
+                ))}
+            </div>
+
+            {/* Image description or instructions */}
+            <div className="mt-2 rounded-lg bg-dark-800/50 p-3 text-center text-sm text-gray-400">
+              <span className="flex items-center justify-center gap-1">
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
-                  <ProductImage
-                    src={image}
-                    alt={`${product.name} - Image ${index + 1}`}
-                    size="small"
-                    className="h-20 w-20 object-contain"
+                  <path
+                    d="M15 15L21 21"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
-                </button>
-              ))}
+                  <path
+                    d="M10 17C13.866 17 17 13.866 17 10C17 6.13401 13.866 3 10 3C6.13401 3 3 6.13401 3 10C3 13.866 6.13401 17 10 17Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Click image to zoom
+              </span>
             </div>
           </div>
 

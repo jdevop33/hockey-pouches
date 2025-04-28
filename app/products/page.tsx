@@ -422,9 +422,9 @@ export default function ProductsPage() {
                 {products.map((product: Product, index: number) => (
                   <div
                     key={product.id}
-                    className="group overflow-hidden rounded-lg border border-gold-500/10 bg-dark-700 p-4 shadow-md transition-all duration-300 hover:border-gold-500/30 hover:shadow-gold"
+                    className="hover:shadow-gold/10 group relative overflow-hidden rounded-lg border border-gold-500/10 bg-dark-800/70 p-4 transition-all duration-300 hover:border-gold-500/30"
                   >
-                    {/* Make sure we have a valid product.id by converting to number if needed */}
+                    {/* Product image with link */}
                     <Link
                       href={`/products/${typeof product.id === 'string' ? parseInt(product.id) : product.id}`}
                     >
@@ -433,54 +433,90 @@ export default function ProductsPage() {
                           src={product.image_url}
                           alt={product.name}
                           size="square"
-                          objectFit="cover"
-                          className="w-full"
+                          objectFit="contain"
+                          className="w-full transform transition-transform duration-500 group-hover:scale-105"
                           priority={index < 4}
+                          badge={
+                            product.compare_at_price
+                              ? {
+                                  text: `${Math.round(
+                                    ((product.compare_at_price - product.price) /
+                                      product.compare_at_price) *
+                                      100
+                                  )}% OFF`,
+                                  color: 'bg-gold-500',
+                                }
+                              : undefined
+                          }
                         />
-                        {product.compare_at_price && (
-                          <div className="absolute right-0 top-0 rounded-bl-md bg-gold-500 px-2 py-1 text-xs font-bold text-dark-900">
-                            EXCLUSIVE
-                          </div>
-                        )}
                       </div>
                     </Link>
 
                     {/* Product details */}
-                    <div className="space-y-2">
-                      {/* Make sure we have a valid product.id by converting to number if needed */}
+                    <div className="flex h-full flex-col">
+                      {/* Flavor badge if available */}
+                      {product.flavor && (
+                        <div className="mb-2">
+                          <span className="inline-flex items-center rounded-full bg-dark-700 px-2.5 py-0.5 text-xs font-medium text-gold-500">
+                            {product.flavor}
+                          </span>
+                        </div>
+                      )}
+
                       <Link
                         href={`/products/${typeof product.id === 'string' ? parseInt(product.id) : product.id}`}
+                        className="flex-grow"
                       >
-                        <h3 className="mb-1 text-lg font-semibold text-gold-500 hover:underline">
+                        <h3 className="text-base font-medium text-white transition-colors duration-200 group-hover:text-gold-500">
                           {product.name}
                         </h3>
                       </Link>
 
-                      {/* Product metadata */}
-                      <div className="flex flex-wrap gap-1.5">
-                        {product.flavor && (
-                          <span className="inline-flex items-center rounded-full bg-blue-900/50 px-2 py-0.5 text-xs font-medium text-blue-300">
-                            {product.flavor}
-                          </span>
-                        )}
-                        {product.strength && (
-                          <span className="inline-flex items-center rounded-full bg-yellow-900/50 px-2 py-0.5 text-xs font-medium text-yellow-300">
-                            {product.strength}/5
-                          </span>
-                        )}
-                      </div>
+                      {/* Short description (truncated) */}
+                      {product.description && (
+                        <p className="mt-1 line-clamp-2 text-sm text-gray-400">
+                          {product.description}
+                        </p>
+                      )}
 
-                      {/* Price and Add to Cart */}
-                      <div className="mt-2 flex items-center justify-between">
-                        <div className="text-base font-medium text-white">
-                          {formatCurrency(product.price)}
+                      {/* Strength indicator if available */}
+                      {product.strength && (
+                        <div className="mt-2">
+                          <div className="flex items-center">
+                            <div className="mr-2 text-xs text-gray-400">Strength:</div>
+                            <div className="h-2 w-full max-w-[100px] rounded-full bg-dark-700">
+                              <div
+                                className="h-2 rounded-full bg-gradient-to-r from-gold-400 to-gold-600"
+                                style={{
+                                  width: `${Math.min(100, (product.strength / 30) * 100)}%`,
+                                }}
+                              ></div>
+                            </div>
+                            <div className="ml-2 text-xs font-medium text-white">
+                              {product.strength}mg
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="mt-4 flex items-center justify-between">
+                        <div className="flex flex-col">
+                          <div className="text-base font-medium text-white">
+                            {formatCurrency(product.price)}
+                          </div>
+                          {product.compare_at_price && (
+                            <div className="text-xs text-gray-400 line-through">
+                              {formatCurrency(product.compare_at_price)}
+                            </div>
+                          )}
                         </div>
                         <button
                           onClick={e => {
                             e.preventDefault();
                             handleAddToCart(product);
                           }}
-                          className="flex items-center justify-center rounded-md bg-gold-600 px-3 py-1.5 text-sm font-medium text-black shadow-sm hover:bg-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+                          className="flex items-center justify-center rounded-md bg-gold-600 px-3 py-1.5 text-sm font-medium text-black shadow-sm transition-colors duration-200 hover:bg-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+                          aria-label="Add to cart"
                         >
                           Add to Cart
                         </button>
