@@ -15,11 +15,14 @@ export function ThemeProviderClient({ children, ...props }: ThemeProviderProps) 
   React.useEffect(() => {
     setMounted(true);
 
-    // Force dark mode
-    document.documentElement.classList.add('dark');
+    // Only run on client side
+    if (typeof window !== 'undefined') {
+      // Force dark mode
+      document.documentElement.classList.add('dark');
 
-    // Prevent theme changes
-    localStorage.setItem('hockey-puxx-theme', 'dark');
+      // Prevent theme changes
+      localStorage.setItem('hockey-puxx-theme', 'dark');
+    }
   }, []);
 
   if (!mounted) {

@@ -1,0 +1,8 @@
+/* Chart Bar Styles */
+.salesBar {
+  height: var(--bar-height);
+}
+
+.ordersBar {
+  height: var(--bar-height);
+}

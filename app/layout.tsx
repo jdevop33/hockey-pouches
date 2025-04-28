@@ -1,7 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import AppProviders from './components/AppProviders';
+import ClientWrapper from '@/components/ClientWrapper';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -111,7 +111,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`${inter.variable} bg-dark-500 font-sans text-white antialiased`}
         suppressHydrationWarning
       >
-        <AppProviders>{children}</AppProviders>
+        <ClientWrapper>{children}</ClientWrapper>
       </body>
     </html>
   );

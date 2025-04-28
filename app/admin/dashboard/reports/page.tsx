@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Calendar, PieChart, BarChart4, TrendingUp } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Layout from '../../../components/layout/NewLayout'; // Relative path (3 levels up)
+import { BarChart4, PieChart, TrendingUp } from 'lucide-react';
+import Layout from '../../../components/layout/NewLayout';
+import styles from './reports.module.css';
 // import { useAuth } from '@/context/AuthContext'; // Example auth context
 // TODO: Import charting libraries (e.g., Chart.js, Recharts)
 
@@ -172,8 +173,8 @@ export default function AdminReportsPage() {
       <div className="min-h-screen bg-gray-900 p-8">
         <h1 className="mb-6 text-3xl font-bold text-white">Reports & Analytics</h1>
 
-        {/* TODO: Add Date Range Picker */}
-        <div className="mb-6 rounded-md bg-gray-800 p-4 shadow-gold-sm">Date Range Placeholder</div>
+        {/* Date Range Selector */}
+        <DateRangeSelector />
 
         {error && <p className="mb-4 text-red-400">Error: {error}</p>}
 
@@ -284,8 +285,8 @@ export default function AdminReportsPage() {
                     return (
                       <div key={i} className="w-1/7 relative flex flex-col items-center">
                         <div
-                          className="w-12 rounded-t-sm bg-gold-500/80 transition-all duration-300 hover:bg-gold-400"
-                          style={{ height: `${height}%` }}
+                          className={`w-12 rounded-t-sm bg-gold-500/80 transition-all duration-300 hover:bg-gold-400 ${styles.salesBar}`}
+                          style={{ '--bar-height': `${height}%` } as React.CSSProperties}
                         ></div>
                         <span className="mt-1 text-xs text-gray-400">${day.sales}</span>
                       </div>
@@ -316,8 +317,8 @@ export default function AdminReportsPage() {
                     return (
                       <div key={i} className="w-1/7 relative flex flex-col items-center">
                         <div
-                          className="w-12 rounded-t-sm bg-blue-500/80 transition-all duration-300 hover:bg-blue-400"
-                          style={{ height: `${height}%` }}
+                          className={`w-12 rounded-t-sm bg-blue-500/80 transition-all duration-300 hover:bg-blue-400 ${styles.ordersBar}`}
+                          style={{ '--bar-height': `${height}%` } as React.CSSProperties}
                         ></div>
                         <span className="mt-1 text-xs text-gray-400">{day.orders}</span>
                       </div>
@@ -346,7 +347,7 @@ export default function AdminReportsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {topProducts.map((product, index) => (
+                  {topProducts.map(product => (
                     <tr key={product.id} className="border-b border-gold-500/10">
                       <td className="py-3 text-white">
                         <Link
@@ -381,7 +382,7 @@ export default function AdminReportsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {topDistributors.map((distributor, index) => (
+                  {topDistributors.map(distributor => (
                     <tr key={distributor.id} className="border-b border-gold-500/10">
                       <td className="py-3 text-white">
                         <Link

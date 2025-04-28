@@ -4,15 +4,9 @@ import { debounce, throttle, memoize } from './performanceUtils';
 import { getYoutubeId, getYoutubeThumbnail } from './imageUtils';
 
 /**
- * Combines multiple class names and merges Tailwind CSS classes properly
- *
- * @example
- * // Basic usage
- * cn('text-red-500', 'bg-blue-500')
- *
- * @example
- * // With conditional classes
- * cn('text-lg', isLarge && 'font-bold', { 'opacity-50': isDisabled })
+ * Utility function to combine class names
+ * Combines multiple class names or conditional class names
+ * and merges Tailwind CSS classes efficiently
  */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -234,6 +228,24 @@ export function formatPhoneNumber(phone: string): string {
  */
 export function truncate(str: string, length: number) {
   return str.length > length ? `${str.substring(0, length)}...` : str;
+}
+
+/**
+ * Format a number as currency
+ */
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-CA', {
+    style: 'currency',
+    currency: 'CAD',
+    minimumFractionDigits: 2,
+  }).format(amount);
+}
+
+/**
+ * Capitalize first letter of a string
+ */
+export function capitalizeFirstLetter(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 // Re-export utility functions for easier imports

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext } from 'react';
-import { useCsrfToken, useCsrfFetch as useClientCsrfFetch, CsrfToken } from '@/lib/csrf-client';
+import { useCsrfToken, useCsrfFetch as useClientCsrfFetch, CsrfToken } from '../lib/csrf-client';
 
 // Create CSRF context
 const CsrfContext = createContext<CsrfToken | null>(null);
