@@ -1,7 +1,7 @@
 'use client';
 
 // Use named imports for React hooks and types
-import { useState, useEffect, ChangeEvent } from 'react'; 
+import { useState, useEffect, ChangeEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Layout from '@/components/layout/NewLayout';
@@ -256,7 +256,9 @@ export default function ProductsPage() {
                 id="category"
                 value={selectedCategory || ''}
                 // Add type for e
-                onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedCategory(e.target.value || null)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                  setSelectedCategory(e.target.value || null)
+                }
                 className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
               >
                 <option value="">All Categories</option>
@@ -278,7 +280,9 @@ export default function ProductsPage() {
                 id="flavor"
                 value={selectedFlavor || ''}
                 // Add type for e
-                onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedFlavor(e.target.value || null)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                  setSelectedFlavor(e.target.value || null)
+                }
                 className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
               >
                 <option value="">All Flavors</option>
@@ -300,7 +304,9 @@ export default function ProductsPage() {
                 id="strength"
                 value={selectedStrength || ''}
                 // Add type for e
-                onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedStrength(e.target.value ? Number(e.target.value) : null)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                  setSelectedStrength(e.target.value ? Number(e.target.value) : null)
+                }
                 className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
               >
                 <option value="">All Strengths</option>
@@ -348,7 +354,9 @@ export default function ProductsPage() {
                 id="minPrice"
                 value={minPriceFilter || ''}
                 // Add type for e
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setMinPriceFilter(e.target.value || null)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setMinPriceFilter(e.target.value || null)
+                }
                 placeholder={`$${availableFilters.priceRange.min}`}
                 className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
               />
@@ -362,7 +370,9 @@ export default function ProductsPage() {
                 id="maxPrice"
                 value={maxPriceFilter || ''}
                 // Add type for e
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setMaxPriceFilter(e.target.value || null)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setMaxPriceFilter(e.target.value || null)
+                }
                 placeholder={`$${availableFilters.priceRange.max}`}
                 className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
               />
@@ -393,7 +403,7 @@ export default function ProductsPage() {
                 key={product.id}
                 className="group overflow-hidden rounded-lg border border-gold-500/10 bg-dark-700 p-4 shadow-md transition-all duration-300 hover:border-gold-500/30 hover:shadow-gold"
               >
-                <Link href={`/products/${product.id.toString()}`}>
+                <Link href={`/products/${product.id}`}>
                   <div className="aspect-square relative mb-4 overflow-hidden rounded-md bg-dark-800">
                     <Image
                       src={product.image_url || '/images/products/fallback.jpg'}
@@ -410,7 +420,7 @@ export default function ProductsPage() {
                   </div>
                 </Link>
 
-                <Link href={`/products/${product.id.toString()}`}>
+                <Link href={`/products/${product.id}`}>
                   <h3 className="mb-1 text-lg font-semibold text-gold-500 hover:underline">
                     {product.name}
                   </h3>
@@ -490,19 +500,24 @@ export default function ProductsPage() {
                 Previous
               </button>
 
-              {[...Array(pagination.totalPages)].map((_, idx: number) => ( // Add type for idx
-                <button
-                  key={idx}
-                  onClick={() => handlePageChange(idx + 1)}
-                  className={`rounded-md px-3 py-1 text-sm ${
-                    pagination.page === idx + 1
-                      ? 'bg-gold-500 text-dark-900'
-                      : 'border border-gold-500/30 bg-dark-700'
-                  }`}
-                >
-                  {idx + 1}
-                </button>
-              ))}
+              {[...Array(pagination.totalPages)].map(
+                (
+                  _,
+                  idx: number // Add type for idx
+                ) => (
+                  <button
+                    key={idx}
+                    onClick={() => handlePageChange(idx + 1)}
+                    className={`rounded-md px-3 py-1 text-sm ${
+                      pagination.page === idx + 1
+                        ? 'bg-gold-500 text-dark-900'
+                        : 'border border-gold-500/30 bg-dark-700'
+                    }`}
+                  >
+                    {idx + 1}
+                  </button>
+                )
+              )}
 
               <button
                 onClick={() => handlePageChange(pagination.page + 1)}

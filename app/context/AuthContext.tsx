@@ -151,7 +151,22 @@ export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     console.error('CRITICAL: useAuth called outside of AuthProvider!');
-    throw new Error('useAuth must be used within an AuthProvider');
+    // Provide a fallback context instead of throwing an error
+    return {
+      user: null,
+      token: null,
+      isLoading: false,
+      isAuthenticated: false,
+      login: () => {
+        console.error('Auth provider not initialized');
+      },
+      logout: async () => {
+        console.error('Auth provider not initialized');
+      },
+      updateUser: () => {
+        console.error('Auth provider not initialized');
+      },
+    };
   }
   return context;
 };

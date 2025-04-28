@@ -1,12 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { Analytics } from '@vercel/analytics/react';
-import { WebVitals } from './_components/web-vitals';
-import { DatabaseInit } from './_components/database-init';
-import { Providers } from './providers';
-import { AnalyticsScripts } from './_components/analytics-scripts';
-import CartWrapper from './components/CartWrapper';
+import AppProviders from './components/AppProviders';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -111,24 +106,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="msapplication-navbutton-color" content="#12121a" />
         <meta name="apple-mobile-web-app-status-bar-style" content="#12121a" />
         <meta name="color-scheme" content="dark" />
-
-        {/* Analytics scripts moved to a separate client component */}
-        <AnalyticsScripts />
       </head>
       <body
         className={`${inter.variable} bg-dark-500 font-sans text-white antialiased`}
         suppressHydrationWarning
       >
-        <Providers>
-          {/* Web Vitals Tracking */}
-          <WebVitals />
-          {/* Vercel Analytics */}
-          <Analytics />
-          {/* Database Initialization */}
-          <DatabaseInit />
-          {/* Main Content */}
-          <CartWrapper>{children}</CartWrapper>
-        </Providers>
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

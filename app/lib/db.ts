@@ -11,7 +11,7 @@ neonConfig.webSocketConstructor = ws;
 neonConfig.fetchConnectionCache = true;
 
 // Get connection string from environment
-const connectionString = process.env.POSTGRES_URL;
+const connectionString = process.env.POSTGRES_URL || '';
 
 if (!connectionString) {
   logger.error('POSTGRES_URL environment variable is not set or empty.');
@@ -21,47 +21,63 @@ if (!connectionString) {
 // Initialize pool and sql
 let pool: Pool;
 type NeonFn = NeonQueryFunction<false, false>;
-let sql: NeonFn;
+// Initialize sql with a default value that will be replaced during initialization
+let sql: NeonFn = neon(connectionString) as NeonFn;
+
+// Number of connection retries
+const MAX_CONNECTION_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
 
 /**
- * Initialize database connection pool and neon SQL client
+ * Initialize database connection with retry logic
  */
-try {
-  // Create pool
-  pool = new Pool({
-    connectionString,
-    max: 20, // Maximum number of clients in the pool
-    idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
-    connectionTimeoutMillis: 5000, // Connection timeout after 5 seconds
-  });
-
-  // Set up error handler for pool
-  pool.on('error', (err: Error) => {
-    logger.error('Unexpected database pool error:', { error: err.message });
-  });
-
-  // Create neon SQL client
-  sql = neon(connectionString) as NeonFn;
-
-  logger.info('Database connection initialized');
-
-  // Test the connection
-  pool
-    .query('SELECT 1')
-    .then(() => {
-      logger.info('Database connection test successful');
-    })
-    .catch((error: Error) => {
-      logger.error('Database connection test failed:', { error: error.message });
+async function initializeDatabaseConnection(retries = MAX_CONNECTION_RETRIES): Promise<void> {
+  try {
+    // Create pool with improved settings
+    pool = new Pool({
+      connectionString,
+      max: 20, // Maximum number of clients in the pool
+      idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
+      connectionTimeoutMillis: 5000, // Connection timeout after 5 seconds
     });
-} catch (error) {
-  if (error instanceof Error) {
-    logger.error('Error initializing database connection:', { error: error.message });
-  } else {
-    logger.error('Unknown error initializing database connection');
+
+    // Set up error handler for pool
+    pool.on('error', (err: Error) => {
+      logger.error('Unexpected database pool error:', { error: err.message });
+    });
+
+    // Create neon SQL client
+    sql = neon(connectionString) as NeonFn;
+
+    logger.info('Database connection initialized');
+
+    // Test the connection
+    await pool.query('SELECT 1');
+    logger.info('Database connection test successful');
+  } catch (error) {
+    if (retries > 0) {
+      logger.warn(
+        `Database connection failed. Retrying... (${MAX_CONNECTION_RETRIES - retries + 1}/${MAX_CONNECTION_RETRIES})`
+      );
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+      return initializeDatabaseConnection(retries - 1);
+    }
+
+    if (error instanceof Error) {
+      logger.error('Error initializing database connection:', { error: error.message });
+    } else {
+      logger.error('Unknown error initializing database connection');
+    }
+    throw error;
   }
-  throw error;
 }
+
+// Initialize the database connection
+initializeDatabaseConnection().catch(error => {
+  logger.error('Failed to initialize database after multiple retries:', error);
+  // In production, you might want to exit the process here
+  // process.exit(1);
+});
 
 /**
  * Query parameters type

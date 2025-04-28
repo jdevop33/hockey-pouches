@@ -38,7 +38,6 @@ const getProductFromDb = unstable_cache(
 
       console.log(`Product ${productId} found.`);
       return result[0] as Product;
-      
     } catch (error) {
       console.error(`Database error fetching product ${productId}:`, error);
       return null; // Return null on error
@@ -51,11 +50,11 @@ const getProductFromDb = unstable_cache(
 export async function GET(request: NextRequest, { params }: { params: { productId: string } }) {
   console.log(`GET request for product ID: ${params.productId}`);
   try {
-    const productId = parseInt(params.productId);
+    const productId = parseInt(params.productId, 10);
 
     if (isNaN(productId)) {
-      console.log('Invalid product ID format');
-      return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
+      console.log(`Invalid product ID format: "${params.productId}"`);
+      return NextResponse.json({ error: 'Invalid product ID format' }, { status: 400 });
     }
 
     console.log(`Fetching active product ${productId}...`);
@@ -64,15 +63,23 @@ export async function GET(request: NextRequest, { params }: { params: { productI
 
     // If product not found, return 404
     if (!product) {
-      console.log(`Active product ${productId} resulted in null from getProductFromDb`);
+      console.log(`Product ${productId} not found in database`);
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
-    
-    console.log(`Product ${productId} found.`);
+
+    // Add additional logging to check product data
+    console.log(`Product ${productId} found with data:`, JSON.stringify(product));
+
+    // Ensure product data is properly formatted before returning
+    if (typeof product.id !== 'number') {
+      console.warn(`Product ${productId} has invalid ID format: ${product.id}`);
+      // Convert string ID to number if needed
+      product.id = Number(product.id);
+    }
+
     return NextResponse.json(product);
-    
   } catch (error) {
-    console.error('Error in GET handler for product:', error);
+    console.error(`Error in GET handler for product ${params.productId}:`, error);
     return NextResponse.json({ error: 'Failed to fetch product details' }, { status: 500 });
   }
 }

@@ -144,9 +144,23 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const useCart = () => {
-  /* ... */
   const context = useContext(CartContext);
-  if (context === undefined) throw new Error('useCart must be used within a CartProvider');
+  if (context === undefined) {
+    console.error('CRITICAL: useCart called outside of CartProvider!');
+    // Provide a fallback context instead of throwing to prevent rendering errors
+    return {
+      items: [],
+      addToCart: () => ({ success: false, message: 'Cart not initialized' }),
+      removeFromCart: () => {},
+      updateQuantity: () => ({ success: false, message: 'Cart not initialized' }),
+      clearCart: () => {},
+      itemCount: 0,
+      subtotal: 0,
+      totalQuantity: 0,
+      validateMinimumOrder: () => ({ isValid: false, message: 'Cart not initialized' }),
+      minOrderQuantity: MIN_ORDER_QUANTITY,
+    };
+  }
   return context;
 };
 
@@ -155,6 +169,7 @@ interface CartProviderProps {
 }
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
+  const [isInitialized, setIsInitialized] = useState(false);
   const [state, dispatch] = useReducer(cartReducer, {
     items: [],
     itemCount: 0,
@@ -167,38 +182,55 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   // when we might need to update the value from an API
   const [minOrderQuantity] = useState<number>(MIN_ORDER_QUANTITY);
 
+  // Safely load cart from localStorage
   useEffect(() => {
+    if (typeof window === 'undefined') return; // Skip server-side execution
+
     console.log('CartProvider useEffect: Loading state from localStorage.');
-    if (typeof window !== 'undefined') {
-      try {
-        const savedCart = localStorage.getItem('cart');
-        if (savedCart) {
+    try {
+      const savedCart = localStorage.getItem('cart');
+      if (savedCart) {
+        try {
           const parsedCart = JSON.parse(savedCart);
-          dispatch({ type: 'SET_ITEMS', payload: parsedCart });
-          console.log(
-            'CartProvider: Loaded cart from localStorage with',
-            parsedCart.length,
-            'items'
-          );
+          if (Array.isArray(parsedCart)) {
+            dispatch({ type: 'SET_ITEMS', payload: parsedCart });
+            console.log(
+              'CartProvider: Loaded cart from localStorage with',
+              parsedCart.length,
+              'items'
+            );
+          } else {
+            console.warn('Invalid cart format in localStorage, resetting');
+            localStorage.removeItem('cart');
+          }
+        } catch (parseError) {
+          console.error('Failed to parse cart from localStorage:', parseError);
+          localStorage.removeItem('cart');
         }
-      } catch (error) {
-        console.error('Failed to parse cart from localStorage:', error);
-        localStorage.removeItem('cart');
       }
+    } catch (error) {
+      console.error('Error accessing localStorage:', error);
+    } finally {
+      setIsInitialized(true);
     }
+
     console.log('CartProvider useEffect: Finished initial load.');
   }, []);
 
+  // Safely save cart to localStorage
   useEffect(() => {
-    // --- Saving to localStorage still active (can be commented out if needed) ---
-    if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined' || !isInitialized) return; // Skip on server or before initialization
+
+    try {
       if (items.length > 0) {
         localStorage.setItem('cart', JSON.stringify(items));
       } else {
         localStorage.removeItem('cart');
       }
+    } catch (error) {
+      console.error('Failed to save cart to localStorage:', error);
     }
-  }, [items]);
+  }, [items, isInitialized]);
 
   // Validate minimum order quantity
   const validateMinimumOrder = useCallback(() => {

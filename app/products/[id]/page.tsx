@@ -26,8 +26,17 @@ interface Product {
 
 export default function ProductDetailPage() {
   const params = useParams();
+  // Improved ID extraction with better error handling and logging
   const productId =
-    typeof params.id === 'string' ? params.id : Array.isArray(params.id) ? params.id[0] : null;
+    typeof params.id === 'string'
+      ? parseInt(params.id, 10)
+      : Array.isArray(params.id)
+        ? parseInt(params.id[0], 10)
+        : null;
+
+  console.log(
+    `Product page received ID param: ${JSON.stringify(params.id)}, parsed as: ${productId}`
+  );
 
   const { addToCart } = useCart();
   const [product, setProduct] = useState<Product>({
@@ -44,7 +53,12 @@ export default function ProductDetailPage() {
   const [isLoadingRelated, setIsLoadingRelated] = useState(true);
 
   useEffect(() => {
-    if (!productId) return;
+    if (!productId) {
+      console.error('No valid product ID found in URL params');
+      setError('Invalid product ID');
+      setIsLoading(false);
+      return;
+    }
 
     async function fetchProduct() {
       setIsLoading(true);
@@ -80,16 +94,35 @@ export default function ProductDetailPage() {
     async function fetchRelatedProducts(id: number) {
       setIsLoadingRelated(true);
       try {
+        console.log(`Fetching related products for product ID: ${id}`);
         const response = await fetch(`/api/products/${id}/related`);
+
         if (!response.ok) {
-          console.error(`Error fetching related products: ${response.status}`);
+          console.error(
+            `Error fetching related products: ${response.status} ${response.statusText}`
+          );
+          // Don't set error state for related products, just return empty array
+          setRelatedProducts([]);
           return;
         }
 
         const data = await response.json();
-        setRelatedProducts(data);
+        console.log(`Found ${data.length} related products`);
+
+        // Ensure all related products have valid IDs
+        const validProducts = data.filter((product: Product) => {
+          const isValid = product && typeof product.id === 'number' && product.id > 0;
+          if (!isValid) {
+            console.warn(`Found invalid related product:`, product);
+          }
+          return isValid;
+        });
+
+        setRelatedProducts(validProducts);
       } catch (err) {
         console.error('Failed to fetch related products:', err);
+        // Don't set error state for related products failures
+        setRelatedProducts([]);
       } finally {
         setIsLoadingRelated(false);
       }
