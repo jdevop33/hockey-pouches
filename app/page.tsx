@@ -88,7 +88,7 @@ export default function Home() {
     <Layout>
       <main className="flex min-h-screen flex-col bg-dark-500">
         {/* Hero Section - Applying principle 36: Text contrast on images */}
-        <section className="relative flex min-h-[80vh] w-full flex-col items-center justify-center overflow-hidden px-4">
+        <section className="relative flex min-h-[85vh] w-full flex-col items-center justify-center overflow-hidden px-4">
           {/* Background Image with proper overlay for text readability */}
           <div className="absolute inset-0 z-0">
             <Image
@@ -96,7 +96,7 @@ export default function Home() {
               alt="PUXX Premium Nicotine Pouches"
               fill
               priority
-              className="object-cover object-center"
+              className="object-cover sm:object-[center_35%] md:object-[center_30%] lg:object-[center_20%]"
               sizes="100vw"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-dark-900/80 to-dark-900/40 backdrop-blur-[1px]"></div>
