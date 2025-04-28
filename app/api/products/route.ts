@@ -1,62 +1,48 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import sql from '@/lib/db';
+
+export const dynamic = 'force-dynamic'; // Don't cache this API route
 
 export async function GET(request: NextRequest) {
   try {
-    // Sample product data with correct image paths
-    const products = [
-      {
-        id: 1,
-        name: 'Hockey Pouch - Apple Mint',
-        description: 'Refreshing apple mint flavored hockey pouch',
-        flavor: 'Apple Mint',
-        strength: 6,
-        price: 19.99,
-        compare_at_price: 24.99,
-        image_url: '/images/products/apple-mint/apple-mint-6mg.png',
-        category: 'Nicotine Pouches',
-        is_active: true,
-      },
-      {
-        id: 2,
-        name: 'Hockey Pouch - Cool Mint',
-        description: 'Cooling mint flavored hockey pouch',
-        flavor: 'Cool Mint',
-        strength: 6,
-        price: 22.99,
-        compare_at_price: null,
-        image_url: '/images/products/cool-mint-6mg.png',
-        category: 'Nicotine Pouches',
-        is_active: true,
-      },
-      {
-        id: 3,
-        name: 'Hockey Pouch - Spearmint',
-        description: 'Refreshing spearmint flavored hockey pouch',
-        flavor: 'Spearmint',
-        strength: 22,
-        price: 20.99,
-        compare_at_price: null,
-        image_url: '/images/products/puxxspearmint22mg.png',
-        category: 'Nicotine Pouches',
-        is_active: true,
-      },
-      {
-        id: 4,
-        name: 'Hockey Pouch - Cola',
-        description: 'Rich cola flavored hockey pouch for a refreshing experience',
-        flavor: 'Cola',
-        strength: 16,
-        price: 24.99,
-        compare_at_price: 27.99,
-        image_url: '/images/products/puxxcola16mg.png',
-        category: 'Nicotine Pouches',
-        is_active: true,
-      },
-    ];
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '12');
+    const offset = (page - 1) * limit;
 
-    return NextResponse.json(products);
+    console.log(`GET /api/products - Fetching active products from database`);
+
+    // Fetch only active products
+    const productsQuery = sql`
+      SELECT
+        id, name, description, flavor, strength,
+        CAST(price AS FLOAT) as price,
+        CAST(compare_at_price AS FLOAT) as compare_at_price,
+        image_url, category, is_active
+      FROM products
+      WHERE is_active = TRUE
+      ORDER BY name ASC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+
+    const totalQuery = sql`SELECT COUNT(*) FROM products WHERE is_active = TRUE`;
+
+    const [productsResult, totalResult] = await Promise.all([productsQuery, totalQuery]);
+
+    const totalProducts = parseInt(totalResult[0].count as string);
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    return NextResponse.json({
+      products: productsResult,
+      pagination: {
+        page,
+        limit,
+        total: totalProducts,
+        totalPages,
+      },
+    });
   } catch (error) {
-    console.error('Failed to get products:', error);
+    console.error('Failed to get products from database:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

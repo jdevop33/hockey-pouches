@@ -11,12 +11,14 @@ export default function ProductsContent() {
   const [error, setError] = useState<string | null>(null);
   const { addToCart } = useCart();
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     async function fetchProducts() {
       try {
         setLoading(true);
-        const response = await fetch('/api/products');
+        const response = await fetch(`/api/products?page=${currentPage}`);
 
         if (!response.ok) {
           throw new Error('Failed to fetch products');
@@ -24,11 +26,14 @@ export default function ProductsContent() {
 
         const data = await response.json();
 
-        // Ensure data is an array before setting state
-        if (Array.isArray(data)) {
-          setProducts(data);
+        // Handle the new API response structure
+        if (data.products && Array.isArray(data.products)) {
+          setProducts(data.products);
+          if (data.pagination) {
+            setTotalPages(data.pagination.totalPages || 1);
+          }
         } else {
-          console.error('API response is not an array:', data);
+          console.error('API response structure is invalid:', data);
           setError('Invalid data format received from server');
           setProducts([]);
         }
@@ -41,7 +46,7 @@ export default function ProductsContent() {
     }
 
     fetchProducts();
-  }, []);
+  }, [currentPage]);
 
   // Handle image load errors
   const handleImageError = (productId: number) => {
@@ -51,11 +56,18 @@ export default function ProductsContent() {
     }));
   };
 
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo(0, 0);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto py-12">
         <div className="flex min-h-[50vh] items-center justify-center">
-          <div className="animate-pulse">Loading products...</div>
+          <div className="animate-pulse text-gold-500">Loading premium products...</div>
         </div>
       </div>
     );
@@ -64,12 +76,12 @@ export default function ProductsContent() {
   if (error) {
     return (
       <div className="container mx-auto py-12">
-        <div className="rounded-lg bg-red-50 p-6 text-center">
-          <h2 className="mb-2 text-xl font-semibold text-red-600">Error Loading Products</h2>
-          <p className="text-red-500">{error}</p>
+        <div className="rounded-lg border border-gold-500/20 bg-dark-700 p-6 text-center">
+          <h2 className="mb-2 text-xl font-semibold text-gold-400">Error Loading Products</h2>
+          <p className="text-gray-300">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 rounded bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700"
+            className="mt-4 rounded bg-gold-500 px-4 py-2 font-medium text-dark-900 hover:bg-gold-400"
           >
             Try Again
           </button>
@@ -83,57 +95,110 @@ export default function ProductsContent() {
 
   return (
     <div className="container mx-auto py-12">
-      <h1 className="mb-8 text-3xl font-bold">Our Products</h1>
+      <h1 className="mb-8 text-3xl font-bold text-white">Premium Nicotine Pouches</h1>
 
       {productsToRender.length === 0 ? (
-        <p>No products available at the moment.</p>
+        <p className="text-gray-300">No products available at the moment.</p>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {productsToRender.map(product => (
-            <div
-              key={product.id}
-              className="overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-md"
-            >
-              <div className="relative h-48 w-full bg-gray-100">
-                {product.image_url && !imageErrors[product.id as number] ? (
-                  <Image
-                    src={product.image_url}
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-contain"
-                    onError={() => handleImageError(product.id as number)}
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400">
-                    <span>No image available</span>
+        <>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {productsToRender.map(product => (
+              <div
+                key={product.id}
+                className="overflow-hidden rounded-lg border border-gold-500/10 bg-dark-600 shadow-gold-sm transition-transform hover:scale-[1.02]"
+              >
+                <div className="relative h-48 w-full bg-dark-700">
+                  {product.image_url && !imageErrors[product.id as number] ? (
+                    <Image
+                      src={product.image_url}
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-contain"
+                      onError={() => handleImageError(product.id as number)}
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-dark-700 text-gray-500">
+                      <span>No image available</span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h2 className="mb-2 text-lg font-semibold text-white">{product.name}</h2>
+                  <p className="mb-3 line-clamp-2 text-sm text-gray-300">{product.description}</p>
+
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {product.flavor && (
+                      <span className="inline-flex items-center rounded-full bg-dark-500 px-2.5 py-0.5 text-xs text-gray-300">
+                        {product.flavor}
+                      </span>
+                    )}
+                    {product.strength && (
+                      <span className="inline-flex items-center rounded-full bg-dark-500 px-2.5 py-0.5 text-xs text-gray-300">
+                        {product.strength}mg
+                      </span>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="p-4">
-                <h2 className="mb-2 text-lg font-semibold">{product.name}</h2>
-                <p className="mb-3 line-clamp-2 text-sm text-gray-600">{product.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="font-bold">${product.price.toFixed(2)}</span>
-                  <div className="space-x-2">
-                    <Link
-                      href={`/products/${product.id}`}
-                      className="rounded bg-gray-100 px-3 py-1 text-sm transition-colors hover:bg-gray-200"
-                    >
-                      Details
-                    </Link>
-                    <button
-                      onClick={() => addToCart(product, 1)}
-                      className="rounded bg-blue-500 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-600"
-                    >
-                      Add to Cart
-                    </button>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl font-bold text-gold-500">
+                      ${product.price.toFixed(2)}
+                    </span>
+                    <div className="space-x-2">
+                      <Link
+                        href={`/products/${product.id}`}
+                        className="rounded bg-dark-500 px-3 py-1 text-sm text-gray-300 transition-colors hover:bg-dark-400"
+                      >
+                        Details
+                      </Link>
+                      <button
+                        onClick={() => addToCart(product, 1)}
+                        className="rounded bg-gold-600 px-4 py-1 text-sm font-medium text-dark-900 shadow hover:bg-gold-500"
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-8 flex justify-center">
+              <nav className="flex items-center space-x-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="rounded border border-gold-500/20 bg-dark-600 px-3 py-1 text-sm disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`rounded px-3 py-1 text-sm ${
+                      currentPage === page
+                        ? 'bg-gold-500 text-dark-900'
+                        : 'border border-gold-500/20 bg-dark-600 text-white'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="rounded border border-gold-500/20 bg-dark-600 px-3 py-1 text-sm disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </nav>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );
