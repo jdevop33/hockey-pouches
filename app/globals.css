@@ -97,6 +97,26 @@
     background-position: center;
   }
 
+  /* High-contrast gold button with bold black text */
+  .btn-gold-contrast {
+    background-color: rgb(var(--accent-gold)); /* Brighter gold for better contrast */
+    color: #000000 !important;
+    font-weight: 800 !important;
+    text-shadow: none !important;
+    border: 1px solid rgb(var(--luxury-gold));
+    transition: all 0.2s ease-in-out;
+  }
+
+  .btn-gold-contrast:hover {
+    background-color: rgb(var(--primary-gold));
+    color: #000000 !important;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+  }
+
+  .btn-gold-contrast * {
+    color: #000000 !important;
+  }
+
   /* For all buttons, add a gold hover effect */
   button,
   .button,

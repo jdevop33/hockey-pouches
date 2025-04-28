@@ -159,16 +159,16 @@ function NavbarContent() {
             {/* Account/Sign in button - primary call to action */}
             <Link
               href={getDashboardRoute()}
-              className="hidden items-center rounded-md bg-gold-500 px-3 py-2 text-sm font-extrabold text-black shadow-sm transition-colors hover:bg-gold-400 md:flex"
+              className="btn-gold-contrast hidden items-center rounded-md bg-gold-500 px-3 py-2 text-sm font-extrabold text-black shadow-sm transition-colors hover:bg-gold-400 md:flex"
             >
               {user ? (
                 <>
-                  <User className="mr-2 h-4 w-4" />
+                  <User className="mr-2 h-4 w-4 text-black" />
                   Account
                 </>
               ) : (
                 <>
-                  <LogIn className="mr-2 h-4 w-4" />
+                  <LogIn className="mr-2 h-4 w-4 text-black" />
                   Sign In
                 </>
               )}
@@ -237,9 +237,9 @@ function NavbarContent() {
             ) : (
               <Link
                 href="/login"
-                className="flex w-full items-center rounded-md bg-gold-500 px-3 py-2 text-base font-extrabold text-black"
+                className="btn-gold-contrast flex w-full items-center rounded-md bg-gold-500 px-3 py-2 text-base font-extrabold text-black"
               >
-                <LogIn className="mr-2 h-5 w-5" />
+                <LogIn className="mr-2 h-5 w-5 text-black" />
                 Sign In
               </Link>
             )}
