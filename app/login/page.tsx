@@ -14,18 +14,67 @@ import FormInput from '../components/ui/FormInput';
 import CsrfToken from '../components/CsrfToken';
 import { isValidEmail } from '../lib/validation';
 
+// Safely access hooks to prevent errors during SSR
+function useSafeToast() {
+  try {
+    return useToast();
+  } catch {
+    // Return a dummy implementation during SSR
+    return {
+      showToast: () => {},
+      hideToast: () => {},
+      toasts: [],
+    };
+  }
+}
+
+function useSafeAuth() {
+  try {
+    return useAuth();
+  } catch {
+    // Return a dummy implementation during SSR
+    return {
+      user: null,
+      token: null,
+      isLoading: true,
+      login: () => {},
+      logout: () => {},
+      update: () => {},
+    };
+  }
+}
+
+function useSafeCsrf() {
+  try {
+    return useCsrf();
+  } catch {
+    // Return a dummy implementation during SSR
+    return {
+      token: '',
+      headerName: 'X-CSRF-Token',
+      isLoading: true,
+    };
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
-  const { login, user, isLoading: authLoading } = useAuth();
-  const { showToast } = useToast();
-  const { token: csrfToken, headerName } = useCsrf();
+  const { login, user, isLoading: authLoading } = useSafeAuth();
+  const { showToast } = useSafeToast();
+  const { token: csrfToken, headerName } = useSafeCsrf();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Set mounted state to avoid hydration issues
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Redirect if already logged in (and auth state is loaded)
   useEffect(() => {
-    if (!authLoading && user) {
+    if (isMounted && !authLoading && user) {
       console.log('Already logged in, redirecting...');
       // Determine redirect path based on role
       switch (user.role) {
@@ -40,7 +89,7 @@ export default function LoginPage() {
           break;
       }
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, isMounted]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -107,7 +156,7 @@ export default function LoginPage() {
   };
 
   // Don't render the form if we are loading auth state or already logged in
-  if (authLoading || user) {
+  if (!isMounted || authLoading || user) {
     return (
       <Layout>
         <PageLoading message="Checking authentication status..." />

@@ -1,19 +1,41 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import Stripe from 'stripe';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 import sql from '@/lib/db';
+import { logger } from '@/lib/logger';
+import type Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-06-20', // Use the latest API version
-});
+// Only import and initialize Stripe if the secret key is available
+let stripe: Stripe | undefined;
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+
+if (stripeSecretKey) {
+  // Dynamic import to avoid build errors when key is missing
+  import('stripe').then(StripeModule => {
+    stripe = new StripeModule.default(stripeSecretKey);
+  });
+}
 
 export const dynamic = 'force-dynamic';
 
 /**
  * Creates a Stripe Payment Intent for the current cart
+ * If Stripe is not configured, returns an error suggesting manual payment
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check if Stripe is configured
+    if (!stripe) {
+      logger.warn('Stripe is not configured. Redirecting to manual payment.');
+      return NextResponse.json(
+        {
+          message:
+            'Credit card payments are not available at this time. Please use e-transfer or Bitcoin.',
+          useManualPayment: true,
+        },
+        { status: 400 }
+      );
+    }
+
     // Verify authentication
     const authResult = await verifyAuth(request);
     if (!authResult.isAuthenticated) {
@@ -81,7 +103,7 @@ export async function POST(request: NextRequest) {
         enabled: true,
       },
       metadata: {
-        userId,
+        userId: userId || '',
         orderId: orderId || '',
       },
     });
@@ -91,7 +113,14 @@ export async function POST(request: NextRequest) {
       clientSecret: paymentIntent.client_secret,
     });
   } catch (error) {
-    console.error('Error creating payment intent:', error);
-    return NextResponse.json({ message: 'Failed to create payment intent' }, { status: 500 });
+    logger.error('Error creating payment intent:', {}, error);
+    return NextResponse.json(
+      {
+        message:
+          'Credit card payments are not available at this time. Please use e-transfer or Bitcoin.',
+        useManualPayment: true,
+      },
+      { status: 500 }
+    );
   }
 }
