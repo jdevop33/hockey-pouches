@@ -411,7 +411,7 @@ export default function ProductDetailPage() {
                   </div>
                   <button
                     onClick={handleAddToCart}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gold-500 px-8 py-3 font-bold text-dark-900 shadow-sm transition-colors hover:bg-gold-400"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gold-500 px-8 py-3 font-extrabold text-black shadow-sm transition-colors hover:bg-gold-400"
                     aria-label="Add to cart"
                   >
                     <ShoppingCart className="h-5 w-5" />

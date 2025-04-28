@@ -153,7 +153,7 @@ export default function ProductsContent() {
                       </Link>
                       <button
                         onClick={() => addToCart(product, 1)}
-                        className="rounded bg-gold-600 px-4 py-1 text-sm font-medium text-dark-900 shadow hover:bg-gold-500"
+                        className="rounded bg-gold-600 px-4 py-1 text-sm font-extrabold text-black shadow hover:bg-gold-500"
                       >
                         Add to Cart
                       </button>

@@ -4,7 +4,7 @@ import tailwindTypography from '@tailwindcss/typography';
 import tailwindAspectRatio from '@tailwindcss/aspect-ratio';
 import tailwindTextShadow from 'tailwindcss-textshadow';
 
-export default {
+const tailwindConfig = {
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -239,3 +239,5 @@ export default {
     },
   ],
 };
+
+export default tailwindConfig;

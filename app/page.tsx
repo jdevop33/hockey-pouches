@@ -121,7 +121,7 @@ export default function Home() {
             <div className="mt-8 flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
               <Link
                 href="/products"
-                className="group flex items-center justify-center rounded-xl bg-gold-500 px-8 py-3.5 text-base font-bold text-dark-900 shadow-gold transition-all duration-300 hover:bg-gold-400 hover:shadow-gold-lg"
+                className="group flex items-center justify-center rounded-xl bg-gold-500 px-8 py-3.5 text-base font-extrabold text-black shadow-gold transition-all duration-300 hover:bg-gold-400 hover:shadow-gold-lg"
               >
                 <span>Shop Collection</span>
                 <ArrowRight className="ml-2 h-5 w-5 transform transition-transform duration-300 group-hover:translate-x-1" />
@@ -395,7 +395,7 @@ export default function Home() {
                   <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                     <Link
                       href="/products"
-                      className="group inline-flex items-center justify-center rounded-md bg-gold-500 px-6 py-3 text-base font-bold text-dark-900 shadow-gold transition-all duration-300 hover:bg-gold-400"
+                      className="group inline-flex items-center justify-center rounded-md bg-gold-500 px-6 py-3 text-base font-extrabold text-black shadow-gold transition-all duration-300 hover:bg-gold-400"
                     >
                       <span>Shop Now</span>
                       <ArrowRight className="ml-2 h-5 w-5 transform transition-transform duration-300 group-hover:translate-x-1" />
