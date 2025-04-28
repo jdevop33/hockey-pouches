@@ -1,0 +1,239 @@
+# LLM Design Guide: Applying Refactoring UI Principles
+
+**Source:** Refactoring UI by Adam Wathan & Steve Schoger
+
+**Objective:** To guide an LLM in generating UI designs that are clear, functional, aesthetically pleasing, and maintainable by adhering to core design principles focused on hierarchy, spacing, typography, color, and detail.
+
+**Core Philosophy:** Start with function, establish clear hierarchy, build systematic consistency, and refine details deliberately. Don't just style elements; design how they work together to communicate information effectively.
+
+---
+
+## I. Foundational Principles (Starting from Scratch)
+
+1.  **Feature First, Not Layout:**
+    *   **Instruction:** Begin design by focusing on a core piece of functionality (e.g., a search form, a data display card), not the overall page shell (like navigation or sidebars).
+    *   **Rationale:** The needs of the core features will inform the best layout structure. Designing the shell first leads to premature constraints.
+2.  **Detail Comes Later:**
+    *   **Instruction:** Initially, focus on layout, structure, and hierarchy using grayscale, basic shapes, and standard fonts. Defer decisions on specific colors, fonts, icons, shadows, etc.
+    *   **Rationale:** Avoids getting bogged down in low-level decisions early on. Forces focus on fundamental structure and hierarchy using spacing, contrast, and size.
+3.  **Design Minimally & Iteratively:**
+    *   **Instruction:** Design only the necessary parts of a feature to make it functional. Build the real, working version quickly, even if simple. Address complexity and edge cases based on interaction with the real implementation, not just abstract mockups. Design in cycles (design -> build -> iterate).
+    *   **Rationale:** Easier to solve problems with a tangible interface. Avoids analysis paralysis and designing unnecessary complexity upfront.
+4.  **Define a Personality (Consciously):**
+    *   **Instruction:** Choose a desired personality (e.g., professional, playful, secure, minimalist, classic) and reflect it *consistently* through choices in:
+        *   **Typography:** (Serif=classic/elegant, Rounded Sans=playful, Neutral Sans=plain/modern).
+        *   **Color:** (Blue=safe/familiar, Gold=expensive, Pink=fun).
+        *   **Border Radius:** (None=formal/serious, Large=playful, Small=neutral).
+        *   **Language:** (Formal vs. Casual/Friendly).
+    *   **Rationale:** Creates a cohesive and intentional user experience. Guides aesthetic decisions.
+5.  **Limit Choices (Systematize):**
+    *   **Instruction:** Define constrained systems *upfront* for common design attributes instead of picking arbitrary values each time. This includes scales/palettes for:
+        *   Spacing (margins, padding)
+        *   Sizing (widths, heights)
+        *   Typography (font sizes, weights, line heights)
+        *   Color (greys, primary, accents, including shades)
+        *   Shadows (elevation levels)
+        *   Border Radius, Border Width, Opacity, etc.
+    *   **Rationale:** Speeds up workflow, ensures consistency, reduces decision fatigue, makes choices more objective (process of elimination).
+
+---
+
+## II. Establishing Hierarchy (Hierarchy is Everything)
+
+6.  **Prioritize Elements:**
+    *   **Instruction:** Not all UI elements are equally important. Deliberately establish a clear visual hierarchy. Identify primary, secondary, and tertiary elements/information.
+    *   **Rationale:** Guides the user's eye, improves scannability, reduces cognitive load, makes the design feel intentional.
+7.  **Use Multiple Cues (Not Just Size):**
+    *   **Instruction:** Control hierarchy using a combination of size, font weight, and color/contrast. Avoid relying *only* on font size, which often leads to overly large primary or overly small secondary text.
+    *   **Example:** Use bolder weight or higher contrast color for primary elements; use lighter grey or normal weight for secondary/tertiary elements.
+    *   **Color/Weight Limits:** Stick to 2-3 text colors (e.g., dark primary, grey secondary, lighter grey tertiary) and 2 font weights (e.g., normal for body, bolder for emphasis/headings) for most UI text. Avoid weights below 400 for small text.
+8.  **Contrast on Colored Backgrounds:**
+    *   **Instruction:** Avoid using light grey text on colored backgrounds; it reduces contrast effectively but often looks washed out. Instead, use white text with reduced opacity *cautiously* (can look disabled), or preferably, hand-pick a lighter/darker shade of the *background color* with adjusted saturation for the text. Alternatively, flip the contrast: use dark text on a light version of the background color.
+    *   **Rationale:** Maintains hierarchy while ensuring clarity and visual appeal, preventing text from looking faded or disabled.
+9.  **Emphasize by De-emphasizing:**
+    *   **Instruction:** If a primary element isn't standing out, instead of making it "louder," try de-emphasizing the surrounding secondary/competing elements (e.g., making inactive nav items grey, removing unnecessary background colors/borders from less important panels).
+    *   **Rationale:** Creates focus and clarity by reducing noise around the most important elements.
+10. **Minimize Explicit Labels:**
+    *   **Instruction:** Avoid "Label: Value" pairs where possible. Rely on formatting (e.g., `$19.99` is obviously price), context (e.g., department under name), or combined label-value units (e.g., "3 bedrooms" instead of "Bedrooms: 3"). If labels are necessary (e.g., dashboards, dense forms), de-emphasize them relative to the data unless the *label itself* is the primary information the user scans for (e.g., technical specs).
+    *   **Rationale:** Reduces clutter, improves scannability of key data, allows for better visual hierarchy.
+11. **Separate Visual & Document Hierarchy:**
+    *   **Instruction:** Use semantic HTML tags (h1-h6) correctly for document structure and accessibility, but do *not* let the default browser styles dictate visual hierarchy. Style headings based on their visual importance in the UI, which might mean an `<h1>` title is visually small and de-emphasized.
+    *   **Rationale:** Ensures both semantic correctness/accessibility and appropriate visual design.
+
+---
+
+## III. Layout and Spacing
+
+12. **Generous Whitespace (Default):**
+    *   **Instruction:** Start with more whitespace than you think you need, then reduce it. Don't just add space incrementally until something doesn't look "cramped." Treat whitespace as a core design element.
+    *   **Rationale:** Creates cleaner, simpler, less cluttered designs. Easier to remove space than to add it later. (Exception: Dense UIs like dashboards may require compactness).
+13. **Use Consistent Spacing System:**
+    *   **Instruction:** Adhere strictly to the predefined spacing scale (see Principle 5) for margins and padding. Base the scale on a common value (e.g., 16px) and use multiples/factors that create noticeable, non-linear jumps (e.g., 4, 8, 12, 16, 24, 32, 48, 64px).
+    *   **Rationale:** Ensures consistency, speeds up decisions, creates visual harmony.
+14. **Don't Force Full Width:**
+    *   **Instruction:** Elements should only be as wide as their content requires for optimal presentation. Don't stretch elements (like forms or text blocks) to fill the screen width just because space is available. Use `max-width` to constrain elements. Consider multi-column layouts for wider screens if needed.
+    *   **Rationale:** Improves readability (especially for text) and prevents awkward stretching of components.
+15. **Grids are Tools, Not Religions:**
+    *   **Instruction:** Use grids (like 12-column) if helpful, but don't force every element onto the grid. Prioritize optimal *fixed* widths for components like sidebars or cards where fluidity is detrimental. Use `max-width` instead of percentage-based grid columns for elements with an ideal size.
+    *   **Rationale:** Prevents awkward scaling and ensures components are presented optimally regardless of screen size variations within a breakpoint.
+16. **Avoid Ambiguous Spacing:**
+    *   **Instruction:** Ensure the space *between* distinct groups of related elements is significantly larger than the space *within* a group. (e.g., space between form fields > space between label and its input; space between paragraphs > space between lines).
+    *   **Rationale:** Clearly communicates relationships between elements and improves scannability.
+
+---
+
+## IV. Designing Text
+
+17. **Use Defined Type Scale:**
+    *   **Instruction:** Strictly adhere to the predefined, limited type scale (see Principle 5). Avoid arbitrary font sizes. Hand-pick scales (e.g., 12, 14, 16, 18, 20, 24, 30, 36px) rather than relying solely on mathematical ratios (modular scales) for UI work, as the latter often lack necessary intermediate sizes or create fractional pixels. Use `px` or `rem`, avoid `em` for defining font sizes to prevent nesting issues.
+    *   **Rationale:** Ensures consistency, speeds up decisions, improves visual harmony.
+18. **Use Quality Fonts:**
+    *   **Instruction:** Choose legible, well-crafted fonts. Safe bets: system fonts, popular fonts from reputable foundries (Google Fonts sorted by popularity), fonts with many weights (often indicates higher quality). Check x-height and spacing for body text legibility. Steal ideas from well-designed sites.
+    *   **Rationale:** Typography significantly impacts personality and usability. Poor fonts make designs look unprofessional and hard to read.
+19. **Control Line Length:**
+    *   **Instruction:** For optimal readability of body text, aim for line lengths between 45 and 75 characters. Use `max-width` with `em` units (e.g., `max-width: 35em`) to achieve this.
+    *   **Rationale:** Prevents reader fatigue and difficulty tracking lines.
+20. **Align to Baseline:**
+    *   **Instruction:** When mixing different font sizes or elements (like icons and text) on the same line, align them to their baseline, not by vertical centering.
+    *   **Rationale:** Creates a more visually stable and harmonious alignment that feels natural to the eye.
+21. **Proportional Line Height:**
+    *   **Instruction:** Adjust line height based on font size and line length. Use *taller* line heights (e.g., 1.6-2.0) for small body text, especially with wider measures. Use *shorter* line heights (e.g., 1.0-1.3) for large headlines.
+    *   **Rationale:** Improves readability by making it easier to track lines, especially for long lines or small text. Avoids excessive spacing in headlines.
+22. **Style Links Contextually:**
+    *   **Instruction:** Standard blue/underlined links are crucial in body text. However, in navigation, lists, or areas dense with links, use more subtle treatments (e.g., font weight change, darker color) for default state. Consider revealing underlines or changing color only on hover for tertiary/less important links.
+    *   **Rationale:** Reduces visual clutter while maintaining discoverability.
+23. **Purposeful Text Alignment:**
+    *   **Instruction:** Default to left-alignment for most text (in LTR languages). Use center-alignment only for headlines or short (2-3 lines max) blocks of text. Right-align numbers (especially in tables) for scannability. Use justified text *only* with hyphenation enabled, typically for mimicking print designs.
+    *   **Rationale:** Ensures maximum readability and appropriate visual presentation for different text types.
+24. **Judicious Letter-Spacing:**
+    *   **Instruction:** Generally, leave letter-spacing alone. *Decrease* slightly for large headlines if using a font designed for body text. *Increase* slightly for all-caps text to improve readability.
+    *   **Rationale:** Improves visual appeal of headlines and legibility of all-caps text.
+
+---
+
+## V. Working with Color
+
+25. **Use HSL:**
+    *   **Instruction:** Define colors using HSL (Hue, Saturation, Lightness) instead of Hex or RGB where possible in the design process (final code may use other formats).
+    *   **Rationale:** HSL makes it intuitive to create variations (shades/tints) and understand color relationships.
+26. **Build a Comprehensive Palette:**
+    *   **Instruction:** Don't rely on small, 5-color palettes. Define upfront:
+        *   **Greys:** 8-10 shades from very dark grey (near black) to white. Consider temperature (cool blueish vs. warm yellowish saturation).
+        *   **Primary Color(s):** 1-2 brand colors, each with 5-10 shades (from very light for backgrounds to very dark for text).
+        *   **Accent Colors:** Colors for semantic states (red/error, green/success, yellow/warning) and potentially others for highlighting/categorization, each with multiple shades.
+    *   **Rationale:** Provides necessary options for creating hierarchy, states, and visual interest consistently.
+27. **Systematic Shade Generation:**
+    *   **Instruction:** Define shades methodically. Start with a base color (e.g., shade 500, suitable for buttons). Define the darkest (e.g., 900, for text) and lightest (e.g., 100, for backgrounds). Fill in the intermediate shades (e.g., 700, 300, then 800, 600, 400, 200) ensuring perceptual steps. Adjust saturation inversely with lightness (increase saturation as lightness moves away from 50%) to prevent washout. Consider slight hue shifts towards brighter/darker hues for more vibrant shades.
+    *   **Rationale:** Creates a usable, consistent, and harmonious set of shades for each color.
+28. **Ensure Accessibility:**
+    *   **Instruction:** Check contrast ratios (WCAG: 4.5:1 for normal text, 3:1 for large text). If white text on dark color fails, consider flipping contrast (dark text on light color). For colored text on colored backgrounds, try rotating the hue towards a brighter perceived color (yellow, cyan, magenta) to increase contrast without just adding white.
+    *   **Rationale:** Designs must be usable for everyone. Flipping contrast or rotating hue can achieve accessibility without sacrificing aesthetics or hierarchy.
+29. **Don't Rely Solely on Color:**
+    *   **Instruction:** Use color to *support* information, not as the *only* way to convey it. Add icons, text labels, patterns, or other visual cues to differentiate states or data, especially for colorblind users. (e.g., use icons alongside color for success/error states).
+    *   **Rationale:** Ensures accessibility and clarity for all users.
+
+---
+
+## VI. Creating Depth
+
+30. **Simulate a Light Source (Subtly):**
+    *   **Instruction:** Assume light comes from above. Make top edges slightly lighter and add subtle, sharp shadows below to simulate raised elements (buttons). Make top edges slightly shadowed and bottom edges slightly lighter to simulate inset elements (wells, inputs).
+    *   **Rationale:** Adds subtle realism and depth, making interfaces feel more tangible.
+31. **Use Shadows for Elevation & Focus:**
+    *   **Instruction:** Use a defined system of shadows (see Principle 5) to indicate an element's "elevation" off the page. Larger, softer shadows = higher elevation (more focus, e.g., modals). Smaller, sharper shadows = lower elevation (e.g., buttons). Use shadow changes on interaction (hover, click, drag) to provide feedback.
+    *   **Rationale:** Creates a clear sense of layering and focus, guides interaction.
+32. **Consider Two-Part Shadows:**
+    *   **Instruction:** For more realism, combine a larger, softer shadow (simulating direct light blockage) with a smaller, darker, tighter shadow directly underneath (simulating ambient light blockage). Reduce the intensity of the tighter shadow as elevation increases.
+    *   **Rationale:** Provides more nuanced control over shadow appearance.
+33. **Depth in Flat Design:**
+    *   **Instruction:** Create depth without realistic lighting effects by using:
+        *   **Color:** Lighter backgrounds feel closer, darker backgrounds feel further away.
+        *   **Solid Shadows:** Short, hard-edged shadows with no blur.
+34. **Use Overlapping Layers:**
+    *   **Instruction:** Overlap elements (e.g., a card partially covering a header, an image breaking out of its container) to create a clear sense of layers and depth. Use "invisible borders" (matching background color) to prevent clashing when overlapping complex elements like images.
+    *   **Rationale:** Strong visual cue for depth and layering.
+
+---
+
+## VII. Working with Images
+
+35. **Prioritize Image Quality:**
+    *   **Instruction:** Use high-quality, professional photos or stock images. Avoid poorly lit, low-resolution, or amateur photos.
+    *   **Rationale:** Bad photos instantly degrade the perceived quality of the entire design.
+36. **Ensure Text Contrast on Images:**
+    *   **Instruction:** When placing text over images, ensure consistent contrast. Techniques:
+        *   Add a semi-transparent dark or light overlay to the image.
+        *   Reduce the image's own contrast and adjust brightness.
+        *   Colorize the image with a single brand color (desaturate, then multiply blend mode with color fill).
+        *   Add a subtle text shadow/glow (no offset, generous blur).
+    *   **Rationale:** Makes text legible regardless of variations in the background image.
+37. **Respect Intended Size:**
+    *   **Instruction:** Avoid scaling bitmap images up. Avoid scaling *down* detailed icons or complex screenshots significantly, as they become illegible or mushy. Use icons near their intended size; crop or simplify screenshots/illustrations if they need to fit smaller spaces. Redraw simplified versions for very small sizes (like favicons).
+    *   **Rationale:** Preserves clarity, detail, and professionalism.
+38. **Manage User-Uploaded Content:**
+    *   **Instruction:** Constrain user images within fixed containers (cropping overflow, using `background-size: cover`). Prevent background bleed (image background blending with UI background) using subtle inner box shadows or semi-transparent inner borders, not harsh outer borders.
+    *   **Rationale:** Maintains layout integrity and visual polish despite unpredictable user content.
+
+---
+
+## VIII. Finishing Touches
+
+39. **Enhance Default Elements:**
+    *   **Instruction:** Add visual interest by styling default elements creatively: replace standard bullets with icons, style blockquotes distinctively, use custom underlines for links, create custom form elements (checkboxes, radios).
+    *   **Rationale:** Elevates the design beyond basic browser/framework defaults, adding polish.
+40. **Use Accent Borders:**
+    *   **Instruction:** Add thin (or thick) colored borders sparingly to tops/sides of cards, alerts, navigation items, or under headlines to inject brand color and visual interest without needing complex graphics.
+    *   **Rationale:** Simple, effective way to make designs feel more custom and branded.
+41. **Decorate Backgrounds (Subtly):**
+    *   **Instruction:** Break up large plain background areas with subtle techniques: slight changes in background color between sections, subtle repeating patterns (e.g., from Hero Patterns), slight gradients, or simple geometric shapes/illustrations placed strategically. Keep contrast low between decoration and background.
+    *   **Rationale:** Adds visual texture and interest without cluttering or distracting from content.
+42. **Design Engaging Empty States:**
+    *   **Instruction:** Treat empty states (e.g., no data yet) as a crucial part of the user experience. Use illustrations/images, clear explanations, and prominent calls-to-action. Hide irrelevant controls (filters, tabs) until there is content.
+    *   **Rationale:** Guides users, reduces confusion, and makes a better first impression for new features/products.
+43. **Reduce Reliance on Borders:**
+    *   **Instruction:** Create separation using whitespace, subtle background color changes, or box shadows instead of lines/borders whenever possible.
+    *   **Rationale:** Reduces visual noise and makes designs feel cleaner and more modern.
+44. **Think Outside the Box (Challenge Conventions):**
+    *   **Instruction:** Question default presentations for common components. Can a dropdown be multi-column with icons? Can table data be combined hierarchically instead of strictly columnar? Can radio buttons become selectable cards?
+    *   **Rationale:** Leads to more creative, usable, and tailored solutions beyond standard patterns.
+
+---
+
+## Applying to Navbar Design (User's Example)
+
+**Goal:** Design a clear, effective, and aesthetically pleasing navigation bar using the Refactoring UI principles.
+
+1.  **Function First:** What *must* the navbar achieve? (Logo/Brand, primary navigation links, maybe search, user auth/profile, primary call-to-action?). List essential items. *Don't* add non-essential items yet.
+2.  **Hierarchy:**
+    *   **Prioritize:** What's most important? (Usually Logo + primary links or primary CTA). Make these stand out.
+    *   **Differentiate:** Use size, weight, or color (from palettes) to distinguish between logo, active link, inactive links, secondary links (e.g., settings/profile), CTAs.
+    *   **De-emphasize:** Make inactive links less prominent (e.g., lighter grey text) than the active link (e.g., darker/primary color text, bolder weight). Maybe tertiary links (like 'Settings') are just icons or subtly styled text.
+3.  **Spacing System:**
+    *   Use the defined spacing scale for padding around the entire navbar, padding within items (like buttons), and spacing *between* navigation items. Be consistent.
+    *   Avoid ambiguous spacing: ensure links feel like distinct items.
+4.  **Typography System:**
+    *   Use the defined type scale for link text. Usually one, maybe two sizes are needed.
+    *   Use the defined font weights (e.g., normal for inactive, bolder for active).
+    *   Ensure adequate line height if navbar wraps or has multiple lines (uncommon, but possible).
+    *   Align items to their baseline if mixing text/icons of different sizes.
+5.  **Color System:**
+    *   Use the defined color palette. Background color should provide contrast. Use primary/accent colors for active states or CTAs. Use greys for inactive states or background. Ensure accessible contrast ratios for all text.
+6.  **Reduce Borders/Separators:**
+    *   Can separation be achieved with spacing alone? Avoid vertical lines between links unless absolutely necessary for clarity. Maybe use a subtle bottom border on the navbar itself, or a shadow, instead of a harsh line.
+7.  **Limit Choices/Simplicity:**
+    *   Does it *need* dropdowns? Are there too many top-level links? Can some be grouped? Don't overcomplicate.
+    *   Keep icons (if used) consistent in style and size (from the system).
+8.  **Personality:** Does the font, color, spacing, and language align with the overall brand personality? (e.g., a playful brand might use rounded corners on a CTA button within the nav).
+9.  **Iterate:** Build it, use it at different screen sizes. Does it break? Is hierarchy clear? Refine based on real usage.
+
+---
+
+**Prompting the LLM:**
+
+*   "Generate a website navbar design based on Refactoring UI principles."
+*   "Use the following constraints: [Specify Color Palette HSL values], [Specify Type Scale in px/rem], [Specify Spacing Scale in px]."
+*   "Establish clear visual hierarchy: The primary navigation links are [Link1, Link2, Link3], the primary CTA is 'Sign Up', and the logo is critical. Secondary links are 'Settings' and 'Profile'."
+*   "Design the navbar for a [professional/playful/minimalist] brand personality."
+*   "Show the active state for [Link2] using [bolder font weight and primary color text]."
+*   "Minimize the use of borders for separation; rely primarily on spacing from the defined scale."
+*   "Critique this navbar design based on Refactoring UI principles regarding hierarchy and spacing."
