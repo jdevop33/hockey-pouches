@@ -2,78 +2,47 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import ClientWrapper from '@/components/ClientWrapper';
+import { StoreProvider } from './providers/StoreProvider';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://nicotinetins.com'),
-  title: 'Nicotine Tins - Premium Nicotine Pouches by PUXX | Best Tobacco-Free Pouches in Canada',
-  description:
-    'Premium tobacco-free nicotine pouches by PUXX, designed for discerning adults across Canada. Discreet, convenient, and perfect for your active lifestyle. Free shipping on orders over $50.',
-  keywords:
-    'nicotine pouches, PUXX, tobacco-free, Canada, performance, discreet, nicotine tins, premium',
-  authors: [{ name: 'PUXX Team' }],
-  creator: 'PUXX',
-  publisher: 'Nicotine Tins',
-  alternates: {
-    canonical: 'https://nicotinetins.com',
-  },
+  title: 'Hockey Pouches - Premium Hockey Equipment Storage',
+  description: 'High-quality hockey equipment storage solutions for professionals and enthusiasts.',
   icons: {
-    icon: [
-      { url: '/images/logo/logo3.svg', sizes: 'any', type: 'image/svg+xml' },
-      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
-    ],
-    apple: [
-      { url: '/images/logo/logo3.svg', sizes: '256x256', type: 'image/svg+xml' },
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
-    ],
-    shortcut: [{ url: '/images/logo/logo3.svg' }],
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+  themeColor: '#12121a',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Hockey Pouches',
+  },
+  applicationName: 'Hockey Pouches',
+  formatDetection: {
+    telephone: false,
+    date: false,
+    email: false,
+    address: false,
   },
   openGraph: {
-    title: 'Nicotine Tins - Premium Nicotine Pouches by PUXX | Best in Canada',
-    description:
-      'Premium tobacco-free nicotine pouches by PUXX, designed for discerning adults across Canada. Discreet, convenient, and perfect for your active lifestyle.',
-    url: 'https://nicotinetins.com',
-    siteName: 'Premium Nicotine Tins by PUXX',
-    images: [
-      {
-        url: '/images/logo/logo3.svg',
-        width: 1200,
-        height: 630,
-        alt: 'Nicotine Tins - Premium Nicotine Pouches by PUXX',
-      },
-    ],
-    locale: 'en_CA',
+    siteName: 'Hockey Pouches',
     type: 'website',
+    locale: 'en_CA',
   },
-  // Updated from Twitter to X
   twitter: {
     card: 'summary_large_image',
-    title: 'Nicotine Tins - Premium Nicotine Pouches by PUXX',
-    description:
-      'Premium tobacco-free nicotine pouches designed for discerning adults across Canada. Free shipping on orders over $50.',
-    images: ['/images/logo/logo3.svg'],
-    creator: '@nicotinetins',
-    site: '@nicotinetins',
+    creator: '@hockeypouches',
+    site: '@hockeypouches',
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-  verification: {
-    google: process.env.GOOGLE_SITE_VERIFICATION || '',
-  },
-  appleWebApp: {
-    title: 'Nicotine Tins by PUXX',
-    statusBarStyle: 'default',
-    capable: true,
+  colorScheme: 'dark',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
   },
 };
 
@@ -84,7 +53,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="canonical" href="https://nicotinetins.com" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.google-analytics.com" />
@@ -108,10 +76,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="color-scheme" content="dark" />
       </head>
       <body
-        className={`${inter.variable} bg-dark-500 font-sans text-white antialiased`}
+        className={`${inter.className} bg-dark-500 font-sans text-white antialiased`}
         suppressHydrationWarning
       >
-        <ClientWrapper>{children}</ClientWrapper>
+        <StoreProvider>
+          <ClientWrapper>{children}</ClientWrapper>
+        </StoreProvider>
       </body>
     </html>
   );
