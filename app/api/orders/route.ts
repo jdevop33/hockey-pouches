@@ -487,6 +487,7 @@ export async function POST(request: NextRequest) {
                 quantity: item.quantity,
               })),
               shippingAddress: emailShippingAddress,
+              paymentMethod: paymentMethod as 'etransfer' | 'btc' | 'credit-card',
             });
 
             console.log(`Order confirmation email sent for order ${newOrderId}`);

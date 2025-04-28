@@ -18,6 +18,47 @@ By default, the tests run against the local development server. To test against 
 API_BASE_URL=https://hockey-pouches.vercel.app npm run test:api
 ```
 
+### Email Notification Testing
+
+To test the email notification system:
+
+```bash
+npm run test:emails
+```
+
+You can specify a particular payment method:
+
+```bash
+npm run test:emails -- etransfer
+npm run test:emails -- btc
+npm run test:emails -- credit-card
+```
+
+This will send a test order confirmation email with the selected payment method's instructions to the email address defined in `TEST_EMAIL` (defaults to test@example.com).
+
+### Checkout Flow Testing
+
+We've implemented a comprehensive end-to-end test for the checkout flow:
+
+```bash
+npm run test:checkout
+```
+
+You can specify a payment method:
+
+```bash
+npm run test:checkout -- etransfer
+npm run test:checkout -- btc
+npm run test:checkout -- credit-card
+```
+
+This test simulates:
+
+1. Adding products to the cart
+2. Processing the checkout with the selected payment method
+3. Sending order confirmation emails with payment-specific instructions
+4. Validating the entire flow succeeds
+
 ### What's Tested
 
 The automated tests check:
@@ -28,9 +69,22 @@ The automated tests check:
    - Product details
 
 2. **Admin Endpoints** (requires authentication):
+
    - Orders listing
    - Products management
    - Users management
+
+3. **Email Notifications**:
+
+   - Order confirmation emails with payment-specific instructions
+   - Email template rendering
+   - Different payment method instructions
+
+4. **Checkout Flow**:
+   - Cart functionality
+   - Order creation
+   - Payment method handling
+   - Email notifications
 
 ## Manual Testing Checklist
 

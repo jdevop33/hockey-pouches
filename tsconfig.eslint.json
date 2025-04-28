@@ -5,6 +5,7 @@
     "app/**/*.tsx",
     "*.js",
     "scripts/**/*.js",
+    "scripts/**/*.ts",
     "instrumentation-client.js",
     "instrumentation.js"
   ],

@@ -15,6 +15,8 @@
     "deploy": "node scripts/deploy.js",
     "git:push": "node scripts/git-push.js",
     "test:api": "node scripts/test-api.js",
+    "test:emails": "node --loader ts-node/esm scripts/test-order-emails.ts",
+    "test:checkout": "node --loader ts-node/esm scripts/test-checkout-flow.ts",
     "db:migrate": "node scripts/run-migrations.js"
   },
   "dependencies": {
