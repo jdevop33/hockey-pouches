@@ -213,6 +213,13 @@ export default function ProductsPage() {
   return (
     <Layout>
       <div className="min-h-screen bg-dark-500 px-4 py-8 text-white sm:px-6 lg:px-8">
+        {/* Notification toast */}
+        {showNotification && (
+          <div className="fixed right-4 top-4 z-50 rounded-md bg-green-600 px-4 py-2 text-white shadow-lg">
+            {notificationMessage}
+          </div>
+        )}
+
         <div className="bg-dark-900 pb-16 pt-6">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <Breadcrumbs customLabels={{ '/products': 'Shop' }} />
