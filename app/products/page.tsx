@@ -412,7 +412,7 @@ export default function ProductsPage() {
             {!isLoading && products.length > 0 && (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {/* Add type for product */}
-                {products.map((product: Product) => (
+                {products.map((product: Product, index: number) => (
                   <div
                     key={product.id}
                     className="group overflow-hidden rounded-lg border border-gold-500/10 bg-dark-700 p-4 shadow-md transition-all duration-300 hover:border-gold-500/30 hover:shadow-gold"
@@ -428,6 +428,7 @@ export default function ProductsPage() {
                           size="square"
                           objectFit="cover"
                           className="w-full"
+                          priority={index < 4}
                         />
                         {product.compare_at_price && (
                           <div className="absolute right-0 top-0 rounded-bl-md bg-gold-500 px-2 py-1 text-xs font-bold text-dark-900">

@@ -56,6 +56,22 @@ const ProductImage: React.FC<ProductImageProps> = ({
     setImageError(true);
   };
 
+  // Calculate appropriate sizes based on component size
+  const getSizes = () => {
+    switch (size) {
+      case 'small':
+        return '(max-width: 768px) 144px, 160px';
+      case 'medium':
+        return '(max-width: 768px) 192px, 240px';
+      case 'large':
+        return '(max-width: 768px) 256px, (max-width: 1024px) 320px, 384px';
+      case 'square':
+        return '(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw';
+      default:
+        return '(max-width: 768px) 192px, 240px';
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -71,17 +87,13 @@ const ProductImage: React.FC<ProductImageProps> = ({
         src={imageSrc}
         alt={alt}
         fill
-        priority={priority}
+        priority={priority || size === 'large'}
+        quality={90}
         style={{ objectFit }}
-        className="p-2 transition-transform duration-300"
+        className="transition-opacity duration-300"
         onError={handleImageError}
-        sizes={
-          size === 'small'
-            ? '(max-width: 768px) 36px, 40px'
-            : size === 'medium'
-              ? '(max-width: 768px) 48px, 60px'
-              : '(max-width: 768px) 64px, (max-width: 1024px) 80px, 96px'
-        }
+        sizes={getSizes()}
+        loading={priority ? 'eager' : 'lazy'}
       />
     </div>
   );
