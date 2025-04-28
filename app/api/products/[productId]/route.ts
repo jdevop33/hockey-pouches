@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import sql from '../../../lib/db';
+import sql from '../../../lib/db'; // Assuming lib/db exports the neon sql function correctly
 import { unstable_cache } from 'next/cache';
 
 interface Product {
@@ -28,42 +28,51 @@ const getProductFromDb = unstable_cache(
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.id
         WHERE p.id = ${productId} AND p.is_active = true
-      `;
+      `; // Restored the is_active check
 
       // Check if any results were returned
       if (!result || result.length === 0) {
+        console.log(`Active product ${productId} not found in DB.`);
         return null;
       }
 
+      console.log(`Product ${productId} found.`);
       return result[0] as Product;
+      
     } catch (error) {
       console.error(`Database error fetching product ${productId}:`, error);
-      return null;
+      return null; // Return null on error
     }
   },
-  ['product-detail'],
-  { revalidate: 3600 }
+  ['product-detail'], // Use the original cache key
+  { revalidate: 3600 } // Restore original revalidate time
 );
 
 export async function GET(request: NextRequest, { params }: { params: { productId: string } }) {
+  console.log(`GET request for product ID: ${params.productId}`);
   try {
     const productId = parseInt(params.productId);
 
     if (isNaN(productId)) {
+      console.log('Invalid product ID format');
       return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
     }
 
-    // Try to get product from database
+    console.log(`Fetching active product ${productId}...`);
+    // Try to get product from database using the original function
     const product = await getProductFromDb(productId);
 
     // If product not found, return 404
     if (!product) {
+      console.log(`Active product ${productId} resulted in null from getProductFromDb`);
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
-
+    
+    console.log(`Product ${productId} found.`);
     return NextResponse.json(product);
+    
   } catch (error) {
-    console.error('Error fetching product:', error);
+    console.error('Error in GET handler for product:', error);
     return NextResponse.json({ error: 'Failed to fetch product details' }, { status: 500 });
   }
 }
