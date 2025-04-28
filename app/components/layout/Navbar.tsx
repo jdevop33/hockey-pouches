@@ -110,11 +110,11 @@ export default function Navbar() {
             <Link href="/" className="flex-shrink-0">
               <div className="h-10 w-28">
                 <Image
-                  src="/images/logo/logo3.svg"
+                  src="/images/logo/PUXX-LOGO-LONG-WHITE-650x195.png"
                   alt="PUXX"
-                  width={100}
-                  height={40}
-                  className="object-contain"
+                  width={180}
+                  height={54}
+                  className="h-10 w-auto object-contain"
                   priority
                 />
               </div>
@@ -210,39 +210,40 @@ export default function Navbar() {
                   ? 'bg-dark-800 text-gold-500'
                   : 'text-gray-300 hover:bg-dark-800/50 hover:text-white'
               }`}
-              onClick={() => setMobileMenuOpen(false)}
             >
               {item.label}
             </Link>
           ))}
 
-          <Link
-            href={getDashboardRoute()}
-            className="mt-1 flex w-full items-center justify-center rounded-md bg-gold-500 px-3 py-2 text-base font-medium text-dark-900"
-            onClick={() => setMobileMenuOpen(false)}
-          >
+          {/* Mobile account link */}
+          <div className="mt-4 border-t border-dark-700 pt-4">
             {user ? (
               <>
-                <User className="mr-2 h-4 w-4" />
-                My Account
+                <Link
+                  href={getDashboardRoute()}
+                  className="flex w-full items-center rounded-md bg-dark-800 px-3 py-2 text-base font-medium text-gold-500"
+                >
+                  <User className="mr-2 h-5 w-5" />
+                  My Account
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="mt-2 flex w-full items-center rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-dark-800/50 hover:text-white"
+                >
+                  <LogOut className="mr-2 h-5 w-5" />
+                  Logout
+                </button>
               </>
             ) : (
-              <>
-                <LogIn className="mr-2 h-4 w-4" />
+              <Link
+                href="/login"
+                className="flex w-full items-center rounded-md bg-gold-500 px-3 py-2 text-base font-medium text-dark-900"
+              >
+                <LogIn className="mr-2 h-5 w-5" />
                 Sign In
-              </>
+              </Link>
             )}
-          </Link>
-
-          {user && (
-            <button
-              onClick={handleLogout}
-              className="mt-1 flex w-full items-center justify-center rounded-md border border-dark-700 bg-dark-800 px-3 py-2 text-base font-medium text-gray-300 hover:bg-dark-700 hover:text-white"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
-            </button>
-          )}
+          </div>
         </div>
       </div>
     </nav>
