@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+// Use named imports for React hooks and types
+import { useState, useEffect, ChangeEvent } from 'react'; 
 import Image from 'next/image';
 import Link from 'next/link';
 import Layout from '@/components/layout/NewLayout';
@@ -200,7 +201,8 @@ export default function ProductsPage() {
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
-      setPagination(prev => ({ ...prev, page: newPage }));
+      // Add type for prev
+      setPagination((prev: PaginationState) => ({ ...prev, page: newPage }));
     }
   };
 
@@ -253,11 +255,13 @@ export default function ProductsPage() {
               <select
                 id="category"
                 value={selectedCategory || ''}
-                onChange={e => setSelectedCategory(e.target.value || null)}
+                // Add type for e
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedCategory(e.target.value || null)}
                 className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
               >
                 <option value="">All Categories</option>
-                {availableFilters.categories.map((category, idx) => (
+                {/* Add types for category and idx */}
+                {availableFilters.categories.map((category: string, idx: number) => (
                   <option key={idx} value={category}>
                     {category}
                   </option>
@@ -273,11 +277,13 @@ export default function ProductsPage() {
               <select
                 id="flavor"
                 value={selectedFlavor || ''}
-                onChange={e => setSelectedFlavor(e.target.value || null)}
+                // Add type for e
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedFlavor(e.target.value || null)}
                 className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
               >
                 <option value="">All Flavors</option>
-                {availableFilters.flavors.map((flavor, idx) => (
+                {/* Add types for flavor and idx */}
+                {availableFilters.flavors.map((flavor: string, idx: number) => (
                   <option key={idx} value={flavor}>
                     {flavor}
                   </option>
@@ -293,11 +299,13 @@ export default function ProductsPage() {
               <select
                 id="strength"
                 value={selectedStrength || ''}
-                onChange={e => setSelectedStrength(e.target.value ? Number(e.target.value) : null)}
+                // Add type for e
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedStrength(e.target.value ? Number(e.target.value) : null)}
                 className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
               >
                 <option value="">All Strengths</option>
-                {availableFilters.strengths.map((strength, idx) => (
+                {/* Add types for strength and idx */}
+                {availableFilters.strengths.map((strength: number, idx: number) => (
                   <option key={idx} value={strength}>
                     {strength}mg
                   </option>
@@ -313,7 +321,8 @@ export default function ProductsPage() {
               <select
                 id="sort"
                 value={`${sortBy}-${sortOrder}`}
-                onChange={e => {
+                // Add type for e
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => {
                   const [newSortBy, newSortOrder] = e.target.value.split('-');
                   setSortBy(newSortBy);
                   setSortOrder(newSortOrder);
@@ -338,7 +347,8 @@ export default function ProductsPage() {
                 type="number"
                 id="minPrice"
                 value={minPriceFilter || ''}
-                onChange={e => setMinPriceFilter(e.target.value || null)}
+                // Add type for e
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setMinPriceFilter(e.target.value || null)}
                 placeholder={`$${availableFilters.priceRange.min}`}
                 className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
               />
@@ -351,7 +361,8 @@ export default function ProductsPage() {
                 type="number"
                 id="maxPrice"
                 value={maxPriceFilter || ''}
-                onChange={e => setMaxPriceFilter(e.target.value || null)}
+                // Add type for e
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setMaxPriceFilter(e.target.value || null)}
                 placeholder={`$${availableFilters.priceRange.max}`}
                 className="w-full rounded-md border-gray-700 bg-dark-700 text-white focus:border-gold-500 focus:ring focus:ring-gold-500/20"
               />
@@ -376,7 +387,8 @@ export default function ProductsPage() {
         {/* Product Grid */}
         {!isLoading && products.length > 0 && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products.map(product => (
+            {/* Add type for product */}
+            {products.map((product: Product) => (
               <div
                 key={product.id}
                 className="group overflow-hidden rounded-lg border border-gold-500/10 bg-dark-700 p-4 shadow-md transition-all duration-300 hover:border-gold-500/30 hover:shadow-gold"
@@ -388,7 +400,7 @@ export default function ProductsPage() {
                       alt={product.name}
                       width={300}
                       height={300}
-                      className="object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     {product.compare_at_price && (
                       <div className="absolute right-0 top-0 rounded-bl-md bg-gold-500 px-2 py-1 text-xs font-bold text-dark-900">
@@ -478,7 +490,7 @@ export default function ProductsPage() {
                 Previous
               </button>
 
-              {[...Array(pagination.totalPages)].map((_, idx) => (
+              {[...Array(pagination.totalPages)].map((_, idx: number) => ( // Add type for idx
                 <button
                   key={idx}
                   onClick={() => handlePageChange(idx + 1)}
