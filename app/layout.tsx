@@ -28,7 +28,10 @@ export const metadata: Metadata = {
       { url: '/images/logo/logo3.svg', sizes: 'any', type: 'image/svg+xml' },
       { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
     ],
-    apple: [{ url: '/images/logo/logo3.svg', sizes: '256x256', type: 'image/svg+xml' }],
+    apple: [
+      { url: '/images/logo/logo3.svg', sizes: '256x256', type: 'image/svg+xml' },
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
     shortcut: [{ url: '/images/logo/logo3.svg' }],
   },
   openGraph: {
@@ -85,7 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="canonical" href="https://nicotinetins.com" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/images/logo/logo3.svg" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

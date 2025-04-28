@@ -24,6 +24,8 @@ Built with Next.js (`14.2.28`) and Tailwind CSS v4.
 
 ## Project Status (Apr 23, 2025)
 
+For the most up-to-date project status, progress tracking, and task list, please refer to `PROJECT-STATUS.md`. We've consolidated all tracking documents into this single source of truth.
+
 - **Phase 1: Scaffolding (Complete)**
   - Full project structure (API routes, Frontend pages) created based on scope.
   - Neon DB connection utility (`/app/lib/db.ts`) established.
