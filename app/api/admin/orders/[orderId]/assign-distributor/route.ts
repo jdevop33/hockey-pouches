@@ -46,7 +46,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
             const assignmentTaskUpdate = await db.update(schema.tasks).set({
                 status: 'Completed',
                 updatedAt: new Date(),
-                notes: sql`COALESCE(${schema.tasks.notes}, '') || ' | Assigned by admin ${sql.val(adminUserId)} on ' || NOW()`
+                notes: sql`COALESCE(${schema.tasks.notes}, '') || ' | Assigned by admin ${adminUserId} on ' || NOW()`
             }).where(and(
                 eq(schema.tasks.relatedTo, 'Order'),
                 eq(schema.tasks.relatedId, orderId),

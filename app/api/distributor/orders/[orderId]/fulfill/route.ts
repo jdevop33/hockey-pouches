@@ -11,13 +11,13 @@ import { eq, and, sql } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
-// Define Zod schema ONCE
+// Define Zod schema ONCE at the top level
 const fulfillSchema = z.object({
     trackingNumber: z.string().optional().nullable(),
     carrier: z.string().optional().nullable(),
     fulfillmentNotes: z.string().optional().nullable(),
     fulfillmentProofUrl: z.union([z.string().url(), z.array(z.string().url())]).optional().nullable(),
-}).refine(data => !!data.trackingNumber || !!data.fulfillmentProofUrl, { // Correct refine usage
+}).refine(data => !!data.trackingNumber || !!data.fulfillmentProofUrl, { // Ensure refine has the correct structure
     message: "Either trackingNumber or fulfillmentProofUrl is required",
     path: ["trackingNumber", "fulfillmentProofUrl"],
 });
@@ -36,7 +36,6 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
         const validation = fulfillSchema.safeParse(body);
         if (!validation.success) return NextResponse.json({ message: 'Invalid input data.', errors: validation.error.flatten().fieldErrors }, { status: 400 });
 
-        // Use validated data to construct FulfillmentData
         const fulfillmentData: FulfillmentData = {
              trackingNumber: validation.data.trackingNumber ?? undefined,
              carrier: validation.data.carrier ?? undefined,
@@ -45,14 +44,14 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
         };
         logger.info(`Distributor POST /api/distributor/orders/${orderId}/fulfill request`, { distributorId, orderId });
 
-        // --- Verify Order Assignment using direct schema reference ---
+        // --- Verify Order Assignment --- Use imported `orders` schema
         const order = await db.query.orders.findFirst({
             where: and(eq(orders.id, orderId), eq(orders.distributorId, distributorId)),
             columns: { id: true, status: true }
         });
         if (!order) return NextResponse.json({ message: 'Order not found or not assigned to this distributor.' }, { status: 404 });
 
-        // Use correct enum type from imported schema
+        // Use imported `orderStatusEnum` type
         const fulfillableStatuses: (typeof orderStatusEnum.enumValues[number])[] = ['ReadyForFulfillment', 'Processing'];
         if (!fulfillableStatuses.includes(order.status)) {
             return NextResponse.json({ message: `Order cannot be fulfilled. Current status: ${order.status}` }, { status: 400 });
@@ -63,10 +62,11 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
 
         // --- Task Management ---
         try {
+            // Use imported `tasks` schema
             const fulfillmentTaskUpdate = await db.update(tasks).set({
                 status: 'Completed',
                 updatedAt: new Date(),
-                // Use direct variable interpolation (Drizzle handles parameterization)
+                 // Use direct variable interpolation
                 notes: sql`COALESCE(${tasks.notes}, '') || ' | Completed by distributor ${distributorId} on ' || NOW()`
             }).where(and(
                 eq(tasks.relatedTo, 'Order'),
@@ -77,17 +77,17 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
             ));
             logger.info('Closed fulfill order task(s)', { orderId, count: fulfillmentTaskUpdate.rowCount });
 
-            // Use direct schema reference for users query
+            // Use imported `users` schema
             const distributor = await db.query.users.findFirst({ where: eq(users.id, distributorId), columns: { name: true } });
             const distributorName = distributor?.name ?? 'Unknown Distributor';
+            // Use imported `tasks` schema and correct enum member
             await db.insert(tasks).values({
                 title: 'Verify fulfillment',
                 description: `Verify fulfillment for order #${orderId} by distributor ${distributorName}`,
                 status: 'Pending',
                 priority: 'High',
-                // Use correct enum value from imported schema
-                category: taskCategoryEnum.enumValues[0], // Assuming 'OrderReview' or similar based on enum definition
-                relatedTo: 'Order', // Use correct enum value
+                category: taskCategoryEnum.enumValues[0], // Use enum value e.g. 'OrderReview'
+                relatedTo: 'Order', // Use enum value e.g. taskRelatedEntityEnum.enumValues[0]
                 relatedId: orderId,
             });
             logger.info('Created verify fulfillment task for admin', { orderId });

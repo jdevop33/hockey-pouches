@@ -7,6 +7,9 @@ import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
+// Define type based on the schema enum
+type UserRole = typeof schema.userRoleEnum.enumValues[number];
+
 export async function GET(request: NextRequest) {
   try {
     const authResult = await verifyAdmin(request);
@@ -18,12 +21,17 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '15');
-    const role = searchParams.get('role') as schema.UserRole | null;
+    const roleParam = searchParams.get('role');
     const status = searchParams.get('status');
     const search = searchParams.get('search');
 
-    if (role && !schema.userRoleEnum.enumValues.includes(role)) {
-      return NextResponse.json({ message: `Invalid role filter: ${role}` }, { status: 400 });
+    // Validate and cast role parameter
+    const role = roleParam && schema.userRoleEnum.enumValues.includes(roleParam as UserRole)
+                 ? roleParam as UserRole
+                 : null;
+
+    if (roleParam && !role) { // Check if a role was provided but was invalid
+      return NextResponse.json({ message: `Invalid role filter: ${roleParam}` }, { status: 400 });
     }
 
     const result = await userService.listUsers({

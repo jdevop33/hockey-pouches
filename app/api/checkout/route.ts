@@ -1,15 +1,32 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
+import { sql } from '@/lib/db'; // Corrected import
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
-import { Address, OrderStatus, PaymentStatus } from '@/types';
+import * as schema from '@/lib/schema'; // Import schema namespace
 import { v4 as uuidv4 } from 'uuid';
 
 export const dynamic = 'force-dynamic';
 
+// Define types based on schema enums
+type OrderStatus = typeof schema.orderStatusEnum.enumValues[number];
+type PaymentStatus = typeof schema.paymentStatusEnum.enumValues[number];
+type PaymentMethod = typeof schema.paymentMethodEnum.enumValues[number];
+
+// Define Address interface (assuming basic structure)
+// TODO: Verify if a more specific definition exists elsewhere
+interface Address {
+  street: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  country: string;
+  name?: string; // Optional name
+  phone?: string; // Optional phone
+}
+
 interface CheckoutBody {
   shippingAddress: Address;
   billingAddress?: Address;
-  paymentMethod: string;
+  paymentMethod: PaymentMethod; // Use enum type
   referralCode?: string;
 }
 
@@ -22,6 +39,10 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = authResult.userId;
+    if (!userId) {
+        // This case should theoretically not happen if verifyAuth passes
+        return NextResponse.json({ message: 'User ID not found in token' }, { status: 401 });
+    }
 
     // Parse request body
     const body: CheckoutBody = await request.json();
@@ -35,6 +56,10 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       );
+    }
+    // Validate payment method against enum
+    if (!schema.paymentMethodEnum.enumValues.includes(paymentMethod)) {
+      return NextResponse.json({ message: `Invalid payment method: ${paymentMethod}` }, { status: 400 });
     }
 
     console.log(`POST /api/checkout - User: ${userId}, Payment Method: ${paymentMethod}`);
@@ -65,8 +90,9 @@ export async function POST(request: NextRequest) {
 
     // Create order
     const orderId = uuidv4();
-    const orderStatus = 'Pending Approval' as OrderStatus;
-    const paymentStatus = 'Pending' as PaymentStatus;
+    // Set initial statuses based on enums
+    const initialOrderStatus: OrderStatus = 'PendingPayment';
+    const initialPaymentStatus: PaymentStatus = 'Pending'; 
 
     await sql`
       INSERT INTO orders (
@@ -75,9 +101,9 @@ export async function POST(request: NextRequest) {
         referral_code, created_at, updated_at
       )
       VALUES (
-        ${orderId}, ${userId}, ${orderStatus}, ${subtotal}, ${shippingCost}, ${taxes}, ${totalAmount},
+        ${orderId}, ${userId}, ${initialOrderStatus}, ${subtotal}, ${shippingCost}, ${taxes}, ${totalAmount},
         ${JSON.stringify(shippingAddress)}, ${billingAddress ? JSON.stringify(billingAddress) : JSON.stringify(shippingAddress)},
-        ${paymentMethod}, ${paymentStatus}, ${referralCode || null}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        ${paymentMethod}, ${initialPaymentStatus}, ${referralCode || null}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
       )
     `;
 
@@ -94,7 +120,7 @@ export async function POST(request: NextRequest) {
       INSERT INTO order_history (order_id, status, user_id, notes, timestamp)
       VALUES (
         ${orderId},
-        ${orderStatus},
+        ${initialOrderStatus},
         ${userId},
         ${'Order created'},
         CURRENT_TIMESTAMP
@@ -104,17 +130,19 @@ export async function POST(request: NextRequest) {
     // Clear cart
     await sql`DELETE FROM cart_items WHERE user_id = ${userId}`;
 
-    // Create task for admin to approve order
+    // Create task for admin to approve order (Consider if needed for all orders)
+    // If payment is processed immediately, maybe only create task if payment pending?
+    // Let's keep it for now for consistency.
     await sql`
       INSERT INTO tasks (
         title, category, status, priority, assigned_user_id,
         related_entity_type, related_entity_id, due_date, created_at
       )
       VALUES (
-        ${`Approve Order ${orderId}`},
-        ${'Order'},
-        ${'Pending'},
-        ${'High'},
+        ${`Review Order ${orderId}`}, -- Changed title slightly
+        ${'OrderReview'}, -- Using enum value
+        ${'Pending'}, -- Using enum value
+        ${'High'}, -- Using enum value
         (SELECT id FROM users WHERE role = 'Admin' LIMIT 1),
         ${'Order'},
         ${orderId},
@@ -122,103 +150,99 @@ export async function POST(request: NextRequest) {
         CURRENT_TIMESTAMP
       )
     `;
-    console.log(`Created task 'Approve Order ${orderId}'`);
+    console.log(`Created task 'Review Order ${orderId}'`);
 
     // Process payment based on payment method
     let paymentResult = { success: false, message: '', transactionId: '' };
 
     switch (paymentMethod) {
-      case 'credit_card':
+      case 'CreditCard': // Match enum value
         // In a real implementation, this would call a payment gateway API
         console.log(`Processing credit card payment for order ${orderId}`);
         paymentResult = {
           success: true,
           message: 'Payment processed successfully',
-          transactionId: `cc-${Date.now()}`,
+          transactionId: `cc-${uuidv4()}`,
         };
         break;
 
-      case 'e_transfer':
-        // For e-transfer, we'll just create a pending payment that admin will confirm later
+      case 'ETransfer': // Match enum value
         console.log(`Creating pending e-transfer payment for order ${orderId}`);
         paymentResult = {
           success: true,
           message: 'E-transfer instructions sent',
-          transactionId: `et-${Date.now()}`,
+          transactionId: `et-${uuidv4()}`,
         };
-
         // Create task for admin to confirm e-transfer
         await sql`
-          INSERT INTO tasks (
-            title, category, status, priority, assigned_user_id,
-            related_entity_type, related_entity_id, due_date, created_at
-          )
-          VALUES (
-            ${`Confirm E-Transfer for Order ${orderId}`},
-            ${'Payment'},
-            ${'Pending'},
-            ${'Medium'},
-            (SELECT id FROM users WHERE role = 'Admin' LIMIT 1),
-            ${'Order'},
-            ${orderId},
-            (CURRENT_DATE + INTERVAL '3 days'),
-            CURRENT_TIMESTAMP
-          )
+          INSERT INTO tasks (title, category, status, priority, assigned_user_id, related_entity_type, related_entity_id, due_date, created_at)
+          VALUES (${`Confirm E-Transfer for Order ${orderId}`}, ${'Payment'}, ${'Pending'}, ${'Medium'}, (SELECT id FROM users WHERE role = 'Admin' LIMIT 1), ${'Order'}, ${orderId}, (CURRENT_DATE + INTERVAL '3 days'), CURRENT_TIMESTAMP)
         `;
         break;
 
-      case 'bitcoin':
-        // For bitcoin, we'll just create a pending payment that admin will confirm later
+      case 'Bitcoin': // Match enum value
         console.log(`Creating pending bitcoin payment for order ${orderId}`);
         paymentResult = {
           success: true,
           message: 'Bitcoin payment instructions sent',
-          transactionId: `btc-${Date.now()}`,
+          transactionId: `btc-${uuidv4()}`,
         };
-
         // Create task for admin to confirm bitcoin payment
         await sql`
-          INSERT INTO tasks (
-            title, category, status, priority, assigned_user_id,
-            related_entity_type, related_entity_id, due_date, created_at
-          )
-          VALUES (
-            ${`Confirm Bitcoin Payment for Order ${orderId}`},
-            ${'Payment'},
-            ${'Pending'},
-            ${'Medium'},
-            (SELECT id FROM users WHERE role = 'Admin' LIMIT 1),
-            ${'Order'},
-            ${orderId},
-            (CURRENT_DATE + INTERVAL '3 days'),
-            CURRENT_TIMESTAMP
-          )
+          INSERT INTO tasks (title, category, status, priority, assigned_user_id, related_entity_type, related_entity_id, due_date, created_at)
+          VALUES (${`Confirm Bitcoin Payment for Order ${orderId}`}, ${'Payment'}, ${'Pending'}, ${'Medium'}, (SELECT id FROM users WHERE role = 'Admin' LIMIT 1), ${'Order'}, ${orderId}, (CURRENT_DATE + INTERVAL '3 days'), CURRENT_TIMESTAMP)
+        `;
+        break;
+
+      case 'Manual': // Match enum value
+        console.log(`Creating manual payment task for order ${orderId}`);
+        paymentResult = { success: true, message: 'Manual payment noted', transactionId: `man-${uuidv4()}` };
+         // Create task for admin to process manual payment
+        await sql`
+          INSERT INTO tasks (title, category, status, priority, assigned_user_id, related_entity_type, related_entity_id, due_date, created_at)
+          VALUES (${`Process Manual Payment for Order ${orderId}`}, ${'Payment'}, ${'Pending'}, ${'High'}, (SELECT id FROM users WHERE role = 'Admin' LIMIT 1), ${'Order'}, ${orderId}, (CURRENT_DATE + INTERVAL '1 day'), CURRENT_TIMESTAMP)
         `;
         break;
 
       default:
-        console.error(`Unsupported payment method: ${paymentMethod}`);
-        paymentResult = {
-          success: false,
-          message: 'Unsupported payment method',
-          transactionId: '',
-        };
+        // This should not happen due to earlier validation
+        console.error(`Unsupported payment method reached switch: ${paymentMethod}`);
+        paymentResult = { success: false, message: 'Unsupported payment method', transactionId: '' };
     }
 
     // Update order with payment result
     if (paymentResult.success) {
+      // Determine payment status based on method
+      const finalPaymentStatus: PaymentStatus = paymentMethod === 'CreditCard' ? 'Completed' : 'Pending';
+      const finalOrderStatus: OrderStatus = paymentMethod === 'CreditCard' ? 'Processing' : 'PendingPayment'; // Update order status too
       await sql`
         UPDATE orders
-        SET payment_status = 'Processing', payment_transaction_id = ${paymentResult.transactionId}
+        SET payment_status = ${finalPaymentStatus}, 
+            status = ${finalOrderStatus}, 
+            payment_transaction_id = ${paymentResult.transactionId}
         WHERE id = ${orderId}
       `;
+       // Log the status change
+        await sql`
+          INSERT INTO order_history (order_id, status, payment_status, user_id, notes, timestamp)
+          VALUES (${orderId}, ${finalOrderStatus}, ${finalPaymentStatus}, ${userId}, ${'Payment initiated'}, CURRENT_TIMESTAMP)
+        `;
+    } else {
+        // Handle payment failure (though current logic always sets success=true for non-CC)
+        await sql`
+            UPDATE orders SET payment_status = 'Failed', status = 'PendingPayment' WHERE id = ${orderId}
+        `;
+        await sql`
+          INSERT INTO order_history (order_id, status, payment_status, user_id, notes, timestamp)
+          VALUES (${orderId}, 'PendingPayment', 'Failed', ${userId}, ${'Payment processing failed: ' + paymentResult.message}, CURRENT_TIMESTAMP)
+        `;
     }
 
     return NextResponse.json(
       {
         message: 'Order created successfully',
         orderId,
-        status: orderStatus,
+        status: initialOrderStatus,
         total: totalAmount,
       },
       { status: 201 }

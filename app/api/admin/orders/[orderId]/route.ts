@@ -81,7 +81,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { orderI
         }
         logger.info(`Admin PATCH /api/admin/orders/${orderId} request`, { adminId: authResult.userId, updateData });
 
-        let updatedOrder: schema.OrderSelect | null = null;
+        // Use the Drizzle inferred type
+        let updatedOrder: typeof schema.orders.$inferSelect | null = null;
         if (updateData.status) {
             updatedOrder = await orderService.updateOrderStatus(orderId, updateData.status, `Status updated by admin ${authResult.userId}`, authResult.userId);
         }

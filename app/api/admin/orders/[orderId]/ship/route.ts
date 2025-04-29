@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
+import { sql } from '@/lib/db';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 import { sendShippingConfirmationEmail } from '../../../../../lib/email';
 import { getRowCount, getFirstRow } from '@/lib/db-types';

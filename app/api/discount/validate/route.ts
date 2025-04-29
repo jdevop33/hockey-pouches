@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
+import { sql } from '@/lib/db'; // Corrected import
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     if (result.length === 0) {
       return NextResponse.json(
         { valid: false, message: 'Invalid or expired discount code' },
-        { status: 200 }
+        { status: 200 } // Return 200 OK with valid: false for validation checks
       );
     }
 
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
           valid: false, 
           message: `This code requires a minimum order of $${discountCode.min_order_amount.toFixed(2)}` 
         },
-        { status: 200 }
+        { status: 200 } // Return 200 OK with valid: false
       );
     }
 

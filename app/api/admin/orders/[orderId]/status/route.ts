@@ -1,26 +1,20 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
+import { sql } from '@/lib/db';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
-import { OrderStatus } from '@/types';
+import * as schema from '@/lib/schema'; // Import the schema namespace
 
 export const dynamic = 'force-dynamic';
+
+// Use the generated enum type for status
+type OrderStatus = typeof schema.orderStatusEnum.enumValues[number];
 
 interface StatusUpdateBody {
   status?: OrderStatus;
   reason?: string;
 }
 
-const ALLOWED_STATUSES: OrderStatus[] = [
-  'Pending Approval',
-  'Awaiting Fulfillment',
-  'Pending Fulfillment Verification',
-  'Awaiting Shipment',
-  'Shipped',
-  'Delivered',
-  'Cancelled',
-  'Refunded',
-  'On Hold - Stock Issue',
-];
+// Use the enum values directly
+const ALLOWED_STATUSES: OrderStatus[] = schema.orderStatusEnum.enumValues;
 
 export async function PUT(request: NextRequest, { params }: { params: { orderId: string } }) {
   const { orderId: orderIdString } = params;
@@ -59,7 +53,8 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
         { status: 400 }
       );
     }
-    if (!ALLOWED_STATUSES.includes(newStatus)) {
+    // Type assertion to ensure newStatus is compatible with OrderStatus enum
+    if (!ALLOWED_STATUSES.includes(newStatus as OrderStatus)) {
       return NextResponse.json({ message: `Invalid status value: ${newStatus}.` }, { status: 400 });
     }
 

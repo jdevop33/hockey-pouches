@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           message: 'Item added to cart',
-          cartItemId: result.cartItemId,
+          cartItemId: result.id, // Changed from result.cartItemId
           quantity: result.quantity,
         },
         { status: 201 }

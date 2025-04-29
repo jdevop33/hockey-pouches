@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdmin } from '@/lib/auth';
-import sql from '@/lib/db';
+import { sql } from '@/lib/db';
 
 export async function POST(request: NextRequest, { params }: { params: { userId: string } }) {
   const { userId } = params;

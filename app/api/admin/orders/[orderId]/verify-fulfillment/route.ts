@@ -41,16 +41,14 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
 
         logger.info(`Admin POST /api/admin/orders/${orderId}/verify-fulfillment request`, { adminId: adminUserId, action, fulfillmentId, orderId });
 
-        let success = false;
+        // Call the appropriate service method. Assume success if no error is thrown.
         if (action === 'approve') {
-            success = await orderService.approveFulfillment(orderId, fulfillmentId, adminUserId, notes ?? undefined);
+            await orderService.approveFulfillment(orderId, fulfillmentId, adminUserId, notes ?? undefined);
         } else { // action === 'reject'
-            success = await orderService.rejectFulfillment(orderId, fulfillmentId, adminUserId, notes!); // Notes guaranteed by validation
+            await orderService.rejectFulfillment(orderId, fulfillmentId, adminUserId, notes!); // Notes guaranteed by validation
         }
 
-        if (!success) {
-            throw new Error('Fulfillment verification/rejection failed in service.');
-        }
+        // Removed the check for (!success) as errors are handled by catch block
 
         logger.info(`Admin: Fulfillment ${action} successful`, { orderId, fulfillmentId, adminId: adminUserId });
         return NextResponse.json({ message: `Fulfillment for order ${orderId} successfully ${action === 'approve' ? 'approved' : 'rejected'}.` });

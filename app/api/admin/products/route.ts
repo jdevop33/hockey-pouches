@@ -26,7 +26,8 @@ export async function GET(request: NextRequest) {
       minPrice: searchParams.has('minPrice') ? parseFloat(searchParams.get('minPrice')!) : undefined,
       maxPrice: searchParams.has('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined,
       search: searchParams.get('search'),
-      sortBy: searchParams.get('sortBy') as ProductListOptions['sortBy'] || 'id', // Default sort by ID for admin?
+      // Changed default sortBy from 'id' to 'createdAt'
+      sortBy: searchParams.get('sortBy') as ProductListOptions['sortBy'] || 'createdAt', 
       sortOrder: searchParams.get('sortOrder') as ProductListOptions['sortOrder'] || 'asc',
       includeInactive: true, // Admins should see inactive products
     };

@@ -43,10 +43,10 @@ export async function PUT(request: NextRequest, { params }: { params: { cartItem
         return NextResponse.json({ message: result.message });
       }
 
-      // Item was updated
+      // Item was updated - Use result.id instead of result.cartItemId
       return NextResponse.json({
         message: 'Cart item updated',
-        cartItemId: result.cartItemId,
+        cartItemId: result.id, // Changed from result.cartItemId
         quantity: result.quantity,
       });
     } catch (error) {

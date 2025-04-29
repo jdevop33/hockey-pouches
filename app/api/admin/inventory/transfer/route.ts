@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { verifyAdmin } from '@/lib/auth';
-import sql from '@/lib/db';
+import { sql } from '@/lib/db';
 
 // Define admin roles
 const ADMIN_ROLES = ['Admin'];

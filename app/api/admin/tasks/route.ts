@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
+import { sql } from '@/lib/db';
 
 // TODO: Add JWT verification + Admin role check
 

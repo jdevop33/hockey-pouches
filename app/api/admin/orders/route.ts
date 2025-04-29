@@ -7,6 +7,10 @@ import * as schema from '@/lib/schema'; // Use central schema index
 
 export const dynamic = 'force-dynamic';
 
+// Define types based on the schema enums
+type OrderStatus = typeof schema.orderStatusEnum.enumValues[number];
+type OrderType = typeof schema.orderTypeEnum.enumValues[number];
+
 export async function GET(request: NextRequest) {
     try {
         const authResult = await verifyAdmin(request);
@@ -18,22 +22,34 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '15');
-        const status = searchParams.get('status') as schema.OrderStatus | null;
-        const type = searchParams.get('type') as schema.OrderType | null;
+        const statusParam = searchParams.get('status');
+        const typeParam = searchParams.get('type');
         const fromDateStr = searchParams.get('fromDate');
         const toDateStr = searchParams.get('toDate');
         const search = searchParams.get('search');
+
+        // Validate and cast status/type parameters
+        const status = statusParam && schema.orderStatusEnum.enumValues.includes(statusParam as OrderStatus) 
+                       ? statusParam as OrderStatus 
+                       : null;
+        const type = typeParam && schema.orderTypeEnum.enumValues.includes(typeParam as OrderType)
+                     ? typeParam as OrderType
+                     : null;
 
         const fromDate = fromDateStr ? new Date(fromDateStr) : undefined;
         const toDate = toDateStr ? new Date(toDateStr) : undefined;
         if ((fromDate && isNaN(fromDate.getTime())) || (toDate && isNaN(toDate.getTime()))) {
             return NextResponse.json({ message: 'Invalid date format for fromDate or toDate.' }, { status: 400 });
         }
-        // TODO: Validate status/type against enums
-
+        
         const result = await orderService.getAdminOrders({
-            page, limit, status: status ?? undefined, type: type ?? undefined,
-            fromDate, toDate, search: search ?? undefined,
+            page, 
+            limit, 
+            status: status ?? undefined, 
+            type: type ?? undefined,
+            fromDate, 
+            toDate, 
+            search: search ?? undefined,
         });
 
         return NextResponse.json(result);

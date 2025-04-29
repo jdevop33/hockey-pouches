@@ -3,12 +3,26 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 import { db } from '@/lib/db';
 import * as schema from '@/lib/schema';
-import { eq, and, or, ilike, count, desc, asc, gte, lte, sql as dSql, gt, lt, isNotNull, isNull, Placeholder } from 'drizzle-orm'; // Added isNotNull, isNull
+import { eq, and, or, ilike, count, desc, asc, gte, lte, sql as dSql, gt, lt, isNotNull, isNull, Placeholder, SQL } from 'drizzle-orm'; // Added isNotNull, isNull and SQL
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-interface InventoryViewItem { /* ... as before ... */ }
+interface InventoryViewItem {
+  stockLevelId: string;
+  productId: number;
+  productVariationId: number | null;
+  productName: string | null;
+  variationName: string | null;
+  locationId: string;
+  locationName: string | null;
+  quantity: number;
+  reservedQuantity: number;
+  availableQuantity: number;
+  reorderPoint: number | null;
+  sku: string | null;
+  imageUrl: string | null;
+}
 
 export async function GET(request: NextRequest) {
     try {
@@ -31,7 +45,7 @@ export async function GET(request: NextRequest) {
         const sortBy = searchParams.get('sortBy') || 'productName';
         const sortOrder = searchParams.get('sortOrder') === 'desc' ? desc : asc;
 
-        const conditions: (SQL<unknown> | Placeholder)[] = []; // Use SQL[] type
+        const conditions: (SQL<unknown> | Placeholder)[] = [];
         if (locationIdFilter) conditions.push(eq(schema.stockLevels.locationId, locationIdFilter));
         if (productIdFilter) conditions.push(eq(schema.stockLevels.productId, parseInt(productIdFilter)));
         if (variationIdFilter) conditions.push(eq(schema.stockLevels.productVariationId, parseInt(variationIdFilter)));
@@ -66,7 +80,7 @@ export async function GET(request: NextRequest) {
         }
         const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-        let orderByClause: SQL<unknown> | SQL<unknown>[]; // Adjust type
+        let orderByClause: SQL<unknown> | SQL<unknown>[];
         switch (sortBy) {
             case 'locationName': orderByClause = sortOrder(schema.stockLocations.name); break;
             case 'variationName': orderByClause = sortOrder(schema.productVariations.name); break;
@@ -76,14 +90,28 @@ export async function GET(request: NextRequest) {
             default: orderByClause = sortOrder(schema.products.name); break;
         }
 
-        const inventoryQuery = db.select({ /* ... fields ... */ })
+        const inventoryQuery = db.select({
+          stockLevelId: schema.stockLevels.id,
+          productId: schema.stockLevels.productId,
+          productVariationId: schema.stockLevels.productVariationId,
+          productName: schema.products.name,
+          variationName: schema.productVariations.name,
+          locationId: schema.stockLevels.locationId,
+          locationName: schema.stockLocations.name,
+          quantity: schema.stockLevels.quantity,
+          reservedQuantity: schema.stockLevels.reservedQuantity,
+          availableQuantity: availableStockSql,
+          reorderPoint: schema.stockLevels.reorderPoint,
+          sku: schema.productVariations.sku,
+          imageUrl: schema.products.imageUrl
+        })
             .from(schema.stockLevels)
             .leftJoin(schema.stockLocations, eq(schema.stockLevels.locationId, schema.stockLocations.id))
             .leftJoin(schema.productVariations, eq(schema.stockLevels.productVariationId, schema.productVariations.id))
             .leftJoin(schema.products, eq(schema.stockLevels.productId, schema.products.id))
             .where(whereClause)
             // Ensure orderBy is handled correctly (might need array)
-            .orderBy(Array.isArray(orderByClause) ? [...orderByClause, asc(schema.stockLevels.id)] : [orderByClause, asc(schema.stockLevels.id)])
+            .orderBy(...(Array.isArray(orderByClause) ? orderByClause : [orderByClause]), asc(schema.stockLevels.id))
             .limit(limit)
             .offset(offset);
 
@@ -110,8 +138,3 @@ export async function GET(request: NextRequest) {
 
 // POST commented out
 // Definitions for fields in db.select({...}) should be added back
-interface InventoryViewItem {
-    stockLevelId: string; productId: number; productVariationId: number | null; productName: string | null;
-    variationName: string | null; locationId: string; locationName: string | null; quantity: number;
-    reservedQuantity: number; availableQuantity: number; reorderPoint: number | null; sku: string | null; imageUrl: string | null;
-}
