@@ -21,3 +21,19 @@ export const showInfoToast = (message: string) => {
     description: message,
   });
 };
+
+export function useShowToast() {
+  return {
+    showToast: (options: {
+      title?: string;
+      description: string;
+      variant?: 'default' | 'destructive' | 'success';
+    }) => {
+      toast({
+        title: options.title,
+        description: options.description,
+        variant: options.variant || 'default',
+      });
+    },
+  };
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useShowToast } from './toast';
+import { showErrorToast, showInfoToast } from './toast';
 
 interface FetchOptions extends RequestInit {
   retries?: number;
@@ -109,7 +109,6 @@ export async function fetchWithRetry<T>(url: string, options: FetchOptions = {})
  * ```
  */
 export function useApi(defaultOptions: FetchOptions = {}) {
-  const { showToast } = useShowToast();
   const [isLoading, setIsLoading] = React.useState(false);
 
   const fetchApi = React.useCallback(
@@ -125,11 +124,7 @@ export function useApi(defaultOptions: FetchOptions = {}) {
             ...options.headers,
           },
           onRetry: (attempt: number, error: ApiError) => {
-            showToast({
-              title: 'Retrying Request',
-              description: `Attempt ${attempt} of ${options.retries || 3}`,
-              variant: 'default',
-            });
+            showInfoToast(`Retrying request... Attempt ${attempt} of ${options.retries || 3}`);
             if (options.onRetry) {
               options.onRetry(attempt, error);
             }
@@ -143,30 +138,18 @@ export function useApi(defaultOptions: FetchOptions = {}) {
 
         // Handle specific error types
         if (apiError.status === 401) {
-          showToast({
-            title: 'Authentication Error',
-            description: 'Please log in again',
-            variant: 'destructive',
-          });
+          showErrorToast('Please log in again');
         } else if (apiError.status === 403) {
-          showToast({
-            title: 'Access Denied',
-            description: 'You do not have permission to perform this action',
-            variant: 'destructive',
-          });
+          showErrorToast('You do not have permission to perform this action');
         } else {
-          showToast({
-            title: 'Error',
-            description: apiError.message || 'An unexpected error occurred',
-            variant: 'destructive',
-          });
+          showErrorToast(apiError.message || 'An unexpected error occurred');
         }
         throw apiError;
       } finally {
         setIsLoading(false);
       }
     },
-    [defaultOptions, showToast]
+    [defaultOptions]
   );
 
   return { fetchApi, isLoading };
