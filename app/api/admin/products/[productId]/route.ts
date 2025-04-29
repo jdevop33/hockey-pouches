@@ -1,243 +1,140 @@
+// app/api/admin/products/[productId]/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
-import { verifyJWT } from '@/lib/auth';
-
-// Helper function to verify admin access
-async function verifyAdminAccess(request: NextRequest) {
-  // Get the token from the Authorization header
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { authorized: false, message: 'Missing or invalid authorization token', status: 401 };
-  }
-
-  const token = authHeader.split(' ')[1];
-  try {
-    const payload = await verifyJWT(token);
-    if (!payload || !payload.userId) {
-      return { authorized: false, message: 'Invalid token', status: 401 };
-    }
-
-    // Check if user has admin role
-    if (payload.role !== 'Admin') {
-      return { authorized: false, message: 'Insufficient permissions', status: 403 };
-    }
-
-    return { authorized: true, userId: payload.userId };
-  } catch (error) {
-    console.error('Token verification error:', error);
-    return { authorized: false, message: 'Invalid token', status: 401 };
-  }
-}
-
-interface UpdateProductBody {
-  name?: string;
-  description?: string | null;
-  flavor?: string | null;
-  strength?: number | null;
-  price?: number;
-  compare_at_price?: number | null;
-  image_url?: string | null;
-  category?: string | null;
-  is_active?: boolean;
-}
+import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth'; // Use shared auth verification
+import { productService, type ProductSelect } from '@/lib/services/product-service'; // Use refactored service
+import { logger } from '@/lib/logger';
+import { z } from 'zod'; // For input validation
 
 export const dynamic = 'force-dynamic';
 
+// Zod schema for validating update body
+const updateProductSchema = z.object({
+    name: z.string().min(1, "Name cannot be empty").optional(),
+    description: z.string().nullable().optional(),
+    flavor: z.string().nullable().optional(),
+    strength: z.number().int().positive("Strength must be a positive number").nullable().optional(),
+    price: z.number().positive("Price must be positive").optional(),
+    compareAtPrice: z.number().positive("Compare at price must be positive").nullable().optional(),
+    imageUrl: z.string().url("Invalid image URL").nullable().optional(),
+    category: z.string().nullable().optional(),
+    isActive: z.boolean().optional(),
+}).strict(); // Disallow extra fields
+
 // --- GET Handler (Retrieve Single Product) ---
 export async function GET(request: NextRequest, { params }: { params: { productId: string } }) {
-  // Verify admin access
-  const authResult = await verifyAdminAccess(request);
-  if (!authResult.authorized) {
-    return NextResponse.json({ message: authResult.message }, { status: authResult.status });
-  }
+    try {
+        const authResult = await verifyAdmin(request);
+        if (!authResult.isAuthenticated || authResult.role !== 'Admin') {
+            return forbiddenResponse('Admin access required');
+        }
 
-  const { productId: productIdString } = params;
-  const productId = parseInt(productIdString);
+        const productId = parseInt(params.productId);
+        if (isNaN(productId)) {
+            return NextResponse.json({ message: 'Invalid Product ID format.' }, { status: 400 });
+        }
 
-  if (isNaN(productId)) {
-    return NextResponse.json({ message: 'Invalid Product ID format.' }, { status: 400 });
-  }
+        logger.info(`Admin GET /api/admin/products/${productId} request`, { adminId: authResult.userId });
 
-  try {
-    console.log(`Admin GET /api/admin/products/${productId} request`);
+        // Use ProductService to get the product (includes variations by default)
+        const product = await productService.getProductById(productId);
 
-    const productResult = await sql`
-        SELECT
-            id, name, description, flavor, strength,
-            CAST(price AS FLOAT) as price,
-            CAST(compare_at_price AS FLOAT) as compare_at_price,
-            image_url, category, is_active
-        FROM products WHERE id = ${productId}
-    `;
+        if (!product) {
+            return NextResponse.json({ message: 'Product not found.' }, { status: 404 });
+        }
 
-    if (productResult.length === 0) {
-      return NextResponse.json({ message: 'Product not found.' }, { status: 404 });
+        return NextResponse.json(product);
+
+    } catch (error) {
+        logger.error(`Admin: Failed to retrieve product ${params.productId}:`, { error });
+        return NextResponse.json({ message: 'Internal Server Error retrieving product.' }, { status: 500 });
     }
-
-    return NextResponse.json(productResult[0] as Product);
-  } catch (error: any) {
-    console.error(`Admin: Failed to retrieve product ${productId}:`, error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-  }
 }
 
-// --- PUT Handler (Update Existing Product) ---
-export async function PUT(request: NextRequest, { params }: { params: { productId: string } }) {
-  // Verify admin access
-  const authResult = await verifyAdminAccess(request);
-  if (!authResult.authorized) {
-    return NextResponse.json({ message: authResult.message }, { status: authResult.status });
-  }
+// --- PUT/PATCH Handler (Update Existing Product) ---
+// Using PATCH is often semantically better for partial updates
+export async function PATCH(request: NextRequest, { params }: { params: { productId: string } }) {
+     try {
+        const authResult = await verifyAdmin(request);
+        if (!authResult.isAuthenticated || authResult.role !== 'Admin') {
+            return forbiddenResponse('Admin access required');
+        }
 
-  const { productId: productIdString } = params;
-  const productId = parseInt(productIdString);
+        const productId = parseInt(params.productId);
+        if (isNaN(productId)) {
+            return NextResponse.json({ message: 'Invalid Product ID format.' }, { status: 400 });
+        }
 
-  if (isNaN(productId)) {
-    return NextResponse.json({ message: 'Invalid Product ID format.' }, { status: 400 });
-  }
+        // Parse and validate the request body
+        const body = await request.json();
+        const validationResult = updateProductSchema.safeParse(body);
 
-  try {
-    const body: UpdateProductBody = await request.json();
-    console.log(`Admin PUT /api/admin/products/${productId} request:`, body);
+        if (!validationResult.success) {
+            return NextResponse.json({ message: 'Invalid input data.', errors: validationResult.error.flatten().fieldErrors }, { status: 400 });
+        }
 
-    // --- Validation ---
-    if (Object.keys(body).length === 0) {
-      return NextResponse.json({ message: 'No update data provided.' }, { status: 400 });
+        const updateData = validationResult.data;
+
+        if (Object.keys(updateData).length === 0) {
+             return NextResponse.json({ message: 'No update data provided.' }, { status: 400 });
+        }
+
+        logger.info(`Admin PATCH /api/admin/products/${productId} request`, { adminId: authResult.userId, updateData });
+
+        // Prepare data for service (handle price formatting)
+        const serviceUpdateData: Partial<Omit<ProductSelect, 'id' | 'createdAt'>> = {
+            ...updateData,
+            price: updateData.price ? updateData.price.toFixed(2) : undefined,
+            compareAtPrice: updateData.compareAtPrice !== undefined ? (updateData.compareAtPrice === null ? null : updateData.compareAtPrice.toFixed(2)) : undefined,
+        };
+
+        // Call the service method
+        const updatedProduct = await productService.updateProduct(productId, serviceUpdateData);
+
+        logger.info('Admin: Product updated successfully', { productId, adminId: authResult.userId });
+        return NextResponse.json(updatedProduct);
+
+    } catch (error: any) {
+        logger.error(`Admin: Failed to update product ${params.productId}:`, { error });
+        if (error instanceof SyntaxError) {
+            return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
+        }
+         if (error.message?.includes('not found')) { // Check if service threw not found error
+            return NextResponse.json({ message: error.message }, { status: 404 });
+        }
+        return NextResponse.json({ message: 'Internal Server Error updating product.' }, { status: 500 });
     }
-    if (body.price !== undefined && (typeof body.price !== 'number' || body.price < 0)) {
-      return NextResponse.json({ message: 'Invalid price.' }, { status: 400 });
-    }
-    if (
-      body.strength !== undefined &&
-      body.strength !== null &&
-      (typeof body.strength !== 'number' || body.strength <= 0)
-    ) {
-      return NextResponse.json({ message: 'Invalid strength.' }, { status: 400 });
-    }
-    if (
-      body.name !== undefined &&
-      (typeof body.name !== 'string' || body.name.trim().length === 0)
-    ) {
-      return NextResponse.json({ message: 'Name cannot be empty.' }, { status: 400 });
-    }
-
-    // --- Construct SET clause dynamically ---
-    const fieldsToUpdate: string[] = [];
-    const values: any[] = [];
-    let valueIndex = 1;
-
-    const addUpdateField = (fieldName: keyof UpdateProductBody, dbColumn: string, value: any) => {
-      if (value !== undefined) {
-        const finalValue =
-          (value === '' || value === null) &&
-          ['description', 'compare_at_price', 'image_url', 'category', 'strength'].includes(
-            dbColumn
-          )
-            ? null
-            : value;
-        fieldsToUpdate.push(`${dbColumn} = $${valueIndex++}`);
-        values.push(finalValue);
-      }
-    };
-
-    addUpdateField('name', 'name', body.name?.trim());
-    addUpdateField('description', 'description', body.description);
-    addUpdateField('flavor', 'flavor', body.flavor);
-    addUpdateField('strength', 'strength', body.strength);
-    addUpdateField('price', 'price', body.price);
-    addUpdateField('compare_at_price', 'compare_at_price', body.compare_at_price);
-    addUpdateField('image_url', 'image_url', body.image_url);
-    addUpdateField('category', 'category', body.category);
-    addUpdateField('is_active', 'is_active', body.is_active);
-
-    if (fieldsToUpdate.length === 0) {
-      return NextResponse.json({ message: 'No valid fields to update provided.' }, { status: 400 });
-    }
-    fieldsToUpdate.push(`updated_at = CURRENT_TIMESTAMP`);
-
-    // --- Update product in DB ---
-    console.log(`Admin: Updating product ${productId} with fields: ${fieldsToUpdate.join(', ')}`);
-    const updateQuery = `UPDATE products SET ${fieldsToUpdate.join(', ')} WHERE id = $${valueIndex}`;
-    values.push(productId);
-
-    // Removed rowCount check - Assume success if no error throws
-    await sql.query(updateQuery, values);
-    console.log(`Admin: Product ${productId} update attempted.`);
-
-    // --- Return updated product ---
-    const updatedProductResult = await sql`
-         SELECT
-            id, name, description, flavor, strength,
-            CAST(price AS FLOAT) as price,
-            CAST(compare_at_price AS FLOAT) as compare_at_price,
-            image_url, category, is_active
-        FROM products WHERE id = ${productId}
-    `;
-
-    if (updatedProductResult.length === 0) {
-      // This would mean the product was deleted between the start of the request and now
-      return NextResponse.json({ message: 'Product not found after update.' }, { status: 404 });
-    }
-
-    return NextResponse.json(updatedProductResult[0] as Product);
-  } catch (error: any) {
-    if (error instanceof SyntaxError) {
-      return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
-    }
-    console.error(`Admin: Failed to update product ${productId}:`, error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-  }
 }
 
 // --- DELETE Handler (Soft Delete Product) ---
 export async function DELETE(request: NextRequest, { params }: { params: { productId: string } }) {
-  // Verify admin access
-  const authResult = await verifyAdminAccess(request);
-  if (!authResult.authorized) {
-    return NextResponse.json({ message: authResult.message }, { status: authResult.status });
-  }
+    try {
+        const authResult = await verifyAdmin(request);
+        if (!authResult.isAuthenticated || authResult.role !== 'Admin') {
+            return forbiddenResponse('Admin access required');
+        }
 
-  const { productId: productIdString } = params;
-  const productId = parseInt(productIdString);
+        const productId = parseInt(params.productId);
+        if (isNaN(productId)) {
+            return NextResponse.json({ message: 'Invalid Product ID format.' }, { status: 400 });
+        }
 
-  if (isNaN(productId)) {
-    return NextResponse.json({ message: 'Invalid Product ID format.' }, { status: 400 });
-  }
+        logger.info(`Admin DELETE /api/admin/products/${productId} request (Soft Delete)`, { adminId: authResult.userId });
 
-  try {
-    console.log(`Admin DELETE /api/admin/products/${productId} request (Soft Delete)`);
+        // Perform soft delete by updating isActive to false using the service
+        const updatedProduct = await productService.updateProduct(productId, { isActive: false });
 
-    // Soft Delete (Recommended)
-    console.log(`Admin: Deactivating product ${productId}...`);
-    // Removed rowCount check - Assume success if no error throws
-    await sql`
-        UPDATE products
-        SET is_active = FALSE, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ${productId}
-    `;
-    console.log(`Admin: Product ${productId} deactivation attempted.`);
-    // We might want to SELECT here to confirm is_active is now false if needed
+        if (!updatedProduct) { // Should not happen if updateProduct throws on not found, but check anyway
+             return NextResponse.json({ message: 'Product not found for deactivation.' }, { status: 404 });
+        }
 
-    return NextResponse.json(
-      { message: `Product ${productId} deactivated successfully.` },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error(`Admin: Failed to deactivate product ${productId}:`, error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-  }
-}
+        logger.info('Admin: Product deactivated successfully', { productId, adminId: authResult.userId });
+        return NextResponse.json({ message: `Product ${productId} deactivated successfully.` }); // Use 200 OK or 204 No Content
 
-// Add Product interface definition if not shared
-interface Product {
-  id: number;
-  name: string;
-  description?: string | null;
-  flavor?: string | null;
-  strength?: number | null;
-  price: number;
-  compare_at_price?: number | null;
-  image_url?: string | null;
-  category?: string | null;
-  is_active: boolean;
+    } catch (error: any) {
+        logger.error(`Admin: Failed to deactivate product ${params.productId}:`, { error });
+        if (error.message?.includes('not found')) {
+             return NextResponse.json({ message: error.message }, { status: 404 });
+        }
+        return NextResponse.json({ message: 'Internal Server Error deactivating product.' }, { status: 500 });
+    }
 }

@@ -1,114 +1,135 @@
+// app/api/admin/inventory/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
-import { Inventory } from '@/types';
+import { db } from '@/lib/db'; // Use Drizzle
+import * as schema from '@/lib/schema'; // Use central schema index
+import { eq, and, or, ilike, count, desc, asc, gte, lte, sql as drizzleSql, gt, lt } from 'drizzle-orm';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-// Type for the returned inventory item
-interface InventoryItemAdmin {
-  inventoryId: number; // inventory.id
-  productId: number; // inventory.product_id
-  productName: string; // products.name
-  variationName?: string | null; // Placeholder if variations implemented
-  location: string;
-  quantity: number;
-  lowStockThreshold?: number | null; // Placeholder if needed
-  imageUrl?: string | null; // products.image_url
+// Type for the returned admin inventory view
+interface InventoryViewItem {
+    stockLevelId: string;
+    productId: number;
+    productVariationId: number | null;
+    productName: string | null;
+    variationName: string | null;
+    locationId: string;
+    locationName: string | null;
+    quantity: number;
+    reservedQuantity: number;
+    availableQuantity: number;
+    reorderPoint: number | null;
+    sku: string | null;
+    imageUrl: string | null;
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    // Verify admin authentication
-    const authResult = await verifyAdmin(request);
-    if (!authResult.isAuthenticated) {
-      return unauthorizedResponse(authResult.message);
+    try {
+        const authResult = await verifyAdmin(request);
+        if (!authResult.isAuthenticated || authResult.role !== 'Admin') {
+            return forbiddenResponse('Admin access required');
+        }
+        logger.info(`Admin GET /api/admin/inventory request`, { adminId: authResult.userId });
+
+        const searchParams = request.nextUrl.searchParams;
+        const page = parseInt(searchParams.get('page') || '1');
+        const limit = parseInt(searchParams.get('limit') || '20');
+        const offset = (page - 1) * limit;
+        const locationIdFilter = searchParams.get('locationId');
+        const productIdFilter = searchParams.get('productId');
+        const variationIdFilter = searchParams.get('variationId');
+        const lowStockFilter = searchParams.get('lowStock') === 'true';
+        const outOfStockFilter = searchParams.get('outOfStock') === 'true';
+        const searchQuery = searchParams.get('search');
+        const sortBy = searchParams.get('sortBy') || 'productName';
+        const sortOrder = searchParams.get('sortOrder') === 'desc' ? desc : asc;
+
+        const conditions = [];
+        if (locationIdFilter) conditions.push(eq(schema.stockLevels.locationId, locationIdFilter));
+        if (productIdFilter) conditions.push(eq(schema.stockLevels.productId, parseInt(productIdFilter)));
+        if (variationIdFilter) conditions.push(eq(schema.stockLevels.productVariationId, parseInt(variationIdFilter)));
+        if (lowStockFilter) {
+            const lowStockThreshold = 10;
+            conditions.push(
+                or(
+                    and(
+                        schema.stockLevels.reorderPoint !== null,
+                        lt(drizzleSql`${schema.stockLevels.quantity} - ${schema.stockLevels.reservedQuantity}`, schema.stockLevels.reorderPoint)
+                    ),
+                    and(
+                        schema.stockLevels.reorderPoint === null,
+                        gt(drizzleSql`${schema.stockLevels.quantity} - ${schema.stockLevels.reservedQuantity}`, 0),
+                        lt(drizzleSql`${schema.stockLevels.quantity} - ${schema.stockLevels.reservedQuantity}`, lowStockThreshold)
+                    )
+                )
+            );
+        }
+        if (outOfStockFilter) conditions.push(lte(drizzleSql`${schema.stockLevels.quantity} - ${schema.stockLevels.reservedQuantity}`, 0));
+        if (searchQuery) {
+            const searchTerm = `%${searchQuery}%`;
+            conditions.push(or(
+                ilike(schema.products.name, searchTerm),
+                ilike(schema.productVariations.name, searchTerm),
+                ilike(schema.productVariations.sku, searchTerm)
+            ));
+        }
+        const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+        let orderByClause;
+        switch (sortBy) {
+            case 'locationName': orderByClause = sortOrder(schema.stockLocations.name); break;
+            case 'variationName': orderByClause = sortOrder(schema.productVariations.name); break;
+            case 'quantity': orderByClause = sortOrder(schema.stockLevels.quantity); break;
+            case 'availableQuantity': orderByClause = sortOrder(drizzleSql`${schema.stockLevels.quantity} - ${schema.stockLevels.reservedQuantity}`); break;
+            case 'sku': orderByClause = sortOrder(schema.productVariations.sku); break;
+            case 'productName': default: orderByClause = sortOrder(schema.products.name); break;
+        }
+
+        const inventoryQuery = db.select({
+                stockLevelId: schema.stockLevels.id,
+                productId: schema.stockLevels.productId,
+                productVariationId: schema.stockLevels.productVariationId,
+                productName: schema.products.name,
+                variationName: schema.productVariations.name,
+                locationId: schema.stockLevels.locationId,
+                locationName: schema.stockLocations.name,
+                quantity: schema.stockLevels.quantity,
+                reservedQuantity: schema.stockLevels.reservedQuantity,
+                availableQuantity: drizzleSql<number>`${schema.stockLevels.quantity} - ${schema.stockLevels.reservedQuantity}`.mapWith(Number),
+                reorderPoint: schema.stockLevels.reorderPoint,
+                sku: schema.productVariations.sku,
+                imageUrl: schema.productVariations.imageUrl,
+            })
+            .from(schema.stockLevels)
+            .leftJoin(schema.stockLocations, eq(schema.stockLevels.locationId, schema.stockLocations.id))
+            .leftJoin(schema.productVariations, eq(schema.stockLevels.productVariationId, schema.productVariations.id))
+            .leftJoin(schema.products, eq(schema.stockLevels.productId, schema.products.id))
+            .where(whereClause)
+            .orderBy(orderByClause, asc(schema.stockLevels.id))
+            .limit(limit)
+            .offset(offset);
+
+        const countQuery = db.select({ total: count() })
+            .from(schema.stockLevels)
+            .leftJoin(schema.stockLocations, eq(schema.stockLevels.locationId, schema.stockLocations.id))
+            .leftJoin(schema.productVariations, eq(schema.stockLevels.productVariationId, schema.productVariations.id))
+            .leftJoin(schema.products, eq(schema.stockLevels.productId, schema.products.id))
+            .where(whereClause);
+
+        const [inventoryResult, totalResult] = await Promise.all([inventoryQuery, countQuery]);
+        const totalItems = totalResult[0]?.total ?? 0;
+        const totalPages = Math.ceil(totalItems / limit);
+
+        return NextResponse.json({
+            inventory: inventoryResult as InventoryViewItem[],
+            pagination: { page, limit, total: totalItems, totalPages },
+        });
+    } catch (error: any) {
+        logger.error('Admin: Failed to get inventory list:', { error });
+        return NextResponse.json({ message: 'Internal Server Error fetching inventory.' }, { status: 500 });
     }
-
-    // Check if user is an admin
-    if (authResult.role !== 'Admin') {
-      return forbiddenResponse('Only administrators can access this resource');
-    }
-
-    const adminUserId = authResult.userId;
-    console.log(`GET /api/admin/inventory request by admin: ${adminUserId}`);
-    const searchParams = request.nextUrl.searchParams;
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const offset = (page - 1) * limit;
-
-    // --- Filtering ---
-    const locationFilter = searchParams.get('location');
-    const productIdFilter = searchParams.get('productId');
-    const lowStockFilter = searchParams.get('lowStock'); // If 'true', show low stock
-    // TODO: Add search filter (product name?)
-
-    let conditions = [];
-    let queryParams: any[] = [];
-    let paramIndex = 1;
-
-    if (locationFilter) {
-      conditions.push(`i.location = $${paramIndex++}`);
-      queryParams.push(locationFilter);
-    }
-    if (productIdFilter) {
-      conditions.push(`i.product_id = $${paramIndex++}`);
-      queryParams.push(parseInt(productIdFilter)); // Assuming product ID is integer
-    }
-    if (lowStockFilter === 'true') {
-      // Assuming a threshold exists or comparing to a fixed value like 10
-      // TODO: Implement proper low stock threshold logic if needed
-      conditions.push(`i.quantity < 10`); // Example fixed threshold
-    }
-    // TODO: Add search condition
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-
-    // --- Database Query ---
-    // Fetch inventory, joining with products for name/image
-    const inventoryQuery = `
-        SELECT
-            i.id as inventoryId,
-            i.product_id as productId,
-            p.name as productName,
-            -- TODO: Add variation name if variations exist
-            i.location,
-            i.quantity,
-            p.image_url as imageUrl
-            -- TODO: Add low_stock_threshold if needed
-        FROM inventory i
-        JOIN products p ON i.product_id = p.id
-        ${whereClause}
-        ORDER BY p.name ASC, i.location ASC
-        LIMIT $${paramIndex++} OFFSET $${paramIndex++}
-    `;
-    queryParams.push(limit.toString(), offset.toString());
-
-    // Fetch Total Count with same filters
-    const countQuery = `SELECT COUNT(*) FROM inventory i ${whereClause}`;
-    const countQueryParams = queryParams.slice(0, conditions.length);
-
-    console.log('Executing Admin Inventory Query:', inventoryQuery, queryParams);
-    console.log('Executing Admin Inventory Count Query:', countQuery, countQueryParams);
-
-    const [inventoryResult, totalResult] = await Promise.all([
-      sql.query(inventoryQuery, queryParams),
-      sql.query(countQuery, countQueryParams),
-    ]);
-
-    const totalItems = parseInt(totalResult[0]?.count || '0');
-    const totalPages = Math.ceil(totalItems / limit);
-    const inventory = inventoryResult as InventoryItemAdmin[];
-
-    return NextResponse.json({
-      inventory: inventory,
-      pagination: { page, limit, total: totalItems, totalPages },
-    });
-  } catch (error: any) {
-    console.error('Admin: Failed to get inventory list:', error);
-    return NextResponse.json(
-      { message: error.message || 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
 }
+
+// POST commented out

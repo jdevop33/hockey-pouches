@@ -1,194 +1,112 @@
+// app/api/admin/inventory/[stockLevelId]/route.ts (File Renamed Recommended)
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
-import { Inventory } from '@/types';
+import { db } from '@/lib/db'; // Use Drizzle
+import * as schema from '@/lib/schema'; // Use central schema index
+import { eq, and } from 'drizzle-orm';
+import { logger } from '@/lib/logger';
+import { productService } from '@/lib/services/product-service'; // For adjustments
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
 
+// --- GET Handler (Get Specific Stock Level Details) ---
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { inventoryId: string } }
+    request: NextRequest,
+    { params }: { params: { stockLevelId: string } } // Parameter renamed
 ) {
-  const { inventoryId: inventoryIdString } = params;
-  const inventoryId = parseInt(inventoryIdString);
+    try {
+        const authResult = await verifyAdmin(request);
+        if (!authResult.isAuthenticated || authResult.role !== 'Admin') {
+            return forbiddenResponse('Admin access required');
+        }
+        const { stockLevelId } = params;
+        if (!stockLevelId || stockLevelId.length !== 36) {
+            return NextResponse.json({ message: 'Invalid Stock Level ID format.' }, { status: 400 });
+        }
+        logger.info(`Admin GET /api/admin/inventory/${stockLevelId} request`, { adminId: authResult.userId });
 
-  if (isNaN(inventoryId)) {
-    return NextResponse.json({ message: 'Invalid Inventory ID format.' }, { status: 400 });
-  }
-
-  try {
-    // Verify admin authentication
-    const authResult = await verifyAdmin(request);
-    if (!authResult.isAuthenticated) {
-      return unauthorizedResponse(authResult.message);
+        const stockLevel = await db.query.stockLevels.findFirst({
+            where: eq(schema.stockLevels.id, stockLevelId),
+            with: {
+                location: true,
+                productVariation: {
+                    with: {
+                        product: true
+                    }
+                }
+            }
+        });
+        if (!stockLevel) {
+            return NextResponse.json({ message: 'Stock level not found.' }, { status: 404 });
+        }
+        const response = { ...stockLevel, availableQuantity: stockLevel.quantity - stockLevel.reservedQuantity };
+        return NextResponse.json(response);
+    } catch (error) {
+        logger.error(`Admin: Failed to get stock level ${params.stockLevelId}:`, { error });
+        return NextResponse.json({ message: 'Internal Server Error fetching stock level.' }, { status: 500 });
     }
-    
-    // Check if user is an admin
-    if (authResult.role !== 'Admin') {
-      return forbiddenResponse('Only administrators can access this resource');
-    }
-    
-    const adminUserId = authResult.userId;
-    console.log(`GET /api/admin/inventory/${inventoryId} request by admin: ${adminUserId}`);
-
-    // Fetch inventory details
-    const inventoryQuery = `
-      SELECT 
-        i.id, i.product_id, i.location, i.quantity, i.updated_at,
-        p.name as product_name, p.image_url
-      FROM inventory i
-      JOIN products p ON i.product_id = p.id
-      WHERE i.id = $1
-    `;
-
-    const inventoryResult = await sql.query(inventoryQuery, [inventoryId]);
-
-    if (inventoryResult.length === 0) {
-      return NextResponse.json({ message: 'Inventory not found.' }, { status: 404 });
-    }
-
-    const inventoryData = inventoryResult[0];
-    
-    // Format inventory for response
-    const inventory = {
-      id: inventoryData.id,
-      productId: inventoryData.product_id,
-      productName: inventoryData.product_name,
-      location: inventoryData.location,
-      quantity: inventoryData.quantity,
-      updatedAt: inventoryData.updated_at,
-      imageUrl: inventoryData.image_url
-    };
-
-    return NextResponse.json(inventory);
-
-  } catch (error) {
-    console.error(`Failed to get inventory ${inventoryId}:`, error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-  }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { inventoryId: string } }
+// --- PATCH Handler (Manual Inventory Adjustment) ---
+const adjustStockSchema = z.object({
+    changeQuantity: z.number().int().refine(val => val !== 0, { message: "Change quantity cannot be zero" }),
+    notes: z.string().optional(),
+}).strict();
+
+export async function PATCH(
+    request: NextRequest,
+    { params }: { params: { stockLevelId: string } } // Parameter renamed
 ) {
-  const { inventoryId: inventoryIdString } = params;
-  const inventoryId = parseInt(inventoryIdString);
+    try {
+        const authResult = await verifyAdmin(request);
+        if (!authResult.isAuthenticated || !authResult.userId || authResult.role !== 'Admin') {
+            return forbiddenResponse('Admin access required');
+        }
+        const { stockLevelId } = params;
+        if (!stockLevelId || stockLevelId.length !== 36) {
+            return NextResponse.json({ message: 'Invalid Stock Level ID format.' }, { status: 400 });
+        }
+        const body = await request.json();
+        const validation = adjustStockSchema.safeParse(body);
+        if (!validation.success) {
+            return NextResponse.json({ message: 'Invalid input data.', errors: validation.error.flatten().fieldErrors }, { status: 400 });
+        }
+        const { changeQuantity, notes } = validation.data;
+        logger.info(`Admin PATCH /api/admin/inventory/${stockLevelId} request`, { adminId: authResult.userId, changeQuantity, notes });
 
-  if (isNaN(inventoryId)) {
-    return NextResponse.json({ message: 'Invalid Inventory ID format.' }, { status: 400 });
-  }
+        const stockLevel = await db.query.stockLevels.findFirst({
+            where: eq(schema.stockLevels.id, stockLevelId),
+            columns: { productVariationId: true, locationId: true }
+        });
+        if (!stockLevel || !stockLevel.productVariationId || !stockLevel.locationId) {
+             return NextResponse.json({ message: 'Stock level not found or missing required associations.' }, { status: 404 });
+        }
 
-  try {
-    // Verify admin authentication
-    const authResult = await verifyAdmin(request);
-    if (!authResult.isAuthenticated) {
-      return unauthorizedResponse(authResult.message);
+        const success = await productService.updateInventory({
+            stockLevelId: stockLevelId,
+            productVariationId: stockLevel.productVariationId,
+            locationId: stockLevel.locationId,
+            changeQuantity: changeQuantity,
+            type: 'adjustment',
+            notes: notes ? `Admin Adjustment: ${notes}` : 'Admin Adjustment',
+            userId: authResult.userId,
+        });
+        if (!success) throw new Error('Inventory adjustment failed in service but did not throw.');
+
+        const updatedStockLevel = await db.query.stockLevels.findFirst({ where: eq(schema.stockLevels.id, stockLevelId) });
+        logger.info('Admin: Inventory adjusted successfully', { stockLevelId, adminId: authResult.userId });
+        return NextResponse.json(updatedStockLevel);
+    } catch (error: any) {
+        logger.error(`Admin: Failed to adjust inventory for ${params.stockLevelId}:`, { error });
+        if (error instanceof SyntaxError) {
+            return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
+        }
+        if (error.message?.includes('not found') || error.message?.includes('Insufficient stock')) {
+            return NextResponse.json({ message: error.message }, { status: error.message.includes('Insufficient stock') ? 400 : 404 });
+        }
+        return NextResponse.json({ message: 'Internal Server Error adjusting inventory.' }, { status: 500 });
     }
-    
-    // Check if user is an admin
-    if (authResult.role !== 'Admin') {
-      return forbiddenResponse('Only administrators can access this resource');
-    }
-    
-    const adminUserId = authResult.userId;
-    console.log(`PUT /api/admin/inventory/${inventoryId} request by admin: ${adminUserId}`);
-
-    // Parse request body
-    const body = await request.json();
-    const { quantity, location } = body;
-
-    // Validate required fields
-    if (quantity === undefined && !location) {
-      return NextResponse.json({ message: 'At least one field (quantity or location) is required' }, { status: 400 });
-    }
-
-    // Check if inventory exists
-    const inventoryCheck = await sql`SELECT id FROM inventory WHERE id = ${inventoryId}`;
-    if (inventoryCheck.length === 0) {
-      return NextResponse.json({ message: 'Inventory not found' }, { status: 404 });
-    }
-
-    // Build update query
-    let updateFields = [];
-    let updateValues = [];
-    let paramIndex = 1;
-
-    if (quantity !== undefined) {
-      updateFields.push(`quantity = $${paramIndex++}`);
-      updateValues.push(quantity);
-    }
-
-    if (location) {
-      updateFields.push(`location = $${paramIndex++}`);
-      updateValues.push(location);
-    }
-
-    updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
-
-    // Update inventory
-    const updateQuery = `
-      UPDATE inventory 
-      SET ${updateFields.join(', ')} 
-      WHERE id = $${paramIndex++}
-      RETURNING id
-    `;
-    updateValues.push(inventoryId);
-
-    const result = await sql.query(updateQuery, updateValues);
-
-    return NextResponse.json({ 
-      message: `Inventory ${inventoryId} updated successfully`,
-      inventoryId: result[0].id
-    });
-
-  } catch (error) {
-    console.error(`Failed to update inventory ${inventoryId}:`, error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-  }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { inventoryId: string } }
-) {
-  const { inventoryId: inventoryIdString } = params;
-  const inventoryId = parseInt(inventoryIdString);
-
-  if (isNaN(inventoryId)) {
-    return NextResponse.json({ message: 'Invalid Inventory ID format.' }, { status: 400 });
-  }
-
-  try {
-    // Verify admin authentication
-    const authResult = await verifyAdmin(request);
-    if (!authResult.isAuthenticated) {
-      return unauthorizedResponse(authResult.message);
-    }
-    
-    // Check if user is an admin
-    if (authResult.role !== 'Admin') {
-      return forbiddenResponse('Only administrators can access this resource');
-    }
-    
-    const adminUserId = authResult.userId;
-    console.log(`DELETE /api/admin/inventory/${inventoryId} request by admin: ${adminUserId}`);
-
-    // Check if inventory exists
-    const inventoryCheck = await sql`SELECT id FROM inventory WHERE id = ${inventoryId}`;
-    if (inventoryCheck.length === 0) {
-      return NextResponse.json({ message: 'Inventory not found' }, { status: 404 });
-    }
-
-    // Delete inventory
-    await sql`DELETE FROM inventory WHERE id = ${inventoryId}`;
-
-    return NextResponse.json({ 
-      message: `Inventory ${inventoryId} deleted successfully`
-    });
-
-  } catch (error) {
-    console.error(`Failed to delete inventory ${inventoryId}:`, error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-  }
-}
+// DELETE commented out
