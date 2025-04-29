@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Layout from '@/components/layout/NewLayout';
 import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/context/ToastContext';
+import { useToastContext } from '@/context/ToastContext';
 import { Button } from '@/components/ui/Button';
 import { LogEntry, LogLevel } from '@/lib/logger';
 
@@ -22,7 +22,7 @@ const safeStringify = (value: unknown): string => {
 
 export default function LogsPage() {
   const { user, token, isLoading: authLoading } = useAuth();
-  const { showToast } = useToast();
+  const { showToast } = useToastContext();
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,10 +70,11 @@ export default function LogsPage() {
         err instanceof Error ? err.message : 'An error occurred while fetching logs';
       setError(errorMessage);
       console.error('Error fetching logs:', err);
+      showToast('Failed to fetch logs', 'destructive');
     } finally {
       setIsLoading(false);
     }
-  }, [token, selectedLevel, limit]);
+  }, [token, selectedLevel, limit, showToast]);
 
   // Clear logs
   const clearLogs = async () => {
@@ -101,7 +102,7 @@ export default function LogsPage() {
       const errorMessage =
         err instanceof Error ? err.message : 'An error occurred while clearing logs';
       setError(errorMessage);
-      showToast('Failed to clear logs', 'error');
+      showToast('Failed to clear logs', 'destructive');
       console.error('Error clearing logs:', err);
     }
   };

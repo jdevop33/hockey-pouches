@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Layout from '../components/layout/NewLayout';
-import { useToast } from '../context/ToastContext';
+import { useToastContext } from '../context/ToastContext';
 import { useCsrf } from '../context/CsrfContext';
 import { Button } from '../components/ui/Button';
 import FormFeedback from '../components/ui/FormFeedback';
@@ -60,7 +60,7 @@ function RegisterFormSkeleton() {
 // Separate component that uses useSearchParams
 function RegisterForm() {
   const searchParams = useSearchParams();
-  const { showToast } = useToast();
+  const { showToast } = useToastContext();
   const { token: csrfToken, headerName } = useCsrf();
 
   // Get referral code from URL if present
@@ -206,7 +206,7 @@ function RegisterForm() {
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred.';
       setError(errorMessage);
-      showToast('Registration failed. Please check your information.', 'error');
+      showToast('Registration failed. Please try again.', 'destructive');
     } finally {
       setIsLoading(false);
     }

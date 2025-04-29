@@ -4,8 +4,10 @@
     "app/**/*.ts",
     "app/**/*.tsx",
     "*.js",
+    "*.mjs",
     "scripts/**/*.js",
     "scripts/**/*.ts",
+    "scripts/**/*.mjs",
     "instrumentation-client.js",
     "instrumentation.js"
   ],

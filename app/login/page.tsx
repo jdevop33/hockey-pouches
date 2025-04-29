@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Layout from '../components/layout/NewLayout';
 import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
+import { useToastContext } from '../context/ToastContext';
 import { useCsrf } from '../context/CsrfContext';
 import { Button } from '../components/ui/Button';
 import FormFeedback from '../components/ui/FormFeedback';
@@ -17,7 +17,7 @@ import { isValidEmail } from '../lib/validation';
 // Safely access hooks to prevent errors during SSR
 function useSafeToast() {
   try {
-    return useToast();
+    return useToastContext();
   } catch {
     // Return a dummy implementation during SSR
     return {

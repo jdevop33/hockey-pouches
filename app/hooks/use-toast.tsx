@@ -1,10 +1,8 @@
-'use client';
-
 import * as React from 'react';
-import { ToastActionElement, type ToastProps } from '@/components/ui/Toast';
+import type { ToastActionElement, ToastProps } from '../components/ui/Toast';
 
 const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 1000;
+const TOAST_REMOVE_DELAY = 1000000;
 
 type ToasterToast = ToastProps & {
   id: string;
@@ -13,13 +11,6 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement;
 };
 
-const actionTypes = {
-  ADD_TOAST: 'ADD_TOAST',
-  UPDATE_TOAST: 'UPDATE_TOAST',
-  DISMISS_TOAST: 'DISMISS_TOAST',
-  REMOVE_TOAST: 'REMOVE_TOAST',
-} as const;
-
 let count = 0;
 
 function genId() {
@@ -27,24 +18,22 @@ function genId() {
   return count.toString();
 }
 
-type ActionType = typeof actionTypes;
-
 type Action =
   | {
-      type: ActionType['ADD_TOAST'];
+      type: 'ADD_TOAST';
       toast: ToasterToast;
     }
   | {
-      type: ActionType['UPDATE_TOAST'];
+      type: 'UPDATE_TOAST';
       toast: Partial<ToasterToast>;
       id: string;
     }
   | {
-      type: ActionType['DISMISS_TOAST'];
+      type: 'DISMISS_TOAST';
       toastId?: string;
     }
   | {
-      type: ActionType['REMOVE_TOAST'];
+      type: 'REMOVE_TOAST';
       toastId?: string;
     };
 
@@ -142,9 +131,8 @@ function toast({ ...props }: Toast) {
     dispatch({
       type: 'UPDATE_TOAST',
       id,
-      toast: props,
+      toast: { ...props },
     });
-
   const dismiss = () => dispatch({ type: 'DISMISS_TOAST', toastId: id });
 
   dispatch({

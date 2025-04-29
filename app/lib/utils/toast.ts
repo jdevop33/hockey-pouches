@@ -1,25 +1,23 @@
 'use client';
 
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
-interface ToastOptions {
-  title?: string;
-  description: string;
-  variant?: 'default' | 'success' | 'destructive';
-  duration?: number;
-}
+export const showSuccessToast = (message: string) => {
+  toast({
+    variant: 'success',
+    description: message,
+  });
+};
 
-export function useShowToast() {
-  const { toast } = useToast();
+export const showErrorToast = (message: string) => {
+  toast({
+    variant: 'destructive',
+    description: message,
+  });
+};
 
-  return {
-    showToast: ({ title, description, variant = 'default', duration = 3000 }: ToastOptions) => {
-      toast({
-        variant,
-        title,
-        description,
-        duration,
-      });
-    },
-  };
-}
+export const showInfoToast = (message: string) => {
+  toast({
+    description: message,
+  });
+};

@@ -4,6 +4,7 @@ import { neon, neonConfig } from '@neondatabase/serverless';
 import type { NeonQueryFunction } from '@neondatabase/serverless';
 import ws from 'ws';
 import { logger } from './logger';
+import { drizzle } from 'drizzle-orm/neon-http';
 
 // Configure WebSocket constructor for neon
 neonConfig.webSocketConstructor = ws;
@@ -167,3 +168,31 @@ export async function isDatabaseHealthy(): Promise<boolean> {
 // Export pool and sql client
 export { pool };
 export default sql;
+
+// Create Drizzle instance
+export const db = drizzle(sql);
+
+// Test database connection
+export async function testConnection() {
+  try {
+    await sql`SELECT 1`;
+    logger.info('Database connection test successful');
+    return true;
+  } catch (err) {
+    const error = err as Error;
+    logger.error('Database connection test failed', { error: error.message });
+    return false;
+  }
+}
+
+// Initialize database connection
+export async function initializeDatabase() {
+  try {
+    await testConnection();
+    logger.info('Database connection initialized');
+  } catch (err) {
+    const error = err as Error;
+    logger.error('Failed to initialize database connection', { error: error.message });
+    throw error;
+  }
+}

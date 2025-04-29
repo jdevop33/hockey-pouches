@@ -79,11 +79,21 @@ export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
     );
 
     // Image classes
-    const imageClasses = cn('transition-opacity duration-300', {
-      'opacity-0': isLoading,
-      'opacity-100': !isLoading,
-      'animate-fade-in': animate && !isLoading,
-    });
+    const imageClasses = cn(
+      'transition-opacity duration-300',
+      {
+        'opacity-0': isLoading,
+        'opacity-100': !isLoading,
+        'animate-fade-in': animate && !isLoading,
+      },
+      {
+        'object-contain': objectFit === 'contain',
+        'object-cover': objectFit === 'cover',
+        'object-fill': objectFit === 'fill',
+        'object-none': objectFit === 'none',
+        'object-scale-down': objectFit === 'scale-down',
+      }
+    );
 
     // If there's an error and fallback is provided
     if (error && fallback) {
@@ -97,7 +107,6 @@ export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
           src={src}
           alt={alt}
           className={imageClasses}
-          style={{ objectFit }}
           onLoadingComplete={handleLoadComplete}
           onError={handleError}
           {...(withBlur && typeof src === 'string'
@@ -110,9 +119,7 @@ export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
         {isLoading && <div className="absolute inset-0 animate-pulse bg-gray-100" />}
 
         {/* Optional overlay */}
-        {overlay && !isLoading && (
-          <div className="absolute inset-0" style={{ backgroundColor: overlay }} />
-        )}
+        {overlay && !isLoading && <div className={cn('absolute inset-0', `bg-[${overlay}]`)} />}
       </div>
     );
   }

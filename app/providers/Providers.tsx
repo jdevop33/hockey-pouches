@@ -7,6 +7,7 @@ import { ToastProvider } from '@/context/ToastContext';
 import { CsrfProvider } from '@/context/CsrfContext';
 import { CartProvider } from '@/context/CartContext';
 import { StoreProvider } from './StoreProvider';
+import { Toaster } from '@/components/ui/Toaster';
 import dynamic from 'next/dynamic';
 
 // Dynamically import analytics with no SSR
@@ -51,6 +52,7 @@ export function Providers({ children }: ProvidersProps) {
                   <DynamicAnalytics />
                 </Suspense>
                 {children}
+                <Toaster />
               </CartProvider>
             </CsrfProvider>
           </ToastProvider>

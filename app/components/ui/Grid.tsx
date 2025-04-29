@@ -62,25 +62,24 @@ export const Grid = React.forwardRef<HTMLDivElement, GridProps>(
         }
       : {};
 
-    const gridClasses = cn(
-      'grid',
-      {
-        ...responsiveColumns,
-        [`gap-${gap}`]: true,
-        '[&>*]:aspect-square': square,
-      },
-      className
-    );
-
     return (
       <div
         ref={ref}
-        className={gridClasses}
+        className={cn(
+          'grid',
+          {
+            ...responsiveColumns,
+            [`gap-${gap}`]: true,
+            '[&>*]:aspect-square': square,
+          },
+          gridTemplateColumns && '[grid-template-columns:var(--grid-template-columns)]',
+          className
+        )}
         style={
           gridTemplateColumns
-            ? {
-                gridTemplateColumns,
-              }
+            ? ({
+                '--grid-template-columns': gridTemplateColumns,
+              } as React.CSSProperties)
             : undefined
         }
         {...props}
