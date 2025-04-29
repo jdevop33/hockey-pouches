@@ -1,152 +1,106 @@
+// app/api/distributor/orders/[orderId]/fulfill/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
-import { verifyDistributor, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
-import { OrderStatus } from '@/types';
+import { verifyAuth, unauthorizedResponse, forbiddenResponse } from '@/lib/auth';
+import { orderService, type FulfillmentData } from '@/lib/services/order-service'; // Use service
+import { logger } from '@/lib/logger';
+import { z } from 'zod';
+import { db } from '@/lib/db';
+// Import specific schemas needed
+import { orders, tasks, users, orderStatusEnum, taskCategoryEnum, taskStatusEnum } from '@/lib/schema';
+import { eq, and, sql } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
-interface FulfillBody {
-  trackingNumber?: string | null;
-  fulfillmentPhotoUrl?: string | null;
-  notes?: string | null;
-}
+// Define Zod schema ONCE
+const fulfillSchema = z.object({
+    trackingNumber: z.string().optional().nullable(),
+    carrier: z.string().optional().nullable(),
+    fulfillmentNotes: z.string().optional().nullable(),
+    fulfillmentProofUrl: z.union([z.string().url(), z.array(z.string().url())]).optional().nullable(),
+}).refine(data => !!data.trackingNumber || !!data.fulfillmentProofUrl, { // Correct refine usage
+    message: "Either trackingNumber or fulfillmentProofUrl is required",
+    path: ["trackingNumber", "fulfillmentProofUrl"],
+});
 
 export async function POST(request: NextRequest, { params }: { params: { orderId: string } }) {
-  const { orderId: orderIdString } = params;
-  const orderId = parseInt(orderIdString);
+    try {
+        const authResult = await verifyAuth(request);
+        if (!authResult.isAuthenticated || !authResult.userId) return unauthorizedResponse(authResult.message);
+        if (authResult.role !== 'Distributor') return forbiddenResponse('Only distributors can fulfill orders.');
 
-  if (isNaN(orderId))
-    return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
+        const distributorId = authResult.userId;
+        const { orderId } = params;
+        if (!orderId || orderId.length !== 36) return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
 
-  try {
-    // Verify distributor authentication
-    const authResult = await verifyDistributor(request);
-    if (!authResult.isAuthenticated) {
-      return unauthorizedResponse(authResult.message);
+        const body = await request.json();
+        const validation = fulfillSchema.safeParse(body);
+        if (!validation.success) return NextResponse.json({ message: 'Invalid input data.', errors: validation.error.flatten().fieldErrors }, { status: 400 });
+
+        // Use validated data to construct FulfillmentData
+        const fulfillmentData: FulfillmentData = {
+             trackingNumber: validation.data.trackingNumber ?? undefined,
+             carrier: validation.data.carrier ?? undefined,
+             fulfillmentNotes: validation.data.fulfillmentNotes ?? undefined,
+             fulfillmentProofUrl: validation.data.fulfillmentProofUrl ? JSON.parse(JSON.stringify(validation.data.fulfillmentProofUrl)) : undefined,
+        };
+        logger.info(`Distributor POST /api/distributor/orders/${orderId}/fulfill request`, { distributorId, orderId });
+
+        // --- Verify Order Assignment using direct schema reference ---
+        const order = await db.query.orders.findFirst({
+            where: and(eq(orders.id, orderId), eq(orders.distributorId, distributorId)),
+            columns: { id: true, status: true }
+        });
+        if (!order) return NextResponse.json({ message: 'Order not found or not assigned to this distributor.' }, { status: 404 });
+
+        // Use correct enum type from imported schema
+        const fulfillableStatuses: (typeof orderStatusEnum.enumValues[number])[] = ['ReadyForFulfillment', 'Processing'];
+        if (!fulfillableStatuses.includes(order.status)) {
+            return NextResponse.json({ message: `Order cannot be fulfilled. Current status: ${order.status}` }, { status: 400 });
+        }
+
+        // --- Call Order Service ---
+        const updatedOrder = await orderService.recordFulfillment(orderId, fulfillmentData, distributorId);
+
+        // --- Task Management ---
+        try {
+            const fulfillmentTaskUpdate = await db.update(tasks).set({
+                status: 'Completed',
+                updatedAt: new Date(),
+                // Use direct variable interpolation (Drizzle handles parameterization)
+                notes: sql`COALESCE(${tasks.notes}, '') || ' | Completed by distributor ${distributorId} on ' || NOW()`
+            }).where(and(
+                eq(tasks.relatedTo, 'Order'),
+                eq(tasks.relatedId, orderId),
+                eq(tasks.assignedTo, distributorId),
+                eq(tasks.title, 'Fulfill order'),
+                eq(tasks.status, 'Pending')
+            ));
+            logger.info('Closed fulfill order task(s)', { orderId, count: fulfillmentTaskUpdate.rowCount });
+
+            // Use direct schema reference for users query
+            const distributor = await db.query.users.findFirst({ where: eq(users.id, distributorId), columns: { name: true } });
+            const distributorName = distributor?.name ?? 'Unknown Distributor';
+            await db.insert(tasks).values({
+                title: 'Verify fulfillment',
+                description: `Verify fulfillment for order #${orderId} by distributor ${distributorName}`,
+                status: 'Pending',
+                priority: 'High',
+                // Use correct enum value from imported schema
+                category: taskCategoryEnum.enumValues[0], // Assuming 'OrderReview' or similar based on enum definition
+                relatedTo: 'Order', // Use correct enum value
+                relatedId: orderId,
+            });
+            logger.info('Created verify fulfillment task for admin', { orderId });
+        } catch (taskError) {
+            logger.error('Error updating/creating tasks after fulfillment', { orderId, error: taskError });
+        }
+
+        logger.info('Distributor: Order fulfilled successfully', { orderId });
+        return NextResponse.json({ message: `Order ${orderId} marked as fulfilled. Awaiting verification.`, order: updatedOrder });
+    } catch (error: any) {
+        logger.error(`Distributor: Failed to fulfill order ${params.orderId}:`, { error });
+        if (error instanceof SyntaxError) return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
+        if (error.message?.includes('not found') || error.message?.includes('Cannot record fulfillment')) return NextResponse.json({ message: error.message }, { status: 400 });
+        return NextResponse.json({ message: 'Internal Server Error fulfilling order.' }, { status: 500 });
     }
-
-    // Check if user is a distributor
-    if (authResult.role !== 'Distributor') {
-      return forbiddenResponse('Only distributors can access this resource');
-    }
-
-    const distributorId = authResult.userId;
-    console.log(
-      `POST /api/distributor/orders/${orderId}/fulfill request by Distributor ${distributorId}`
-    );
-
-    // 2. Get request body
-    const body: FulfillBody = await request.json();
-    const { trackingNumber, fulfillmentPhotoUrl, notes } = body;
-    if (!trackingNumber && !fulfillmentPhotoUrl) {
-      return NextResponse.json(
-        { message: 'Tracking number or fulfillment photo is required.' },
-        { status: 400 }
-      );
-    }
-
-    // 3. Fetch order, check status and assignment
-    const orderCheck = await sql`
-        SELECT status, assigned_distributor_id FROM orders WHERE id = ${orderId}
-    `;
-    if (orderCheck.length === 0)
-      return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
-
-    const currentStatus = orderCheck[0].status;
-    const assignedDistributor = orderCheck[0].assigned_distributor_id;
-
-    if (assignedDistributor !== distributorId) {
-      return NextResponse.json(
-        { message: 'Order not assigned to this distributor.' },
-        { status: 403 }
-      );
-    }
-    if (currentStatus !== 'Awaiting Fulfillment') {
-      return NextResponse.json(
-        { message: `Order cannot be fulfilled. Current status: ${currentStatus}` },
-        { status: 400 }
-      );
-    }
-
-    // 4. Update Order Status and save fulfillment details
-    const newStatus = 'Pending Fulfillment Verification' as OrderStatus;
-    console.log(
-      `Updating order ${orderId} status to ${newStatus} and saving fulfillment details...`
-    );
-
-    await sql`
-        UPDATE orders
-        SET status = ${newStatus},
-            tracking_number = ${trackingNumber || null},
-            fulfillment_photo_url = ${fulfillmentPhotoUrl || null},
-            fulfillment_notes = ${notes || null},
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = ${orderId} AND assigned_distributor_id = ${distributorId}
-    `;
-
-    // Get distributor name for history
-    const distributorInfo = await sql`SELECT name FROM users WHERE id = ${distributorId}`;
-    const distributorName =
-      distributorInfo.length > 0 ? distributorInfo[0].name : 'Unknown Distributor';
-
-    // Add entry to order_history table
-    await sql`
-        INSERT INTO order_history (order_id, status, notes, user_id, user_role, user_name)
-        VALUES (
-            ${orderId},
-            ${newStatus},
-            ${`Order fulfilled by distributor. ${notes ? 'Notes: ' + notes : ''}`},
-            ${distributorId},
-            'Distributor',
-            ${distributorName}
-        )
-    `;
-
-    // Update distributor task
-    await sql`
-        UPDATE tasks
-        SET status = 'Completed',
-            updated_at = CURRENT_TIMESTAMP,
-            notes = CONCAT(COALESCE(notes, ''), ' | Completed by distributor ${distributorId}')
-        WHERE related_to = 'Order'
-        AND related_id = ${orderId}
-        AND title = 'Fulfill order'
-        AND status = 'Pending'
-    `;
-
-    // Create verification task for admin
-    await sql`
-        INSERT INTO tasks (
-            title,
-            description,
-            status,
-            priority,
-            category,
-            related_to,
-            related_id
-        ) VALUES (
-            'Verify fulfillment',
-            'Verify fulfillment for order #${orderId} by distributor ${distributorName}',
-            'Pending',
-            'High',
-            'Order',
-            'Order',
-            ${orderId}
-        )
-    `;
-
-    return NextResponse.json({
-      message: `Order ${orderId} marked as fulfilled. Awaiting verification.`,
-    });
-  } catch (error: any) {
-    if (error instanceof SyntaxError)
-      return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
-    if (error.message?.includes('Server configuration error'))
-      return NextResponse.json({ message: error.message }, { status: 500 });
-    console.error(`Distributor: Failed to fulfill order ${orderId}:`, error);
-    return NextResponse.json(
-      { message: error.message || 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
 }

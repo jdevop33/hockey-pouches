@@ -1,58 +1,71 @@
-import { NextResponse } from 'next/server';
-// import { verifyAdmin } from '@/lib/auth';
-// import { processCommissionPayout } from '@/lib/commissionService';
+// app/api/admin/commissions/payout/route.ts
+import { NextResponse, type NextRequest } from 'next/server';
+import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
+import { commissionService } from '@/lib/services/commission-service'; // Use refactored service
+import { logger } from '@/lib/logger';
+import { z } from 'zod';
 
-export async function POST(request: Request) {
-  // TODO: Implement admin logic to initiate commission payout
-  // 1. Verify Admin Authentication.
-  // 2. Validate Request Body: Expects an array of commission IDs { commissionIds: string[] } or maybe grouped by user.
-  // 3. Fetch Commissions: Retrieve the specified commission records, verifying they are 'Pending Payout'.
-  // 4. Calculate Payout Totals: Sum amounts per user.
-  // 5. Process Payouts (Complex Step!): 
-  //    - Interact with payout provider (e.g., PayPal Payouts, Wise, manual BTC/e-Transfer process).
-  //    - This might involve generating payout files or making API calls.
-  // 6. Update Commission Status: Mark paid commissions as 'Paid' and record payout date/batch ID.
-  // 7. Log Payout Transaction: Record the overall payout event.
-  // 8. Return Success/Failure Summary.
+export const dynamic = 'force-dynamic';
 
-  try {
-    // --- Add Admin Authentication Verification Logic Here ---
-    // const adminCheck = await verifyAdmin(request);
-    // if (!adminCheck.isAdmin) {
-    //   return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    // }
-    // const adminUserId = adminCheck.userId;
+// Zod schema for payout request
+const payoutSchema = z.object({
+    // Expect an array of numbers (SERIAL IDs from commissions table)
+    commissionIds: z.array(z.number().int().positive()).min(1, "At least one commission ID is required"),
+    payoutMethod: z.string().min(1, "Payout method is required"), // e.g., 'Manual E-Transfer', 'BTC', 'Wise'
+    payoutReference: z.string().min(1, "Payout reference/batch ID is required"), // e.g., E-transfer confirmation, BTC Tx ID, Batch Name
+});
 
-    const body = await request.json();
-    console.log('Admin: Initiate commission payout request:', body); // Placeholder
+export async function POST(request: NextRequest) {
+    try {
+        // --- Authentication & Authorization ---
+        const authResult = await verifyAdmin(request);
+        if (!authResult.isAuthenticated || !authResult.userId || authResult.role !== 'Admin') {
+            return forbiddenResponse('Admin access required');
+        }
+        const adminUserId = authResult.userId;
 
-    // --- Add Input Validation (commissionIds array) ---
-    if (!Array.isArray(body.commissionIds) || body.commissionIds.length === 0) {
-      return NextResponse.json({ message: 'Missing or invalid commission IDs for payout' }, { status: 400 });
+        // --- Parse and Validate Body ---
+        const body = await request.json();
+        const validation = payoutSchema.safeParse(body);
+        if (!validation.success) {
+            return NextResponse.json({ message: 'Invalid input data.', errors: validation.error.flatten().fieldErrors }, { status: 400 });
+        }
+        const { commissionIds, payoutMethod, payoutReference } = validation.data;
+
+        logger.info(`Admin POST /api/admin/commissions/payout request`, { adminId: adminUserId, count: commissionIds.length, method: payoutMethod });
+
+        // --- Call Service Method ---
+        // The service handles finding approved commissions, updating status, etc.
+        const payoutResult = await commissionService.processCommissionPayout(
+            commissionIds,
+            payoutMethod,
+            payoutReference
+            // Pass adminUserId if needed by service for logging/audit
+        );
+
+        // --- Handle Service Response ---
+        if (!payoutResult.success) {
+             // Service might have failed because no valid commissions were found, or DB error
+            logger.warn('Commission payout processing failed in service', { adminId: adminUserId, result: payoutResult });
+            return NextResponse.json({ message: payoutResult.message || 'Payout processing failed.' }, { status: 400 }); // Bad request if validation failed in service
+        }
+
+        logger.info('Admin: Commission payout processed successfully', { adminId: adminUserId, result: payoutResult });
+        return NextResponse.json({
+            message: payoutResult.message,
+            details: {
+                batchId: payoutResult.batchId,
+                processedCount: payoutResult.processedCount,
+                totalAmount: payoutResult.totalAmount,
+            }
+        });
+
+    } catch (error: any) {
+        logger.error('Admin: Failed to process commission payout request:', { error });
+        if (error instanceof SyntaxError) {
+            return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
+        }
+         // Catch specific errors thrown by the service if needed
+        return NextResponse.json({ message: 'Internal Server Error during payout processing.' }, { status: 500 });
     }
-
-    // --- Process Payout Logic Here --- 
-    // This will be highly dependent on the chosen payout method
-    // const payoutResult = await processCommissionPayout(body.commissionIds, adminUserId);
-
-    // Placeholder response
-    const payoutSummary = {
-      success: true, // Or false if errors occurred
-      processedCount: body.commissionIds.length,
-      totalAmount: 123.45, // Example sum
-      // Include error details if applicable
-    };
-
-    if (!payoutSummary.success) {
-      // Use a status code like 400 or 500 depending on the error type
-      return NextResponse.json({ message: 'Payout processing failed', details: payoutSummary }, { status: 400 }); 
-    }
-
-    return NextResponse.json({ message: 'Commission payout processed', details: payoutSummary });
-
-  } catch (error) {
-    console.error('Admin: Failed to process commission payout:', error);
-    // Distinguish between validation errors and actual payout provider errors
-    return NextResponse.json({ message: 'Internal Server Error during payout' }, { status: 500 });
-  }
 }
