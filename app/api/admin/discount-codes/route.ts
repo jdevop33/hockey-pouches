@@ -1,171 +1,84 @@
+// app/api/admin/discount-codes/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
-import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
+import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
+import { discountService, type ListDiscountCodesOptions, type CreateDiscountCodeParams } from '@/lib/services/discount-service'; // Use new service
+import * as schema from '@/lib/schema'; // Import schema for enum
+import { logger } from '@/lib/logger';
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
 
-// GET all discount codes
+// --- GET Handler (List Discount Codes) ---
 export async function GET(request: NextRequest) {
-  try {
-    // Verify authentication
-    const authResult = await verifyAuth(request);
-    if (!authResult.isAuthenticated) {
-      return unauthorizedResponse(authResult.message);
-    }
+    try {
+        const authResult = await verifyAdmin(request);
+        if (!authResult.isAuthenticated || authResult.role !== 'Admin') { // Assuming only Admin can list/manage
+            return forbiddenResponse('Admin access required');
+        }
+        logger.info(`Admin GET /api/admin/discount-codes request`, { adminId: authResult.userId });
 
-    // Check if user is admin or owner
-    if (!['Admin', 'Owner'].includes(authResult.role)) {
-      return NextResponse.json(
-        { message: 'Unauthorized: Insufficient permissions to access discount codes' },
-        { status: 403 }
-      );
-    }
+        const searchParams = request.nextUrl.searchParams;
+        const options: ListDiscountCodesOptions = {
+            page: parseInt(searchParams.get('page') || '1'),
+            limit: parseInt(searchParams.get('limit') || '20'),
+            isActive: searchParams.has('isActive') ? searchParams.get('isActive') === 'true' : undefined,
+            search: searchParams.get('search') ?? undefined,
+        };
 
-    // Get query parameters
-    const searchParams = request.nextUrl.searchParams;
-    const isActive = searchParams.get('isActive');
-    const search = searchParams.get('search');
-    
-    // Build the query
-    let query = `
-      SELECT 
-        id, code, description, discount_type, discount_value, 
-        min_order_amount, max_discount_amount, start_date, end_date, 
-        usage_limit, times_used, is_active, created_at, updated_at
-      FROM discount_codes
-    `;
-    
-    const queryParams: any[] = [];
-    const conditions: string[] = [];
-    
-    // Add filters
-    if (isActive !== null) {
-      queryParams.push(isActive === 'true');
-      conditions.push(`is_active = $${queryParams.length}`);
+        const result = await discountService.listDiscountCodes(options);
+        return NextResponse.json(result);
+
+    } catch (error: any) {
+        logger.error('Admin: Error fetching discount codes:', { error });
+        return NextResponse.json({ message: 'Internal Server Error fetching discount codes.' }, { status: 500 });
     }
-    
-    if (search) {
-      queryParams.push(`%${search}%`);
-      conditions.push(`(code ILIKE $${queryParams.length} OR description ILIKE $${queryParams.length})`);
-    }
-    
-    // Add WHERE clause if there are conditions
-    if (conditions.length > 0) {
-      query += ` WHERE ${conditions.join(' AND ')}`;
-    }
-    
-    // Add ORDER BY
-    query += ` ORDER BY created_at DESC`;
-    
-    // Execute the query
-    const result = await sql.query(query, queryParams);
-    
-    return NextResponse.json(result);
-  } catch (error: any) {
-    console.error('Error fetching discount codes:', error);
-    return NextResponse.json(
-      { message: error.message || 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
 }
 
-// POST create a new discount code
+// --- POST Handler (Create Discount Code) ---
+
+const createDiscountCodeSchema = z.object({
+    code: z.string().min(3, "Code must be at least 3 characters").trim(),
+    description: z.string().optional().nullable(),
+    discountType: z.enum(schema.discountTypeEnum.enumValues),
+    discountValue: z.number().positive("Discount value must be positive"),
+    minOrderAmount: z.number().min(0).optional().nullable(),
+    maxDiscountAmount: z.number().positive().optional().nullable(),
+    startDate: z.coerce.date(), // Coerce string input to Date
+    endDate: z.coerce.date().optional().nullable(),
+    usageLimit: z.number().int().positive().optional().nullable(),
+    isActive: z.boolean().optional(),
+});
+
 export async function POST(request: NextRequest) {
-  try {
-    // Verify authentication
-    const authResult = await verifyAuth(request);
-    if (!authResult.isAuthenticated) {
-      return unauthorizedResponse(authResult.message);
+    try {
+        const authResult = await verifyAdmin(request);
+        if (!authResult.isAuthenticated || authResult.role !== 'Admin') {
+            return forbiddenResponse('Admin access required to create discount codes');
+        }
+
+        const body = await request.json();
+        const validation = createDiscountCodeSchema.safeParse(body);
+
+        if (!validation.success) {
+            return NextResponse.json({ message: 'Invalid input data.', errors: validation.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        logger.info(`Admin POST /api/admin/discount-codes request`, { adminId: authResult.userId, body: validation.data });
+
+        // Data is validated, call the service
+        const newDiscountCode = await discountService.createDiscountCode(validation.data as CreateDiscountCodeParams);
+
+        logger.info('Admin: Discount code created successfully', { codeId: newDiscountCode.id, adminId: authResult.userId });
+        return NextResponse.json(newDiscountCode, { status: 201 });
+
+    } catch (error: any) {
+        logger.error('Admin: Error creating discount code:', { error });
+        if (error instanceof SyntaxError) {
+            return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
+        }
+        if (error.message === 'Discount code already exists.') {
+            return NextResponse.json({ message: error.message }, { status: 409 }); // Conflict
+        }
+        return NextResponse.json({ message: 'Internal Server Error creating discount code.' }, { status: 500 });
     }
-
-    // Check if user is admin or owner
-    if (!['Admin', 'Owner'].includes(authResult.role)) {
-      return NextResponse.json(
-        { message: 'Unauthorized: Insufficient permissions to create discount codes' },
-        { status: 403 }
-      );
-    }
-
-    // Get request body
-    const body = await request.json();
-    const {
-      code,
-      description,
-      discountType,
-      discountValue,
-      minOrderAmount,
-      maxDiscountAmount,
-      startDate,
-      endDate,
-      usageLimit,
-      isActive
-    } = body;
-
-    // Validate required fields
-    if (!code || !discountType || !discountValue || !startDate) {
-      return NextResponse.json(
-        { message: 'Missing required fields: code, discountType, discountValue, startDate' },
-        { status: 400 }
-      );
-    }
-
-    // Validate discount type
-    if (!['percentage', 'fixed_amount'].includes(discountType)) {
-      return NextResponse.json(
-        { message: 'Invalid discount type. Must be "percentage" or "fixed_amount"' },
-        { status: 400 }
-      );
-    }
-
-    // Validate discount value
-    const parsedDiscountValue = parseFloat(discountValue);
-    if (isNaN(parsedDiscountValue) || parsedDiscountValue <= 0) {
-      return NextResponse.json(
-        { message: 'Discount value must be a positive number' },
-        { status: 400 }
-      );
-    }
-
-    // Check if code already exists
-    const existingCode = await sql`
-      SELECT id FROM discount_codes WHERE code = ${code}
-    `;
-
-    if (existingCode.length > 0) {
-      return NextResponse.json(
-        { message: 'Discount code already exists' },
-        { status: 400 }
-      );
-    }
-
-    // Insert the new discount code
-    const result = await sql`
-      INSERT INTO discount_codes (
-        code, description, discount_type, discount_value, 
-        min_order_amount, max_discount_amount, start_date, end_date, 
-        usage_limit, is_active
-      ) VALUES (
-        ${code}, 
-        ${description || null}, 
-        ${discountType}, 
-        ${parsedDiscountValue}, 
-        ${minOrderAmount || 0}, 
-        ${maxDiscountAmount || null}, 
-        ${new Date(startDate)}, 
-        ${endDate ? new Date(endDate) : null}, 
-        ${usageLimit || null}, 
-        ${isActive !== undefined ? isActive : true}
-      )
-      RETURNING *
-    `;
-
-    return NextResponse.json(result[0], { status: 201 });
-  } catch (error: any) {
-    console.error('Error creating discount code:', error);
-    return NextResponse.json(
-      { message: error.message || 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
 }

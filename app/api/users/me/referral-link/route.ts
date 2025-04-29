@@ -1,87 +1,84 @@
+// app/api/users/me/referral-link/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
-import sql from '@/lib/db';
-import { getRows } from '@/lib/db-types';
+import { userService } from '@/lib/services/user-service'; // Use refactored service
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  try {
-    // Verify authentication
-    const authResult = await verifyAuth(request);
-    if (!authResult.isAuthenticated) {
-      return unauthorizedResponse(authResult.message);
-    }
-
-    const userId = authResult.userId;
-
-    // Get user's referral code
-    const userResult = await sql.query(`SELECT referral_code FROM users WHERE id = $1`, [userId]);
-
-    const userRows = getRows(userResult);
-    const referralCode = userRows[0]?.referral_code;
-
-    if (!referralCode) {
-      return NextResponse.json(
-        { message: 'No referral code found for this user' },
-        { status: 404 }
-      );
-    }
-
-    // Generate referral link
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hockeypouches.com';
-    const referralLink = `${baseUrl}/ref/${referralCode}`;
-
-    return NextResponse.json({
-      referralCode,
-      referralLink,
-    });
-  } catch (error) {
-    console.error('Failed to get referral link:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-  }
+function getReferralLink(referralCode: string): string {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hockeypouches.com'; // Ensure consistent base URL
+    return `${baseUrl}/ref/${referralCode}`;
 }
 
-// Allow regenerating a referral code if needed
+// --- GET Handler: Fetch User's Referral Code & Link ---
+export async function GET(request: NextRequest) {
+    try {
+        const authResult = await verifyAuth(request);
+        if (!authResult.isAuthenticated || !authResult.userId) {
+            return unauthorizedResponse(authResult.message);
+        }
+        const userId = authResult.userId;
+        logger.info(`GET /api/users/me/referral-link request`, { userId });
+
+        // Use service to get user data including referral code
+        const user = await userService.getUserById(userId);
+
+        if (!user || !user.referralCode) {
+            // User might exist but somehow lack a code (shouldn't happen with new logic)
+             logger.error('User found but referral code missing', { userId });
+            return NextResponse.json({ message: 'Referral code not found for user.' }, { status: 404 });
+        }
+
+        const referralLink = getReferralLink(user.referralCode);
+
+        return NextResponse.json({
+            referralCode: user.referralCode,
+            referralLink,
+        });
+
+    } catch (error) {
+        logger.error('GET /api/users/me/referral-link error:', { error });
+        return NextResponse.json({ message: 'Internal Server Error fetching referral link.' }, { status: 500 });
+    }
+}
+
+// --- POST Handler: Regenerate User's Referral Code & Link ---
 export async function POST(request: NextRequest) {
-  try {
-    // Verify authentication
-    const authResult = await verifyAuth(request);
-    if (!authResult.isAuthenticated) {
-      return unauthorizedResponse(authResult.message);
+    try {
+        const authResult = await verifyAuth(request);
+        if (!authResult.isAuthenticated || !authResult.userId) {
+            return unauthorizedResponse(authResult.message);
+        }
+        const userId = authResult.userId;
+        logger.info(`POST /api/users/me/referral-link request (regenerate)`, { userId });
+
+        // Call the service method to regenerate
+        const newReferralCode = await userService.regenerateReferralCode(userId);
+
+        if (!newReferralCode) {
+             // Service method should throw on failure, but handle defensively
+            throw new Error('Service failed to return new referral code.');
+        }
+
+        const referralLink = getReferralLink(newReferralCode);
+
+        logger.info('Referral code regenerated successfully', { userId, newReferralCode });
+        return NextResponse.json({
+            referralCode: newReferralCode,
+            referralLink,
+            message: 'Referral code regenerated successfully',
+        });
+
+    } catch (error: any) {
+        logger.error('POST /api/users/me/referral-link error:', { error });
+        if (error.message?.includes('not found')) {
+            return NextResponse.json({ message: error.message }, { status: 404 });
+        }
+         if (error.message?.includes('Failed to generate a unique referral code')) {
+            // Specific error for collision failure after retries
+             return NextResponse.json({ message: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ message: 'Internal Server Error regenerating referral code.' }, { status: 500 });
     }
-
-    const userId = authResult.userId;
-
-    // Get user's name to generate a new code
-    const userResult = await sql.query(`SELECT name FROM users WHERE id = $1`, [userId]);
-
-    const userRows = getRows(userResult);
-    if (userRows.length === 0) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
-    }
-
-    const userName = userRows[0].name;
-
-    // Generate a new referral code
-    const firstNamePart = userName.split(' ')[0].toUpperCase().substring(0, 4);
-    const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();
-    const newReferralCode = `${firstNamePart}${randomPart}`;
-
-    // Update the user's referral code
-    await sql.query(`UPDATE users SET referral_code = $1 WHERE id = $2`, [newReferralCode, userId]);
-
-    // Generate referral link
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hockeypouches.com';
-    const referralLink = `${baseUrl}/ref/${newReferralCode}`;
-
-    return NextResponse.json({
-      referralCode: newReferralCode,
-      referralLink,
-      message: 'Referral code regenerated successfully',
-    });
-  } catch (error) {
-    console.error('Failed to regenerate referral code:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-  }
 }
