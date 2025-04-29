@@ -1,39 +1,49 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
+import { db } from '@/lib/db'; // Import db
+import * as schema from '@/lib/schema'; // Import schema
+import { count, asc, eq } from 'drizzle-orm'; // Import helpers
+import { logger } from '@/lib/logger'; // Added logger
 
 export const dynamic = 'force-dynamic'; // Don't cache this API route
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = request.nextUrl; // Use nextUrl for searchParams
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '12');
+    const limit = parseInt(searchParams.get('limit') || '12'); // Default limit
     const offset = (page - 1) * limit;
 
-    console.log(`GET /api/products - Fetching active products from database`);
+    logger.info(`GET /api/products - Fetching page ${page}, limit ${limit}`);
 
-    // Fetch only active products
-    const productsQuery = sql`
-      SELECT
-        id, name, description, flavor, strength,
-        CAST(price AS FLOAT) as price,
-        CAST(compare_at_price AS FLOAT) as compare_at_price,
-        image_url, category, is_active
-      FROM products
-      WHERE is_active = TRUE
-      ORDER BY name ASC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
+    // Use Drizzle query builder
+    const productsQuery = db.query.products.findMany({
+      where: eq(schema.products.isActive, true),
+      orderBy: asc(schema.products.name), // Define explicit order
+      limit: limit,
+      offset: offset,
+      // Specify columns to select if not all are needed
+      // columns: { id: true, name: true, /* ... */ }
+    });
 
-    const totalQuery = sql`SELECT COUNT(*) FROM products WHERE is_active = TRUE`;
+    const totalQuery = db.select({ total: count() })
+      .from(schema.products)
+      .where(eq(schema.products.isActive, true));
 
     const [productsResult, totalResult] = await Promise.all([productsQuery, totalQuery]);
 
-    const totalProducts = parseInt(totalResult[0].count as string);
+    const totalProducts = totalResult[0]?.total ?? 0;
     const totalPages = Math.ceil(totalProducts / limit);
 
+    // Ensure price is returned as number if needed by frontend
+    // Drizzle returns decimal as string, so conversion might be necessary
+    const formattedProducts = productsResult.map(p => ({
+        ...p,
+        price: typeof p.price === 'string' ? parseFloat(p.price) : p.price,
+        compareAtPrice: p.compareAtPrice && typeof p.compareAtPrice === 'string' ? parseFloat(p.compareAtPrice) : p.compareAtPrice,
+    }));
+
     return NextResponse.json({
-      products: productsResult,
+      products: formattedProducts, // Use formatted products
       pagination: {
         page,
         limit,
@@ -42,7 +52,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Failed to get products from database:', error);
+    logger.error('Failed to get products:', { error });
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

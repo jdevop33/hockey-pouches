@@ -1,83 +1,69 @@
 import { NextRequest, NextResponse } from 'next/server';
-import sql from '../../../lib/db'; // Assuming lib/db exports the neon sql function correctly
+import { db } from '@/lib/db'; // Corrected import
+import * as schema from '@/lib/schema'; // Import schema
+import { eq, and } from 'drizzle-orm'; // Import operators
 import { unstable_cache } from 'next/cache';
+import { logger } from '@/lib/logger'; // Added logger
 
-interface Product {
-  id: number;
-  name: string;
-  flavor?: string | null;
-  strength?: number | null;
-  price: number;
-  compare_at_price?: number | null;
-  image_url?: string | null;
-  category?: string | null;
-  description?: string | null;
-  is_active: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
+// Use ProductSelect type from schema
+type ProductSelect = typeof schema.products.$inferSelect;
 
 // Cache product details for 1 hour (3600 seconds)
+// Refactored to use Drizzle query builder
 const getProductFromDb = unstable_cache(
-  async (productId: number): Promise<Product | null> => {
+  async (productId: number): Promise<ProductSelect | null> => {
     try {
-      // Simplified query to just get the product without category join
-      const result = await sql`
-        SELECT *
-        FROM products
-        WHERE id = ${productId} AND is_active = true
-      `;
+      logger.info('Fetching product from DB', { productId });
+      const product = await db.query.products.findFirst({
+        where: and(eq(schema.products.id, productId), eq(schema.products.isActive, true)),
+        // Optionally add relations if needed, e.g., variations:
+        // with: { variations: { where: eq(schema.productVariations.isActive, true) } }
+      });
 
-      // Check if any results were returned
-      if (!result || result.length === 0) {
-        console.log(`Active product ${productId} not found in DB.`);
+      if (!product) {
+        logger.warn('Active product not found in DB', { productId });
         return null;
       }
 
-      console.log(`Product ${productId} found.`);
-      return result[0] as Product;
+      logger.info('Product found in DB', { productId });
+      return product;
     } catch (error) {
-      console.error(`Database error fetching product ${productId}:`, error);
+      logger.error(`Database error fetching product ${productId}:`, { error });
       return null; // Return null on error
     }
   },
-  ['product-detail'], // Use the original cache key
-  { revalidate: 3600 } // Restore original revalidate time
+  ['product-detail'], // Base cache key
+  { 
+      revalidate: 3600, // Revalidate every hour
+      tags: [`product:${productId}`] // Tag for potential revalidation
+  }
 );
 
 export async function GET(request: NextRequest, { params }: { params: { productId: string } }) {
-  console.log(`GET request for product ID: ${params.productId}`);
-  try {
-    const productId = parseInt(params.productId, 10);
+  const { productId: productIdStr } = params;
+  logger.info(`GET request for product ID: ${productIdStr}`);
 
+  try {
+    const productId = parseInt(productIdStr, 10);
     if (isNaN(productId)) {
-      console.log(`Invalid product ID format: "${params.productId}"`);
+      logger.warn('Invalid product ID format received', { productIdStr });
       return NextResponse.json({ error: 'Invalid product ID format' }, { status: 400 });
     }
 
-    console.log(`Fetching active product ${productId}...`);
-    // Try to get product from database using the original function
+    logger.info(`Fetching active product ${productId}...`);
     const product = await getProductFromDb(productId);
 
-    // If product not found, return 404
     if (!product) {
-      console.log(`Product ${productId} not found in database`);
+      logger.warn(`Product ${productId} not found by getProductFromDb`);
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    // Add additional logging to check product data
-    console.log(`Product ${productId} found with data:`, JSON.stringify(product));
-
-    // Ensure product data is properly formatted before returning
-    if (typeof product.id !== 'number') {
-      console.warn(`Product ${productId} has invalid ID format: ${product.id}`);
-      // Convert string ID to number if needed
-      product.id = Number(product.id);
-    }
-
+    // Drizzle returns correct types, no need for manual checks/conversion
+    logger.info(`Product ${productId} found`, { productData: product });
     return NextResponse.json(product);
+
   } catch (error) {
-    console.error(`Error in GET handler for product ${params.productId}:`, error);
+    logger.error(`Error in GET handler for product ${productIdStr}:`, { error });
     return NextResponse.json({ error: 'Failed to fetch product details' }, { status: 500 });
   }
 }

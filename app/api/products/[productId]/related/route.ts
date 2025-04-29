@@ -1,82 +1,86 @@
 import { NextRequest, NextResponse } from 'next/server';
-import sql from '../../../../lib/db';
+import { sql, db } from '@/lib/db'; // Corrected import, added db
+import * as schema from '@/lib/schema'; // Import schema
+import { eq, and, ne, desc } from 'drizzle-orm'; // Import operators
 import { unstable_cache } from 'next/cache';
+import { logger } from '@/lib/logger'; // Added logger
 
-interface Product {
-  id: number;
-  name: string;
-  flavor?: string | null;
-  strength?: number | null;
-  price: number;
-  compare_at_price?: number | null;
-  image_url?: string | null;
-  category?: string | null;
-  description?: string | null;
-  is_active: boolean;
-}
+// Use ProductSelect type from schema if possible, otherwise define locally
+type ProductSelect = typeof schema.products.$inferSelect;
 
 // Cache related products for 1 hour (3600 seconds)
 const getRelatedProductsFromDb = unstable_cache(
-  async (productId: number, limit = 4): Promise<Product[]> => {
+  async (productId: number, limit = 4): Promise<ProductSelect[]> => {
     try {
-      // First get the current product's category
-      const currentProduct = await sql`
-        SELECT category FROM products WHERE id = ${productId} AND is_active = true
-      `;
+      // Get the current product's category using Drizzle query builder
+      const currentProduct = await db.query.products.findFirst({
+        where: and(eq(schema.products.id, productId), eq(schema.products.isActive, true)),
+        columns: { category: true }
+      });
 
-      if (!currentProduct || currentProduct.length === 0) {
+      if (!currentProduct) {
+        logger.warn('Related Products: Current product not found or inactive', { productId });
         return [];
       }
 
-      const category = currentProduct[0].category;
+      const category = currentProduct.category;
 
-      // If no category, just get some active products
+      let relatedProducts: ProductSelect[] = [];
       if (!category) {
-        const result = await sql`
-          SELECT * FROM products 
-          WHERE id != ${productId}
-          AND is_active = true
-          LIMIT ${limit}
-        `;
-        return result as unknown as Product[];
+        // If no category, get some other active products (excluding self)
+        relatedProducts = await db.query.products.findMany({
+          where: and(ne(schema.products.id, productId), eq(schema.products.isActive, true)),
+          limit: limit,
+          orderBy: desc(schema.products.createdAt) // Example ordering
+        });
+        logger.info('Related Products: No category found, returning general products', { productId, limit });
+      } else {
+        // Query for related products by matching category (excluding self)
+        relatedProducts = await db.query.products.findMany({
+          where: and(
+              eq(schema.products.category, category),
+              ne(schema.products.id, productId),
+              eq(schema.products.isActive, true)
+          ),
+          limit: limit,
+          orderBy: desc(schema.products.createdAt) // Example ordering
+        });
+        logger.info('Related Products: Found category-based related products', { productId, category, limit, count: relatedProducts.length });
       }
 
-      // Query for related products by matching category
-      const result = await sql`
-        SELECT * FROM products 
-        WHERE category = ${category}
-        AND id != ${productId}
-        AND is_active = true
-        LIMIT ${limit}
-      `;
+      return relatedProducts;
 
-      return result as unknown as Product[];
     } catch (error) {
-      console.error(`Database error fetching related products for ${productId}:`, error);
-      return [];
+      logger.error(`Database error fetching related products for ${productId}:`, { error });
+      return []; // Return empty array on error
     }
   },
-  ['related-products'],
-  { revalidate: 3600 }
+  ['related-products'], // Cache key prefix
+  { 
+      revalidate: 3600, // Revalidate every hour
+      // Add tags for potential revalidation on product update
+      tags: [`products`, `products:related:${productId}`]
+  }
 );
 
 export async function GET(request: NextRequest, { params }: { params: { productId: string } }) {
+  const { productId: productIdStr } = params;
+  const searchParams = request.nextUrl.searchParams;
+  const limit = parseInt(searchParams.get('limit') || '4');
+
+  const productId = parseInt(productIdStr);
+  if (isNaN(productId)) {
+    return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
+  }
+
   try {
-    const productId = parseInt(params.productId);
-    const searchParams = new URL(request.url).searchParams;
-    const limit = parseInt(searchParams.get('limit') || '4');
-
-    if (isNaN(productId)) {
-      return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
-    }
-
-    // Try to get related products from database
     const relatedProducts = await getRelatedProductsFromDb(productId, limit);
-
-    // Even if no related products, return empty array (no fallback)
+    
+    // Return the products (could be an empty array)
     return NextResponse.json({ products: relatedProducts });
+
   } catch (error) {
-    console.error('Error fetching related products:', error);
+    logger.error('Error fetching related products route:', { productId, error });
     return NextResponse.json({ error: 'Failed to fetch related products' }, { status: 500 });
   }
 }
