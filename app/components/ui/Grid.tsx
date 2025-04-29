@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { grid, spacing } from './design-system';
+import styles from './Grid.module.css';
 
 export interface GridProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
@@ -66,23 +67,18 @@ export const Grid = React.forwardRef<HTMLDivElement, GridProps>(
       <div
         ref={ref}
         className={cn(
-          'grid',
+          styles.grid,
           {
             ...responsiveColumns,
             [`gap-${gap}`]: true,
             '[&>*]:aspect-square': square,
           },
-          gridTemplateColumns && '[grid-template-columns:var(--grid-template-columns)]',
           className
         )}
-        style={
-          gridTemplateColumns
-            ? ({
-                '--grid-template-columns': gridTemplateColumns,
-              } as React.CSSProperties)
-            : undefined
-        }
         {...props}
+        style={
+          { ...props.style, '--grid-template-columns': gridTemplateColumns } as React.CSSProperties
+        }
       />
     );
   }
