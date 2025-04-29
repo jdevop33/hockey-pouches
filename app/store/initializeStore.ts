@@ -1,6 +1,6 @@
 import { create, type StoreApi } from 'zustand';
-import { devtools } from 'zustand/middleware';
-import { persist, type PersistOptions } from 'zustand/middleware/persist';
+import { devtools, persist } from 'zustand/middleware';
+import type { PersistOptions } from 'zustand/middleware/persist';
 import { type BaseState } from './config';
 import { useEffect } from 'react';
 
@@ -38,8 +38,7 @@ export function createHydratedStore<T extends HydratedBaseState>(
     devtools(
       persist(
         (set, get, api) => {
-          // Create the base state
-          const baseState = {
+          const state: T = {
             _hasHydrated: false,
             setHasHydrated: (hydrated: boolean) => set({ _hasHydrated: hydrated } as Partial<T>),
             isLoading: false,
@@ -47,29 +46,20 @@ export function createHydratedStore<T extends HydratedBaseState>(
             setError: (error: string | null) => set((state: T) => ({ ...state, error })),
             clearError: () => set((state: T) => ({ ...state, error: null })),
             setLoading: (isLoading: boolean) => set((state: T) => ({ ...state, isLoading })),
-          };
-
-          // Create store-specific state and actions
-          const storeState = storeCreator(set, get, api);
-
-          // Merge states
-          return {
-            ...baseState,
             ...initialState,
-            ...storeState,
+            ...storeCreator(set, get, api),
           } as T;
+          return state;
         },
         {
           name: `hockey-pouches-${name}`,
           version: 1,
           onRehydrateStorage: () => state => {
-            // When storage is rehydrated, update the hydration status
             if (state) {
               state.setHasHydrated(true);
             }
           },
-          // Skip initial hydration to prevent hydration mismatches
-          skipHydration: true,
+          skipHydration: true, // Skip initial hydration to prevent SSR issues
         } as PersistOptions<T, unknown>
       )
     )
