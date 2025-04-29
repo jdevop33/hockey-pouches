@@ -20,6 +20,8 @@ import {
   RefreshCw,
   Award,
 } from 'lucide-react';
+import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 // Define proper types for the product
 interface Product {
@@ -74,12 +76,83 @@ const productBenefits: ProductBenefit[] = [
   },
 ];
 
+// Loading skeleton component for product details
+const ProductSkeleton = () => (
+  <div className="animate-pulse">
+    <div className="grid gap-8 lg:grid-cols-2">
+      {/* Image skeleton */}
+      <div className="aspect-square w-full rounded-lg bg-gray-700" />
+
+      {/* Content skeleton */}
+      <div className="space-y-4">
+        <div className="h-8 w-3/4 rounded bg-gray-700" />
+        <div className="h-4 w-1/4 rounded bg-gray-700" />
+        <div className="space-y-2">
+          <div className="h-4 w-full rounded bg-gray-700" />
+          <div className="h-4 w-5/6 rounded bg-gray-700" />
+        </div>
+        <div className="h-10 w-1/3 rounded bg-gray-700" />
+        <div className="flex gap-4">
+          <div className="h-12 w-32 rounded bg-gray-700" />
+          <div className="h-12 flex-1 rounded bg-gray-700" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Enhance product image gallery
+const ProductGallery = ({ product }: { product: Product }) => {
+  const [activeImage, setActiveImage] = useState(product.image_url);
+  const images = [product.image_url, ...(product.gallery_images || [])];
+
+  return (
+    <div className="space-y-4">
+      {/* Main image */}
+      <div className="aspect-square relative overflow-hidden rounded-lg border border-gray-800">
+        <Image
+          src={activeImage || '/images/products/fallback.jpg'}
+          alt={product.name}
+          fill
+          className="object-cover"
+          sizes="(min-width: 1024px) 50vw, 100vw"
+          priority
+        />
+      </div>
+
+      {/* Thumbnail grid */}
+      {images.length > 1 && (
+        <div className="grid grid-cols-4 gap-4">
+          {images.map((image, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveImage(image)}
+              aria-label={`View ${product.name} image ${index + 1}`}
+              className={cn(
+                'aspect-square relative overflow-hidden rounded-md border',
+                activeImage === image ? 'border-gold-500' : 'border-gray-800'
+              )}
+            >
+              <Image
+                src={image || '/images/products/fallback.jpg'}
+                alt={`${product.name} view ${index + 1}`}
+                fill
+                className="object-cover"
+                sizes="(min-width: 1024px) 15vw, 25vw"
+              />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function ProductDetailPage() {
   const params = useParams();
   const { addToCart } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([]);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,11 +173,6 @@ export default function ProductDetailPage() {
         const productData = (await productRes.json()) as Product;
 
         setProduct(productData);
-
-        // Handle undefined case for selectedImage
-        if (productData.image_url) {
-          setSelectedImage(productData.image_url);
-        }
 
         // Fetch related products
         const relatedRes = await fetch(`/api/products/${params?.id}/related`);
@@ -131,13 +199,13 @@ export default function ProductDetailPage() {
     if (product) {
       // Convert the product to match the Product type required by CartContext
       const productForCart = {
-        id: parseInt(product.id),
+        id: product.id,
         name: product.name,
         description: product.description,
         price: product.price,
         image_url: product.image_url,
         category: product.category,
-        is_active: true, // Required by the Product type in CartContext
+        is_active: true,
       };
 
       addToCart(productForCart, quantity);
@@ -147,8 +215,8 @@ export default function ProductDetailPage() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="h-16 w-16 animate-spin rounded-full border-4 border-gold-500 border-t-transparent"></div>
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <ProductSkeleton />
         </div>
       </Layout>
     );
@@ -202,120 +270,30 @@ export default function ProductDetailPage() {
       {/* Add JSON-LD schema for the product */}
       <ProductSchema product={schemaProduct} />
 
-      <div className="container mx-auto max-w-7xl px-4 py-8">
-        {/* Breadcrumbs - Smaller, lighter styling for secondary navigation */}
-        <nav className="mb-12" aria-label="Breadcrumb">
-          <ol className="flex items-center space-x-2 text-sm">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <nav className="mb-8">
+          <ol className="flex items-center space-x-2 text-sm text-gray-400">
             <li>
-              <Link href="/" className="text-gray-400 transition-colors hover:text-gold-500">
-                Home
-              </Link>
-            </li>
-            <li>
-              <ChevronRight className="h-4 w-4 text-gray-600" />
-            </li>
-            <li>
-              <Link
-                href="/products"
-                className="text-gray-400 transition-colors hover:text-gold-500"
-              >
+              <Link href="/products" className="hover:text-gold-400">
                 Products
               </Link>
             </li>
+            <ChevronRight className="h-4 w-4" />
             <li>
-              <ChevronRight className="h-4 w-4 text-gray-600" />
+              <Link href={`/products?category=${product.category}`} className="hover:text-gold-400">
+                {product.category}
+              </Link>
             </li>
-            <li className="font-medium text-gold-500">{product.name}</li>
+            <ChevronRight className="h-4 w-4" />
+            <li className="text-gray-300">{product.name}</li>
           </ol>
         </nav>
 
-        <div className="grid gap-16 md:grid-cols-2">
-          {/* Product Images - Left column with focus on image quality */}
-          <div className="space-y-8">
-            <div className="aspect-square overflow-hidden rounded-lg bg-dark-800 shadow-md">
-              {selectedImage && (
-                <ProductImage
-                  src={selectedImage}
-                  alt={product.name}
-                  size="square"
-                  priority
-                  className="h-full w-full"
-                  objectFit="contain"
-                  enableZoom={true}
-                />
-              )}
-            </div>
-            <div className="scrollbar-thin scrollbar-track-dark-700 scrollbar-thumb-gold-500/50 flex gap-4 overflow-x-auto pb-2">
-              <button
-                className={`overflow-hidden rounded-lg shadow-sm transition ${
-                  selectedImage === product.image_url
-                    ? 'ring-2 ring-gold-500'
-                    : 'hover:ring-1 hover:ring-gray-500'
-                }`}
-                onClick={() => setSelectedImage(product.image_url)}
-                aria-label="View main product image"
-              >
-                <ProductImage
-                  src={product.image_url}
-                  alt={`${product.name} - Main`}
-                  size="small"
-                  className="h-20 w-20"
-                />
-              </button>
+        <div className="grid gap-8 lg:grid-cols-2">
+          {/* Product gallery */}
+          <ProductGallery product={product} />
 
-              {/* Gallery Images */}
-              {product.gallery_images &&
-                product.gallery_images.map((img, index) => (
-                  <button
-                    key={index}
-                    className={`overflow-hidden rounded-lg shadow-sm transition ${
-                      selectedImage === img
-                        ? 'ring-2 ring-gold-500'
-                        : 'hover:ring-1 hover:ring-gray-500'
-                    }`}
-                    onClick={() => setSelectedImage(img)}
-                    aria-label={`View product image ${index + 1}`}
-                  >
-                    <ProductImage
-                      src={img}
-                      alt={`${product.name} - View ${index + 1}`}
-                      size="small"
-                      className="h-20 w-20"
-                    />
-                  </button>
-                ))}
-            </div>
-
-            {/* Image description or instructions */}
-            <div className="mt-2 rounded-lg bg-dark-800/50 p-3 text-center text-sm text-gray-400">
-              <span className="flex items-center justify-center gap-1">
-                <svg
-                  className="h-4 w-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M15 15L21 21"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M10 17C13.866 17 17 13.866 17 10C17 6.13401 13.866 3 10 3C6.13401 3 3 6.13401 3 10C3 13.866 6.13401 17 10 17Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                Click image to zoom
-              </span>
-            </div>
-          </div>
-
-          {/* Product Details - Right column with well-defined hierarchy */}
+          {/* Product info */}
           <div className="flex flex-col gap-8">
             {/* Primary product information */}
             <div>
@@ -445,55 +423,82 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* Reviews Section - Empty state with clear CTA */}
+        {/* Product schema for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org/',
+              '@type': 'Product',
+              name: product.name,
+              description: product.description,
+              image: product.image_url,
+              sku: product.sku,
+              brand: product.brand,
+              offers: {
+                '@type': 'Offer',
+                price: product.price,
+                priceCurrency: 'CAD',
+                availability: product.stock_quantity > 0 ? 'InStock' : 'OutOfStock',
+              },
+              ...(product.rating && {
+                aggregateRating: {
+                  '@type': 'AggregateRating',
+                  ratingValue: product.rating,
+                  reviewCount: product.review_count,
+                },
+              }),
+            }),
+          }}
+        />
+      </div>
+
+      {/* Reviews Section - Empty state with clear CTA */}
+      <section className="mt-24 border-t border-gray-800 pt-8">
+        <h2 className="mb-8 text-2xl font-bold">Customer Reviews</h2>
+        <div className="rounded-lg bg-dark-800 px-6 py-10 text-center shadow-sm">
+          <p className="mb-4 text-gray-400">No reviews yet. Be the first to review this product!</p>
+          <button
+            className="inline-flex items-center justify-center rounded-lg border border-gold-500 px-6 py-2 font-medium text-gold-500 transition-colors hover:bg-gold-500 hover:text-dark-900"
+            aria-label="Write a review"
+          >
+            Write a Review
+          </button>
+        </div>
+      </section>
+
+      {/* Related Products - Card-based layout with visual consistency */}
+      {relatedProducts.length > 0 && (
         <section className="mt-24 border-t border-gray-800 pt-8">
-          <h2 className="mb-8 text-2xl font-bold">Customer Reviews</h2>
-          <div className="rounded-lg bg-dark-800 px-6 py-10 text-center shadow-sm">
-            <p className="mb-4 text-gray-400">
-              No reviews yet. Be the first to review this product!
-            </p>
-            <button
-              className="inline-flex items-center justify-center rounded-lg border border-gold-500 px-6 py-2 font-medium text-gold-500 transition-colors hover:bg-gold-500 hover:text-dark-900"
-              aria-label="Write a review"
-            >
-              Write a Review
-            </button>
+          <h2 className="mb-8 text-2xl font-bold">You Might Also Like</h2>
+          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {relatedProducts.map(relatedProduct => (
+              <Link
+                key={relatedProduct.id}
+                href={`/products/${relatedProduct.id}`}
+                className="group flex flex-col overflow-hidden rounded-lg bg-dark-800 shadow-sm transition-all hover:shadow-md"
+              >
+                <div className="aspect-square bg-dark-900 p-4">
+                  <ProductImage
+                    src={relatedProduct.image_url}
+                    alt={relatedProduct.name}
+                    size="medium"
+                    className="h-full w-full object-contain transition duration-300 group-hover:scale-105"
+                  />
+                </div>
+                <div className="flex flex-grow flex-col p-4">
+                  <h3 className="mb-2 font-medium text-white transition-colors group-hover:text-gold-500">
+                    {relatedProduct.name}
+                  </h3>
+                  <p className="mt-auto font-bold text-gold-500">
+                    {formatCurrency(relatedProduct.price)}
+                  </p>
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
-
-        {/* Related Products - Card-based layout with visual consistency */}
-        {relatedProducts.length > 0 && (
-          <section className="mt-24 border-t border-gray-800 pt-8">
-            <h2 className="mb-8 text-2xl font-bold">You Might Also Like</h2>
-            <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {relatedProducts.map(relatedProduct => (
-                <Link
-                  key={relatedProduct.id}
-                  href={`/products/${relatedProduct.id}`}
-                  className="group flex flex-col overflow-hidden rounded-lg bg-dark-800 shadow-sm transition-all hover:shadow-md"
-                >
-                  <div className="aspect-square bg-dark-900 p-4">
-                    <ProductImage
-                      src={relatedProduct.image_url}
-                      alt={relatedProduct.name}
-                      size="medium"
-                      className="h-full w-full object-contain transition duration-300 group-hover:scale-105"
-                    />
-                  </div>
-                  <div className="flex flex-grow flex-col p-4">
-                    <h3 className="mb-2 font-medium text-white transition-colors group-hover:text-gold-500">
-                      {relatedProduct.name}
-                    </h3>
-                    <p className="mt-auto font-bold text-gold-500">
-                      {formatCurrency(relatedProduct.price)}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
+      )}
     </Layout>
   );
 }

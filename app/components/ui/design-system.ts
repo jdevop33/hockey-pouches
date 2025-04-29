@@ -6,9 +6,36 @@
  * - Typography
  * - Colors
  * - Elevation/Shadows
- *
- * Use these values throughout the application instead of arbitrary values.
+ * - Layout
+ * - Breakpoints
+ * - Overlays
  */
+
+// Breakpoints - Mobile First
+export const breakpoints = {
+  xs: '320px',
+  sm: '640px',
+  md: '768px',
+  lg: '1024px',
+  xl: '1280px',
+  '2xl': '1536px',
+} as const;
+
+// Media Queries
+export const media = {
+  xs: `@media (min-width: ${breakpoints.xs})`,
+  sm: `@media (min-width: ${breakpoints.sm})`,
+  md: `@media (min-width: ${breakpoints.md})`,
+  lg: `@media (min-width: ${breakpoints.lg})`,
+  xl: `@media (min-width: ${breakpoints.xl})`,
+  '2xl': `@media (min-width: ${breakpoints['2xl']})`,
+
+  // Special cases
+  hover: '@media (hover: hover)',
+  dark: '@media (prefers-color-scheme: dark)',
+  light: '@media (prefers-color-scheme: light)',
+  reduce: '@media (prefers-reduced-motion: reduce)',
+} as const;
 
 // Spacing Scale - Based on 4px base unit - non-linear progression for visual distinction
 export const spacing = {
@@ -46,7 +73,53 @@ export const spacing = {
   96: '24rem', // 384px
 };
 
-// Typography Scale - Limited set of sizes with clear visual distinction
+// Layout Constants
+export const layout = {
+  maxWidth: {
+    xs: '320px',
+    sm: '640px',
+    md: '768px',
+    lg: '1024px',
+    xl: '1280px',
+    '2xl': '1536px',
+    prose: '65ch', // Optimal reading width
+  },
+  aspectRatio: {
+    square: '1/1',
+    portrait: '3/4',
+    landscape: '4/3',
+    video: '16/9',
+    ultrawide: '21/9',
+  },
+  container: {
+    padding: {
+      xs: spacing[4],
+      sm: spacing[6],
+      md: spacing[8],
+      lg: spacing[12],
+    },
+    margin: {
+      xs: spacing[4],
+      sm: spacing[6],
+      md: spacing[8],
+      lg: spacing[12],
+    },
+  },
+  zIndex: {
+    hide: -1,
+    base: 0,
+    raised: 1,
+    dropdown: 1000,
+    sticky: 1100,
+    overlay: 1300,
+    modal: 1400,
+    popover: 1500,
+    toast: 1600,
+    tooltip: 1700,
+  },
+} as const;
+
+// Enhanced Typography Scale
 export const typography = {
   size: {
     xs: '0.75rem', // 12px
@@ -74,6 +147,17 @@ export const typography = {
     normal: '1.5',
     relaxed: '1.625',
     loose: '2',
+    // New specific line heights for different contexts
+    heading: {
+      sm: '1.2',
+      md: '1.3',
+      lg: '1.4',
+    },
+    body: {
+      sm: '1.5',
+      md: '1.6',
+      lg: '1.8',
+    },
   },
   tracking: {
     tighter: '-0.05em',
@@ -82,10 +166,25 @@ export const typography = {
     wide: '0.025em',
     wider: '0.05em',
     widest: '0.1em',
+    // New specific letter spacing
+    heading: '-0.025em',
+    allCaps: '0.05em',
+    button: '0.025em',
   },
-};
+  measure: {
+    none: 'none',
+    short: '40ch',
+    base: '65ch',
+    wide: '80ch',
+  },
+  font: {
+    sans: 'var(--font-sans)',
+    serif: 'var(--font-serif)',
+    mono: 'var(--font-mono)',
+  },
+} as const;
 
-// Color System - Multiple shades for each color
+// Colors with semantic meaning
 export const colors = {
   // Primary brand color
   gold: {
@@ -152,10 +251,53 @@ export const colors = {
       dark: 'hsl(210, 90%, 40%)',
     },
   },
+  // New semantic colors
+  semantic: {
+    primary: 'var(--color-primary)',
+    secondary: 'var(--color-secondary)',
+    accent: 'var(--color-accent)',
+    background: {
+      page: 'var(--color-background)',
+      subtle: 'var(--color-background-subtle)',
+      inverse: 'var(--color-background-inverse)',
+    },
+    text: {
+      primary: 'var(--color-text-primary)',
+      secondary: 'var(--color-text-secondary)',
+      tertiary: 'var(--color-text-tertiary)',
+      inverse: 'var(--color-text-inverse)',
+    },
+    border: {
+      default: 'var(--color-border)',
+      subtle: 'var(--color-border-subtle)',
+      strong: 'var(--color-border-strong)',
+    },
+  },
 };
 
-// Shadow system for elevation
-export const shadows = {
+// Overlay system
+export const overlays = {
+  dark: {
+    light: 'rgba(0, 0, 0, 0.1)',
+    medium: 'rgba(0, 0, 0, 0.3)',
+    heavy: 'rgba(0, 0, 0, 0.5)',
+    opaque: 'rgba(0, 0, 0, 0.9)',
+  },
+  light: {
+    light: 'rgba(255, 255, 255, 0.1)',
+    medium: 'rgba(255, 255, 255, 0.3)',
+    heavy: 'rgba(255, 255, 255, 0.5)',
+    opaque: 'rgba(255, 255, 255, 0.9)',
+  },
+  blur: {
+    light: 'blur(4px)',
+    medium: 'blur(8px)',
+    heavy: 'blur(16px)',
+  },
+} as const;
+
+// Base shadows
+const baseShadows = {
   sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
   md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
   lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
@@ -166,7 +308,60 @@ export const shadows = {
     md: '0 4px 6px -1px rgba(250, 204, 21, 0.1), 0 2px 4px -1px rgba(250, 204, 21, 0.06)',
     lg: '0 10px 15px -3px rgba(250, 204, 21, 0.1), 0 4px 6px -2px rgba(250, 204, 21, 0.05)',
   },
-};
+} as const;
+
+// Enhanced shadow system
+export const shadows = {
+  ...baseShadows,
+  // Layered shadows
+  layered: {
+    sm: `${baseShadows.sm}, 0 1px 2px -1px rgba(0, 0, 0, 0.1)`,
+    md: `${baseShadows.md}, 0 2px 4px -2px rgba(0, 0, 0, 0.1)`,
+    lg: `${baseShadows.lg}, 0 4px 6px -4px rgba(0, 0, 0, 0.1)`,
+  },
+  // Inner shadows
+  inner: {
+    sm: 'inset 0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    md: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.1)',
+    lg: 'inset 0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+  },
+} as const;
+
+// Animation tokens
+export const animation = {
+  duration: {
+    instant: '0ms',
+    fast: '150ms',
+    normal: '300ms',
+    slow: '450ms',
+    slower: '600ms',
+  },
+  easing: {
+    linear: 'linear',
+    ease: 'ease',
+    easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
+    easeOut: 'cubic-bezier(0, 0, 0.2, 1)',
+    easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  },
+  keyframes: {
+    fadeIn: {
+      from: { opacity: '0' },
+      to: { opacity: '1' },
+    },
+    fadeOut: {
+      from: { opacity: '1' },
+      to: { opacity: '0' },
+    },
+    slideIn: {
+      from: { transform: 'translateY(10px)', opacity: '0' },
+      to: { transform: 'translateY(0)', opacity: '1' },
+    },
+    slideOut: {
+      from: { transform: 'translateY(0)', opacity: '1' },
+      to: { transform: 'translateY(10px)', opacity: '0' },
+    },
+  },
+} as const;
 
 // Border radius system
 export const borderRadius = {
@@ -179,3 +374,45 @@ export const borderRadius = {
   '3xl': '1rem',
   full: '9999px',
 };
+
+// Focus styles
+export const focus = {
+  default: {
+    outline: 'none',
+    ring: '2px',
+    ringOffset: '2px',
+    ringColor: 'var(--color-focus-ring)',
+  },
+  within: {
+    outline: 'none',
+    ring: '2px',
+    ringOffset: '1px',
+    ringColor: 'var(--color-focus-ring-within)',
+  },
+} as const;
+
+// Grid system
+export const grid = {
+  columns: {
+    1: 'repeat(1, minmax(0, 1fr))',
+    2: 'repeat(2, minmax(0, 1fr))',
+    3: 'repeat(3, minmax(0, 1fr))',
+    4: 'repeat(4, minmax(0, 1fr))',
+    5: 'repeat(5, minmax(0, 1fr))',
+    6: 'repeat(6, minmax(0, 1fr))',
+    12: 'repeat(12, minmax(0, 1fr))',
+    auto: 'auto-fill',
+    'auto-fit': 'auto-fit',
+  },
+  gap: spacing,
+} as const;
+
+// Export types for better TypeScript support
+export type Breakpoint = keyof typeof breakpoints;
+export type Spacing = keyof typeof spacing;
+export type Color = keyof typeof colors;
+export type Shadow = keyof typeof shadows;
+export type Typography = keyof typeof typography;
+export type BorderRadius = keyof typeof borderRadius;
+export type ZIndex = keyof typeof layout.zIndex;
+export type Animation = keyof typeof animation;

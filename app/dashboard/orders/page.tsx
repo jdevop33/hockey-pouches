@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation';
 import Layout from '../../components/layout/NewLayout';
-import { useAuth } from '../../context/AuthContext'; // Import useAuth
+import { useAuth } from '../../context/AuthContext';
+import { useApi } from '@/lib/utils/api';
 
 // Placeholder type - replace with actual data type
 type Order = {
@@ -37,13 +38,22 @@ const getStatusBadgeColor = (status: string): string => {
   }
 };
 
+interface OrdersResponse {
+  orders: Order[];
+  pagination: {
+    page: number;
+    totalPages: number;
+  };
+}
+
 export default function OrdersListPage() {
   const router = useRouter();
-  const { user, token, isLoading: authLoading, logout } = useAuth(); // Use auth hook
+  const { user, token, isLoading: authLoading, logout } = useAuth();
+  const { fetchApi, isLoading: isLoadingApi } = useApi({
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
 
   const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoadingData, setIsLoadingData] = useState(true); // Separate data loading state
-  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -62,8 +72,6 @@ export default function OrdersListPage() {
 
     // Fetch orders if authenticated
     const loadOrders = async (page: number) => {
-      setIsLoadingData(true);
-      setError(null);
       try {
         // Build query parameters
         const queryParams = new URLSearchParams({
@@ -84,37 +92,36 @@ export default function OrdersListPage() {
           queryParams.append('search', searchTerm.trim());
         }
 
-        const response = await fetch(`/api/orders/me?${queryParams.toString()}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const data = await fetchApi<OrdersResponse>(`/api/orders/me?${queryParams.toString()}`);
 
-        if (!response.ok) {
-          if (response.status === 401) {
-            logout();
-            router.push('/login');
-            return;
-          }
-          throw new Error(`Failed to fetch orders (${response.status})`);
-        }
-
-        const data = await response.json();
-
-        setOrders(data.orders || []); // Adjust based on actual API response
+        setOrders(data.orders || []);
         setCurrentPage(data.pagination?.page || 1);
         setTotalPages(data.pagination?.totalPages || 1);
-      } catch (err: any) {
-        setError('Failed to load orders.');
-        console.error(err);
-      } finally {
-        setIsLoadingData(false);
+      } catch (err) {
+        const error = err as Error & { status?: number };
+        if (error.status === 401) {
+          logout();
+          router.push('/login');
+        }
       }
     };
 
     loadOrders(currentPage);
-  }, [user, token, authLoading, currentPage, statusFilter, dateFilter, searchTerm, router, logout]);
+  }, [
+    user,
+    token,
+    authLoading,
+    currentPage,
+    statusFilter,
+    dateFilter,
+    searchTerm,
+    router,
+    logout,
+    fetchApi,
+  ]);
 
   // Display loading state
-  if (authLoading || isLoadingData) {
+  if (authLoading || isLoadingApi) {
     return (
       <Layout>
         <div className="p-8">Loading orders...</div>
@@ -143,11 +150,9 @@ export default function OrdersListPage() {
       <div className="min-h-screen bg-gray-100 p-8">
         <h1 className="mb-6 text-3xl font-bold text-gray-800">My Orders</h1>
 
-        {error && <p className="mb-4 rounded bg-red-100 p-3 text-red-500">Error: {error}</p>}
-
         {/* Filter Controls */}
         <div className="mb-6 rounded-lg bg-white p-4 shadow-sm">
-          <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-4">
+          <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-x-4 md:space-y-0">
             {/* Search */}
             <div className="flex-grow">
               <div className="relative">
@@ -156,7 +161,7 @@ export default function OrdersListPage() {
                   placeholder="Search orders..."
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  className="focus:border-primary-500 focus:ring-primary-500 w-full rounded-md border border-gray-300 py-2 pr-4 pl-10 text-sm"
+                  className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-primary-500 focus:ring-primary-500"
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,7 +185,7 @@ export default function OrdersListPage() {
                 id="statusFilter"
                 value={statusFilter}
                 onChange={e => setStatusFilter(e.target.value)}
-                className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border border-gray-300 py-2 pr-10 pl-3 text-sm focus:outline-none"
+                className="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
               >
                 <option value="all">All Statuses</option>
                 <option value="Pending Approval">Pending Approval</option>
@@ -201,7 +206,7 @@ export default function OrdersListPage() {
                 id="dateFilter"
                 value={dateFilter}
                 onChange={e => setDateFilter(e.target.value)}
-                className="focus:border-primary-500 focus:ring-primary-500 mt-1 block w-full rounded-md border border-gray-300 py-2 pr-10 pl-3 text-sm focus:outline-none"
+                className="mt-1 block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
               >
                 <option value="all">All Time</option>
                 <option value="last30">Last 30 Days</option>
@@ -235,31 +240,31 @@ export default function OrdersListPage() {
               <tr>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
                 >
                   Order ID
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
                 >
                   Date
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
                 >
                   Status
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
                 >
                   Items
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
+                  className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500"
                 >
                   Total
                 </th>
@@ -273,26 +278,26 @@ export default function OrdersListPage() {
                 orders.map(order => (
                   <tr key={order.id}>
                     {/* ... table row data ... */}
-                    <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
                       #{order.id.split('-')[1]}
                     </td>
-                    <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       {new Date(order.date).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="whitespace-nowrap px-6 py-4">
                       <span
-                        className={`inline-flex rounded-full px-2 text-xs leading-5 font-semibold ${getStatusBadgeColor(order.status)}`}
+                        className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getStatusBadgeColor(order.status)}`}
                       >
                         {order.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       {order.itemCount}
                     </td>
-                    <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap text-gray-900">
+                    <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-gray-900">
                       ${order.total.toFixed(2)}
                     </td>
-                    <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
+                    <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                       <Link
                         href={`/dashboard/orders/${order.id}`}
                         className="text-primary-600 hover:text-primary-900"

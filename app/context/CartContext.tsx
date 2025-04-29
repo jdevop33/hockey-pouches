@@ -13,7 +13,7 @@ import React, {
 
 // Define Product type consistently with API/DB
 export interface Product {
-  id: number;
+  id: string;
   name: string;
   description?: string | null;
   flavor?: string | null;
@@ -29,24 +29,25 @@ export interface CartItem {
   product: Product;
   quantity: number;
 }
-interface CartContextType {
+export type CartContextType = {
   items: CartItem[];
-  addToCart: (product: Product, quantity: number) => { success: boolean; message?: string };
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => { success: boolean; message?: string };
+  addToCart: (product: Product, quantity: number) => Promise<void>;
+  removeFromCart: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
+  isAddingToCart: boolean;
   itemCount: number;
   subtotal: number;
   totalQuantity: number;
   validateMinimumOrder: () => { isValid: boolean; message?: string };
   minOrderQuantity: number;
-}
+};
 
 type CartAction =
   | { type: 'SET_ITEMS'; payload: CartItem[] }
   | { type: 'ADD_ITEM'; payload: { product: Product; quantity: number } }
-  | { type: 'REMOVE_ITEM'; payload: { productId: number } }
-  | { type: 'UPDATE_QUANTITY'; payload: { productId: number; quantity: number } }
+  | { type: 'REMOVE_ITEM'; payload: { productId: string } }
+  | { type: 'UPDATE_QUANTITY'; payload: { productId: string; quantity: number } }
   | { type: 'CLEAR_CART' };
 interface CartState {
   items: CartItem[];
@@ -111,24 +112,17 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     }
 
     case 'REMOVE_ITEM': {
-      const { productId } = action.payload;
-      const newItems = state.items.filter(item => item.product.id !== productId);
+      const newItems = state.items.filter(item => item.product.id !== action.payload.productId);
       const { itemCount, subtotal, totalQuantity } = calculateTotals(newItems);
       return { items: newItems, itemCount, subtotal, totalQuantity };
     }
 
     case 'UPDATE_QUANTITY': {
-      const { productId, quantity } = action.payload;
-
-      // Don't allow negative or zero quantities
-      if (quantity <= 0) {
-        return cartReducer(state, { type: 'REMOVE_ITEM', payload: { productId } });
-      }
-
       const newItems = state.items.map(item =>
-        item.product.id === productId ? { ...item, quantity } : item
+        item.product.id === action.payload.productId
+          ? { ...item, quantity: action.payload.quantity }
+          : item
       );
-
       const { itemCount, subtotal, totalQuantity } = calculateTotals(newItems);
       return { items: newItems, itemCount, subtotal, totalQuantity };
     }
@@ -141,7 +135,19 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
   }
 };
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+export const CartContext = createContext<CartContextType>({
+  items: [],
+  addToCart: async () => {},
+  removeFromCart: () => {},
+  updateQuantity: () => {},
+  clearCart: () => {},
+  isAddingToCart: false,
+  itemCount: 0,
+  subtotal: 0,
+  totalQuantity: 0,
+  validateMinimumOrder: () => ({ isValid: false, message: 'Cart not initialized' }),
+  minOrderQuantity: MIN_ORDER_QUANTITY,
+});
 
 export const useCart = () => {
   // Use a try-catch block to safely access context
@@ -156,10 +162,11 @@ export const useCart = () => {
       // Provide a fallback context instead of throwing to prevent rendering errors
       return {
         items: [],
-        addToCart: () => ({ success: false, message: 'Cart not initialized' }),
+        addToCart: async () => {},
         removeFromCart: () => {},
-        updateQuantity: () => ({ success: false, message: 'Cart not initialized' }),
+        updateQuantity: () => {},
         clearCart: () => {},
+        isAddingToCart: false,
         itemCount: 0,
         subtotal: 0,
         totalQuantity: 0,
@@ -177,10 +184,11 @@ export const useCart = () => {
     // Return fallback data
     return {
       items: [],
-      addToCart: () => ({ success: false, message: 'Cart not initialized' }),
+      addToCart: async () => {},
       removeFromCart: () => {},
-      updateQuantity: () => ({ success: false, message: 'Cart not initialized' }),
+      updateQuantity: () => {},
       clearCart: () => {},
+      isAddingToCart: false,
       itemCount: 0,
       subtotal: 0,
       totalQuantity: 0,
@@ -210,6 +218,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   // We aren't currently using setMinOrderQuantity, but keeping it for future flexibility
   // when we might need to update the value from an API
   const [minOrderQuantity] = useState<number>(MIN_ORDER_QUANTITY);
+
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   // Safely load cart from localStorage
   useEffect(() => {
@@ -272,31 +282,29 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     return { isValid: true };
   }, [totalQuantity, minOrderQuantity]);
 
-  const addToCart = useCallback((product: Product, quantity: number) => {
-    // Validate the quantity is at least 1
-    if (quantity < 1) {
-      return {
-        success: false,
-        message: 'Quantity must be at least 1',
-      };
-    }
+  const addToCart = useCallback(async (product: Product, quantity: number) => {
+    try {
+      setIsAddingToCart(true);
+      // Validate the quantity is at least 1
+      if (quantity < 1) {
+        throw new Error('Quantity must be at least 1');
+      }
 
-    dispatch({ type: 'ADD_ITEM', payload: { product, quantity } });
-    return { success: true };
+      dispatch({ type: 'ADD_ITEM', payload: { product, quantity } });
+    } finally {
+      setIsAddingToCart(false);
+    }
   }, []);
 
-  const removeFromCart = useCallback((productId: number) => {
+  const removeFromCart = useCallback((productId: string) => {
     dispatch({ type: 'REMOVE_ITEM', payload: { productId } });
   }, []);
 
-  const updateQuantity = useCallback((productId: number, quantity: number) => {
+  const updateQuantity = useCallback((productId: string, quantity: number) => {
     if (quantity < 1) {
-      dispatch({ type: 'REMOVE_ITEM', payload: { productId } });
-      return { success: true };
+      throw new Error('Quantity must be at least 1');
     }
-
     dispatch({ type: 'UPDATE_QUANTITY', payload: { productId, quantity } });
-    return { success: true };
   }, []);
 
   const clearCart = useCallback(() => {
@@ -315,6 +323,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       totalQuantity,
       validateMinimumOrder,
       minOrderQuantity,
+      isAddingToCart,
     }),
     [
       items,
@@ -327,6 +336,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       totalQuantity,
       validateMinimumOrder,
       minOrderQuantity,
+      isAddingToCart,
     ]
   );
 
