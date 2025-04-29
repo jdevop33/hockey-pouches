@@ -1,137 +1,96 @@
+// app/api/admin/orders/[orderId]/assign-distributor/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db'; // Default import sql
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
+import { orderService } from '@/lib/services/order-service'; // Use service
+import { taskService } from '@/lib/services/task-service'; // Use service for tasks
+import { logger } from '@/lib/logger';
+import { z } from 'zod';
+import { db } from '@/lib/db';
+import * as schema from '@/lib/schema';
+import { eq, and, sql } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
-interface AssignBody {
-  distributorId?: string;
-}
+const assignDistributorSchema = z.object({
+    distributorId: z.string().uuid("Invalid Distributor ID format"),
+});
 
 export async function POST(request: NextRequest, { params }: { params: { orderId: string } }) {
-  const { orderId: orderIdString } = params;
-  const orderId = parseInt(orderIdString);
-  if (isNaN(orderId))
-    return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
+    try {
+        const authResult = await verifyAdmin(request);
+        if (!authResult.isAuthenticated || !authResult.userId || authResult.role !== 'Admin') {
+            return forbiddenResponse('Admin access required');
+        }
+        const { orderId } = params;
+        if (!orderId || orderId.length !== 36) {
+            return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
+        }
 
-  // Verify admin authentication
-  const authResult = await verifyAdmin(request);
-  if (!authResult.isAuthenticated) {
-    return unauthorizedResponse(authResult.message);
-  }
+        const body = await request.json();
+        const validation = assignDistributorSchema.safeParse(body);
+        if (!validation.success) {
+            return NextResponse.json({ message: 'Invalid input data.', errors: validation.error.flatten().fieldErrors }, { status: 400 });
+        }
+        const { distributorId } = validation.data;
+        const adminUserId = authResult.userId;
 
-  // Check if user is an admin
-  if (authResult.role !== 'Admin') {
-    return forbiddenResponse('Only administrators can access this resource');
-  }
+        logger.info(`Admin POST /api/admin/orders/${orderId}/assign-distributor request`, { adminId: adminUserId, distributorId });
 
-  const adminUserId = authResult.userId;
-  console.log(
-    `POST /api/admin/orders/${orderId}/assign-distributor request by admin: ${adminUserId}`
-  );
+        // --- Call Service to Assign Distributor --- 
+        // OrderService.assignDistributor handles checking order status, distributor validity, updating order, adding history
+        const updatedOrder = await orderService.assignDistributor(orderId, distributorId);
 
-  try {
-    const body: AssignBody = await request.json();
-    const { distributorId } = body;
-    if (!distributorId || typeof distributorId !== 'string') {
-      return NextResponse.json({ message: 'Missing or invalid distributor ID.' }, { status: 400 });
+        // --- Update/Create Tasks (Handle here for now, could move to service) ---
+        try {
+            // 1. Close the "Assign distributor" task for this order
+            const assignmentTaskUpdate = await db.update(schema.tasks).set({
+                status: 'Completed',
+                updatedAt: new Date(),
+                notes: sql`COALESCE(${schema.tasks.notes}, '') || ' | Assigned by admin ${sql.val(adminUserId)} on ' || NOW()`
+            }).where(and(
+                eq(schema.tasks.relatedTo, 'Order'),
+                eq(schema.tasks.relatedId, orderId),
+                eq(schema.tasks.title, 'Assign distributor'), // Match specific title
+                eq(schema.tasks.status, 'Pending')
+            ));
+             logger.info('Closed assign distributor task(s)', { orderId, count: assignmentTaskUpdate.rowCount });
+
+            // 2. Create "Fulfill order" task for the assigned distributor
+            await db.insert(schema.tasks).values({
+                // id handled by default
+                title: 'Fulfill order',
+                description: `Fulfill order #${orderId}`,
+                status: 'Pending',
+                priority: 'High',
+                category: 'Fulfillment', // Or 'Order'?
+                relatedTo: 'Order',
+                relatedId: orderId,
+                assignedTo: distributorId,
+            });
+             logger.info('Created fulfill order task for distributor', { orderId, distributorId });
+
+        } catch(taskError) {
+            logger.error('Error updating/creating tasks after assigning distributor (order update succeeded)', { orderId, distributorId, error: taskError });
+            // Don't fail the whole request if task update fails, but log it
+        }
+
+        // TODO: Send notification to distributor
+
+        logger.info('Admin: Distributor assigned successfully', { orderId, distributorId, adminId: adminUserId });
+        return NextResponse.json({
+            message: `Distributor assigned to order ${orderId}.`,
+            order: updatedOrder // Return updated order data
+        });
+
+    } catch (error: any) {
+        logger.error(`Admin: Failed to assign distributor to order ${params.orderId}:`, { error });
+        if (error instanceof SyntaxError) {
+            return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
+        }
+        // Handle specific errors from service (e.g., not found, invalid status, invalid distributor)
+        if (error.message?.includes('not found') || error.message?.includes('Invalid status') || error.message?.includes('not a distributor')) {
+            return NextResponse.json({ message: error.message }, { status: 400 }); // Or 404
+        }
+        return NextResponse.json({ message: 'Internal Server Error assigning distributor.' }, { status: 500 });
     }
-
-    // Use sql tag directly for checks
-    const orderCheck = await sql`SELECT status FROM orders WHERE id = ${orderId}`;
-    if (orderCheck.length === 0)
-      return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
-    if (orderCheck[0].status !== 'Awaiting Fulfillment')
-      return NextResponse.json(
-        { message: `Order cannot be assigned. Current status: ${orderCheck[0].status}` },
-        { status: 400 }
-      );
-
-    const distributorCheck =
-      await sql`SELECT id FROM users WHERE id = ${distributorId} AND role = 'Distributor' AND status = 'Active'`;
-    if (distributorCheck.length === 0)
-      return NextResponse.json(
-        { message: 'Invalid or inactive distributor ID provided.' },
-        { status: 400 }
-      );
-
-    // Get distributor name for history
-    const distributorInfo = await sql`SELECT name FROM users WHERE id = ${distributorId}`;
-    const distributorName = distributorInfo.length > 0 ? distributorInfo[0].name : 'Unknown';
-
-    // Use sql tag directly for update
-    await sql`
-        UPDATE orders SET assigned_distributor_id = ${distributorId}, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ${orderId}
-    `;
-
-    // Add history entry
-    await sql`
-        INSERT INTO order_history (order_id, status, notes, user_id, user_role, user_name)
-        VALUES (
-            ${orderId},
-            'Awaiting Fulfillment',
-            'Distributor assigned: ${distributorName}',
-            ${adminUserId},
-            'Admin',
-            (SELECT name FROM users WHERE id = ${adminUserId})
-        )
-    `;
-
-    // Update task status
-    await sql`
-        UPDATE tasks
-        SET status = 'Completed',
-            updated_at = CURRENT_TIMESTAMP,
-            notes = CONCAT(COALESCE(notes, ''), ' | Completed by admin ${adminUserId}')
-        WHERE related_to = 'Order'
-        AND related_id = ${orderId}
-        AND title = 'Assign distributor'
-        AND status = 'Pending'
-    `;
-
-    // Create task for distributor
-    await sql`
-        INSERT INTO tasks (
-            title,
-            description,
-            status,
-            priority,
-            category,
-            related_to,
-            related_id,
-            assigned_to
-        ) VALUES (
-            'Fulfill order',
-            'Fulfill order #${orderId}',
-            'Pending',
-            'High',
-            'Order',
-            'Order',
-            ${orderId},
-            ${distributorId}
-        )
-    `;
-
-    // TODO: Implement notification system
-    console.log(`Notify distributor ${distributorId} about new assignment`);
-
-    return NextResponse.json({
-      message: `Distributor ${distributorName} assigned to order ${orderId}.`,
-    });
-  } catch (error: any) {
-    if (error instanceof SyntaxError)
-      return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
-    if (
-      error.message?.includes(
-        'violates foreign key constraint "orders_assigned_distributor_id_fkey"'
-      )
-    )
-      return NextResponse.json({ message: 'Invalid Distributor ID.' }, { status: 400 });
-    console.error(`Admin: Failed to assign distributor to order ${orderId}:`, error);
-    return NextResponse.json(
-      { message: error.message || 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
 }
