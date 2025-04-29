@@ -22,6 +22,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
     "@neondatabase/serverless": "^1.0.0",
+    "@radix-ui/react-toast": "1.2.11",
     "@stripe/stripe-js": "^7.2.0",
     "@tailwindcss/postcss": "^4.1.4",
     "@types/uuid": "^10.0.0",
