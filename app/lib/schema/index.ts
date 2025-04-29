@@ -1,17 +1,17 @@
 // app/lib/schema/index.ts
-// This file exports all schemas and types from the schema directory
+// This file exports all schemas, relations, and enums from the schema directory
 
 export * from './users';
 export * from './products';
-export * from './inventory';
+export * from './inventory'; // Exports stockLocations, stockLevels, stockMovements, stockLocationTypeEnum, stockMovementTypeEnum
 export * from './pricing';
-export * from './orders';
+export * from './orders'; // Exports orders, orderItems, orderStatusHistory, orderFulfillments, and related enums (orderStatusEnum, paymentMethodEnum, paymentStatusEnum, orderTypeEnum, fulfillmentStatusEnum)
 export * from './cart';
-export * from './commissions';
+export * from './commissions'; // Exports commissions and related enums (commissionStatusEnum, commissionTypeEnum, commissionRelatedEntityEnum)
 export * from './payments';
-export * from './discounts';
+export * from './discounts'; // Exports discountCodes and related enums (discountTypeEnum)
 export * from './wholesale';
 export * from './notifications';
-export * from './tasks';
+export * from './tasks'; // Exports tasks and related enums (taskStatusEnum, taskPriorityEnum, taskCategoryEnum, taskRelatedEntityEnum)
 
-// You can also define shared utility types or enums here if needed
+// Note: Ensure that each schema file correctly defines and exports its tables, relations, and associated enums.

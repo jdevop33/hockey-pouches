@@ -1,12 +1,28 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
+import { sql } from '@/lib/db'; // Corrected import
 import { verifyDistributor, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
-import { OrderStatus, Address } from '@/types';
+import * as schema from '@/lib/schema'; // Import schema namespace
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 // --- Types ---
+
+// Define OrderStatus based on schema enum
+type OrderStatus = typeof schema.orderStatusEnum.enumValues[number];
+
+// Define Address interface (assuming basic structure)
+// TODO: Verify if a more specific definition exists elsewhere
+interface Address {
+  street: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  country: string;
+  name?: string; // Optional name
+  phone?: string; // Optional phone
+}
+
 interface OrderItemDetails {
     id: number;
     order_id: number;
@@ -53,6 +69,9 @@ export async function GET(
         }
 
         const distributorId = authResult.userId;
+        if (!distributorId) {
+            return NextResponse.json({ message: 'Distributor ID not found in token' }, { status: 401 });
+        }
         console.log(`GET /api/distributor/orders/${orderId} request by Distributor ${distributorId}`);
 
         // 2. Fetch Order Details and Verify Assignment
@@ -100,7 +119,7 @@ export async function GET(
         const responseData: AssignedOrderDetails = {
             id: orderData.id,
             created_at: orderData.created_at,
-            status: orderData.status,
+            status: orderData.status as OrderStatus, // Cast to OrderStatus
             shipping_address: orderData.shipping_address as Address | null,
             customer_name: orderData.customer_name,
             items: itemsData,

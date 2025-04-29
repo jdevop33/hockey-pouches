@@ -1,568 +1,391 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { pool } from '@/lib/db';
+// Removed: import { pool } from '@/lib/db'; 
+import { db } from '@/lib/db'; // Import db instead of pool
 import jwt from 'jsonwebtoken';
-import { PoolClient } from 'pg';
+import type { PoolClient } from 'pg'; // Keep for type checking if helpers still expect it
 import { sendOrderConfirmationEmail } from '../../lib/email';
+import * as schema from '@/lib/schema'; // Use central schema index
+import { eq, and, sql } from 'drizzle-orm';
+import { logger } from '@/lib/logger'; // Assuming logger exists
+import { v4 as uuidv4 } from 'uuid';
 
 // --- Interfaces ---
+
+// Use schema-derived types where possible
+type UserRole = typeof schema.userRoleEnum.enumValues[number];
+
 interface JwtPayload {
   userId: string;
-  role: string;
+  role: UserRole;
 }
 interface OrderItemInput {
-  productId: number;
+  productVariationId: number; // Use variation ID
   quantity: number;
 }
+
+// Assuming Address type is defined elsewhere or locally
+// If not, define it here
 interface AddressInput {
   street?: string;
   city?: string;
   province?: string;
   postalCode?: string;
   country?: string;
+  name?: string; // Added name based on usage
+  // Add other potential fields if needed from JSON usage
+  address1?: string; 
+  address2?: string;
   firstName?: string;
   lastName?: string;
-  address1?: string;
-  address2?: string;
 }
+
 interface CreateOrderBody {
   items?: OrderItemInput[];
   shippingAddress?: AddressInput;
   billingAddress?: AddressInput;
-  paymentMethod?: string;
+  paymentMethod?: typeof schema.paymentMethodEnum.enumValues[number]; // Use enum type
   discountCode?: string | null;
-}
-interface ProductInfo {
-  id: number;
-  name: string;
-  price: string;
-  is_active: boolean;
+  referralCode?: string | null; // Added referral code
+  notes?: string | null; // Added notes
 }
 
-// --- Helper Functions (Moved outside POST handler) ---
+interface ProductVariationInfo {
+  id: number;
+  productId: number;
+  name: string | null;
+  price: string;
+  isActive: boolean;
+  productName: string | null;
+  productIsActive: boolean;
+}
+
+// --- Helper Functions ---
+
+// (getUserFromToken remains largely the same)
 async function getUserFromToken(
   request: NextRequest
-): Promise<{ userId: string; role: string } | null> {
+): Promise<{ userId: string; role: UserRole } | null> {
   const authHeader = request.headers.get('authorization');
   const token = authHeader?.split(' ')[1];
   if (!token) return null;
   const jwtSecret = process.env.JWT_SECRET;
   if (!jwtSecret) {
+    logger.error('Server configuration error: JWT_SECRET missing.');
     throw new Error('Server configuration error: JWT_SECRET missing.');
   }
   try {
+    // Assert the type after verification
     const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
-    return { userId: decoded.userId, role: decoded.role };
+    // Validate role against enum
+    if (schema.userRoleEnum.enumValues.includes(decoded.role)) {
+        return { userId: decoded.userId, role: decoded.role };
+    } else {
+        logger.warn('Invalid role found in token', { userId: decoded.userId, role: decoded.role });
+        return null; // Or handle as unauthorized
+    }
   } catch (error) {
-    console.warn('Token verification failed:', error);
+    logger.warn('Token verification failed:', { error });
     return null;
   }
 }
 
+// Simplified location logic - needs refinement based on actual location schema/strategy
 function getTargetLocation(address: AddressInput | undefined): string {
-  // Made address potentially undefined
   const province = address?.province?.toUpperCase() || '';
-  if (['BC'].includes(province)) return 'Vancouver';
-  if (['AB', 'SK', 'MB'].includes(province)) return 'Calgary';
-  if (['ON', 'QC'].includes(province)) return 'Toronto';
-  console.warn(
-    `Could not determine specific location for province: ${province}, using fallback 'Toronto'.`
-  );
-  return 'Toronto';
+  // This logic is likely too simple and needs to map to actual StockLocation IDs/names
+  if (['BC'].includes(province)) return 'WAREHOUSE_VAN'; // Example ID
+  if (['AB', 'SK', 'MB'].includes(province)) return 'WAREHOUSE_CGY'; // Example ID
+  if (['ON', 'QC'].includes(province)) return 'WAREHOUSE_TOR'; // Example ID
+  logger.warn(`Could not determine specific stock location ID for province: ${province}, using fallback 'WAREHOUSE_TOR'.`);
+  return 'WAREHOUSE_TOR'; // Fallback stock location ID
 }
 
-// Fetch order requirements for validation
-async function getOrderRequirements(
-  client: PoolClient,
-  userRole: string
-): Promise<{ minOrderQuantity: number }> {
-  // Default minimum quantities
-  const defaultMin = 5;
-
-  try {
-    // First check for role-specific requirements
-    const roleSpecificResult = await client.query(
-      'SELECT min_order_quantity FROM order_requirements WHERE applies_to_role = $1 AND is_active = TRUE',
-      [userRole]
-    );
-
-    if (roleSpecificResult.rows.length > 0) {
-      return {
-        minOrderQuantity: parseInt(roleSpecificResult.rows[0].min_order_quantity),
-      };
-    }
-
-    // If no role-specific requirement, check for general requirement ('ALL')
-    const generalResult = await client.query(
-      'SELECT min_order_quantity FROM order_requirements WHERE applies_to_role = $1 AND is_active = TRUE',
-      ['ALL']
-    );
-
-    if (generalResult.rows.length > 0) {
-      return {
-        minOrderQuantity: parseInt(generalResult.rows[0].min_order_quantity),
-      };
-    }
-
-    // If no requirements found in database, return default
-    return { minOrderQuantity: defaultMin };
-  } catch (error) {
-    console.error('Error fetching order requirements:', error);
-    return { minOrderQuantity: defaultMin };
-  }
-}
-
-// Check if user is eligible for wholesale (either approved or meets criteria)
-async function checkWholesaleEligibility(
-  client: PoolClient,
-  userId: string,
-  userRole: string,
-  totalQuantity: number
-): Promise<boolean> {
-  try {
-    // If not a wholesale buyer, not eligible
-    if (userRole !== 'Wholesale Buyer') {
-      return false;
-    }
-
-    // Check if user is already approved for wholesale
-    const userResult = await client.query('SELECT wholesale_eligibility FROM users WHERE id = $1', [
-      userId,
-    ]);
-
-    if (userResult.rows.length > 0 && userResult.rows[0].wholesale_eligibility) {
-      return true;
-    }
-
-    // Get wholesale requirements
-    const reqResult = await client.query(
-      'SELECT min_order_quantity FROM wholesale_requirements WHERE is_active = TRUE'
-    );
-
-    const minWholesaleQuantity =
-      reqResult.rows.length > 0 ? parseInt(reqResult.rows[0].min_order_quantity) : 100;
-
-    // Check if current order meets wholesale criteria
-    return totalQuantity >= minWholesaleQuantity;
-  } catch (error) {
-    console.error('Error checking wholesale eligibility:', error);
-    return false;
-  }
-}
 
 // --- Main POST Handler ---
 export async function POST(request: NextRequest) {
-  // Declare variables needed across try/catch/finally
-  let userInfo: { userId: string; role: string } | null = null;
-  let client: PoolClient | null = null;
-  let orderCreated = false; // Moved declaration outside try
-  let newOrderId: number | null = null;
+  let userInfo: { userId: string; role: UserRole } | null = null;
+  let orderCreated = false;
+  let newOrderId: string | null = null; // Order ID is now UUID (string)
 
   try {
     userInfo = await getUserFromToken(request);
-    if (!userInfo) return NextResponse.json({ message: 'Unauthorized.' }, { status: 401 });
+    if (!userInfo) {
+        logger.warn('POST /api/orders - Unauthorized access attempt');
+        return NextResponse.json({ message: 'Unauthorized.' }, { status: 401 });
+    }
 
     const { userId, role } = userInfo;
 
     const body: CreateOrderBody = await request.json();
-    const { items, shippingAddress, billingAddress, paymentMethod, discountCode } = body;
+    const { items, shippingAddress, billingAddress, paymentMethod, discountCode, referralCode, notes } = body;
 
     // --- Input Validation ---
-    if (!items || !Array.isArray(items) || items.length === 0)
+    if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ message: 'Order must contain items.' }, { status: 400 });
-    if (
-      !shippingAddress?.street ||
-      !shippingAddress?.city ||
-      !shippingAddress?.province ||
-      !shippingAddress?.postalCode
-    )
-      return NextResponse.json({ message: 'Incomplete shipping address.' }, { status: 400 });
-    if (!paymentMethod)
-      return NextResponse.json({ message: 'Payment method is required.' }, { status: 400 });
-
-    // Get a client connection from the pool
-    client = await pool.connect();
-    console.log('DB client connected for transaction.');
-
-    // --- Validate minimum order quantity ---
-    const orderRequirements = await getOrderRequirements(client, role);
-    const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-
-    if (totalQuantity < orderRequirements.minOrderQuantity) {
-      return NextResponse.json(
-        {
-          message: `Minimum order quantity is ${orderRequirements.minOrderQuantity} units. Your order has ${totalQuantity} units.`,
-        },
-        { status: 400 }
-      );
+    }
+    // Basic address validation (can be improved with Zod)
+    if (!shippingAddress?.street || !shippingAddress?.city || !shippingAddress?.province || !shippingAddress?.postalCode || !shippingAddress?.country || !shippingAddress?.name) {
+      return NextResponse.json({ message: 'Incomplete shipping address (street, city, province, postalCode, country, name required).' }, { status: 400 });
+    }
+    if (!paymentMethod || !schema.paymentMethodEnum.enumValues.includes(paymentMethod)) {
+      return NextResponse.json({ message: `Payment method is required and must be one of: ${schema.paymentMethodEnum.enumValues.join(', ')}` }, { status: 400 });
+    }
+    // Ensure quantities are positive integers
+    if (items.some(item => !Number.isInteger(item.quantity) || item.quantity <= 0)) {
+        return NextResponse.json({ message: 'Item quantities must be positive integers.' }, { status: 400 });
+    }
+    
+    const variationIds = items.map(item => item.productVariationId);
+    if (variationIds.some(id => typeof id !== 'number') || variationIds.length === 0) {
+      return NextResponse.json({ message: 'Invalid product variation IDs provided.' }, { status: 400 });
     }
 
-    // --- Check wholesale eligibility ---
-    const isWholesaleEligible = await checkWholesaleEligibility(
-      client,
-      userId,
-      role,
-      totalQuantity
-    );
-    const isWholesaleOrder = role === 'Wholesale Buyer' && isWholesaleEligible;
+    // Determine order type based on role
+    const orderType: typeof schema.orderTypeEnum.enumValues[number] = 
+        role === 'Wholesale Buyer' ? 'Wholesale' : 'Retail';
 
-    // --- Pre-computation & Checks ---
-    const productIds = items.map(item => item.productId);
-    if (productIds.length === 0) throw new Error('No valid product IDs in order.');
+    // Start DB Transaction using Drizzle
+    const result = await db.transaction(async (tx) => {
+        logger.info('Beginning order creation transaction', { userId, role, itemCount: items.length });
+        
+        // --- Fetch Product Variation Details & Check Stock ---
+        const variationDetails = await tx.query.productVariations.findMany({
+            where: (variations, { inArray }) => inArray(variations.id, variationIds),
+            with: {
+                product: {
+                    columns: { name: true, isActive: true }
+                }
+            },
+            columns: { id: true, productId: true, name: true, price: true, isActive: true }
+        });
 
-    if (!client) throw new Error('Failed to connect to database.');
+        const variationMap = new Map(variationDetails.map(v => [v.id, v]));
+        let subtotal = 0;
+        const orderItemsData: Array<typeof schema.orderItems.$inferInsert & { name?: string | null }> = [];
 
-    const productDetailsResult = await client.query(
-      'SELECT id, name, price, is_active FROM products WHERE id = ANY($1)',
-      [productIds]
-    );
-    const productDetails = productDetailsResult.rows as ProductInfo[];
-    const productMap = new Map(productDetails.map(p => [p.id, p]));
-    const targetLocation = getTargetLocation(shippingAddress);
-
-    let subtotal = 0;
-    const orderItemsData: {
-      productId: number;
-      quantity: number;
-      pricePerItem: number;
-      name: string;
-    }[] = [];
-
-    for (const item of items) {
-      const product = productMap.get(item.productId);
-      if (!product || !product.is_active)
-        throw new Error(
-          `Product ID ${item.productId} (${product?.name || 'Unknown'}) not found or not available.`
-        );
-      if (!item.quantity || item.quantity <= 0)
-        throw new Error(`Invalid quantity for product ID ${item.productId}.`);
-
-      if (!client) throw new Error('Database connection lost.');
-
-      const stockResult = await client.query(
-        'SELECT quantity FROM inventory WHERE product_id = $1 AND location = $2',
-        [item.productId, targetLocation]
-      );
-      const available = stockResult.rows[0]?.quantity ?? 0;
-      if (available < item.quantity) {
-        throw new Error(
-          `Insufficient stock for product ${product.name}. Only ${available} available at ${targetLocation}.`
-        );
-      }
-
-      const pricePerItem = parseFloat(product.price);
-      subtotal += pricePerItem * item.quantity;
-      orderItemsData.push({
-        productId: item.productId,
-        quantity: item.quantity,
-        pricePerItem: pricePerItem,
-        name: product.name,
-      });
-    }
-    console.log('Stock levels verified.');
-
-    // Process discount code if provided
-    let discountAmount = 0;
-    let appliedDiscountCode = null;
-
-    if (discountCode && client) {
-      const discountResult = await client.query(
-        `SELECT
-          id, code, description, discount_type, discount_value,
-          min_order_amount, max_discount_amount
-        FROM discount_codes
-        WHERE code = $1
-          AND is_active = TRUE
-          AND start_date <= CURRENT_TIMESTAMP
-          AND (end_date IS NULL OR end_date >= CURRENT_TIMESTAMP)
-          AND (usage_limit IS NULL OR times_used < usage_limit)`,
-        [discountCode]
-      );
-
-      if (discountResult.rows.length > 0) {
-        const discount = discountResult.rows[0];
-
-        // Check minimum order amount
-        if (subtotal >= parseFloat(discount.min_order_amount)) {
-          appliedDiscountCode = discount.code;
-
-          // Calculate discount amount
-          if (discount.discount_type === 'percentage') {
-            discountAmount = subtotal * (parseFloat(discount.discount_value) / 100);
-
-            // Apply maximum discount if specified
-            if (
-              discount.max_discount_amount &&
-              discountAmount > parseFloat(discount.max_discount_amount)
-            ) {
-              discountAmount = parseFloat(discount.max_discount_amount);
-            }
-          } else if (discount.discount_type === 'fixed_amount') {
-            discountAmount = parseFloat(discount.discount_value);
-
-            // Ensure discount doesn't exceed order total
-            if (discountAmount > subtotal) {
-              discountAmount = subtotal;
-            }
-          }
-
-          // Increment usage count
-          await client.query(
-            'UPDATE discount_codes SET times_used = times_used + 1 WHERE code = $1',
-            [discountCode]
-          );
+        // TODO: Implement proper location determination based on address/rules
+        const targetLocationId = 'clwvv35r6000012dk95zk1fvs'; // Hardcoded main warehouse ID FOR NOW
+        if (!targetLocationId) {
+             logger.error('Target stock location ID could not be determined', { shippingAddress });
+             throw new Error('Could not determine fulfillment location.');
         }
-      }
-    }
-
-    const shippingCost = 5.0;
-    const taxes = subtotal * 0.13;
-    const totalAmount = subtotal - discountAmount + shippingCost + taxes;
-
-    // --- Database Transaction ---
-    if (!client) throw new Error('Database connection lost before transaction.');
-
-    await client.query('BEGIN');
-    console.log('BEGIN Transaction');
-
-    // 4. Create Order Record
-    const initialStatus = 'Pending Approval';
-    const initialPaymentStatus =
-      paymentMethod === 'etransfer' || paymentMethod === 'btc'
-        ? 'Awaiting Confirmation'
-        : 'Pending';
-    const shippingAddrJson = JSON.stringify(shippingAddress);
-    const billingAddrJson = JSON.stringify(billingAddress);
-
-    const orderInsertQuery = `
-      INSERT INTO orders (
-        user_id, status, subtotal, discount_code, discount_amount, 
-        shipping_cost, taxes, total_amount, shipping_address, billing_address, 
-        payment_method, payment_status, is_wholesale, total_quantity
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
-      ) RETURNING id`;
-
-    const orderInsertParams = [
-      userId,
-      initialStatus,
-      subtotal.toFixed(2),
-      appliedDiscountCode,
-      discountAmount.toFixed(2),
-      shippingCost.toFixed(2),
-      taxes.toFixed(2),
-      totalAmount.toFixed(2),
-      shippingAddrJson,
-      billingAddrJson,
-      paymentMethod,
-      initialPaymentStatus,
-      isWholesaleOrder,
-      totalQuantity,
-    ];
-
-    const orderResult = await client.query(orderInsertQuery, orderInsertParams);
-    newOrderId = orderResult.rows[0]?.id;
-    if (!newOrderId) throw new Error('Failed to create order record.');
-    console.log(`Order record inserted (ID: ${newOrderId})`);
-
-    // If this is the user's first wholesale order and they're eligible, update their status
-    if (isWholesaleOrder && role === 'Wholesale Buyer' && !isWholesaleEligible) {
-      await client.query(
-        'UPDATE users SET wholesale_eligibility = TRUE, wholesale_approved_at = NOW() WHERE id = $1',
-        [userId]
-      );
-      console.log(`User ${userId} marked as wholesale eligible`);
-    }
-
-    // 5. Create Order Items
-    const itemInsertQuery =
-      'INSERT INTO order_items (order_id, product_id, quantity, price_per_item) VALUES ($1, $2, $3, $4)';
-
-    if (!client) throw new Error('Database connection lost before inserting order items.');
-
-    // Use non-null assertion (!.) to tell TypeScript that client won't be null
-    const itemInsertPromises = orderItemsData.map(item =>
-      client!.query(itemInsertQuery, [
-        newOrderId,
-        item.productId,
-        item.quantity,
-        item.pricePerItem.toFixed(2),
-      ])
-    );
-    await Promise.all(itemInsertPromises);
-    console.log(`Order items inserted for order ${newOrderId}`);
-
-    // 6. Decrement Inventory
-    const inventoryUpdateQuery =
-      'UPDATE inventory SET quantity = quantity - $1, last_updated = CURRENT_TIMESTAMP WHERE product_id = $2 AND location = $3 AND quantity >= $1';
-
-    // Double-check client before any database operations
-    if (!client) throw new Error('Database connection lost during inventory update.');
-
-    // Use non-null assertion to tell TypeScript that client is not null
-    const inventoryUpdatePromises = orderItemsData.map(item =>
-      client!.query(inventoryUpdateQuery, [item.quantity, item.productId, targetLocation])
-    );
-
-    const updateResults = await Promise.all(inventoryUpdatePromises);
-
-    for (let i = 0; i < updateResults.length; i++) {
-      if (updateResults[i].rowCount === 0) {
-        throw new Error(
-          `Inventory update failed for product ID ${orderItemsData[i].productId} (race condition?). Order rolled back.`
-        );
-      }
-    }
-    console.log(`Inventory decremented for order ${newOrderId}`);
-
-    // Commit transaction
-    if (!client) throw new Error('Database connection lost before commit.');
-
-    // Use non-null assertion for commit
-    await client!.query('COMMIT');
-    console.log('COMMIT Transaction');
-    orderCreated = true; // Set flag only AFTER successful commit
-
-    // --- Transaction End ---
-
-    // 7. Handle Payment Processing
-    if (orderCreated && newOrderId) {
-      try {
-        // Import payment service dynamically to avoid circular dependencies
-        const { processPayment } = await import('@/lib/payment');
-
-        // Map the payment method to the expected format
-        // The payment library expects 'credit-card' but we might have 'credit'
-        const paymentMethodMapping: Record<string, string> = {
-          credit: 'credit-card',
-          cc: 'credit-card',
-          'e-transfer': 'etransfer',
-          bitcoin: 'btc',
-        };
-
-        const normalizedPaymentMethod = paymentMethodMapping[paymentMethod] || paymentMethod;
-
-        // Process the payment
-        const paymentResult = await processPayment(
-          newOrderId,
-          totalAmount,
-          normalizedPaymentMethod as 'credit-card' | 'etransfer' | 'btc', // Use correct type
-          userId
-        );
-
-        console.log(`Payment processing result for order ${newOrderId}:`, paymentResult);
-
-        // Send order confirmation email
-        try {
-          if (!client) throw new Error('Database connection lost before sending email.');
-
-          // Get user details
-          const userResult = await client.query(
-            'SELECT email, first_name, last_name FROM users WHERE id = $1',
-            [userId]
-          );
-
-          if (userResult.rows.length > 0) {
-            const user = userResult.rows[0];
-
-            // Create properly typed shipping address for email
-            const emailShippingAddress = {
-              firstName: shippingAddress.firstName || user.first_name || '',
-              lastName: shippingAddress.lastName || user.last_name || '',
-              address1: shippingAddress.address1 || shippingAddress.street || '',
-              address2: shippingAddress.address2 || '',
-              city: shippingAddress.city || '',
-              province: shippingAddress.province || '',
-              postalCode: shippingAddress.postalCode || '',
-              country: shippingAddress.country || 'Canada',
-            };
-
-            await sendOrderConfirmationEmail({
-              customerEmail: user.email,
-              customerName: `${user.first_name} ${user.last_name}`,
-              orderId: newOrderId.toString(),
-              orderTotal: totalAmount,
-              orderItems: orderItemsData.map(item => ({
-                name: item.name,
-                price: item.pricePerItem,
-                quantity: item.quantity,
-              })),
-              shippingAddress: emailShippingAddress,
-              paymentMethod: paymentMethod as 'etransfer' | 'btc' | 'credit-card',
+        
+        for (const item of items) {
+            const variation = variationMap.get(item.productVariationId);
+            if (!variation || !variation.isActive || !variation.product.isActive) {
+                throw new Error(`Product variation ID ${item.productVariationId} (${variation?.product.name} - ${variation?.name}) not found or is inactive.`);
+            }
+            
+            // Check stock level at the target location
+            const stockLevel = await tx.query.stockLevels.findFirst({
+                where: and(
+                    eq(schema.stockLevels.productVariationId, item.productVariationId),
+                    eq(schema.stockLevels.locationId, targetLocationId) 
+                ),
+                columns: { quantity: true, reservedQuantity: true }
             });
 
-            console.log(`Order confirmation email sent for order ${newOrderId}`);
-          }
-        } catch (emailError) {
-          // Log error but don't fail the request
-          console.error(
-            `Failed to send order confirmation email for order ${newOrderId}:`,
-            emailError
-          );
+            const availableStock = (stockLevel?.quantity ?? 0) - (stockLevel?.reservedQuantity ?? 0);
+            if (availableStock < item.quantity) {
+                throw new Error(`Insufficient stock for ${variation.product.name} - ${variation.name}. Available: ${availableStock}, Requested: ${item.quantity} at location ${targetLocationId}.`);
+            }
+
+            const pricePerItem = parseFloat(variation.price);
+            const itemSubtotal = pricePerItem * item.quantity;
+            subtotal += itemSubtotal;
+            orderItemsData.push({
+                orderId: '', // Will be set after order creation
+                productVariationId: item.productVariationId,
+                quantity: item.quantity,
+                priceAtPurchase: pricePerItem.toFixed(2),
+                subtotal: itemSubtotal.toFixed(2),
+                name: `${variation.product.name} - ${variation.name}` // For potential email/logging use
+            });
         }
+        logger.info('Stock levels verified', { userId, targetLocationId });
 
-        // Return appropriate response based on payment result
-        return NextResponse.json(
-          {
-            message: 'Order placed successfully!',
+        // --- Calculate Shipping, Taxes, Discounts ---
+        // TODO: Implement dynamic shipping calculation
+        const shippingCost = 5.00; 
+        // TODO: Implement dynamic tax calculation based on address
+        const taxes = subtotal * 0.13; 
+        // TODO: Apply discountCode validation and calculation (using discount-service?)
+        const discountAmount = 0.00; // Placeholder
+        const totalAmount = subtotal + shippingCost + taxes - discountAmount;
+
+        // --- Create Order Record ---
+        const orderId = uuidv4();
+        const initialStatus: OrderStatus = paymentMethod === 'CreditCard' ? 'Processing' : 'PendingPayment'; // Adjust based on payment
+        const initialPaymentStatus: PaymentStatus = paymentMethod === 'CreditCard' ? 'Completed' : 'Pending';
+
+        const insertedOrder = await tx.insert(schema.orders).values({
+            id: orderId,
+            userId: userId,
+            status: initialStatus,
+            totalAmount: totalAmount.toFixed(2),
+            // distributorId: null, // Assign later if needed
+            // commissionAmount: null,
+            paymentMethod: paymentMethod,
+            paymentStatus: initialPaymentStatus,
+            type: orderType,
+            shippingAddress: shippingAddress, // Store as JSONB
+            billingAddress: billingAddress ?? shippingAddress, // Store as JSONB
+            notes: notes,
+            discountCode: discountCode,
+            discountAmount: discountAmount.toFixed(2),
+            appliedReferralCode: referralCode,
+            // createdAt, updatedAt handled by default
+        }).returning({ id: schema.orders.id });
+
+        newOrderId = insertedOrder[0]?.id;
+        if (!newOrderId) {
+            throw new Error('Failed to create order record.');
+        }
+        logger.info('Order record created', { orderId: newOrderId, userId });
+
+        // --- Create Order Items ---
+        for (const itemData of orderItemsData) {
+            itemData.orderId = newOrderId; // Assign the generated order ID
+        }
+        await tx.insert(schema.orderItems).values(orderItemsData.map(({ name, ...rest }) => rest)); // Insert items without the temporary name field
+        logger.info('Order items created', { orderId: newOrderId });
+
+        // --- Update Stock Levels (Reserve Quantity) ---
+        // Instead of decrementing, we increment reservedQuantity
+        const stockUpdatePromises = items.map(item => 
+            tx.update(schema.stockLevels)
+                .set({ 
+                    reservedQuantity: sql`${schema.stockLevels.reservedQuantity} + ${item.quantity}`,
+                    updatedAt: new Date()
+                })
+                .where(and(
+                    eq(schema.stockLevels.productVariationId, item.productVariationId),
+                    eq(schema.stockLevels.locationId, targetLocationId),
+                    // Ensure we don't reserve more than available (quantity >= reserved + requested)
+                    sql`${schema.stockLevels.quantity} >= ${schema.stockLevels.reservedQuantity} + ${item.quantity}`
+                ))
+        );
+        const stockUpdateResults = await Promise.all(stockUpdatePromises);
+        // Check if any update failed (rowCount is 0)
+        if (stockUpdateResults.some(res => res.rowCount === 0)) {
+            logger.error('Inventory reservation failed for one or more items', { orderId: newOrderId });
+            throw new Error('Failed to reserve stock for all items. Please try again.');
+        }
+        logger.info('Stock levels reserved', { orderId: newOrderId });
+
+        // --- Add Order History ---
+        await tx.insert(schema.orderStatusHistory).values({
             orderId: newOrderId,
             status: initialStatus,
-            paymentStatus: paymentResult.status,
-            paymentResult: {
-              success: paymentResult.success,
-              transactionId: paymentResult.transactionId,
-              message: paymentResult.message,
+            notes: 'Order created',
+            // changedByUserId: userId // Optional: log who initiated
+        });
+        logger.info('Order history added', { orderId: newOrderId });
+        
+        // --- Clear User's Cart --- 
+        await tx.delete(schema.cartItems).where(eq(schema.cartItems.userId, userId));
+        logger.info('User cart cleared', { userId });
+
+        // --- Create Tasks (e.g., for manual payment confirmation) ---
+        if (paymentMethod === 'ETransfer' || paymentMethod === 'Bitcoin') {
+             await tx.insert(schema.tasks).values({
+                title: `Confirm ${paymentMethod} Payment for Order ${newOrderId}`,
+                category: 'Payment',
+                status: 'Pending',
+                priority: 'Medium',
+                relatedTo: 'Order',
+                relatedId: newOrderId,
+                // assignedTo: admin // Assign to a specific admin or group if possible
+             });
+             logger.info(`Created task to confirm ${paymentMethod} payment`, { orderId: newOrderId });
+        }
+         // Task for order review/processing (regardless of payment?)
+        await tx.insert(schema.tasks).values({
+            title: `Process Order ${newOrderId}`,
+            category: 'OrderReview',
+            status: 'Pending',
+            priority: 'High',
+            relatedTo: 'Order',
+            relatedId: newOrderId,
+        });
+        logger.info('Created task to process order', { orderId: newOrderId });
+        
+        orderCreated = true;
+        return { 
+            orderId: newOrderId, 
+            initialStatus,
+            initialPaymentStatus,
+            totalAmount 
+        }; // Return data needed outside transaction
+    }); // End Drizzle Transaction
+
+    // --- Post-Transaction Actions (Email, Payment Processing) ---
+    if (orderCreated && result?.orderId) {
+        // Removed payment processing call - should happen via Stripe Intent or manual confirmation
+        logger.info('Order creation transaction successful', { orderId: result.orderId });
+        
+        // Send order confirmation email
+        try {
+            const user = await db.query.users.findFirst({
+                where: eq(schema.users.id, userId),
+                columns: { email: true, name: true }
+            });
+            
+            if (user?.email) {
+                 // Re-fetch order items with names for email
+                const emailOrderItems = await db.query.orderItems.findMany({
+                    where: eq(schema.orderItems.orderId, result.orderId),
+                    with: {
+                        productVariation: { columns: { name: true }, with: { product: { columns: { name: true } } } }
+                    },
+                    columns: { quantity: true, priceAtPurchase: true }
+                });
+                
+                await sendOrderConfirmationEmail({
+                    customerEmail: user.email,
+                    customerName: user.name ?? 'Customer',
+                    orderId: result.orderId,
+                    orderTotal: result.totalAmount,
+                    orderItems: emailOrderItems.map(item => ({
+                        name: `${item.productVariation.product.name} - ${item.productVariation.name}`,
+                        price: parseFloat(item.priceAtPurchase),
+                        quantity: item.quantity,
+                    })),
+                    shippingAddress: shippingAddress as any, // Cast needed if Address type isn't fully defined
+                    paymentMethod: paymentMethod,
+                });
+                 logger.info('Order confirmation email sent', { orderId: result.orderId, email: user.email });
+            } else {
+                 logger.warn('Could not find user email to send confirmation', { userId, orderId: result.orderId });
+            }
+        } catch (emailError) {
+            logger.error('Failed to send order confirmation email (order created successfully)', { orderId: result.orderId, error: emailError });
+            // Do not fail the request if email fails
+        }
+        
+        return NextResponse.json(
+            {
+                message: 'Order placed successfully!',
+                orderId: result.orderId,
+                status: result.initialStatus,
+                paymentStatus: result.initialPaymentStatus, 
             },
-          },
-          { status: 201 }
+            { status: 201 }
         );
-      } catch (paymentError) {
-        console.error(`Payment processing error for order ${newOrderId}:`, paymentError);
-        // Note: We don't roll back the order creation if payment processing fails
-        // Instead, we return success with payment status details
-        return NextResponse.json(
-          {
-            message:
-              'Order placed successfully, but payment processing failed. Please contact support.',
-            orderId: newOrderId,
-            status: initialStatus,
-            paymentStatus: 'Failed',
-            paymentError:
-              paymentError instanceof Error ? paymentError.message : 'Unknown payment error',
-          },
-          { status: 201 }
-        );
-      }
+
+    } else {
+         // This case should not happen if transaction succeeded, but included as fallback
+         logger.error('Order transaction seemed successful but did not return expected data', { result });
+         throw new Error('Order creation failed after transaction.');
     }
 
-    // Fallback response if we somehow get here
-    return NextResponse.json(
-      {
-        message: 'Order placed successfully!',
-        orderId: newOrderId,
-        status: initialStatus,
-        paymentStatus: initialPaymentStatus,
-      },
-      { status: 201 }
-    );
   } catch (error: unknown) {
-    // Rollback transaction if client exists and order wasn't successfully committed
-    if (client && !orderCreated) {
-      try {
-        await client.query('ROLLBACK');
-        console.log('ROLLBACK Transaction due to error');
-      } catch (rollbackError) {
-        console.error('Failed to rollback transaction:', rollbackError);
-      }
-    }
-    console.error(`POST /api/orders - Failed for user ${userInfo?.userId || '(unknown)'}:`, error);
+    // Transaction should have rolled back automatically on error
+    logger.error(`POST /api/orders - Failed for user ${userInfo?.userId || '(unknown)'}`, { error });
     return NextResponse.json(
       { message: error instanceof Error ? error.message : 'Internal Server Error' },
-      { status: 500 }
+      { status: error instanceof Error && error.message.includes('Insufficient stock') ? 400 : 500 }
     );
-  } finally {
-    if (client) {
-      client.release(); // Release client back to pool
-      console.log('DB client released.');
-    }
   }
+  // No finally block needed as drizzle.transaction handles connection release
 }

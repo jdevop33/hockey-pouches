@@ -1,11 +1,12 @@
 import { type HydratedBaseState, createHydratedStore, type StoreCreator } from '../initializeStore';
+import * as schema from '@/lib/schema'; // Import schema for UserRole
 
-// Define the User type
+// Define the User type using schema types if possible
 interface User {
   id: string;
   email: string;
   name: string;
-  role: 'user' | 'admin' | 'distributor';
+  role: typeof schema.userRoleEnum.enumValues[number]; // Use enum type
 }
 
 // Define the auth-specific state and actions
@@ -21,11 +22,16 @@ interface AuthSliceState {
 // Combine with HydratedBaseState
 export type AuthState = HydratedBaseState & AuthSliceState;
 
-// Create the auth store slice
-const createAuthSlice: StoreCreator<AuthState> = (set, get) => ({
+// Define initial state separately for clarity
+const initialState: Partial<AuthState> = {
   user: null,
   isAuthenticated: false,
   accessToken: null,
+};
+
+// Create the auth store slice
+const createAuthSlice: StoreCreator<AuthState> = (set, get) => ({
+  // Initial state properties are handled by createHydratedStore
 
   login: async (email: string, password: string) => {
     try {
@@ -38,7 +44,8 @@ const createAuthSlice: StoreCreator<AuthState> = (set, get) => ({
       });
 
       if (!response.ok) {
-        throw new Error('Login failed');
+        const errorData = await response.json().catch(() => ({ message: 'Login failed' }));
+        throw new Error(errorData.message || 'Login failed');
       }
 
       const data = await response.json();
@@ -57,6 +64,7 @@ const createAuthSlice: StoreCreator<AuthState> = (set, get) => ({
   },
 
   logout: () => {
+    // TODO: Optionally call /api/auth/logout endpoint
     set({
       user: null,
       accessToken: null,
@@ -81,11 +89,7 @@ const createAuthSlice: StoreCreator<AuthState> = (set, get) => ({
 
 // Create and export the auth store
 export const useAuthStore = createHydratedStore<AuthState>(
-  {
-    user: null,
-    isAuthenticated: false,
-    accessToken: null,
-  },
+  initialState,
   'auth',
   createAuthSlice
 );

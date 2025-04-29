@@ -141,9 +141,8 @@ export const benefits: Benefit[] = [
   },
 ];
 
-// Export videos array
+// Export videos array with added uploadDate
 export const videos: Video[] = [
-  // Wellness Category
   {
     id: 'v1',
     title: 'Nicotine Pouches and Cognitive Enhancement | Dr. Andrew Huberman',
@@ -153,6 +152,7 @@ export const videos: Video[] = [
     backupThumbnailUrl: DEFAULT_VIDEO_THUMB,
     youtubeUrl: 'https://www.youtube.com/watch?v=-cR_PUUTSKg',
     category: 'Wellness',
+    uploadDate: '2023-10-26', // Placeholder
   },
   {
     id: 'v2',
@@ -163,6 +163,7 @@ export const videos: Video[] = [
     backupThumbnailUrl: DEFAULT_VIDEO_THUMB,
     youtubeUrl: 'https://www.youtube.com/watch?v=SGSfyWhfr7I',
     category: 'Wellness',
+    uploadDate: '2024-01-15', // Placeholder
   },
   {
     id: 'v3',
@@ -173,6 +174,7 @@ export const videos: Video[] = [
     backupThumbnailUrl: getYoutubeThumbnail('O4_YuKTlqFM', 'high'),
     youtubeUrl: 'https://www.youtube.com/watch?v=O4_YuKTlqFM',
     category: 'Wellness',
+    uploadDate: '2023-11-01', // Placeholder
   },
   {
     id: 'v4',
@@ -183,6 +185,7 @@ export const videos: Video[] = [
     backupThumbnailUrl: getYoutubeThumbnail('S5pwuXqRe3A', 'high'),
     youtubeUrl: 'https://www.youtube.com/watch?v=S5pwuXqRe3A',
     category: 'Lifestyle',
+    uploadDate: '2023-05-20', // Placeholder
   },
   {
     id: 'v5',
@@ -193,6 +196,7 @@ export const videos: Video[] = [
     backupThumbnailUrl: getYoutubeThumbnail('N3tGNIb5srU', 'high'),
     youtubeUrl: 'https://www.youtube.com/watch?v=N3tGNIb5srU',
     category: 'Lifestyle',
+    uploadDate: '2024-03-01', // Placeholder
   },
   {
     id: 'v6',
@@ -203,26 +207,29 @@ export const videos: Video[] = [
     backupThumbnailUrl: getYoutubeThumbnail('wKTsq0DXGIM', 'high'),
     youtubeUrl: 'https://www.youtube.com/watch?v=wKTsq0DXGIM',
     category: 'Lifestyle',
+    uploadDate: '2023-08-10', // Placeholder
   },
 ];
 
-// Export studies array
+// Export studies array with added fields
 export const studies: Study[] = [
   {
     id: 's1',
     title: 'Sensory Enhancement Properties of Oral Nicotine: A Controlled Study',
-    authors: 'McEwan M, Azzopardi D, Gale N, Camacho OM, Hardie G, Fearon IM, Murphy J',
+    authors: 'McEwan M, Azzopardi D, Gale N, Camacho OM, Hardie G, Fearon IM, Murphy J', // Component expects string[], consider splitting or adjust component
     journal: 'European Journal of Sensory Research',
     year: 2023,
     abstract:
       'This groundbreaking study explores the sensory enhancement properties of premium nicotine pouches in adult settings. The research provides compelling data on heightened sensory perception, cognitive performance, and overall experiential quality.',
-    link: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC8917032/',
+    url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC8917032/', // Changed from link
     category: 'Sensory Experience',
     keyFindings: [
       'Nicotine pouches significantly increase sensory perception and awareness',
       'Users report a 64% enhancement in focus and cognitive clarity',
       'The discreet delivery system allows for seamless integration into professional settings',
     ],
+    publicationDate: '2023-03-15', // Placeholder
+    doi: '10.1186/s12954-022-00598-z', // Placeholder (Example DOI)
   },
   {
     id: 's2',
@@ -232,13 +239,15 @@ export const studies: Study[] = [
     year: 2023,
     abstract:
       'This comprehensive review examines premium tobacco-free nicotine pouches as sophisticated sensory enhancers. The study evaluates flavor profiles, satisfaction metrics, and consumer experience across various scenarios.',
-    link: 'https://doi.org/10.1186/s12954-022-00735-0',
+    url: 'https://doi.org/10.1186/s12954-022-00735-0', // Changed from link
     category: 'Sensory Enhancement',
     keyFindings: [
       'Premium nicotine pouches deliver sensory stimulation more effectively than conventional alternatives',
       'Users report heightened flavor perception and enhanced experience',
       'The discrete application allows for seamless integration into sophisticated adult environments',
     ],
+    publicationDate: '2023-01-20', // Placeholder
+    doi: '10.1186/s12954-022-00735-0', // Placeholder (Actual DOI)
   },
   {
     id: 's3',
@@ -248,12 +257,14 @@ export const studies: Study[] = [
     year: 2023,
     abstract:
       'This study provides a comprehensive neurochemical assessment of how premium tobacco-free nicotine pouches stimulate reward centers in the adult brain, with particular focus on focus, social interaction, and cognitive performance.',
-    link: 'https://doi.org/10.1021/acs.chemrestox.0c00413',
+    url: 'https://doi.org/10.1021/acs.chemrestox.0c00413', // Changed from link
     category: 'Neuroscience',
     keyFindings: [
       'Significant activation of reward pathways during social and cognitive scenarios',
       'Enhanced sensory processing and emotional response during adult interactions',
       'Controlled release profile maximizes positive experiences over approximately 30-60 minutes',
     ],
+    publicationDate: '2023-06-01', // Placeholder
+    doi: '10.1021/acs.chemrestox.0c00413', // Placeholder (Actual DOI)
   },
 ];

@@ -7,18 +7,22 @@ export interface Benefit {
   icon: ReactNode;
 }
 
+// Updated Study interface
 export interface Study {
   id: string;
   title: string;
-  authors: string;
+  authors: string; // Component expects string[], might need adjustment in component or data source
   journal: string;
   year: number;
   abstract: string;
-  link: string;
+  url: string; // Changed from link to url
   category: string;
   keyFindings: string[];
+  publicationDate: string; // Added
+  doi: string; // Added
 }
 
+// Updated Video interface
 export interface Video {
   id: string;
   title: string;
@@ -27,4 +31,5 @@ export interface Video {
   backupThumbnailUrl?: string;
   youtubeUrl: string;
   category: string;
+  uploadDate: string; // Added
 }

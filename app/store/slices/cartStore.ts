@@ -1,70 +1,92 @@
-import { BaseState, createStore } from '../config';
+// Import necessary types and the correct store creator
+import { HydratedBaseState, createHydratedStore } from '../initializeStore'; 
 
 export interface CartItem {
-  id: string;
-  productId: string;
+  id: string; // Assuming product variation ID or a unique cart item ID
+  productId: string; // Base product ID
+  variationId: number; // Specific variation ID
   quantity: number;
   price: number;
   name: string;
   image?: string;
+  // Add variation details if needed (e.g., flavor, strength)
+  variationName?: string; 
 }
 
-export interface CartState extends BaseState {
+// Extend the correct base state
+export interface CartState extends HydratedBaseState {
   items: CartItem[];
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
-  total: number;
+  totalItems: number;
+  totalPrice: number;
 }
 
 const initialState: Partial<CartState> = {
   items: [],
-  total: 0,
+  totalItems: 0,
+  totalPrice: 0,
 };
 
-export const useCartStore = createStore<CartState>(
-  {
-    ...initialState,
-    addItem: item =>
-      useCartStore.setState(state => {
-        const existingItem = state.items.find(i => i.id === item.id);
-        if (existingItem) {
-          return {
-            items: state.items.map(i =>
-              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-            ),
-            total: state.total + item.price,
+// Use createHydratedStore
+export const useCartStore = createHydratedStore<CartState>(
+  initialState, // Pass initial state
+  'cart',       // Store name for persistence
+  (set, get) => ({ // Store creator function
+    // Initial state properties are already included by createHydratedStore
+    // items: [], // No need to repeat from initialState
+    // totalItems: 0,
+    // totalPrice: 0,
+    addItem: (itemToAdd) =>
+      set((state) => {
+        const existingItemIndex = state.items.findIndex(i => i.id === itemToAdd.id);
+        let newItems = [...state.items];
+        if (existingItemIndex > -1) {
+          // Update quantity of existing item
+          newItems[existingItemIndex] = {
+            ...newItems[existingItemIndex],
+            quantity: newItems[existingItemIndex].quantity + itemToAdd.quantity,
           };
+        } else {
+          // Add new item
+          newItems.push(itemToAdd);
         }
-        return {
-          items: [...state.items, item],
-          total: state.total + item.price,
-        };
+        // Recalculate totals
+        const newTotalItems = newItems.reduce((sum, item) => sum + item.quantity, 0);
+        const newTotalPrice = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        return { items: newItems, totalItems: newTotalItems, totalPrice: newTotalPrice };
       }),
-    removeItem: id =>
-      useCartStore.setState(state => {
-        const item = state.items.find(i => i.id === id);
-        return {
-          items: state.items.filter(i => i.id !== id),
-          total: state.total - (item ? item.price * item.quantity : 0),
-        };
+    removeItem: (itemIdToRemove) =>
+      set((state) => {
+        const newItems = state.items.filter(i => i.id !== itemIdToRemove);
+        // Recalculate totals
+        const newTotalItems = newItems.reduce((sum, item) => sum + item.quantity, 0);
+        const newTotalPrice = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        return { items: newItems, totalItems: newTotalItems, totalPrice: newTotalPrice };
       }),
-    updateQuantity: (id, quantity) =>
-      useCartStore.setState(state => {
-        const item = state.items.find(i => i.id === id);
-        if (!item) return state;
-        const quantityDiff = quantity - item.quantity;
-        return {
-          items: state.items.map(i => (i.id === id ? { ...i, quantity } : i)),
-          total: state.total + item.price * quantityDiff,
-        };
+    updateQuantity: (itemIdToUpdate, newQuantity) =>
+      set((state) => {
+        if (newQuantity <= 0) { // If quantity is 0 or less, remove the item
+            const newItems = state.items.filter(i => i.id !== itemIdToUpdate);
+            const newTotalItems = newItems.reduce((sum, item) => sum + item.quantity, 0);
+            const newTotalPrice = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            return { items: newItems, totalItems: newTotalItems, totalPrice: newTotalPrice };
+        } else {
+            const newItems = state.items.map(i =>
+              i.id === itemIdToUpdate ? { ...i, quantity: newQuantity } : i
+            );
+            const newTotalItems = newItems.reduce((sum, item) => sum + item.quantity, 0);
+            const newTotalPrice = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            return { items: newItems, totalItems: newTotalItems, totalPrice: newTotalPrice };
+        }
       }),
     clearCart: () =>
-      useCartStore.setState(() => ({
+      set(() => ({
         items: [],
-        total: 0,
+        totalItems: 0,
+        totalPrice: 0,
       })),
-  },
-  'cart'
+  })
 );

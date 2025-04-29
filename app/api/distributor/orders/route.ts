@@ -1,17 +1,30 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import sql from '@/lib/db';
+import { sql } from '@/lib/db'; // Corrected import
 import { verifyDistributor, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
-import { Order, OrderStatus, Pagination } from '@/types';
+import * as schema from '@/lib/schema'; // Import schema namespace
 
 export const dynamic = 'force-dynamic';
 
+// Define types based on schema enums
+type OrderStatus = typeof schema.orderStatusEnum.enumValues[number];
+
+// Define Pagination interface (assuming basic structure)
+// TODO: Verify if a more specific definition exists elsewhere
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+// Define the structure of the items returned in the list
 type DistributorOrderListItem = {
   id: number;
-  created_at: string;
+  createdAt: string; // Keep as string from DB for JSON response
   status: OrderStatus;
-  total_amount: number;
-  customer_name: string | null;
-  customer_location: string | null;
+  totalAmount: number;
+  customerName: string | null;
+  customerLocation: string | null;
 };
 
 export async function GET(request: NextRequest) {
@@ -28,11 +41,19 @@ export async function GET(request: NextRequest) {
     }
 
     const distributorId = authResult.userId;
+     if (!distributorId) {
+        return NextResponse.json({ message: 'Distributor ID not found in token' }, { status: 401 });
+    }
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '15');
     const offset = (page - 1) * limit;
-    const statusFilter = searchParams.get('status');
+    const statusFilterParam = searchParams.get('status');
+
+    // Validate status filter against enum
+    const statusFilter = statusFilterParam && schema.orderStatusEnum.enumValues.includes(statusFilterParam as OrderStatus)
+                       ? statusFilterParam as OrderStatus
+                       : null;
 
     console.log(
       `Distributor GET /api/distributor/orders - Distributor: ${distributorId}, Page: ${page}, Limit: ${limit}, Status: ${statusFilter}`
@@ -40,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     // Build query conditions
     let conditions = [`o.assigned_distributor_id = $1`];
-    let queryParams = [distributorId];
+    let queryParams: (string | number)[] = [distributorId]; // Specify type for queryParams
     let paramIndex = 2;
 
     if (statusFilter) {
@@ -56,20 +77,21 @@ export async function GET(request: NextRequest) {
         o.id, o.created_at, o.status,
         CAST(o.total_amount AS FLOAT) as total_amount,
         u.name as customer_name,
-        u.location as customer_location
+        u.location as customer_location -- Assuming users table has a location column
       FROM orders o
       LEFT JOIN users u ON o.user_id = u.id
       ${whereClause}
       ORDER BY
         CASE
-          WHEN o.status = 'Awaiting Fulfillment' THEN 1
-          WHEN o.status = 'Pending Fulfillment Verification' THEN 2
-          ELSE 3
+          WHEN o.status = 'ReadyForFulfillment' THEN 1 -- Prioritize orders needing fulfillment
+          WHEN o.status = 'Processing' THEN 2
+          WHEN o.status = 'PaymentReceived' THEN 3
+          ELSE 4
         END,
         o.created_at DESC
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
-    queryParams.push(limit.toString(), offset.toString());
+    queryParams.push(limit, offset); // Add limit and offset
 
     // Fetch count
     const countQuery = `
@@ -87,10 +109,10 @@ export async function GET(request: NextRequest) {
     const totalPages = Math.ceil(totalOrders / limit);
 
     // Format orders for response
-    const orders = ordersResult.map((row: any) => ({
+    const orders: DistributorOrderListItem[] = ordersResult.map((row: any) => ({
       id: row.id,
-      createdAt: row.created_at,
-      status: row.status,
+      createdAt: row.created_at, // Keep as string
+      status: row.status as OrderStatus, // Cast to OrderStatus
       totalAmount: row.total_amount,
       customerName: row.customer_name,
       customerLocation: row.customer_location,

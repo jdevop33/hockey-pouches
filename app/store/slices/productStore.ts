@@ -1,23 +1,28 @@
-import { BaseState, createStore } from '../config';
+// Import necessary types and the correct store creator
+import { HydratedBaseState, createHydratedStore, type StoreCreator } from '../initializeStore';
 
+// TODO: Replace these with schema-derived types (ProductSelect, ProductVariationSelect)
 export interface ProductVariant {
-  id: string;
+  id: string; // Should be number if it's productVariation.id
   name: string;
   price: number;
   sku: string;
-  stock: number;
+  stock: number; // This likely represents calculated available stock
 }
 
 export interface Product {
-  id: string;
+  id: string; // Should be number if it's product.id
   name: string;
-  description: string;
+  description?: string | null;
   price: number;
-  images: string[];
-  category: string;
+  images?: string[] | null; // Assuming image_url
+  category?: string | null;
   variants?: ProductVariant[];
-  stock: number;
-  sku: string;
+  stock: number; // This likely represents total stock across variations
+  sku?: string | null; // Base SKU?
+  flavor?: string | null;
+  strength?: number | null;
+  is_active?: boolean;
 }
 
 export interface ProductFilters {
@@ -28,7 +33,8 @@ export interface ProductFilters {
   search?: string;
 }
 
-export interface ProductState extends BaseState {
+// Extend the correct base state
+export interface ProductState extends HydratedBaseState {
   products: Product[];
   selectedProduct: Product | null;
   filters: ProductFilters;
@@ -39,45 +45,51 @@ export interface ProductState extends BaseState {
   getFilteredProducts: () => Product[];
 }
 
+// Define initial state separately
 const initialState: Partial<ProductState> = {
   products: [],
   selectedProduct: null,
   filters: {},
 };
 
-export const useProductStore = createStore<ProductState>(
-  {
-    ...initialState,
-    setProducts: (products: Product[]) => useProductStore.setState(() => ({ products })),
-    setSelectedProduct: (product: Product | null) =>
-      useProductStore.setState(() => ({ selectedProduct: product })),
-    setFilters: (filters: Partial<ProductFilters>) =>
-      useProductStore.setState((state: ProductState) => ({
-        filters: { ...state.filters, ...filters },
-      })),
-    updateProduct: (id: string, updates: Partial<Product>) =>
-      useProductStore.setState((state: ProductState) => ({
-        products: state.products.map((product: Product) =>
-          product.id === id ? { ...product, ...updates } : product
-        ),
-      })),
-    getFilteredProducts: (): Product[] => {
-      const { filters, products } = useProductStore.getState();
-      return products.filter((product: Product) => {
-        if (filters.category && product.category !== filters.category) return false;
-        if (filters.minPrice && product.price < filters.minPrice) return false;
-        if (filters.maxPrice && product.price > filters.maxPrice) return false;
-        if (filters.inStock && product.stock <= 0) return false;
-        if (filters.search) {
-          const searchLower = filters.search.toLowerCase();
-          return (
-            product.name.toLowerCase().includes(searchLower) ||
-            product.description.toLowerCase().includes(searchLower)
-          );
-        }
-        return true;
-      });
-    },
+// Creator function
+const createProductSlice: StoreCreator<ProductState> = (set, get) => ({
+  // Initial state handled by createHydratedStore
+  setProducts: (products: Product[]) => set(() => ({ products })),
+  setSelectedProduct: (product: Product | null) => set(() => ({ selectedProduct: product })),
+  setFilters: (filters: Partial<ProductFilters>) =>
+    set((state) => ({ // Correctly access state
+      filters: { ...state.filters, ...filters },
+    })),
+  updateProduct: (id: string, updates: Partial<Product>) =>
+    set((state) => ({ // Correctly access state
+      products: state.products.map((product: Product) =>
+        product.id === id ? { ...product, ...updates } : product
+      ),
+    })),
+  getFilteredProducts: (): Product[] => {
+    const { filters, products } = get(); // Use get() to access current state
+    // Add null/undefined checks for filters
+    return products.filter((product: Product) => {
+      if (filters.category && product.category !== filters.category) return false;
+      if (filters.minPrice != null && product.price < filters.minPrice) return false;
+      if (filters.maxPrice != null && product.price > filters.maxPrice) return false;
+      if (filters.inStock && product.stock <= 0) return false;
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        return (
+          product.name?.toLowerCase().includes(searchLower) ||
+          product.description?.toLowerCase().includes(searchLower)
+        );
+      }
+      return true;
+    });
   },
-  'product'
+});
+
+// Use createHydratedStore
+export const useProductStore = createHydratedStore<ProductState>(
+  initialState,
+  'product',
+  createProductSlice
 );

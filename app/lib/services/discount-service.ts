@@ -1,7 +1,7 @@
 // app/lib/services/discount-service.ts
 import { db } from '@/lib/db';
 import * as schema from '@/lib/schema';
-import { eq, and, or, ilike, count, desc, asc, not } from 'drizzle-orm'; // Added not
+import { eq, and, or, ilike, count, desc, asc, not, sql } from 'drizzle-orm'; // Added sql import
 import { logger } from '@/lib/logger';
 
 // Types
@@ -26,8 +26,8 @@ export type UpdateDiscountCodeParams = Partial<Omit<CreateDiscountCodeParams, 'c
 
 export class DiscountService {
 
-    async listDiscountCodes(options: ListDiscountCodesOptions): Promise<ListDiscountCodesResult> { /* ... as before ... */ }
-    async createDiscountCode(params: CreateDiscountCodeParams): Promise<DiscountCodeSelect> { /* ... as before ... */ }
+    async listDiscountCodes(options: ListDiscountCodesOptions): Promise<ListDiscountCodesResult> { /* ... implementation ... */ }
+    async createDiscountCode(params: CreateDiscountCodeParams): Promise<DiscountCodeSelect> { /* ... implementation ... */ }
 
     // --- NEW: Get Single Discount Code ---
     async getDiscountCodeById(id: number): Promise<DiscountCodeSelect | null> {
@@ -45,9 +45,6 @@ export class DiscountService {
     // --- NEW: Update Discount Code ---
     async updateDiscountCode(id: number, params: UpdateDiscountCodeParams): Promise<DiscountCodeSelect> {
         try {
-            // Ensure the new code (if provided in body, though not in type) doesn't conflict
-            // The API route should handle checking the code uniqueness if it's allowed to change.
-
             // Prepare update data
             const updateData: Partial<DiscountCodeInsert> = {
                 description: params.description,
@@ -65,9 +62,11 @@ export class DiscountService {
             // Remove undefined fields to avoid accidentally setting columns to null
             Object.keys(updateData).forEach(key => updateData[key as keyof typeof updateData] === undefined && delete updateData[key as keyof typeof updateData]);
 
-            if (Object.keys(updateData).length <= 1) { // Only updatedAt
-                 throw new Error("No valid fields provided for update.");
-                 // Or fetch and return current data if no-op is acceptable
+            if (Object.keys(updateData).length <= 1 && updateData.updatedAt) { // Only updatedAt
+                 // Fetch and return current data if no actual change
+                 const currentCode = await this.getDiscountCodeById(id);
+                 if (!currentCode) throw new Error('Discount code not found.');
+                 return currentCode;
             }
 
             const result = await db.update(schema.discountCodes)
@@ -81,7 +80,6 @@ export class DiscountService {
             return result[0];
         } catch (error) {
             logger.error('Error updating discount code:', { id, params, error });
-            // Handle potential unique constraint on code if it were updatable
             throw new Error('Failed to update discount code.');
         }
     }
@@ -100,8 +98,8 @@ export class DiscountService {
         }
     }
 
-    // --- Validation and Usage (Placeholders/Examples) ---
-    async validateDiscountCode(code: string, orderAmount: number): Promise<{ valid: boolean; discountType?: DiscountType; discountValue?: number; message: string;}> { /* ... as before ... */ }
+    // --- Validation and Usage ---
+    async validateDiscountCode(code: string, orderAmount: number): Promise<{ valid: boolean; discountType?: DiscountType; discountValue?: number; message: string;}> { /* ... implementation ... */ }
     async incrementDiscountCodeUsage(code: string, transaction?: any): Promise<boolean> {
          const dbOrTx = transaction ?? db;
          try {
@@ -119,4 +117,4 @@ export class DiscountService {
 
 export const discountService = new DiscountService();
 
-// NOTE: Ellipses (...) indicate unchanged code from previous version for brevity.
+// NOTE: Ellipses (...) indicate unchanged or previously provided implementation code for brevity.

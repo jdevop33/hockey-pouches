@@ -10,7 +10,8 @@ export default function ProductsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { addToCart } = useCart();
-  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+  // Change imageErrors state to use string keys
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -26,9 +27,14 @@ export default function ProductsContent() {
 
         const data = await response.json();
 
-        // Handle the new API response structure
+        // Handle the API response structure (assuming it matches ProductListResult)
         if (data.products && Array.isArray(data.products)) {
-          setProducts(data.products);
+          // Ensure price is a number before setting state
+          const formattedProducts = data.products.map((p: any) => ({
+            ...p,
+            price: typeof p.price === 'string' ? parseFloat(p.price) : p.price,
+          }));
+          setProducts(formattedProducts);
           if (data.pagination) {
             setTotalPages(data.pagination.totalPages || 1);
           }
@@ -48,8 +54,8 @@ export default function ProductsContent() {
     fetchProducts();
   }, [currentPage]);
 
-  // Handle image load errors
-  const handleImageError = (productId: number) => {
+  // Handle image load errors - accept string productId
+  const handleImageError = (productId: string) => {
     setImageErrors(prev => ({
       ...prev,
       [productId]: true,
@@ -80,7 +86,7 @@ export default function ProductsContent() {
           <h2 className="mb-2 text-xl font-semibold text-gold-400">Error Loading Products</h2>
           <p className="text-gray-300">{error}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => window.location.reload()} // Simple reload for now
             className="mt-4 rounded bg-gold-500 px-4 py-2 font-medium text-dark-900 hover:bg-gold-400"
           >
             Try Again
@@ -108,14 +114,16 @@ export default function ProductsContent() {
                 className="overflow-hidden rounded-lg border border-gold-500/10 bg-dark-600 shadow-gold-sm transition-transform hover:scale-[1.02]"
               >
                 <div className="relative h-48 w-full bg-dark-700">
-                  {product.image_url && !imageErrors[product.id as number] ? (
+                  {/* Use string product.id directly */}
+                  {product.image_url && !imageErrors[product.id] ? (
                     <Image
                       src={product.image_url}
                       alt={product.name}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       className="object-contain"
-                      onError={() => handleImageError(product.id as number)}
+                      // Pass string product.id to handler
+                      onError={() => handleImageError(product.id)}
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-dark-700 text-gray-500">
@@ -142,7 +150,8 @@ export default function ProductsContent() {
 
                   <div className="flex items-center justify-between">
                     <span className="text-xl font-bold text-gold-500">
-                      ${product.price.toFixed(2)}
+                      {/* Ensure price is a number before calling toFixed */} 
+                      ${typeof product.price === 'number' ? product.price.toFixed(2) : 'N/A'}
                     </span>
                     <div className="space-x-2">
                       <Link

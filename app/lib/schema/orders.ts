@@ -6,7 +6,7 @@ import { productVariations } from './products'; // Import product variations
 // Import discounts if needed for relation (adjust path if needed)
 // import { discountCodes } from './discounts';
 
-// Define Enums based on OrderService code
+// Define Enums
 export const orderStatusEnum = pgEnum('order_status', [
     'Created', 'PendingPayment', 'PaymentReceived', 'Processing',
     'ReadyForFulfillment', 'Fulfilled', 'Shipped', 'Delivered',
@@ -23,9 +23,11 @@ export const paymentStatusEnum = pgEnum('payment_status', [
 
 export const orderTypeEnum = pgEnum('order_type', ['Retail', 'Wholesale']);
 
+// Added Enum
+export const fulfillmentStatusEnum = pgEnum('fulfillment_status', ['Pending', 'Approved', 'Rejected']);
+
 // --- Orders Table ---
 export const orders = pgTable('orders', {
-    // Use UUID based on OrderService logic
     id: uuid('id').primaryKey().defaultRandom(),
     userId: text('user_id').notNull().references(() => users.id), // Assuming users.id is text/uuid
     status: orderStatusEnum('status').notNull().default('PendingPayment'),
@@ -35,13 +37,11 @@ export const orders = pgTable('orders', {
     paymentMethod: paymentMethodEnum('payment_method').notNull(),
     paymentStatus: paymentStatusEnum('payment_status').notNull().default('Pending'),
     type: orderTypeEnum('type').notNull(),
-    // Store shipping address as JSONB based on OrderService
     shippingAddress: jsonb('shipping_address').notNull(),
+    billingAddress: jsonb('billing_address'), // Make billing address nullable
     notes: text('notes'),
-    // Standard discount code applied
     discountCode: varchar('discount_code', { length: 50 }),
     discountAmount: decimal('discount_amount', { precision: 10, scale: 2 }).default('0.00'),
-    // NEW: Store the referral code used for this order's discount
     appliedReferralCode: varchar('applied_referral_code', { length: 10 }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
@@ -73,8 +73,9 @@ export const orderStatusHistory = pgTable('order_status_history', {
     id: uuid('id').primaryKey().defaultRandom(),
     orderId: uuid('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
     status: orderStatusEnum('status').notNull(),
+    paymentStatus: paymentStatusEnum('payment_status'), // Added payment status
     notes: text('notes'),
-    // changedByUserId: text('changed_by_user_id').references(() => users.id),
+    changedByUserId: text('changed_by_user_id').references(() => users.id), // Added user making change
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
     orderIdIdx: index('order_status_history_order_id_idx').on(table.orderId),
@@ -90,7 +91,7 @@ export const orderFulfillments = pgTable('order_fulfillments', {
     carrier: varchar('carrier', { length: 100 }),
     fulfillmentNotes: text('notes'),
     fulfillmentProofUrl: jsonb('fulfillment_proof_url'),
-    status: varchar('status', { length: 50 }).default('Pending Approval'),
+    status: fulfillmentStatusEnum('status').default('Pending').notNull(), // Use Enum
     reviewedBy: text('reviewed_by').references(() => users.id),
     reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
     reviewNotes: text('review_notes'),
@@ -109,7 +110,8 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     items: many(orderItems),
     statusHistory: many(orderStatusHistory),
     fulfillments: many(orderFulfillments),
-    // referralCodeUser: one(users, { fields: [orders.appliedReferralCode], references: [users.referralCode] }) // Relation via referral code
+    // Add relation to user via referral code if needed
+    // referralCodeUser: one(users, { fields: [orders.appliedReferralCode], references: [users.referralCode], relationName: 'ReferralCodeOrderRelation' })
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
@@ -119,6 +121,7 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
 
 export const orderStatusHistoryRelations = relations(orderStatusHistory, ({ one }) => ({
     order: one(orders, { fields: [orderStatusHistory.orderId], references: [orders.id] }),
+    changedByUser: one(users, { fields: [orderStatusHistory.changedByUserId], references: [users.id] }),
 }));
 
 export const orderFulfillmentsRelations = relations(orderFulfillments, ({ one }) => ({

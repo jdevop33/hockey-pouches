@@ -4,8 +4,10 @@ import { relations } from 'drizzle-orm';
 import { users } from './users'; // Import for relations
 import { orders } from './orders'; // Import for relations
 
-// Optional: Enum for commission status
+// Define Enums
 export const commissionStatusEnum = pgEnum('commission_status', ['Pending', 'Payable', 'Paid', 'Cancelled']);
+export const commissionTypeEnum = pgEnum('commission_type', ['OrderReferral', 'Fulfillment']); // Added Enum
+export const commissionRelatedEntityEnum = pgEnum('commission_related_entity', ['Order']); // Added Enum
 
 // --- Commissions Table ---
 // Based on migration 003_*
@@ -20,6 +22,9 @@ export const commissions = pgTable('commissions', {
     rate: decimal('rate', { precision: 5, scale: 2 }).notNull(), // Commission rate at time of calculation
     // Use enum for status
     status: commissionStatusEnum('status').notNull().default('Pending'),
+    type: commissionTypeEnum('type').notNull().default('OrderReferral'), // Added type field using enum
+    relatedTo: commissionRelatedEntityEnum('related_to'), // Added relatedTo field using enum
+    relatedId: text('related_id'), // Added relatedId field
     // Payout details (nullable until paid)
     paymentDate: timestamp('payment_date', { withTimezone: true }),
     paymentReference: varchar('payment_reference', { length: 255 }), // e.g., transaction ID of payout
@@ -31,6 +36,8 @@ export const commissions = pgTable('commissions', {
     userIdIdx: index('commissions_user_id_idx').on(table.userId),
     orderIdIdx: index('commissions_order_id_idx').on(table.orderId),
     statusIdx: index('commissions_status_idx').on(table.status),
+    typeIdx: index('commissions_type_idx').on(table.type), // Added index
+    relatedEntityIdx: index('commissions_related_entity_idx').on(table.relatedTo, table.relatedId), // Added index
 }));
 
 export const commissionsRelations = relations(commissions, ({ one }) => ({

@@ -1,4 +1,4 @@
-import sql from '@/lib/db';
+import { sql } from '@/lib/db'; // Corrected import
 import { getRows } from '@/lib/db-types';
 
 // Types for inventory management
