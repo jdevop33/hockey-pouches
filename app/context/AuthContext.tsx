@@ -8,6 +8,7 @@ interface User {
   email: string;
   role: string;
 }
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
@@ -25,35 +26,28 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  // Check if we're in a browser environment
-  const isBrowser = typeof window !== 'undefined';
-
+  const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check authentication status on mount - SIMPLIFIED VERSION
+  // Initialize auth state
   useEffect(() => {
-    if (!isBrowser) return; // Skip on server
+    if (typeof window === 'undefined') return;
 
-    console.log('AuthProvider useEffect: Checking authentication status...');
-
-    const checkAuthStatus = async () => {
+    const initializeAuth = () => {
       try {
-        // Try to get user from localStorage first
         const storedUser = localStorage.getItem('authUser');
         const storedToken = localStorage.getItem('authToken');
 
         if (storedUser && storedToken) {
           const userData = JSON.parse(storedUser);
-          console.log('AuthProvider: User found in localStorage');
-
           setUser(userData);
           setToken(storedToken);
           setIsAuthenticated(true);
 
-          // Optionally verify with server in background, but don't block UI
+          // Verify token in background
           fetch('/api/auth/verify', {
             method: 'POST',
             headers: {
@@ -61,14 +55,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               Authorization: `Bearer ${storedToken}`,
             },
             body: JSON.stringify({ userId: userData.id }),
-          }).catch(err => {
-            console.warn('Background token verification failed:', err);
-            // We don't logout here to prevent disrupting the user experience
-            // The next API call that fails with 401 will trigger a logout
+          }).catch(error => {
+            console.warn('Background token verification failed:', error);
+            // Don't logout here - let API calls handle auth errors
           });
         }
       } catch (error) {
-        console.error('Error checking authentication status:', error);
+        console.error('Error initializing auth state:', error);
         // Clear potentially corrupted storage
         localStorage.removeItem('authUser');
         localStorage.removeItem('authToken');
@@ -77,65 +70,66 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
 
-    checkAuthStatus();
-  }, [isBrowser]);
+    const timeout = setTimeout(() => {
+      setMounted(true);
+      initializeAuth();
+    }, 0);
 
-  const login = (userData: User, token: string) => {
-    console.log('AuthProvider login: Setting authenticated state');
-    setToken(token);
-    setUser(userData);
-    setIsAuthenticated(true);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  const login = (userData: User, authToken: string) => {
+    if (!mounted) return;
 
     try {
-      // Store both user data and token in localStorage
+      setToken(authToken);
+      setUser(userData);
+      setIsAuthenticated(true);
+
       localStorage.setItem('authUser', JSON.stringify(userData));
-      localStorage.setItem('authToken', token);
+      localStorage.setItem('authToken', authToken);
     } catch (error) {
-      console.error('Failed to save auth data to localStorage:', error);
+      console.error('Error during login:', error);
+      throw error;
     }
   };
 
   const logout = async () => {
-    console.log('AuthProvider logout: Clearing authentication state');
-
-    // Clear state immediately for better UX
-    setToken(null);
-    setUser(null);
-    setIsAuthenticated(false);
+    if (!mounted) return;
 
     try {
-      // Clear localStorage
+      // Clear state first for better UX
+      setToken(null);
+      setUser(null);
+      setIsAuthenticated(false);
+
+      // Clear storage
       localStorage.removeItem('authUser');
       localStorage.removeItem('authToken');
-    } catch (error) {
-      console.error('Failed to clear auth data from localStorage:', error);
-    }
 
-    // Call the logout API in the background
-    try {
+      // Call logout API in background
       await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });
     } catch (error) {
-      console.error('Failed to call logout API:', error);
-      // Non-critical error, user is already logged out in the UI
+      console.error('Error during logout:', error);
+      // State is already cleared, so just log the error
     }
   };
 
   const updateUser = (updatedData: Partial<User>) => {
-    console.log('AuthProvider updateUser: Updating user state');
+    if (!mounted) return;
+
     setUser(prevUser => {
       if (!prevUser) return null;
-      const newUser = { ...prevUser, ...updatedData };
 
+      const newUser = { ...prevUser, ...updatedData };
       try {
-        // Only update the user data in localStorage, keep the token as is
         localStorage.setItem('authUser', JSON.stringify(newUser));
       } catch (error) {
-        console.error('Failed to update user in localStorage:', error);
+        console.error('Error updating user in storage:', error);
       }
-
       return newUser;
     });
   };
@@ -149,50 +143,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     updateUser,
   };
+
+  // During SSR or before hydration, return a minimal wrapper
+  if (!mounted) {
+    return (
+      <AuthContext.Provider
+        value={{
+          user: null,
+          token: null,
+          isLoading: true,
+          isAuthenticated: false,
+          login: () => {},
+          logout: async () => {},
+          updateUser: () => {},
+        }}
+      >
+        {children}
+      </AuthContext.Provider>
+    );
+  }
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
-  // Use try-catch to safely access context
   try {
     const context = useContext(AuthContext);
     if (context === undefined) {
-      // Only log errors in browser environment to avoid build-time logs
       if (typeof window !== 'undefined') {
-        console.error('CRITICAL: useAuth called outside of AuthProvider!');
+        console.error('useAuth must be used within an AuthProvider');
       }
-
-      // Provide a fallback context instead of throwing an error
       return {
         user: null,
         token: null,
         isLoading: false,
         isAuthenticated: false,
-        login: () => {
-          if (typeof window !== 'undefined') {
-            console.error('Auth provider not initialized');
-          }
-        },
-        logout: async () => {
-          if (typeof window !== 'undefined') {
-            console.error('Auth provider not initialized');
-          }
-        },
-        updateUser: () => {
-          if (typeof window !== 'undefined') {
-            console.error('Auth provider not initialized');
-          }
-        },
+        login: () => {},
+        logout: async () => {},
+        updateUser: () => {},
       };
     }
     return context;
   } catch (error) {
-    // Handle errors that might occur during SSR or static generation
     if (typeof window !== 'undefined') {
       console.error('Error accessing AuthContext:', error);
     }
-
-    // Return fallback data
     return {
       user: null,
       token: null,

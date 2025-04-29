@@ -1,6 +1,6 @@
 import { create, type StoreApi } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import type { PersistOptions } from 'zustand/middleware/persist';
+import type { PersistOptions, StorageValue } from 'zustand/middleware/persist';
 import { type BaseState } from './config';
 import { useEffect } from 'react';
 
@@ -59,7 +59,38 @@ export function createHydratedStore<T extends HydratedBaseState>(
               state.setHasHydrated(true);
             }
           },
-          skipHydration: true, // Skip initial hydration to prevent SSR issues
+          storage: {
+            getItem: (name: string): Promise<StorageValue<unknown> | null> => {
+              try {
+                if (typeof window === 'undefined') return Promise.resolve(null);
+                const item = window.localStorage.getItem(name);
+                return Promise.resolve(item ? JSON.parse(item) : null);
+              } catch (error) {
+                console.error(`Error getting item ${name} from storage:`, error);
+                return Promise.resolve(null);
+              }
+            },
+            setItem: (name: string, value: StorageValue<unknown>): Promise<void> => {
+              try {
+                if (typeof window === 'undefined') return Promise.resolve();
+                window.localStorage.setItem(name, JSON.stringify(value));
+                return Promise.resolve();
+              } catch (error) {
+                console.error(`Error setting item ${name} in storage:`, error);
+                return Promise.resolve();
+              }
+            },
+            removeItem: (name: string): Promise<void> => {
+              try {
+                if (typeof window === 'undefined') return Promise.resolve();
+                window.localStorage.removeItem(name);
+                return Promise.resolve();
+              } catch (error) {
+                console.error(`Error removing item ${name} from storage:`, error);
+                return Promise.resolve();
+              }
+            },
+          },
         } as PersistOptions<T, unknown>
       )
     )
@@ -84,7 +115,11 @@ export function useHydration(store: {
   useEffect(() => {
     // Trigger rehydration after mount
     if (!hasHydrated && store.persist?.rehydrate) {
-      store.persist.rehydrate();
+      try {
+        store.persist.rehydrate();
+      } catch (error) {
+        console.error('Error during store rehydration:', error);
+      }
     }
   }, [hasHydrated, store]);
 

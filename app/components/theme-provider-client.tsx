@@ -2,39 +2,28 @@
 
 import * as React from 'react';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
-
-export interface ThemeProviderProps {
-  children: React.ReactNode;
-  [key: string]: React.ReactNode | string | boolean | undefined;
-}
+import { type ThemeProviderProps } from 'next-themes/dist/types';
 
 export function ThemeProviderClient({ children, ...props }: ThemeProviderProps) {
-  // Only render on client side
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    setMounted(true);
-
-    // Only run on client side
-    if (typeof window !== 'undefined') {
-      // Force dark mode
-      document.documentElement.classList.add('dark');
-
-      // Prevent theme changes
-      localStorage.setItem('hockey-puxx-theme', 'dark');
-    }
+    const timeout = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(timeout);
   }, []);
 
+  // During SSR and before hydration, render children without theme context
   if (!mounted) {
-    return <>{children}</>;
+    return <div style={{ visibility: 'hidden' }}>{children}</div>;
   }
 
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="dark"
-      forcedTheme="dark"
-      enableSystem={false}
+      defaultTheme="system"
+      enableSystem
       disableTransitionOnChange
       {...props}
     >

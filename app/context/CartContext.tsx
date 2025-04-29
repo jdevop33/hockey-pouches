@@ -150,16 +150,16 @@ export const CartContext = createContext<CartContextType>({
 });
 
 export const useCart = () => {
-  // Use a try-catch block to safely access context
+  // Use try-catch to safely access context
   try {
     const context = useContext(CartContext);
     if (context === undefined) {
-      // Detect if we're in a browser environment to provide better error messages
+      // Only log errors in browser environment
       if (typeof window !== 'undefined') {
         console.error('CRITICAL: useCart called outside of CartProvider!');
       }
 
-      // Provide a fallback context instead of throwing to prevent rendering errors
+      // Return fallback context
       return {
         items: [],
         addToCart: async () => {},
@@ -176,12 +176,10 @@ export const useCart = () => {
     }
     return context;
   } catch (error) {
-    // This can happen during SSR or static generation
+    // Handle SSR/SSG gracefully
     if (typeof window !== 'undefined') {
       console.error('Error accessing CartContext:', error);
     }
-
-    // Return fallback data
     return {
       items: [],
       addToCart: async () => {},
@@ -203,38 +201,31 @@ interface CartProviderProps {
 }
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
-  // Check if we're in a browser environment
-  const isBrowser = typeof window !== 'undefined';
-
+  const [mounted, setMounted] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [minOrderQuantity] = useState<number>(MIN_ORDER_QUANTITY);
+
   const [state, dispatch] = useReducer(cartReducer, {
     items: [],
     itemCount: 0,
     subtotal: 0,
     totalQuantity: 0,
   });
-  const { items, itemCount, subtotal, totalQuantity } = state;
 
-  // We aren't currently using setMinOrderQuantity, but keeping it for future flexibility
-  // when we might need to update the value from an API
-  const [minOrderQuantity] = useState<number>(MIN_ORDER_QUANTITY);
-
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
-
-  // Safely load cart from localStorage
+  // Handle hydration and localStorage synchronization
   useEffect(() => {
-    if (!isBrowser) return; // Skip server-side execution
+    if (typeof window === 'undefined') return;
 
-    console.log('CartProvider useEffect: Loading state from localStorage.');
-    try {
-      const savedCart = localStorage.getItem('cart');
-      if (savedCart) {
-        try {
+    const loadCart = () => {
+      try {
+        const savedCart = localStorage.getItem('cart');
+        if (savedCart) {
           const parsedCart = JSON.parse(savedCart);
           if (Array.isArray(parsedCart)) {
             dispatch({ type: 'SET_ITEMS', payload: parsedCart });
-            console.log(
-              'CartProvider: Loaded cart from localStorage with',
+            console.debug(
+              'CartProvider: Loaded cart from localStorage',
               parsedCart.length,
               'items'
             );
@@ -242,103 +233,131 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
             console.warn('Invalid cart format in localStorage, resetting');
             localStorage.removeItem('cart');
           }
-        } catch (parseError) {
-          console.error('Failed to parse cart from localStorage:', parseError);
-          localStorage.removeItem('cart');
         }
-      }
-    } catch (error) {
-      console.error('Error accessing localStorage:', error);
-    } finally {
-      setIsInitialized(true);
-    }
-
-    console.log('CartProvider useEffect: Finished initial load.');
-  }, [isBrowser]);
-
-  // Safely save cart to localStorage
-  useEffect(() => {
-    if (!isBrowser || !isInitialized) return; // Skip on server or before initialization
-
-    try {
-      if (items.length > 0) {
-        localStorage.setItem('cart', JSON.stringify(items));
-      } else {
+      } catch (error) {
+        console.error('Error loading cart from localStorage:', error);
         localStorage.removeItem('cart');
+      } finally {
+        setIsInitialized(true);
       }
-    } catch (error) {
-      console.error('Failed to save cart to localStorage:', error);
-    }
-  }, [items, isInitialized, isBrowser]);
+    };
 
-  // Validate minimum order quantity
-  const validateMinimumOrder = useCallback(() => {
-    if (totalQuantity < minOrderQuantity) {
-      return {
-        isValid: false,
-        message: `Minimum order quantity is ${minOrderQuantity} units. You have ${totalQuantity} units in your cart.`,
-      };
-    }
-    return { isValid: true };
-  }, [totalQuantity, minOrderQuantity]);
+    const timeout = setTimeout(() => {
+      setMounted(true);
+      loadCart();
+    }, 0);
 
-  const addToCart = useCallback(async (product: Product, quantity: number) => {
+    return () => clearTimeout(timeout);
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    if (!mounted || !isInitialized) return;
+
     try {
-      setIsAddingToCart(true);
-      // Validate the quantity is at least 1
-      if (quantity < 1) {
-        throw new Error('Quantity must be at least 1');
+      localStorage.setItem('cart', JSON.stringify(state.items));
+    } catch (error) {
+      console.error('Error saving cart to localStorage:', error);
+    }
+  }, [state.items, mounted, isInitialized]);
+
+  const addToCart = useCallback(
+    async (product: Product, quantity: number) => {
+      if (!mounted || !isInitialized) return;
+
+      try {
+        setIsAddingToCart(true);
+        // Add validation or API calls here if needed
+        dispatch({ type: 'ADD_ITEM', payload: { product, quantity } });
+      } catch (error) {
+        console.error('Error adding item to cart:', error);
+      } finally {
+        setIsAddingToCart(false);
       }
+    },
+    [mounted, isInitialized]
+  );
 
-      dispatch({ type: 'ADD_ITEM', payload: { product, quantity } });
-    } finally {
-      setIsAddingToCart(false);
-    }
-  }, []);
+  const removeFromCart = useCallback(
+    (productId: string) => {
+      if (!mounted || !isInitialized) return;
+      dispatch({ type: 'REMOVE_ITEM', payload: { productId } });
+    },
+    [mounted, isInitialized]
+  );
 
-  const removeFromCart = useCallback((productId: string) => {
-    dispatch({ type: 'REMOVE_ITEM', payload: { productId } });
-  }, []);
-
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
-    if (quantity < 1) {
-      throw new Error('Quantity must be at least 1');
-    }
-    dispatch({ type: 'UPDATE_QUANTITY', payload: { productId, quantity } });
-  }, []);
+  const updateQuantity = useCallback(
+    (productId: string, quantity: number) => {
+      if (!mounted || !isInitialized) return;
+      dispatch({ type: 'UPDATE_QUANTITY', payload: { productId, quantity } });
+    },
+    [mounted, isInitialized]
+  );
 
   const clearCart = useCallback(() => {
+    if (!mounted || !isInitialized) return;
     dispatch({ type: 'CLEAR_CART' });
-  }, []);
+  }, [mounted, isInitialized]);
 
-  const contextValue = useMemo(
+  const validateMinimumOrder = useCallback(() => {
+    if (!mounted || !isInitialized) {
+      return { isValid: false, message: 'Cart not initialized' };
+    }
+    const isValid = state.totalQuantity >= minOrderQuantity;
+    return {
+      isValid,
+      message: isValid ? undefined : `Minimum order quantity is ${minOrderQuantity} items`,
+    };
+  }, [state.totalQuantity, minOrderQuantity, mounted, isInitialized]);
+
+  const value = useMemo(
     () => ({
-      items,
+      items: state.items,
       addToCart,
       removeFromCart,
       updateQuantity,
       clearCart,
-      itemCount,
-      subtotal,
-      totalQuantity,
+      itemCount: state.itemCount,
+      subtotal: state.subtotal,
+      totalQuantity: state.totalQuantity,
       validateMinimumOrder,
       minOrderQuantity,
       isAddingToCart,
     }),
     [
-      items,
+      state,
       addToCart,
       removeFromCart,
       updateQuantity,
       clearCart,
-      itemCount,
-      subtotal,
-      totalQuantity,
       validateMinimumOrder,
       minOrderQuantity,
       isAddingToCart,
     ]
   );
 
-  return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>;
+  // During SSR or before hydration, return a minimal wrapper
+  if (!mounted || !isInitialized) {
+    return (
+      <CartContext.Provider
+        value={{
+          items: [],
+          addToCart: async () => {},
+          removeFromCart: () => {},
+          updateQuantity: () => {},
+          clearCart: () => {},
+          isAddingToCart: false,
+          itemCount: 0,
+          subtotal: 0,
+          totalQuantity: 0,
+          validateMinimumOrder: () => ({ isValid: false, message: 'Cart not initialized' }),
+          minOrderQuantity: MIN_ORDER_QUANTITY,
+        }}
+      >
+        {children}
+      </CartContext.Provider>
+    );
+  }
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };

@@ -1,92 +1,101 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+interface Video {
+  title: string;
+  description: string;
+  youtubeUrl: string;
+  thumbnailUrl: string;
+  uploadDate: string;
+}
+
+interface Study {
+  title: string;
+  abstract: string;
+  authors: string[];
+  publicationDate: string;
+  doi: string;
+  url: string;
+}
 
 interface ResearchStructuredDataProps {
-  videos: {
-    id: string;
-    title: string;
-    description: string;
-    thumbnailUrl: string;
-    youtubeUrl: string;
-    category: string;
-  }[];
-  studies: {
-    id: string;
-    title: string;
-    authors: string;
-    journal: string;
-    year: number;
-    abstract: string;
-    link: string;
-    category: string;
-    keyFindings: string[];
-  }[];
+  videos: Video[];
+  studies: Study[];
 }
 
 export default function ResearchStructuredData({ videos, studies }: ResearchStructuredDataProps) {
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
-    // Create structured data for videos
-    const videoStructuredData = {
-      '@context': 'https://schema.org',
-      '@type': 'ItemList',
-      'itemListElement': videos.map((video, index) => ({
-        '@type': 'VideoObject',
-        'position': index + 1,
-        'name': video.title,
-        'description': video.description,
-        'thumbnailUrl': video.thumbnailUrl,
-        'contentUrl': video.youtubeUrl,
-        'uploadDate': '2023-01-01T08:00:00+08:00', // Placeholder date
-        'duration': 'PT5M', // Placeholder duration (5 minutes)
-        'embedUrl': `https://www.youtube.com/embed/${video.youtubeUrl.split('v=')[1]}`,
-        'interactionStatistic': {
-          '@type': 'InteractionCounter',
-          'interactionType': { '@type': 'WatchAction' },
-          'userInteractionCount': 5000 // Placeholder view count
-        }
-      }))
-    };
+    if (typeof window === 'undefined') return;
 
-    // Create structured data for studies
-    const studyStructuredData = {
-      '@context': 'https://schema.org',
-      '@type': 'ItemList',
-      'itemListElement': studies.map((study, index) => ({
-        '@type': 'ScholarlyArticle',
-        'position': index + 1,
-        'headline': study.title,
-        'author': {
-          '@type': 'Person',
-          'name': study.authors.split(',')[0]
-        },
-        'publisher': {
-          '@type': 'Organization',
-          'name': study.journal
-        },
-        'datePublished': `${study.year}`,
-        'description': study.abstract,
-        'url': study.link
-      }))
-    };
+    const timeout = setTimeout(() => {
+      try {
+        setMounted(true);
 
-    // Add structured data to the page
-    const videoScript = document.createElement('script');
-    videoScript.type = 'application/ld+json';
-    videoScript.text = JSON.stringify(videoStructuredData);
-    document.head.appendChild(videoScript);
+        // Create structured data for videos
+        const videoStructuredData = {
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          itemListElement: videos.map((video, index) => ({
+            '@type': 'VideoObject',
+            position: index + 1,
+            name: video.title,
+            description: video.description,
+            thumbnailUrl: video.thumbnailUrl,
+            uploadDate: video.uploadDate,
+            embedUrl: video.youtubeUrl,
+          })),
+        };
 
-    const studyScript = document.createElement('script');
-    studyScript.type = 'application/ld+json';
-    studyScript.text = JSON.stringify(studyStructuredData);
-    document.head.appendChild(studyScript);
+        // Create structured data for studies
+        const studyStructuredData = {
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          itemListElement: studies.map((study, index) => ({
+            '@type': 'ScholarlyArticle',
+            position: index + 1,
+            name: study.title,
+            abstract: study.abstract,
+            author: study.authors.map(author => ({
+              '@type': 'Person',
+              name: author,
+            })),
+            datePublished: study.publicationDate,
+            sameAs: study.doi,
+            url: study.url,
+          })),
+        };
 
-    // Clean up
-    return () => {
-      document.head.removeChild(videoScript);
-      document.head.removeChild(studyScript);
-    };
-  }, [videos, studies]);
+        // Add video structured data
+        const videoScript = document.createElement('script');
+        videoScript.id = 'video-structured-data';
+        videoScript.type = 'application/ld+json';
+        videoScript.text = JSON.stringify(videoStructuredData);
+        document.head.appendChild(videoScript);
+
+        // Add study structured data
+        const studyScript = document.createElement('script');
+        studyScript.id = 'study-structured-data';
+        studyScript.type = 'application/ld+json';
+        studyScript.text = JSON.stringify(studyStructuredData);
+        document.head.appendChild(studyScript);
+
+        return () => {
+          // Clean up scripts on unmount
+          const existingVideoScript = document.getElementById('video-structured-data');
+          const existingStudyScript = document.getElementById('study-structured-data');
+          if (existingVideoScript) document.head.removeChild(existingVideoScript);
+          if (existingStudyScript) document.head.removeChild(existingStudyScript);
+        };
+      } catch (error) {
+        console.error('Error setting up structured data:', error);
+      }
+    }, 0);
+
+    return () => clearTimeout(timeout);
+  }, [videos, studies, mounted]);
 
   return null;
 }

@@ -4,38 +4,39 @@ import { useTheme as useNextTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
 export function useTheme() {
-  const { themes } = useNextTheme();
+  const { setTheme, themes } = useNextTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Prevent hydration mismatch and ensure dark mode
   useEffect(() => {
-    setMounted(true);
+    const timeout = setTimeout(() => {
+      setMounted(true);
+      // Set initial theme without direct DOM manipulation
+      setTheme('dark');
+    }, 0);
 
-    // Force dark mode
-    document.documentElement.classList.add('dark');
-  }, []);
+    return () => clearTimeout(timeout);
+  }, [setTheme]);
 
-  // Always return dark mode
-  const isDark = true;
-  const isLight = false;
+  // Before hydration, return default values
+  if (!mounted) {
+    return {
+      theme: 'dark',
+      setTheme: () => {},
+      isDark: true,
+      isLight: false,
+      toggleTheme: () => {},
+      themes: [],
+      mounted: false,
+    };
+  }
 
-  // No-op theme toggle - we only support dark mode
-  const toggleTheme = () => {
-    // No-op, we're always in dark mode
-    console.log('Theme toggle disabled - using dark mode only');
-  };
-
-  const setTheme = () => {
-    // No-op, we're always in dark mode
-    console.log('Theme changes disabled - using dark mode only');
-  };
-
+  // After hydration, return actual values
   return {
     theme: 'dark',
-    setTheme,
-    isDark,
-    isLight,
-    toggleTheme,
+    setTheme: () => setTheme('dark'), // Only allow dark theme
+    isDark: true,
+    isLight: false,
+    toggleTheme: () => {}, // No-op since we only support dark mode
     themes,
     mounted,
   };

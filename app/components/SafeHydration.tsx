@@ -4,19 +4,37 @@ import React, { useEffect, useState } from 'react';
 
 interface SafeHydrationProps {
   children: React.ReactNode;
+  fallback?: React.ReactNode;
 }
 
 // SafeHydration ensures that client components are only rendered after hydration
 // is complete to prevent "Cannot read properties of undefined (reading 'call')" errors
-export function SafeHydration({ children }: SafeHydrationProps) {
+export function SafeHydration({ children, fallback }: SafeHydrationProps) {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    // This will run only on the client, after hydration
-    setIsHydrated(true);
+    // Use a timeout to ensure we're fully hydrated
+    const timeout = setTimeout(() => {
+      try {
+        setIsHydrated(true);
+      } catch (error) {
+        console.error('Error during hydration:', error);
+      }
+    }, 0);
+
+    return () => clearTimeout(timeout);
   }, []);
 
-  // Only render children after hydration is complete
-  // This prevents errors during the server-to-client transition
-  return isHydrated ? <>{children}</> : null;
+  // During SSR or before hydration, render fallback or null
+  if (!isHydrated) {
+    return fallback ? <>{fallback}</> : null;
+  }
+
+  // After hydration, render children in an error boundary
+  try {
+    return <>{children}</>;
+  } catch (error) {
+    console.error('Error rendering hydrated content:', error);
+    return fallback ? <>{fallback}</> : null;
+  }
 }
