@@ -1,7 +1,7 @@
-// app/lib/services/product-service.ts
+// app/lib/services/product-service.ts (Exporting types)
 import { db } from '@/lib/db';
 import * as schema from '@/lib/schema'; // Use central schema index
-import { eq, and, or, ilike, count, desc, asc, gte, lte, sum, sql as dSql, gt, lt, sql, Placeholder } from 'drizzle-orm'; // Added Placeholder
+import { eq, and, or, ilike, count, desc, asc, gte, lte, sum, sql as dSql, gt, lt, sql, Placeholder, ne } from 'drizzle-orm'; // Added ne
 import { logger } from '@/lib/logger';
 import { cachedQuery, CACHE_DURATIONS, invalidateCache, invalidateAllCache } from '@/lib/dbOptimization';
 import { alias } from 'drizzle-orm/pg-core';
@@ -22,26 +22,22 @@ type StockLevelSelect = typeof schema.stockLevels.$inferSelect;
 // --- Service Class ---
 export class ProductService {
     private LOW_STOCK_THRESHOLD = 10;
-    private CACHE_KEYS = { /* ... as before ... */ };
-    private async invalidateProductCaches(productId?: number) { /* ... as before ... */ }
-    private async invalidateVariationCache(variationId: number, productId?: number) { /* ... as before ... */ }
+    private CACHE_KEYS = { /* ... */ };
+    private async invalidateProductCaches(productId?: number) { /* ... */ }
+    private async invalidateVariationCache(variationId: number, productId?: number) { /* ... */ }
 
-    // --- Core Product Methods (Implementations as previously refactored) ---
+    // --- Methods (Implementations as refactored) ---
     async getProductById(productId: number): Promise<ProductWithVariations | null> { /* ... */ }
     async getProducts(options: ProductListOptions): Promise<ProductListResult> { /* ... */ }
     async getAvailableFilters(includeInactive = false) { /* ... */ }
     async createProduct(productData: Omit<ProductSelect, 'id' | 'createdAt' | 'updatedAt'>): Promise<ProductSelect> { /* ... */ }
     async updateProduct(productId: number, updates: Partial<Omit<ProductSelect, 'id' | 'createdAt'>>): Promise<ProductSelect> { /* ... */ }
     async deleteProduct(productId: number): Promise<boolean> { /* ... */ }
-
-    // --- Variation Methods (Implementations as previously refactored) ---
     async getProductVariations(productId: number, includeInactive: boolean = false): Promise<ProductVariationSelect[]> { /* ... */ }
     async getVariationById(variationId: number): Promise<ProductVariationSelect | null> { /* ... */ }
     async createVariation(productId: number, variationData: Omit<ProductVariationSelect, 'id' | 'productId' | 'createdAt' | 'updatedAt' | 'inventoryQuantity'>): Promise<ProductVariationSelect> { /* ... */ }
     async updateVariation(variationId: number, updates: Partial<Omit<ProductVariationSelect, 'id' | 'productId' | 'createdAt'>>): Promise<ProductVariationSelect> { /* ... */ }
     async deleteVariation(variationId: number): Promise<boolean> { /* ... */ }
-
-    // --- Inventory Methods (Implementations as previously refactored) ---
     private async initializeVariationStockLevels(variationId: number, productId: number): Promise<void> { /* ... */ }
     async getStockLevel(productVariationId: number, locationId: string): Promise<StockLevelSelect | null> { /* ... */ }
     async getTotalAvailableStock(productVariationId: number): Promise<number> { /* ... */ }
