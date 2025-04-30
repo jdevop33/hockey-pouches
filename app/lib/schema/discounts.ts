@@ -1,5 +1,17 @@
 // app/lib/schema/discounts.ts
-import { pgTable, text, timestamp, decimal, integer, varchar, serial, boolean, index, pgEnum, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  text,
+  timestamp,
+  decimal,
+  integer,
+  varchar,
+  serial,
+  boolean,
+  index,
+  pgEnum,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { orders } from './orders'; // Import for relations
 
@@ -8,7 +20,9 @@ export const discountTypeEnum = pgEnum('discount_type', ['percentage', 'fixed_am
 
 // --- Discount Codes Table ---
 // Based on migration 0007_*
-export const discountCodes = pgTable('discount_codes', {
+export const discountCodes = pgTable(
+  'discount_codes',
+  {
     id: serial('id').primaryKey(),
     code: varchar('code', { length: 50 }).notNull().unique(),
     description: text('description'),
@@ -24,14 +38,19 @@ export const discountCodes = pgTable('discount_codes', {
     // Removed userId - Referral discounts handled by logic checking orders.appliedReferralCode
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
-}, (table) => ({
+  },
+  table => ({
     codeIdx: uniqueIndex('discount_codes_code_idx').on(table.code),
-    isActiveStartDateIdx: index('discount_codes_active_start_date_idx').on(table.isActive, table.startDate),
-}));
+    isActiveStartDateIdx: index('discount_codes_active_start_date_idx').on(
+      table.isActive,
+      table.startDate
+    ),
+  })
+);
 
 // Relation back to orders (One code can be used on many orders)
 // This relation assumes orders.discountCode stores the code string and links back here.
 // Note: This isn't a true foreign key, linking is based on the code value.
 export const discountCodesRelations = relations(discountCodes, ({ many }) => ({
-   orders: many(orders, { relationName: 'OrderDiscountCode' }),
+  orders: many(orders, { relationName: 'OrderDiscountCode' }),
 }));
