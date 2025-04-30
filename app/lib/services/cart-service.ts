@@ -1,5 +1,11 @@
 import { db } from '@/lib/db';
-import * as schema from '@/lib/schema'; // Use central schema index
+import { inventory } from '@/lib/schema/inventory';
+import { cart } from '@/lib/schema/cart';
+import { inventory } from '@/lib/schema/inventory';
+import { cart } from '@/lib/schema/cart';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
+// Use central schema index
 import { eq, and, sql as drizzleSql, sum, desc, sql } from 'drizzle-orm';
 import { logger } from '@/lib/logger';
 import { productService } from './product-service';

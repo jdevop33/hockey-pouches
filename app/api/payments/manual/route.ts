@@ -1,7 +1,13 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 import { db, sql } from '@/lib/db'; // Corrected import, added db
-import * as schema from '@/lib/schema'; // Import schema
+import { orders } from '@/lib/schema/orders';
+import { tasks } from '@/lib/schema/tasks';
+import { orders } from '@/lib/schema/orders';
+import { tasks } from '@/lib/schema/tasks';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
+// Import schema
 import { eq, and } from 'drizzle-orm'; // Import operators
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '@/lib/logger'; // Added logger

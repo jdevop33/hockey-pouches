@@ -2,7 +2,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 import { userService } from '@/lib/services/user-service'; // Use refactored service
-import * as schema from '@/lib/schema'; // Use central schema index
+import { users } from '@/lib/schema/users';
+import { users } from '@/lib/schema/users';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
+// Use central schema index
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';

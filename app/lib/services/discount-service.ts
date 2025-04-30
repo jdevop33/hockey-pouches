@@ -1,6 +1,9 @@
 // app/lib/services/discount-service.ts
 import { db } from '@/lib/db';
-import * as schema from '@/lib/schema';
+import { discountCodes } from '@/lib/schema/discountCodes';
+import { discountCodes } from '@/lib/schema/discountCodes';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 import { eq, and, or, ilike, count, desc, asc, not, sql } from 'drizzle-orm'; // Added sql import
 import { logger } from '@/lib/logger';
 

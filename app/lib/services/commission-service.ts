@@ -1,6 +1,14 @@
 // app/lib/services/commission-service.ts
 import { db } from '@/lib/db';
+import { commissions } from '@/lib/schema/commissions';
+import { users } from '@/lib/schema/users';
+import { orders } from '@/lib/schema/orders';
+import { commissions } from '@/lib/schema/commissions';
+import { users } from '@/lib/schema/users';
+import { orders } from '@/lib/schema/orders';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
 import { commissions } from '@/lib/schema/commissions'; // Only import the table
 import { users } from '@/lib/schema/users'; // Only import the table
 import { orders } from '@/lib/schema/orders'; // Add orders table import

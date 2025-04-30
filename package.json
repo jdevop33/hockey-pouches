@@ -5,20 +5,23 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build --no-lint",
-    "build:no-lint": "node scripts/build-no-lint.js",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "deploy": "node scripts/deploy.js",
+    "prepare": "husky install",
     "git:push": "node scripts/git-push.js",
     "test:api": "node scripts/test-api.js",
     "test:emails": "node --loader ts-node/esm scripts/test-order-emails.ts",
     "test:checkout": "node --loader ts-node/esm scripts/test-checkout-flow.ts",
     "db:migrate": "node scripts/run-migrations.js",
-    "predeploy": "node scripts/fix-schema-imports.mjs && npm run build"
+    "fix:imports": "node scripts/fix-schema-imports.mjs",
+    "preflight": "npm run fix:imports && npm run lint:fix && npm run format && npm run typecheck",
+    "predeploy": "npm run preflight && npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -83,6 +86,17 @@
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.0.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,mdx,css}": [
+      "prettier --write"
+    ]
   }
 }

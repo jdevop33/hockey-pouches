@@ -1,7 +1,21 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { sql } from '@/lib/db';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
-import * as schema from '@/lib/schema'; // Import the schema namespace
+import { users } from '@/lib/schema/users';
+import { orders } from '@/lib/schema/orders';
+import { orderItems } from '@/lib/schema/orderItems';
+import { inventory } from '@/lib/schema/inventory';
+import { commissions } from '@/lib/schema/commissions';
+import { tasks } from '@/lib/schema/tasks';
+import { users } from '@/lib/schema/users';
+import { orders } from '@/lib/schema/orders';
+import { orderItems } from '@/lib/schema/orderItems';
+import { inventory } from '@/lib/schema/inventory';
+import { commissions } from '@/lib/schema/commissions';
+import { tasks } from '@/lib/schema/tasks';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
+// Import the schema namespace
 
 export const dynamic = 'force-dynamic';
 

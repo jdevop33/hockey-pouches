@@ -5,7 +5,7 @@ import { orderService } from '@/lib/services/order-service'; // Use service
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import * as schema from '@/lib/schema'; // Using index import for schema
+// Using index import for schema
 import { eq, and, desc } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';

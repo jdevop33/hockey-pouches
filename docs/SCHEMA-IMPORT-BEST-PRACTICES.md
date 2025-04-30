@@ -1,5 +1,98 @@
 # Schema Import Best Practices
 
+## Overview
+
+This document outlines best practices for importing Drizzle schema objects in our Next.js application. Following these guidelines helps prevent build errors and ensures consistent database access patterns.
+
+## Key Principles
+
+1. **Prefer specific imports over namespace imports**
+
+   - Import specific tables directly from their individual schema files
+   - Only use namespace imports when you need multiple schema objects
+
+2. **Never import unused schema objects**
+
+   - Always remove unused imports
+   - The deployment build will fail if you have unused imports
+
+3. **Follow the table-specific import pattern**
+   - Import from the specific table file in `@/lib/schema/{table}`
+   - This promotes tree-shaking and better type inference
+
+## Correct Import Patterns
+
+### ✅ Best: Import specific tables from their modules
+
+```typescript
+// Importing a single table
+import { users } from '@/lib/schema/users';
+
+// Importing multiple tables
+import { orders } from '@/lib/schema/orders';
+import { orderItems } from '@/lib/schema/orderItems';
+```
+
+### ⚠️ Acceptable: Import all schema when needed
+
+```typescript
+// When you need access to multiple schema objects or types
+import * as schema from '@/lib/schema';
+
+// When accessing tables through schema namespace
+const result = await db.select().from(schema.users);
+```
+
+### ❌ Incorrect: Unused imports
+
+```typescript
+// DO NOT import schema if you're not using it
+import * as schema from '@/lib/schema'; // This will cause build errors if unused
+
+// DO NOT import specific tables you aren't using
+import { users } from '@/lib/schema/users'; // Remove if unused
+```
+
+## Using the Schema Import Fixer
+
+We have an automated tool to help maintain proper schema imports:
+
+```bash
+# Run manually to fix schema imports
+node scripts/fix-schema-imports.mjs
+
+# This also runs automatically on pre-commit and pre-deploy
+```
+
+The script:
+
+1. Removes unused schema imports
+2. Converts namespace imports to specific imports when possible
+3. Identifies which tables are actually being used
+
+## Type Imports
+
+When you only need type information, use type imports:
+
+```typescript
+// For type imports only
+import type { User } from '@/lib/schema/users';
+import type { Order } from '@/lib/schema/orders';
+```
+
+## ESLint Rules
+
+We've added ESLint rules to enforce these practices:
+
+```
+'drizzle/enforce-schema-imports': ['error', {
+  preferIndividualImports: true,
+  disallowNamespaceImports: true,
+}]
+```
+
+This rule will flag issues during development so they can be fixed before deployment.
+
 ## Background
 
 We recently encountered a critical build failure due to a schema import issue. This document outlines best practices to avoid similar issues in the future.

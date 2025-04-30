@@ -1,6 +1,11 @@
 // app/lib/services/wholesale-service.ts
 import { db } from '@/lib/db';
-import * as schema from '@/lib/schema';
+import { wholesaleApplications } from '@/lib/schema/wholesaleApplications';
+import { users } from '@/lib/schema/users';
+import { wholesaleApplications } from '@/lib/schema/wholesaleApplications';
+import { users } from '@/lib/schema/users';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 import { eq, and, or, ilike, count, desc, asc } from 'drizzle-orm';
 import { logger } from '@/lib/logger';
 

@@ -3,7 +3,11 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 import { orderService } from '@/lib/services/order-service'; // Use service
 import { logger } from '@/lib/logger';
-import * as schema from '@/lib/schema'; // Use schema for enum
+import { orders } from '@/lib/schema/orders';
+import { orders } from '@/lib/schema/orders';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
+// Use schema for enum
 
 export const dynamic = 'force-dynamic';
 

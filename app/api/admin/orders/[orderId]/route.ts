@@ -2,7 +2,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 import { db } from '@/lib/db';
-import * as schema from '@/lib/schema'; // Use central schema index
+import { orders } from '@/lib/schema/orders';
+import { orders } from '@/lib/schema/orders';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
+// Use central schema index
 import { eq, desc } from 'drizzle-orm';
 import { logger } from '@/lib/logger';
 import { orderService } from '@/lib/services/order-service'; // Use refactored service

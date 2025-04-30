@@ -265,3 +265,51 @@ GOOGLE_SITE_VERIFICATION=your_google_verification_code
 4. **Optimize Performance**: Improve loading times and performance
 5. **Enhance Security**: Add rate limiting and additional security measures
 6. **Documentation**: Complete API documentation and user guides
+
+## Development Practices
+
+### Linting & Code Quality
+
+We enforce strict linting and code quality standards through automated tools:
+
+- **ESLint**: Static code analysis to catch potential errors and enforce code style
+- **Prettier**: Code formatting to ensure consistent style
+- **TypeScript**: Strong typing for better developer experience and fewer runtime errors
+
+Run quality checks:
+
+```bash
+# Fix all automatically fixable issues
+npm run preflight
+
+# Individual checks
+npm run lint            # Run ESLint
+npm run lint:fix        # Fix ESLint issues
+npm run format          # Format with Prettier
+npm run typecheck       # Type check with TypeScript
+npm run fix:imports     # Fix schema imports
+```
+
+### Schema Import Best Practices
+
+We follow strict guidelines for importing Drizzle schema objects to prevent build errors:
+
+1. **Prefer specific imports** over namespace imports
+2. **Never import unused schema objects**
+3. **Follow the table-specific import pattern**
+
+For complete details, see [Schema Import Best Practices](./docs/SCHEMA-IMPORT-BEST-PRACTICES.md)
+
+### Git Workflow
+
+We use pre-commit hooks to ensure code quality before commits:
+
+- Linting (ESLint)
+- Formatting (Prettier)
+- Schema import fixing
+
+To bypass hooks in emergency situations:
+
+```bash
+git commit --no-verify -m "Your commit message"
+```

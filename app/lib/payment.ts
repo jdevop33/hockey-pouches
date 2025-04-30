@@ -1,6 +1,12 @@
 // app/lib/payment.ts
 import { db } from '@/lib/db';
-import * as schema from '@/lib/schema'; // Use central schema index
+import { tasks } from '@/lib/schema/tasks';
+import { orders } from '@/lib/schema/orders';
+import { tasks } from '@/lib/schema/tasks';
+import { orders } from '@/lib/schema/orders';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
+// Use central schema index
 import { eq, and, sql } from 'drizzle-orm';
 import { logger } from './logger';
 import { v4 as uuidv4 } from 'uuid';

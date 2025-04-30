@@ -2,7 +2,13 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 import { taskService } from '@/lib/services/task-service'; // Use new service
-import * as schema from '@/lib/schema'; // Use schema for enums
+import { users } from '@/lib/schema/users';
+import { tasks } from '@/lib/schema/tasks';
+import { users } from '@/lib/schema/users';
+import { tasks } from '@/lib/schema/tasks';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
+// Use schema for enums
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';

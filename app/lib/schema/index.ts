@@ -9,6 +9,7 @@ export * from './orders'; // Exports orders, orderItems, orderStatusHistory, ord
 export * from './cart';
 export * from './commissions'; // Exports commissions and related enums (commissionStatusEnum, commissionTypeEnum, commissionRelatedEntityEnum)
 export * from './payments';
+export * from './referrals'; // Exports referrals table and relations
 export * from './discounts'; // Exports discountCodes and related enums (discountTypeEnum)
 export * from './wholesale';
 export * from './notifications';

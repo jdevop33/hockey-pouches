@@ -2,7 +2,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 import { wholesaleService } from '@/lib/services/wholesale-service'; // Use service
-import * as schema from '@/lib/schema'; // Use schema for enum
+// Use schema for enum
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
 

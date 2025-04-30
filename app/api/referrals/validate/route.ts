@@ -1,6 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { db } from '@/lib/db'; // Import db
-import * as schema from '@/lib/schema'; // Import schema
+import { users } from '@/lib/schema/users';
+import { logs } from '@/lib/schema/logs';
+import { users } from '@/lib/schema/users';
+import { logs } from '@/lib/schema/logs';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
+// Import schema
 import { eq, and } from 'drizzle-orm'; // Import operators
 import { logger } from '@/lib/logger'; // Added logger
 

@@ -1,6 +1,10 @@
 // app/lib/services/product-service.ts (Exporting types)
 import { db } from '@/lib/db';
-import * as schema from '@/lib/schema'; // Use central schema index
+import { products } from '@/lib/schema/products';
+import { products } from '@/lib/schema/products';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
+// Use central schema index
 // Only importing what's actually needed
 import { invalidateCache, invalidateAllCache } from '@/lib/dbOptimization';
 import { logger } from '@/lib/logger';

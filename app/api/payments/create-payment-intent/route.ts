@@ -2,7 +2,13 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 import { db } from '@/lib/db';
-import * as schema from '@/lib/schema'; // Use central schema index
+import { orders } from '@/lib/schema/orders';
+import { cart } from '@/lib/schema/cart';
+import { orders } from '@/lib/schema/orders';
+import { cart } from '@/lib/schema/cart';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
+// Use central schema index
 import { eq, and } from 'drizzle-orm';
 import { cartService } from '@/lib/services/cart-service'; // Use refactored cart service
 import { logger } from '@/lib/logger';

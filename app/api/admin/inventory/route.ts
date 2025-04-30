@@ -2,7 +2,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 import { db } from '@/lib/db';
-import * as schema from '@/lib/schema';
+import { products } from '@/lib/schema/products';
+import { inventory } from '@/lib/schema/inventory';
+import { products } from '@/lib/schema/products';
+import { inventory } from '@/lib/schema/inventory';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 import { eq, and, or, ilike, count, desc, asc, gte, lte, sql as dSql, gt, lt, isNotNull, isNull, Placeholder, SQL } from 'drizzle-orm'; // Added isNotNull, isNull and SQL
 import { logger } from '@/lib/logger';
 

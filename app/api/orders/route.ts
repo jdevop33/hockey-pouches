@@ -4,7 +4,19 @@ import { db } from '@/lib/db'; // Import db instead of pool
 import jwt from 'jsonwebtoken';
 import type { PoolClient } from 'pg'; // Keep for type checking if helpers still expect it
 import { sendOrderConfirmationEmail } from '../../lib/email';
-import * as schema from '@/lib/schema'; // Use central schema index
+import { orderItems } from '@/lib/schema/orderItems';
+import { orders } from '@/lib/schema/orders';
+import { tasks } from '@/lib/schema/tasks';
+import { users } from '@/lib/schema/users';
+import { cart } from '@/lib/schema/cart';
+import { orderItems } from '@/lib/schema/orderItems';
+import { orders } from '@/lib/schema/orders';
+import { tasks } from '@/lib/schema/tasks';
+import { users } from '@/lib/schema/users';
+import { cart } from '@/lib/schema/cart';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
+// Use central schema index
 import { eq, and, sql } from 'drizzle-orm';
 import { logger } from '@/lib/logger'; // Assuming logger exists
 import { v4 as uuidv4 } from 'uuid';

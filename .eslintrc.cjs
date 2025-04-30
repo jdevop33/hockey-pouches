@@ -20,13 +20,20 @@ module.exports = {
     '@next/next/no-img-element': 'off',
     'drizzle/enforce-delete-with-where': 'error',
     'drizzle/enforce-update-with-where': 'error',
-    'no-unused-vars': [
-      'warn',
+    'drizzle/enforce-schema-imports': [
+      'error',
       {
-        vars: 'all',
+        preferIndividualImports: true,
+        disallowNamespaceImports: true,
+      },
+    ],
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
-        args: 'after-used',
-        ignoreRestSiblings: true,
+        caughtErrorsIgnorePattern: '^_',
       },
     ],
     // Add any additional custom rules here
