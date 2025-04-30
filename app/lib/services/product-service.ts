@@ -2,7 +2,9 @@
 import { db } from '@/lib/db';
 import { products } from '@/lib/schema/products';
 import { products } from '@/lib/schema/products';
+import { products } from '@/lib/schema/products';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Use central schema index
 // Only importing what's actually needed

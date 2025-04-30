@@ -2,7 +2,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { db } from '@/lib/db'; // Import db
 import { products } from '@/lib/schema/products';
 import { products } from '@/lib/schema/products';
+import { products } from '@/lib/schema/products';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Import schema
 import { count, asc, eq } from 'drizzle-orm'; // Import helpers

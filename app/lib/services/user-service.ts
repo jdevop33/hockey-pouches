@@ -1,11 +1,6 @@
 // app/lib/services/user-service.ts
 import { users } from '@/lib/schema/users';
-import { referrals } from '@/lib/schema/referrals';
-import { users } from '@/lib/schema/users';
-import { referrals } from '@/lib/schema/referrals';
 import * as schema from '@/lib/schema'; // Keep for other schema references
-// Keep for other schema references
-// Use central schema index
 import jwt from 'jsonwebtoken';
 import { logger } from '../logger';
 

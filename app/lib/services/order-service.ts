@@ -12,7 +12,14 @@ import { products } from '@/lib/schema/products';
 import { users } from '@/lib/schema/users';
 import { tasks } from '@/lib/schema/tasks';
 import { commissions } from '@/lib/schema/commissions';
+import { orders } from '@/lib/schema/orders';
+import { orderItems } from '@/lib/schema/orderItems';
+import { products } from '@/lib/schema/products';
+import { users } from '@/lib/schema/users';
+import { tasks } from '@/lib/schema/tasks';
+import { commissions } from '@/lib/schema/commissions';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Import the combined schema
 import { eq, and, count, desc } from 'drizzle-orm';

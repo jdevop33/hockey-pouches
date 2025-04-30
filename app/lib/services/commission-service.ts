@@ -6,7 +6,11 @@ import { orders } from '@/lib/schema/orders';
 import { commissions } from '@/lib/schema/commissions';
 import { users } from '@/lib/schema/users';
 import { orders } from '@/lib/schema/orders';
+import { commissions } from '@/lib/schema/commissions';
+import { users } from '@/lib/schema/users';
+import { orders } from '@/lib/schema/orders';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 import { commissions } from '@/lib/schema/commissions'; // Only import the table

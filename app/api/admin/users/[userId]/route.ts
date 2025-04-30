@@ -4,7 +4,9 @@ import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth
 import { userService, type UpdateUserParams } from '@/lib/services/user-service'; // Use refactored service
 import { users } from '@/lib/schema/users';
 import { users } from '@/lib/schema/users';
+import { users } from '@/lib/schema/users';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Use central schema index
 import { logger } from '@/lib/logger';

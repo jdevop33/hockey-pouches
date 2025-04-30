@@ -9,7 +9,12 @@ import { orders } from '@/lib/schema/orders';
 import { orderItems } from '@/lib/schema/orderItems';
 import { products } from '@/lib/schema/products';
 import { addresses } from '@/lib/schema/addresses';
+import { orders } from '@/lib/schema/orders';
+import { orderItems } from '@/lib/schema/orderItems';
+import { products } from '@/lib/schema/products';
+import { addresses } from '@/lib/schema/addresses';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Import schema namespace
 

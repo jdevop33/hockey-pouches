@@ -14,7 +14,13 @@ import { orders } from '@/lib/schema/orders';
 import { tasks } from '@/lib/schema/tasks';
 import { users } from '@/lib/schema/users';
 import { cart } from '@/lib/schema/cart';
+import { orderItems } from '@/lib/schema/orderItems';
+import { orders } from '@/lib/schema/orders';
+import { tasks } from '@/lib/schema/tasks';
+import { users } from '@/lib/schema/users';
+import { cart } from '@/lib/schema/cart';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Use central schema index
 import { eq, and, sql } from 'drizzle-orm';

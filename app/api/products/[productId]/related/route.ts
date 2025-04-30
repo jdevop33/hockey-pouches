@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sql, db } from '@/lib/db'; // Corrected import, added db
 import { products } from '@/lib/schema/products';
 import { products } from '@/lib/schema/products';
+import { products } from '@/lib/schema/products';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Import schema
 import { eq, and, ne, desc } from 'drizzle-orm'; // Import operators

@@ -11,7 +11,13 @@ import { products } from '@/lib/schema/products';
 import { orders } from '@/lib/schema/orders';
 import { tasks } from '@/lib/schema/tasks';
 import { cart } from '@/lib/schema/cart';
+import { users } from '@/lib/schema/users';
+import { products } from '@/lib/schema/products';
+import { orders } from '@/lib/schema/orders';
+import { tasks } from '@/lib/schema/tasks';
+import { cart } from '@/lib/schema/cart';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Import schema namespace
 import { v4 as uuidv4 } from 'uuid';

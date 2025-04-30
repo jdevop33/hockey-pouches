@@ -4,7 +4,10 @@ import { tasks } from '@/lib/schema/tasks';
 import { orders } from '@/lib/schema/orders';
 import { tasks } from '@/lib/schema/tasks';
 import { orders } from '@/lib/schema/orders';
+import { tasks } from '@/lib/schema/tasks';
+import { orders } from '@/lib/schema/orders';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Use central schema index
 import { eq, and, sql } from 'drizzle-orm';
