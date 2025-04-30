@@ -2,7 +2,11 @@
  * Type representing a database query result
  * Flexible enough to handle different result formats
  */
-export type DbQueryResult = any[] | { rows?: any[]; rowCount?: number } | Record<string, any>;
+export type DbRow = Record<string, unknown>;
+export type DbQueryResult =
+  | DbRow[]
+  | { rows?: DbRow[]; rowCount?: number }
+  | Record<string, unknown>;
 
 /**
  * Helper function to safely extract rows from a query result
@@ -11,7 +15,7 @@ export type DbQueryResult = any[] | { rows?: any[]; rowCount?: number } | Record
  * @param result Query result from database
  * @returns Array of rows
  */
-export function getRows(result: DbQueryResult): any[] {
+export function getRows(result: DbQueryResult): DbRow[] {
   // If result is array-like, return it directly
   if (Array.isArray(result)) {
     return result;
@@ -63,7 +67,7 @@ export function getRowCount(result: DbQueryResult): number {
  * @param result Query result
  * @returns First row or null if result is empty
  */
-export function getFirstRow(result: DbQueryResult): any | null {
+export function getFirstRow(result: DbQueryResult): DbRow | null {
   const rows = getRows(result);
   return rows.length > 0 ? rows[0] : null;
 }
@@ -75,9 +79,6 @@ export function getFirstRow(result: DbQueryResult): any | null {
  * @param callback Mapping function
  * @returns Mapped array
  */
-export function mapRows<R = any>(
-  result: DbQueryResult,
-  callback: (row: any, index: number) => R
-): R[] {
+export function mapRows<R>(result: DbQueryResult, callback: (row: DbRow, index: number) => R): R[] {
   return getRows(result).map(callback);
 }

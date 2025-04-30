@@ -1,13 +1,25 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
-import { sql } from '@/lib/db';
+import { db, sql } from '@/lib/db';
+import { getRows } from '@/lib/db-types';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(
-  request: NextRequest, 
-  { params }: { params: { productId: string } }
-) {
+// Basic inventory item type
+interface InventoryItem {
+  inventoryId: string;
+  productId: string;
+  productName: string;
+  locationId: string;
+  locationName: string;
+  quantity: number | string;
+  reservedQuantity: number | string;
+  imageUrl?: string;
+  [key: string]: unknown;
+}
+
+export async function GET(request: NextRequest, { params }: { params: { productId: string } }) {
   const { productId } = params;
 
   try {
@@ -16,36 +28,45 @@ export async function GET(
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.message);
     }
-    
+
     // Check if user is an admin
     if (authResult.role !== 'Admin') {
       return forbiddenResponse('Only administrators can access this resource');
     }
-    
-    const adminUserId = authResult.userId;
-    console.log(`Admin: Get inventory for product ID: ${productId} by admin: ${adminUserId}`);
-    
-    // Fetch inventory for this product from all locations
-    const inventoryQuery = `
-      SELECT 
-        i.id as inventoryId, 
-        i.product_id as productId,
-        p.name as productName,
-        i.location,
-        i.quantity,
-        p.image_url as imageUrl
-      FROM inventory i
-      JOIN products p ON i.product_id = p.id
-      WHERE i.product_id = $1
-      ORDER BY i.location
-    `;
-    
-    const inventoryResult = await sql.query(inventoryQuery, [productId]);
-    
-    return NextResponse.json(inventoryResult);
 
+    const adminUserId = authResult.userId;
+    logger.info(`Admin: Get inventory for product ID: ${productId} by admin: ${adminUserId}`);
+
+    // Fetch inventory for this product from all locations using SQL tagged templates
+    const result = await db.execute(sql`
+      SELECT 
+        sl.id as "inventoryId", 
+        pv.product_id as "productId",
+        p.name as "productName",
+        sl.location_id as "locationId",
+        l.name as "locationName",
+        sl.quantity,
+        sl.reserved_quantity as "reservedQuantity",
+        p.primary_image_url as "imageUrl"
+      FROM stock_levels sl
+      JOIN product_variations pv ON sl.product_variation_id = pv.id
+      JOIN products p ON pv.product_id = p.id
+      JOIN stock_locations l ON sl.location_id = l.id
+      WHERE pv.product_id = ${productId}
+      ORDER BY l.name
+    `);
+
+    const inventoryItems = getRows(result) as InventoryItem[];
+
+    // Calculate available quantity for each item
+    const inventoryWithAvailable = inventoryItems.map(item => ({
+      ...item,
+      availableQuantity: Number(item.quantity) - Number(item.reservedQuantity),
+    }));
+
+    return NextResponse.json(inventoryWithAvailable);
   } catch (error) {
-    console.error(`Admin: Failed to get inventory for product ${productId}:`, error);
+    logger.error(`Admin: Failed to get inventory for product ${productId}:`, error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

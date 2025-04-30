@@ -11,36 +11,43 @@ export interface ProductVariant {
 }
 
 export interface Product {
-  id: string; // Should be number if it's product.id
+  id: string;
   name: string;
-  description?: string | null;
+  description: string;
   price: number;
-  images?: string[] | null; // Assuming image_url
-  category?: string | null;
+  category?: string;
+  image_url?: string;
+  flavor?: string;
+  strength?: number;
+  featured?: boolean;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
   variants?: ProductVariant[];
   stock: number; // This likely represents total stock across variations
   sku?: string | null; // Base SKU?
-  flavor?: string | null;
-  strength?: number | null;
-  is_active?: boolean;
+  // Add any other properties your product might have
 }
 
-export interface ProductFilters {
-  category?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  inStock?: boolean;
-  search?: string;
+export interface ProductFilter {
+  category?: string | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  flavors?: string[] | null;
+  strengths?: number[] | null;
+  sortBy?: 'price_asc' | 'price_desc' | 'newest' | 'popularity' | null;
+  search?: string | null;
 }
 
 // Extend the correct base state
 export interface ProductState extends HydratedBaseState {
   products: Product[];
   selectedProduct: Product | null;
-  filters: ProductFilters;
+  filters: ProductFilter;
   setProducts: (products: Product[]) => void;
   setSelectedProduct: (product: Product | null) => void;
-  setFilters: (filters: Partial<ProductFilters>) => void;
+  setFilters: (filters: Partial<ProductFilter>) => void;
+  toggleFeatured: (productId: string, featured: boolean) => void;
   updateProduct: (id: string, updates: Partial<Product>) => void;
   getFilteredProducts: () => Product[];
 }
@@ -49,32 +56,49 @@ export interface ProductState extends HydratedBaseState {
 const initialState: Partial<ProductState> = {
   products: [],
   selectedProduct: null,
-  filters: {},
+  filters: {
+    category: null,
+    minPrice: null,
+    maxPrice: null,
+    flavors: null,
+    strengths: null,
+    sortBy: null,
+    search: null,
+  },
 };
 
 // Creator function
 const createProductSlice: StoreCreator<ProductState> = (set, get) => ({
-  // Initial state handled by createHydratedStore
-  setProducts: (products: Product[]) => set(() => ({ products })),
-  setSelectedProduct: (product: Product | null) => set(() => ({ selectedProduct: product })),
-  setFilters: (filters: Partial<ProductFilters>) =>
-    set((state) => ({ // Correctly access state
+  setProducts: (products: Product[]) => set({ products }),
+
+  setSelectedProduct: (product: Product | null) => set({ selectedProduct: product }),
+
+  setFilters: (filters: Partial<ProductFilter>) =>
+    set(state => ({
       filters: { ...state.filters, ...filters },
     })),
+
+  toggleFeatured: (productId: string, featured: boolean) =>
+    set(state => ({
+      products: state.products.map((product: Product) =>
+        product.id === productId ? { ...product, featured } : product
+      ),
+    })),
+
   updateProduct: (id: string, updates: Partial<Product>) =>
-    set((state) => ({ // Correctly access state
+    set(state => ({
       products: state.products.map((product: Product) =>
         product.id === id ? { ...product, ...updates } : product
       ),
     })),
-  getFilteredProducts: (): Product[] => {
-    const { filters, products } = get(); // Use get() to access current state
+
+  getFilteredProducts: () => {
+    const { filters, products } = get();
     // Add null/undefined checks for filters
     return products.filter((product: Product) => {
       if (filters.category && product.category !== filters.category) return false;
       if (filters.minPrice != null && product.price < filters.minPrice) return false;
       if (filters.maxPrice != null && product.price > filters.maxPrice) return false;
-      if (filters.inStock && product.stock <= 0) return false;
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
         return (
@@ -90,6 +114,6 @@ const createProductSlice: StoreCreator<ProductState> = (set, get) => ({
 // Use createHydratedStore
 export const useProductStore = createHydratedStore<ProductState>(
   initialState,
-  'product',
+  'products',
   createProductSlice
 );

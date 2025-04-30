@@ -1,90 +1,90 @@
 // app/lib/dbOptimization.ts
-import sql, { pool } from './db';
+import { db, sql } from './db';
+import { getRows, getFirstRow, getRowCount } from './db-types';
 import { cache } from 'react';
-import { getFirstRow, getRowCount, getRows } from './db-types';
 
-/**
- * Cache duration in milliseconds
- */
+// Cache durations in milliseconds
 export const CACHE_DURATIONS = {
   SHORT: 60 * 1000, // 1 minute
   MEDIUM: 5 * 60 * 1000, // 5 minutes
   LONG: 30 * 60 * 1000, // 30 minutes
-  VERY_LONG: 60 * 60 * 1000, // 1 hour
+  VERY_LONG: 24 * 60 * 60 * 1000, // 24 hours
 };
 
-/**
- * In-memory cache for database queries
- */
+// In-memory cache store
+const queryCache: Record<string, CacheEntry<unknown>> = {};
+
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
   expiresAt: number;
 }
 
-const queryCache = new Map<string, CacheEntry<any>>();
-
 /**
  * Executes a cached query, returning cached results if available and not expired
- * @param queryKey Unique key for the query
+ * @param queryKey Unique key to identify the query
  * @param queryFn Function that executes the query
  * @param duration Cache duration in milliseconds
- * @returns Query results
+ * @returns Query result
  */
 export async function cachedQuery<T>(
   queryKey: string,
   queryFn: () => Promise<T>,
   duration: number = CACHE_DURATIONS.MEDIUM
 ): Promise<T> {
-  const now = Date.now();
-  const cached = queryCache.get(queryKey);
+  // Check if cache exists and is not expired
+  const cachedResult = queryCache[queryKey];
 
-  // Return cached result if valid
-  if (cached && now < cached.expiresAt) {
+  if (cachedResult && cachedResult.expiresAt > Date.now()) {
     console.log(`Cache hit for query: ${queryKey}`);
-    return cached.data;
+    return cachedResult.data as T;
   }
 
-  // Execute query and cache result
+  // Execute the query
   console.log(`Cache miss for query: ${queryKey}`);
-  const data = await queryFn();
-  queryCache.set(queryKey, {
-    data,
-    timestamp: now,
-    expiresAt: now + duration,
-  });
+  try {
+    const data = await queryFn();
 
-  return data;
+    // Store in cache
+    queryCache[queryKey] = {
+      data,
+      timestamp: Date.now(),
+      expiresAt: Date.now() + duration,
+    };
+
+    return data;
+  } catch (error) {
+    console.error(`Error executing cached query ${queryKey}:`, error);
+    throw error;
+  }
 }
 
 /**
- * Invalidates a specific cache entry
- * @param queryKey Key of the cache entry to invalidate
+ * Invalidate a specific cache entry
+ * @param queryKey Cache key to invalidate
  */
 export function invalidateCache(queryKey: string): void {
-  queryCache.delete(queryKey);
+  delete queryCache[queryKey];
   console.log(`Cache invalidated for query: ${queryKey}`);
 }
 
 /**
- * Invalidates all cache entries
+ * Invalidate all cache entries
  */
 export function invalidateAllCache(): void {
-  queryCache.clear();
+  Object.keys(queryCache).forEach(key => delete queryCache[key]);
   console.log('All cache entries invalidated');
 }
 
 /**
- * Invalidates cache entries that match a prefix
- * @param prefix Prefix to match
+ * Invalidate cache entries that start with the given prefix
+ * @param prefix Cache key prefix
  */
 export function invalidateCacheByPrefix(prefix: string): void {
-  for (const key of queryCache.keys()) {
-    if (key.startsWith(prefix)) {
-      queryCache.delete(key);
-      console.log(`Cache invalidated for query: ${key}`);
-    }
-  }
+  Object.keys(queryCache)
+    .filter(key => key.startsWith(prefix))
+    .forEach(key => delete queryCache[key]);
+  console.log(`Cache entries with prefix ${prefix} invalidated`);
 }
 
 /**
@@ -105,7 +105,7 @@ export function buildPaginationQuery({
   table: string;
   selectFields: string;
   whereConditions?: string[];
-  whereParams?: any[];
+  whereParams?: unknown[];
   orderBy?: string;
   page?: number;
   limit?: number;
@@ -152,22 +152,26 @@ export function buildPaginationQuery({
 
 /**
  * Execute a query with a transaction
- * @param callback Function that executes queries within the transaction
- * @returns Result of the callback function
+ * Note: This function requires a proper connection pool implementation
+ * which is not available in the current codebase. For now, we'll implement
+ * a simplified version using the db object.
  */
-export async function withTransaction<T>(callback: (client: any) => Promise<T>): Promise<T> {
-  const client = await pool.connect();
-
+export async function withTransaction<T>(callback: (client: unknown) => Promise<T>): Promise<T> {
   try {
-    await client.query('BEGIN');
-    const result = await callback(client);
-    await client.query('COMMIT');
+    // Begin transaction
+    await db.execute(sql`BEGIN`);
+
+    // Execute callback with the db client
+    const result = await callback(db);
+
+    // Commit transaction
+    await db.execute(sql`COMMIT`);
+
     return result;
   } catch (error) {
-    await client.query('ROLLBACK');
+    // Rollback transaction on error
+    await db.execute(sql`ROLLBACK`);
     throw error;
-  } finally {
-    client.release();
   }
 }
 
@@ -182,9 +186,10 @@ export async function getById(
   table: string,
   id: number | string,
   fields: string = '*'
-): Promise<any | null> {
-  const query = `SELECT ${fields} FROM ${table} WHERE id = $1 LIMIT 1`;
-  const result = await sql.query(query, [id]);
+): Promise<unknown | null> {
+  const result = await db.execute(sql`
+    SELECT ${sql.raw(fields)} FROM ${sql.raw(table)} WHERE id = ${id} LIMIT 1
+  `);
 
   return getFirstRow(result);
 }
@@ -200,14 +205,15 @@ export async function getByIds(
   table: string,
   ids: (number | string)[],
   fields: string = '*'
-): Promise<any[]> {
+): Promise<unknown[]> {
   if (ids.length === 0) return [];
 
-  // Create placeholders for the ids
-  const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
-  const query = `SELECT ${fields} FROM ${table} WHERE id IN (${placeholders})`;
+  // This is a simplified implementation using IN clause
+  // For larger sets of IDs, you might want to use a different approach
+  const result = await db.execute(sql`
+    SELECT ${sql.raw(fields)} FROM ${sql.raw(table)} WHERE id IN (${ids})
+  `);
 
-  const result = await sql.query(query, ids);
   return getRows(result);
 }
 
@@ -217,21 +223,23 @@ export async function getByIds(
  * @param data Record data
  * @returns The inserted record
  */
-export async function insert(table: string, data: Record<string, any>): Promise<any> {
+export async function insert(table: string, data: Record<string, unknown>): Promise<unknown> {
   const keys = Object.keys(data);
   const values = Object.values(data);
 
-  // Build the query
+  // Generate field and value parts of the query
   const fields = keys.join(', ');
-  const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
+  const valuePlaceholders = keys.map((_, i) => `$${i + 1}`).join(', ');
 
-  const query = `
-    INSERT INTO ${table} (${fields})
-    VALUES (${placeholders})
+  // For a more robust solution, we would build the query dynamically with SQL parameters
+  // but this is a simplified implementation using sql.raw
+  const query = sql`
+    INSERT INTO ${sql.raw(table)} (${sql.raw(fields)})
+    VALUES (${values})
     RETURNING *
   `;
 
-  const result = await sql.query(query, values);
+  const result = await db.execute(query);
   return getFirstRow(result);
 }
 
@@ -245,22 +253,22 @@ export async function insert(table: string, data: Record<string, any>): Promise<
 export async function update(
   table: string,
   id: number | string,
-  data: Record<string, any>
-): Promise<any> {
-  const keys = Object.keys(data);
-  const values = Object.values(data);
+  data: Record<string, unknown>
+): Promise<unknown> {
+  // Convert data to key-value pairs for SQL
+  const setEntries = Object.entries(data).map(([key, value]) => {
+    return sql`${sql.raw(key)} = ${value}`;
+  });
 
-  // Build the query
-  const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(', ');
+  const setClause = setEntries.join(', ');
 
-  const query = `
-    UPDATE ${table}
-    SET ${setClause}
-    WHERE id = $${keys.length + 1}
+  const result = await db.execute(sql`
+    UPDATE ${sql.raw(table)}
+    SET ${sql.raw(setClause)}
+    WHERE id = ${id}
     RETURNING *
-  `;
+  `);
 
-  const result = await sql.query(query, [...values, id]);
   return getFirstRow(result);
 }
 
@@ -271,7 +279,10 @@ export async function update(
  * @returns Boolean indicating success
  */
 export async function remove(table: string, id: number | string): Promise<boolean> {
-  const result = await sql.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
+  const result = await db.execute(sql`
+    DELETE FROM ${sql.raw(table)} WHERE id = ${id}
+  `);
+
   return getRowCount(result) > 0;
 }
 

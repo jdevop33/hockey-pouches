@@ -1,6 +1,12 @@
 // app/lib/dbConnectionPool.ts
 import { Pool } from '@neondatabase/serverless';
-import { pool } from './db';
+
+// Create a new connection pool
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  max: 10,
+  idleTimeoutMillis: 30000,
+});
 
 /**
  * Interface for connection pool statistics
@@ -18,7 +24,7 @@ interface PoolStats {
  */
 export function getPoolStats(): PoolStats {
   const stats = pool.totalCount;
-  
+
   return {
     totalConnections: stats,
     idleConnections: pool.idleCount,
@@ -32,11 +38,9 @@ export function getPoolStats(): PoolStats {
  * @param callback Function that executes queries with the connection
  * @returns Result of the callback function
  */
-export async function withConnection<T>(
-  callback: (client: any) => Promise<T>
-): Promise<T> {
+export async function withConnection<T>(callback: (client: any) => Promise<T>): Promise<T> {
   const client = await pool.connect();
-  
+
   try {
     return await callback(client);
   } finally {
@@ -49,10 +53,8 @@ export async function withConnection<T>(
  * @param callback Function that executes queries within the transaction
  * @returns Result of the callback function
  */
-export async function withTransaction<T>(
-  callback: (client: any) => Promise<T>
-): Promise<T> {
-  return withConnection(async (client) => {
+export async function withTransaction<T>(callback: (client: any) => Promise<T>): Promise<T> {
+  return withConnection(async client => {
     try {
       await client.query('BEGIN');
       const result = await callback(client);

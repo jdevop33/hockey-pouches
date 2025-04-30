@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
-import { queryRows } from '@/lib/query';
+import { db, sql } from '@/lib/db';
+import { getRows } from '@/lib/db-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,38 +44,49 @@ export async function GET(request: NextRequest) {
       `Admin GET /api/admin/commissions/pending - Admin: ${adminUserId}, Page: ${page}, Limit: ${limit}, User: ${userIdFilter}`
     );
 
-    // Build WHERE clause
-    const conditions = ["status = 'Pending Payout'"]; // Always filter by Pending
-    const queryParams: (string | number)[] = [];
-    let paramIndex = 1;
-    if (userIdFilter) {
-      conditions.push(`user_id = $${paramIndex++}`);
-      queryParams.push(userIdFilter);
-    }
-    const whereClause = `WHERE ${conditions.join(' AND ')}`;
+    // Query using SQL tagged templates instead of string interpolation
+    let commissionsQuery;
+    let countQuery;
 
-    // Fetch Pending Commissions
-    const commissionsQuery = `
-        SELECT c.id, c.user_id as userId, u.name as userName, c.order_id as orderId,
-               c.type, CAST(c.amount AS FLOAT) as amount, c.status, c.earned_date as earnedDate
+    if (userIdFilter) {
+      // With user filter
+      commissionsQuery = await db.execute(sql`
+        SELECT c.id, c.user_id as "userId", u.name as "userName", c.order_id as "orderId",
+               c.type, CAST(c.amount AS FLOAT) as amount, c.status, c.earned_date as "earnedDate"
         FROM commissions c
         JOIN users u ON c.user_id = u.id
-        ${whereClause}
-        ORDER BY c.earned_date ASC -- Oldest pending first?
-        LIMIT $${paramIndex++} OFFSET $${paramIndex++}
-    `;
-    queryParams.push(limit, offset);
+        WHERE c.status = 'Pending Payout' AND c.user_id = ${userIdFilter}
+        ORDER BY c.earned_date ASC
+        LIMIT ${limit} OFFSET ${offset}
+      `);
 
-    // Fetch Count
-    const countQuery = `SELECT COUNT(*) FROM commissions c ${whereClause}`;
-    const countQueryParams = queryParams.slice(0, conditions.length - 1); // Exclude limit/offset params
+      countQuery = await db.execute(sql`
+        SELECT COUNT(*) as count FROM commissions c 
+        WHERE c.status = 'Pending Payout' AND c.user_id = ${userIdFilter}
+      `);
+    } else {
+      // Without user filter
+      commissionsQuery = await db.execute(sql`
+        SELECT c.id, c.user_id as "userId", u.name as "userName", c.order_id as "orderId",
+               c.type, CAST(c.amount AS FLOAT) as amount, c.status, c.earned_date as "earnedDate"
+        FROM commissions c
+        JOIN users u ON c.user_id = u.id
+        WHERE c.status = 'Pending Payout'
+        ORDER BY c.earned_date ASC
+        LIMIT ${limit} OFFSET ${offset}
+      `);
 
-    const [commissions, totalRows] = await Promise.all([
-      queryRows<AdminCommission>(commissionsQuery, queryParams),
-      queryRows<{ count: string }>(countQuery, countQueryParams),
-    ]);
+      countQuery = await db.execute(sql`
+        SELECT COUNT(*) as count FROM commissions c WHERE c.status = 'Pending Payout'
+      `);
+    }
 
-    const totalPending = parseInt(totalRows[0]?.count ?? '0', 10);
+    // Convert query results to arrays
+    const commissions = getRows(commissionsQuery) as AdminCommission[];
+    const totalRows = getRows(countQuery);
+
+    // Parse the count (ensuring we have a string count property)
+    const totalPending = parseInt(String(totalRows[0]?.count || '0'), 10);
     const totalPages = Math.ceil(totalPending / limit);
 
     return NextResponse.json({

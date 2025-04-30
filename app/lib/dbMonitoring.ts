@@ -1,5 +1,5 @@
 // app/lib/dbMonitoring.ts
-import sql from './db';
+import { sql } from './db';
 import { logger } from './logger';
 import { getRowCount, getFirstRow, mapRows } from './db-types';
 

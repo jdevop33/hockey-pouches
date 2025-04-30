@@ -3,7 +3,8 @@ import { HydratedBaseState, createHydratedStore, type StoreCreator } from '../in
 
 export interface Toast {
   id: string;
-  message: string;
+  title: string;
+  message?: string;
   type: 'success' | 'error' | 'info' | 'warning';
   duration?: number;
 }
@@ -43,42 +44,48 @@ const initialState: Partial<UIState> = {
 
 // Creator function
 const createUISlice: StoreCreator<UIState> = (set, get) => ({
-  // Initial state handled by createHydratedStore
-  addToast: (toast) =>
-    set((state) => ({
+  addToast: toast =>
+    set(state => ({
       toasts: [...state.toasts, { ...toast, id: Math.random().toString(36).substring(2, 9) }], // Generate simple ID
     })),
-  removeToast: (id) =>
-    set((state) => ({
+
+  removeToast: id =>
+    set(state => ({
       toasts: state.toasts.filter(toast => toast.id !== id),
     })),
-  showModal: (modal) =>
-    set(() => ({
+
+  showModal: modal =>
+    set({
       currentModal: { ...modal, id: Math.random().toString(36).substring(2, 9) }, // Generate simple ID
-    })),
+    }),
+
   hideModal: () =>
-    set(() => ({
+    set({
       currentModal: null,
-    })),
+    }),
+
   toggleSidebar: () =>
-    set((state) => ({
+    set(state => ({
       isSidebarOpen: !state.isSidebarOpen,
     })),
+
   toggleCart: () =>
-    set((state) => ({
+    set(state => ({
       isCartOpen: !state.isCartOpen,
     })),
+
   toggleSearch: () =>
-    set((state) => ({
+    set(state => ({
       isSearchOpen: !state.isSearchOpen,
     })),
-  setSidebarOpen: (isOpen: boolean) => set(() => ({ isSidebarOpen: isOpen })),
-  setCartOpen: (isOpen: boolean) => set(() => ({ isCartOpen: isOpen })),
+
+  setSidebarOpen: (isOpen: boolean) => set({ isSidebarOpen: isOpen }),
+  setCartOpen: (isOpen: boolean) => set({ isCartOpen: isOpen }),
 });
 
 // Use createHydratedStore
 export const useUIStore = createHydratedStore<UIState>(
   initialState,
-  'ui',       // Store name for persistence
+  'ui', // Store name for persistence
   createUISlice
 );

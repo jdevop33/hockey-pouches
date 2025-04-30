@@ -1,12 +1,13 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { sql } from '@/lib/db'; // Corrected import
+import { db } from '@/lib/db'; // Corrected import
+import { sql } from 'drizzle-orm';
 import { verifyDistributor, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 import * as schema from '@/lib/schema'; // Import schema namespace
 
 export const dynamic = 'force-dynamic';
 
 // Define types based on schema enums
-type OrderStatus = typeof schema.orderStatusEnum.enumValues[number];
+type OrderStatus = (typeof schema.orderStatusEnum.enumValues)[number];
 
 // Define Pagination interface (assuming basic structure)
 // TODO: Verify if a more specific definition exists elsewhere
@@ -27,6 +28,18 @@ type DistributorOrderListItem = {
   customerLocation: string | null;
 };
 
+// Type for database row
+interface OrderRow {
+  id: number;
+  created_at: string;
+  status: string;
+  total_amount: number;
+  customer_name: string | null;
+  customer_location: string | null;
+  count?: string;
+  [key: string]: unknown;
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Verify distributor authentication
@@ -41,8 +54,8 @@ export async function GET(request: NextRequest) {
     }
 
     const distributorId = authResult.userId;
-     if (!distributorId) {
-        return NextResponse.json({ message: 'Distributor ID not found in token' }, { status: 401 });
+    if (!distributorId) {
+      return NextResponse.json({ message: 'Distributor ID not found in token' }, { status: 401 });
     }
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
@@ -51,17 +64,19 @@ export async function GET(request: NextRequest) {
     const statusFilterParam = searchParams.get('status');
 
     // Validate status filter against enum
-    const statusFilter = statusFilterParam && schema.orderStatusEnum.enumValues.includes(statusFilterParam as OrderStatus)
-                       ? statusFilterParam as OrderStatus
-                       : null;
+    const statusFilter =
+      statusFilterParam &&
+      schema.orderStatusEnum.enumValues.includes(statusFilterParam as OrderStatus)
+        ? (statusFilterParam as OrderStatus)
+        : null;
 
     console.log(
       `Distributor GET /api/distributor/orders - Distributor: ${distributorId}, Page: ${page}, Limit: ${limit}, Status: ${statusFilter}`
     );
 
     // Build query conditions
-    let conditions = [`o.assigned_distributor_id = $1`];
-    let queryParams: (string | number)[] = [distributorId]; // Specify type for queryParams
+    const conditions = [`o.assigned_distributor_id = $1`];
+    const queryParams: (string | number | null)[] = [distributorId];
     let paramIndex = 2;
 
     if (statusFilter) {
@@ -95,21 +110,21 @@ export async function GET(request: NextRequest) {
 
     // Fetch count
     const countQuery = `
-      SELECT COUNT(*)
+      SELECT COUNT(*) as count
       FROM orders o
       ${whereClause}
     `;
 
     const [ordersResult, totalResult] = await Promise.all([
-      sql.query(ordersQuery, queryParams),
-      sql.query(countQuery, queryParams.slice(0, paramIndex - 2)), // Exclude limit/offset params
+      db.execute(ordersQuery, queryParams),
+      db.execute(countQuery, queryParams.slice(0, paramIndex - 2)), // Exclude limit/offset params
     ]);
 
     const totalOrders = parseInt(totalResult[0]?.count || '0');
     const totalPages = Math.ceil(totalOrders / limit);
 
     // Format orders for response
-    const orders: DistributorOrderListItem[] = ordersResult.map((row: any) => ({
+    const orders: DistributorOrderListItem[] = ordersResult.map((row: OrderRow) => ({
       id: row.id,
       createdAt: row.created_at, // Keep as string
       status: row.status as OrderStatus, // Cast to OrderStatus
@@ -129,6 +144,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to get distributor orders:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }

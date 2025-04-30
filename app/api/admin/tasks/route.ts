@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { sql } from '@/lib/db';
+import { db } from '@/lib/db';
+import { sql } from 'drizzle-orm';
 
 // TODO: Add JWT verification + Admin role check
 
@@ -19,6 +20,23 @@ interface AdminTaskList {
   createdAt: string;
 }
 
+// Type for raw database row from tasks table
+interface TaskRow {
+  id: number;
+  title: string;
+  category: string;
+  status: string;
+  priority: string | null;
+  assignedUserId: string | null;
+  assignedUserName: string | null;
+  dueDate: string | null;
+  relatedEntityType: string | null;
+  relatedEntityId: string | null;
+  createdAt: string;
+  count?: string; // For count queries
+  [key: string]: unknown;
+}
+
 export async function GET(request: NextRequest) {
   // TODO: Admin Auth Check
   console.log('GET /api/admin/tasks request');
@@ -33,66 +51,67 @@ export async function GET(request: NextRequest) {
     const filterStatus = searchParams.get('status');
     const filterCategory = searchParams.get('category');
     const filterAssignedUserId = searchParams.get('assignedUserId');
-    // TODO: Add filters for due date range, priority, search query
 
-    let conditions = [];
-    let queryParams: any[] = [];
-    let paramIndex = 1;
+    // Build the WHERE clauses dynamically
+    const whereConditions = [];
+    const queryParams = [];
 
     if (filterStatus) {
-      conditions.push(`t.status = $${paramIndex++}`);
+      whereConditions.push('t.status = ?');
       queryParams.push(filterStatus);
     }
+
     if (filterCategory) {
-      conditions.push(`t.category = $${paramIndex++}`);
+      whereConditions.push('t.category = ?');
       queryParams.push(filterCategory);
     }
+
     if (filterAssignedUserId) {
       if (filterAssignedUserId === 'unassigned') {
-        conditions.push(`t.assigned_user_id IS NULL`);
+        whereConditions.push('t.assigned_user_id IS NULL');
       } else {
-        conditions.push(`t.assigned_user_id = $${paramIndex++}`);
+        whereConditions.push('t.assigned_user_id = ?');
         queryParams.push(filterAssignedUserId);
       }
     }
-    // TODO: Add more filter conditions
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause =
+      whereConditions.length > 0 ? sql`WHERE ${sql.raw(whereConditions.join(' AND '))}` : sql``;
 
-    // --- Database Query ---
-    const tasksQuery = `
-            SELECT
-                t.id, t.title, t.category, t.status, t.priority,
-                t.assigned_user_id as "assignedUserId",
-                u.name as "assignedUserName",
-                to_char(t.due_date, 'YYYY-MM-DD') as "dueDate", -- Format date
-                t.related_entity_type as "relatedEntityType",
-                t.related_entity_id as "relatedEntityId",
-                t.created_at as "createdAt"
-            FROM tasks t
-            LEFT JOIN users u ON t.assigned_user_id = u.id
-            ${whereClause}
-            ORDER BY t.created_at DESC -- Adjust sorting as needed
-            LIMIT $${paramIndex++} OFFSET $${paramIndex++}
-        `;
-    queryParams.push(limit.toString(), offset.toString());
+    // Construct the query using sql template literals for safety
+    const tasksQuery = sql`
+      SELECT
+        t.id, t.title, t.category, t.status, t.priority,
+        t.assigned_user_id as "assignedUserId",
+        u.name as "assignedUserName",
+        to_char(t.due_date, 'YYYY-MM-DD') as "dueDate",
+        t.related_entity_type as "relatedEntityType",
+        t.related_entity_id as "relatedEntityId",
+        t.created_at as "createdAt"
+      FROM tasks t
+      LEFT JOIN users u ON t.assigned_user_id = u.id
+      ${whereClause}
+      ORDER BY t.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
 
-    const countQuery = `SELECT COUNT(*) FROM tasks t ${whereClause}`;
-    const countQueryParams = queryParams.slice(0, conditions.length);
+    const countQuery = sql`
+      SELECT COUNT(*) as count 
+      FROM tasks t 
+      ${whereClause}
+    `;
 
-    console.log('Executing Admin Tasks Query:', tasksQuery, queryParams);
-    console.log('Executing Admin Tasks Count Query:', countQuery, countQueryParams);
-
+    // Execute queries
     const [tasksResult, totalResult] = await Promise.all([
-      sql.query(tasksQuery, queryParams),
-      sql.query(countQuery, countQueryParams),
+      db.execute(tasksQuery),
+      db.execute(countQuery),
     ]);
 
     const totalTasks = parseInt(totalResult[0]?.count || '0');
     const totalPages = Math.ceil(totalTasks / limit);
 
-    // Map results to the frontend type, creating the relatedTo object
-    const tasks = tasksResult.map((row: any) => ({
+    // Map results to the frontend type
+    const tasks = tasksResult.map((row: TaskRow) => ({
       id: row.id,
       title: row.title,
       category: row.category,
@@ -106,18 +125,16 @@ export async function GET(request: NextRequest) {
           ? { type: row.relatedEntityType, id: row.relatedEntityId }
           : undefined,
       createdAt: row.createdAt,
-    })) as AdminTaskList[];
+    }));
 
     return NextResponse.json({
-      tasks: tasks,
+      tasks,
       pagination: { page, limit, total: totalTasks, totalPages },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Admin: Failed to get tasks:', error);
-    return NextResponse.json(
-      { message: error.message || 'Internal Server Error' },
-      { status: 500 }
-    );
+    const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }
 

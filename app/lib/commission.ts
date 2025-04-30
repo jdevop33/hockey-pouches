@@ -1,6 +1,6 @@
 // app/lib/commission.ts
-import sql from '@/lib/db';
-import { getRows } from '@/lib/db-types';
+import { db, sql } from './db';
+import { getRows } from './db-types';
 
 // Commission types
 export type CommissionType = 'Order Referral' | 'Wholesale Referral' | 'Distributor Fulfillment';
@@ -14,14 +14,14 @@ export interface CommissionResult {
   commissionId?: string;
   amount?: number;
   message: string;
-  error?: any;
+  error?: unknown;
 }
 
 /**
- * Calculate and create commission for an order referral
+ * Calculate and create commission for an order with a referral code
  * @param orderId The order ID
  * @param orderAmount The order amount
- * @param referralCode The referral code used
+ * @param referralCode The referral code used (if any)
  * @returns CommissionResult with status and commission ID
  */
 export async function calculateOrderReferralCommission(
@@ -38,9 +38,9 @@ export async function calculateOrderReferralCommission(
 
   try {
     // Find the user who owns the referral code
-    const referrerResult = await sql`
+    const referrerResult = await db.execute(sql`
       SELECT id, name, email FROM users WHERE referral_code = ${referralCode}
-    `;
+    `);
 
     const referrerRows = getRows(referrerResult);
     if (referrerRows.length === 0) {
@@ -60,7 +60,7 @@ export async function calculateOrderReferralCommission(
     const roundedAmount = Math.round(commissionAmount * 100) / 100;
 
     // Create commission record
-    const commissionResult = await sql`
+    const commissionResult = await db.execute(sql`
       INSERT INTO commissions (
         user_id,
         amount,
@@ -78,7 +78,7 @@ export async function calculateOrderReferralCommission(
         ${orderId},
         'Order referral commission'
       ) RETURNING id
-    `;
+    `);
 
     const commissionRows = getRows(commissionResult);
     const commissionId = commissionRows[0]?.id;
@@ -88,7 +88,7 @@ export async function calculateOrderReferralCommission(
     }
 
     // Create a task for commission review
-    await sql`
+    await db.execute(sql`
       INSERT INTO tasks (
         title,
         description,
@@ -99,14 +99,14 @@ export async function calculateOrderReferralCommission(
         related_id
       ) VALUES (
         'Review referral commission',
-        'Review and approve referral commission for order #${orderId}',
+        ${'Review and approve referral commission for order #' + orderId},
         'Pending',
         'Medium',
         'Commission',
         'Commission',
         ${commissionId}
       )
-    `;
+    `);
 
     return {
       success: true,
@@ -138,9 +138,9 @@ export async function calculateDistributorFulfillmentCommission(
 ): Promise<CommissionResult> {
   try {
     // Verify the distributor exists
-    const distributorResult = await sql`
+    const distributorResult = await db.execute(sql`
       SELECT id, name, email, role FROM users WHERE id = ${distributorId}
-    `;
+    `);
 
     const distributorRows = getRows(distributorResult);
     if (distributorRows.length === 0) {
@@ -168,7 +168,7 @@ export async function calculateDistributorFulfillmentCommission(
     const roundedAmount = Math.round(commissionAmount * 100) / 100;
 
     // Create commission record
-    const commissionResult = await sql`
+    const commissionResult = await db.execute(sql`
       INSERT INTO commissions (
         user_id,
         amount,
@@ -186,7 +186,7 @@ export async function calculateDistributorFulfillmentCommission(
         ${orderId},
         'Fulfillment commission'
       ) RETURNING id
-    `;
+    `);
 
     const commissionRows = getRows(commissionResult);
     const commissionId = commissionRows[0]?.id;
@@ -196,7 +196,7 @@ export async function calculateDistributorFulfillmentCommission(
     }
 
     // Create a task for commission review
-    await sql`
+    await db.execute(sql`
       INSERT INTO tasks (
         title,
         description,
@@ -207,14 +207,14 @@ export async function calculateDistributorFulfillmentCommission(
         related_id
       ) VALUES (
         'Review fulfillment commission',
-        'Review and approve fulfillment commission for order #${orderId}',
+        ${'Review and approve fulfillment commission for order #' + orderId},
         'Pending',
         'Medium',
         'Commission',
         'Commission',
         ${commissionId}
       )
-    `;
+    `);
 
     return {
       success: true,
@@ -233,42 +233,45 @@ export async function calculateDistributorFulfillmentCommission(
 }
 
 /**
- * Cancel commissions for an order
+ * Cancel all commissions associated with an order
  * @param orderId The order ID
- * @returns CommissionResult with status
+ * @returns CommissionResult indicating success/failure
  */
 export async function cancelCommissionsForOrder(orderId: number): Promise<CommissionResult> {
   try {
-    // Update all commissions related to this order to Cancelled
-    const updateResult = await sql`
+    // Update commission status to Cancelled
+    const updateResult = await db.execute(sql`
       UPDATE commissions
       SET status = 'Cancelled',
-          updated_at = CURRENT_TIMESTAMP,
-          notes = CONCAT(COALESCE(notes, ''), ' | Cancelled due to order cancellation')
+          updated_at = NOW(),
+          notes = CONCAT(notes, ' | Cancelled due to order cancellation')
       WHERE related_to = 'Order'
-      AND related_id = ${orderId}
-      AND status IN ('Pending', 'Approved')
-    `;
+        AND related_id = ${orderId}
+        AND status = 'Pending'
+      RETURNING id
+    `);
 
-    // Close any related tasks
-    await sql`
+    const updateRows = getRows(updateResult);
+    const cancelledCount = updateRows.length;
+
+    // Cancel any associated tasks
+    await db.execute(sql`
       UPDATE tasks
       SET status = 'Cancelled',
-          updated_at = CURRENT_TIMESTAMP,
-          notes = CONCAT(COALESCE(notes, ''), ' | Cancelled due to order cancellation')
+          updated_at = NOW()
       WHERE category = 'Commission'
-      AND related_to = 'Commission'
-      AND related_id IN (
-        SELECT id FROM commissions
-        WHERE related_to = 'Order'
-        AND related_id = ${orderId}
-      )
-      AND status = 'Pending'
-    `;
+        AND related_to = 'Commission'
+        AND related_id IN (
+          SELECT id FROM commissions
+          WHERE related_to = 'Order'
+            AND related_id = ${orderId}
+        )
+        AND status = 'Pending'
+    `);
 
     return {
       success: true,
-      message: `Cancelled all pending commissions for order ${orderId}`,
+      message: `Cancelled ${cancelledCount} pending commissions for order #${orderId}`,
     };
   } catch (error) {
     console.error(`Failed to cancel commissions for order ${orderId}:`, error);

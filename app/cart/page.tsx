@@ -16,7 +16,7 @@ export default function CartPage() {
     setIsMounted(true);
   }, []);
 
-  const handleQuantityChange = (productId: number, newQuantity: number) => {
+  const handleQuantityChange = (productId: string, newQuantity: number) => {
     const quantity = Math.max(0, newQuantity);
     cart.updateQuantity(productId, quantity);
   };

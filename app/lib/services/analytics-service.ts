@@ -1,4 +1,4 @@
-import sql from '@/lib/db';
+import { sql } from '@/lib/db';
 import { getRows } from '@/lib/db-types';
 
 export interface SalesData {

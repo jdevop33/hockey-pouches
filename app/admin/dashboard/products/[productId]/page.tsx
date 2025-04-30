@@ -561,7 +561,7 @@ export default function AdminProductDetailPage() {
                     token ? (
                       <ImageUploader
                         currentImageUrl={editData.image_url}
-                        onImageUpload={url => setEditData({ ...editData, image_url: url })}
+                        onImageUploadAction={url => setEditData({ ...editData, image_url: url })}
                         token={token}
                         folder="products"
                         disabled={isSaving}
@@ -918,7 +918,7 @@ export default function AdminProductDetailPage() {
                           {token ? (
                             <ImageUploader
                               currentImageUrl={currentVariation.image_url}
-                              onImageUpload={url =>
+                              onImageUploadAction={url =>
                                 setCurrentVariation({
                                   ...currentVariation,
                                   image_url: url,

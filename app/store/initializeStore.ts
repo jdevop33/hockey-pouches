@@ -10,9 +10,13 @@ export interface HydratedBaseState extends BaseState {
   setHasHydrated: (state: boolean) => void;
 }
 
-// Create a type for the store creator function
+// Create a type for the store creator function with properly typed set function
 export type StoreCreator<T extends HydratedBaseState> = (
-  set: (partial: Partial<T>) => void,
+  set: <K extends keyof T>(
+    partial: T[K] extends (...args: unknown[]) => unknown
+      ? never
+      : T | Partial<T> | ((state: T) => T | Partial<T>)
+  ) => void,
   get: () => T,
   api: StoreApi<T>
 ) => Partial<T>;

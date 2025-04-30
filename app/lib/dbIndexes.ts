@@ -1,9 +1,9 @@
 // app/lib/dbIndexes.ts
-import sql from './db';
-import { getRows } from '@/lib/db-types';
+import { db, sql } from './db';
+import { getRows } from './db-types';
 
 /**
- * Interface for index definition
+ * Interface for defining a database index
  */
 interface IndexDefinition {
   table: string;
@@ -13,11 +13,11 @@ interface IndexDefinition {
 }
 
 /**
- * Creates a database index if it doesn't exist
+ * Creates an index if it doesn't already exist
  * @param index Index definition
  * @returns Result of the query
  */
-export async function createIndexIfNotExists(index: IndexDefinition): Promise<any> {
+export async function createIndexIfNotExists(index: IndexDefinition): Promise<unknown> {
   const { table, columns, name, unique = false } = index;
 
   // Generate index name if not provided
@@ -27,13 +27,11 @@ export async function createIndexIfNotExists(index: IndexDefinition): Promise<an
   const uniqueClause = unique ? 'UNIQUE' : '';
   const columnsStr = columns.join(', ');
 
-  const query = `
-    CREATE ${uniqueClause} INDEX IF NOT EXISTS ${indexName}
-    ON ${table} (${columnsStr})
-  `;
-
   try {
-    const result = await sql.query(query);
+    const result = await db.execute(sql`
+      CREATE ${sql.raw(uniqueClause)} INDEX IF NOT EXISTS ${sql.raw(indexName)}
+      ON ${sql.raw(table)} (${sql.raw(columnsStr)})
+    `);
     console.log(`Index ${indexName} created or already exists`);
     return result;
   } catch (error) {
@@ -47,11 +45,9 @@ export async function createIndexIfNotExists(index: IndexDefinition): Promise<an
  * @param indexName Name of the index
  * @returns Result of the query
  */
-export async function dropIndexIfExists(indexName: string): Promise<any> {
-  const query = `DROP INDEX IF EXISTS ${indexName}`;
-
+export async function dropIndexIfExists(indexName: string): Promise<unknown> {
   try {
-    const result = await sql.query(query);
+    const result = await db.execute(sql`DROP INDEX IF EXISTS ${sql.raw(indexName)}`);
     console.log(`Index ${indexName} dropped or doesn't exist`);
     return result;
   } catch (error) {
@@ -66,14 +62,12 @@ export async function dropIndexIfExists(indexName: string): Promise<any> {
  * @returns Boolean indicating if the index exists
  */
 export async function indexExists(indexName: string): Promise<boolean> {
-  const query = `
-    SELECT 1
-    FROM pg_indexes
-    WHERE indexname = $1
-  `;
-
   try {
-    const result = await sql.query(query, [indexName]);
+    const result = await db.execute(sql`
+      SELECT 1
+      FROM pg_indexes
+      WHERE indexname = ${indexName}
+    `);
     const rows = getRows(result);
     return rows.length > 0;
   } catch (error) {
@@ -87,31 +81,29 @@ export async function indexExists(indexName: string): Promise<boolean> {
  * @param tableName Name of the table
  * @returns Array of index information
  */
-export async function getTableIndexes(tableName: string): Promise<any[]> {
-  const query = `
-    SELECT
-      i.relname as index_name,
-      a.attname as column_name,
-      ix.indisunique as is_unique,
-      ix.indisprimary as is_primary
-    FROM
-      pg_class t,
-      pg_class i,
-      pg_index ix,
-      pg_attribute a
-    WHERE
-      t.oid = ix.indrelid
-      AND i.oid = ix.indexrelid
-      AND a.attrelid = t.oid
-      AND a.attnum = ANY(ix.indkey)
-      AND t.relkind = 'r'
-      AND t.relname = $1
-    ORDER BY
-      i.relname
-  `;
-
+export async function getTableIndexes(tableName: string): Promise<unknown[]> {
   try {
-    const result = await sql.query(query, [tableName]);
+    const result = await db.execute(sql`
+      SELECT
+        i.relname as index_name,
+        a.attname as column_name,
+        ix.indisunique as is_unique,
+        ix.indisprimary as is_primary
+      FROM
+        pg_class t,
+        pg_class i,
+        pg_index ix,
+        pg_attribute a
+      WHERE
+        t.oid = ix.indrelid
+        AND i.oid = ix.indexrelid
+        AND a.attrelid = t.oid
+        AND a.attnum = ANY(ix.indkey)
+        AND t.relkind = 'r'
+        AND t.relname = ${tableName}
+      ORDER BY
+        i.relname
+    `);
     const rows = getRows(result);
     return rows;
   } catch (error) {
@@ -187,11 +179,9 @@ export async function createRecommendedIndexes(): Promise<void> {
  * @param tableName Name of the table
  * @returns Result of the query
  */
-export async function analyzeTable(tableName: string): Promise<any> {
-  const query = `ANALYZE ${tableName}`;
-
+export async function analyzeTable(tableName: string): Promise<unknown> {
   try {
-    const result = await sql.query(query);
+    const result = await db.execute(sql`ANALYZE ${sql.raw(tableName)}`);
     console.log(`Table ${tableName} analyzed`);
     return result;
   } catch (error) {
@@ -204,11 +194,9 @@ export async function analyzeTable(tableName: string): Promise<any> {
  * Analyzes all tables in the database
  * @returns Result of the query
  */
-export async function analyzeAllTables(): Promise<any> {
-  const query = `ANALYZE`;
-
+export async function analyzeAllTables(): Promise<unknown> {
   try {
-    const result = await sql.query(query);
+    const result = await db.execute(sql`ANALYZE`);
     console.log('All tables analyzed');
     return result;
   } catch (error) {
