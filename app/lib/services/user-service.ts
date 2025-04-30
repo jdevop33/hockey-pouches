@@ -67,69 +67,74 @@ export interface ReferralListResult {
 export class UserService {
   // Method implementations with placeholder returns
   async getUserById(
-    userId: string
+    _userId: string
   ): Promise<Omit<UserSelect, 'passwordHash' | 'referredBy' | 'wholesaleApprovedBy'> | null> {
     logger.warn('getUserById not fully implemented');
     return null;
   }
+
   async getUserByEmail(
-    email: string
+    _email: string
   ): Promise<Omit<UserSelect, 'passwordHash' | 'referredBy' | 'wholesaleApprovedBy'> | null> {
     logger.warn('getUserByEmail not fully implemented');
     return null;
   }
-  private async getUserWithPasswordByEmail(email: string): Promise<UserWithPasswordHash | null> {
+
+  private async getUserWithPasswordByEmail(_email: string): Promise<UserWithPasswordHash | null> {
     logger.warn('getUserWithPasswordByEmail not fully implemented');
     return null;
   }
-  private async getUserPasswordHashById(userId: string): Promise<string | null> {
+
+  private async getUserPasswordHashById(_userId: string): Promise<string | null> {
     logger.warn('getUserPasswordHashById not fully implemented');
     return null;
   }
+
   async createUser(
-    params: CreateUserParams
+    _params: CreateUserParams
   ): Promise<Omit<UserSelect, 'passwordHash' | 'referredBy' | 'wholesaleApprovedBy'>> {
     logger.warn('createUser not fully implemented');
     // This needs a proper implementation returning the created user
     throw new Error('createUser not implemented');
   }
+
   async updateUser(
-    userId: string,
-    params: UpdateUserParams
+    _userId: string,
+    _params: UpdateUserParams
   ): Promise<Omit<UserSelect, 'passwordHash' | 'referredBy' | 'wholesaleApprovedBy'>> {
     logger.warn('updateUser not fully implemented');
     // This needs a proper implementation returning the updated user
     throw new Error('updateUser not implemented');
   }
-  async authenticate(email: string, password: string): Promise<AuthResult> {
+
+  async authenticate(_email: string, _password: string): Promise<AuthResult> {
     logger.warn('authenticate not fully implemented');
     return { success: false, message: 'Authentication not implemented' };
   }
+
   async changePassword(
-    params: ChangePasswordParams
+    _params: ChangePasswordParams
   ): Promise<{ success: boolean; message: string }> {
     logger.warn('changePassword not fully implemented');
     return { success: false, message: 'Password change not implemented' };
   }
-  async listUsers(options: ListUsersOptions): Promise<ListUsersResult> {
+
+  async listUsers(): Promise<ListUsersResult> {
     logger.warn('listUsers not fully implemented');
     return { users: [], pagination: { total: 0, page: 1, limit: 10, totalPages: 0 } };
   }
-  async applyForWholesale(
-    userId: string,
-    applicationData: Record<string, unknown>
-  ): Promise<ApplyWholesaleResult> {
+
+  async applyForWholesale(_userId: string): Promise<ApplyWholesaleResult> {
     logger.warn('applyForWholesale not fully implemented');
     return { success: false, message: 'Wholesale application not implemented' };
   }
-  async regenerateReferralCode(userId: string): Promise<string | null> {
+
+  async regenerateReferralCode(_userId: string): Promise<string | null> {
     logger.warn('regenerateReferralCode not fully implemented');
     return null;
   }
-  async getReferrals(
-    userId: string,
-    options = { page: 1, limit: 10 }
-  ): Promise<ReferralListResult> {
+
+  async getReferrals(_userId: string): Promise<ReferralListResult> {
     logger.warn('getReferrals not fully implemented');
     return { referrals: [], pagination: { total: 0, page: 1, limit: 10, totalPages: 0 } };
   }
