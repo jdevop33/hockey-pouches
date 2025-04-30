@@ -1,4 +1,4 @@
-# Hockey Puxx - E-commerce & MLM Platform
+# Puxx - E-commerce & MLM Platform
 
 A Next.js e-commerce website for Hockey Puxx nicotine pouches, targeting the Canadian market. This platform includes standard e-commerce functionality along with a multi-level marketing (MLM) system for referrals and distributors, plus comprehensive admin management tools.
 
