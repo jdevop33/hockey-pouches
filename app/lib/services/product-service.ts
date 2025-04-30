@@ -4,7 +4,7 @@ import * as schema from '@/lib/schema'; // Use central schema index
 // Only importing what's actually needed
 import { invalidateCache, invalidateAllCache } from '@/lib/dbOptimization';
 import { logger } from '@/lib/logger';
-import type { PgTransaction } from 'drizzle-orm/pg-core';
+import { type DbTransaction } from '@/lib/db-types';
 
 // --- Export needed types ---
 export type ProductSelect = typeof schema.products.$inferSelect;
@@ -52,7 +52,7 @@ export interface InventoryUpdateParams {
   referenceType?: string;
   notes?: string;
   userId: string;
-  transaction?: PgTransaction<unknown>;
+  transaction?: DbTransaction;
 }
 
 type StockLevelSelect = typeof schema.stockLevels.$inferSelect;
@@ -85,7 +85,7 @@ export class ProductService {
         await invalidateCache(this.CACHE_KEYS.VARIATIONS_BY_PRODUCT(productId, false));
       }
     } catch (error) {
-      logger.error('Error invalidating product caches', error);
+      logger.error('Error invalidating product caches', { error: error as Record<string, any> });
     }
   }
   private async invalidateVariationCache(variationId: number, productId?: number) {
@@ -102,7 +102,7 @@ export class ProductService {
         await this.invalidateProductCaches();
       }
     } catch (error) {
-      logger.error('Error invalidating variation caches', error);
+      logger.error('Error invalidating variation caches', { error: error as Record<string, any> });
     }
   }
 

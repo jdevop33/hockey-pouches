@@ -9,24 +9,16 @@ export type DbQueryResult =
   | Record<string, unknown>;
 
 /**
- * Helper function to safely extract rows from a query result
- * Works with both array results and object results with a rows property
- *
- * @param result Query result from database
- * @returns Array of rows
+ * Helper function to normalize DB query results into an array of rows
  */
 export function getRows(result: DbQueryResult): DbRow[] {
-  // If result is array-like, return it directly
   if (Array.isArray(result)) {
     return result;
   }
-
-  // If it has a rows property that's an array, return that
-  if (result && typeof result === 'object' && 'rows' in result && Array.isArray(result.rows)) {
+  if ('rows' in result && Array.isArray(result.rows)) {
     return result.rows;
   }
-
-  // Fallback to empty array
+  // Fall back to empty array if no rows found
   return [];
 }
 
@@ -82,3 +74,15 @@ export function getFirstRow(result: DbQueryResult): DbRow | null {
 export function mapRows<R>(result: DbQueryResult, callback: (row: DbRow, index: number) => R): R[] {
   return getRows(result).map(callback);
 }
+
+/**
+ * Import and re-export specific database types
+ */
+import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import * as schema from './schema';
+
+/**
+ * Type for database transactions
+ * Use this type for transaction parameters across services
+ */
+export type DbTransaction = NeonHttpDatabase<typeof schema>;
