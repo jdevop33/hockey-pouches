@@ -13,5 +13,6 @@ export * from './discounts'; // Exports discountCodes and related enums (discoun
 export * from './wholesale';
 export * from './notifications';
 export * from './tasks'; // Exports tasks and related enums (taskStatusEnum, taskPriorityEnum, taskCategoryEnum, taskRelatedEntityEnum)
+export * from './auth'; // Exports tokenBlacklist table
 
 // Note: Ensure that each schema file correctly defines and exports its tables, relations, and associated enums.

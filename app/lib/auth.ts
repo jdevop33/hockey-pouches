@@ -1,6 +1,8 @@
 // app/lib/auth.ts
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
+import { isTokenBlacklisted } from './blacklist';
+import { logger } from './logger';
 
 // Define JWT payload structure
 export interface JwtPayload {
@@ -18,9 +20,19 @@ export interface AuthResult {
   message?: string;
 }
 
+// Define refresh token payload
+export interface RefreshTokenPayload {
+  userId: string;
+  tokenVersion: number;
+}
+
 // Admin roles
 const ADMIN_ROLES = ['Admin'];
 const DISTRIBUTOR_ROLES = ['Distributor'];
+
+// Token expiration times
+const ACCESS_TOKEN_EXPIRY = '1h'; // 1 hour
+const REFRESH_TOKEN_EXPIRY = '7d'; // 7 days
 
 /**
  * Verify JWT token from Authorization header
@@ -37,6 +49,15 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     return {
       isAuthenticated: false,
       message: 'Authentication token is missing',
+    };
+  }
+
+  // Check if token is blacklisted
+  if (await isTokenBlacklisted(token)) {
+    logger.warn('Blacklisted token used for authentication');
+    return {
+      isAuthenticated: false,
+      message: 'Token has been revoked',
     };
   }
 
@@ -64,6 +85,78 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
       isAuthenticated: false,
       message: 'Invalid or expired token',
     };
+  }
+}
+
+/**
+ * Generate a new access token
+ * @param payload JWT payload
+ * @returns Access token
+ */
+export function generateAccessToken(payload: JwtPayload): string {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    console.error('JWT_SECRET environment variable is not set!');
+    throw new Error('Server configuration error');
+  }
+
+  return jwt.sign(payload, jwtSecret, { expiresIn: ACCESS_TOKEN_EXPIRY });
+}
+
+/**
+ * Generate a new refresh token
+ * @param userId User ID
+ * @param tokenVersion Token version (incremented on logout)
+ * @returns Refresh token
+ */
+export function generateRefreshToken(userId: string, tokenVersion: number = 0): string {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    console.error('JWT_SECRET environment variable is not set!');
+    throw new Error('Server configuration error');
+  }
+
+  const payload: RefreshTokenPayload = { userId, tokenVersion };
+  return jwt.sign(payload, jwtSecret, { expiresIn: REFRESH_TOKEN_EXPIRY });
+}
+
+/**
+ * Refresh an access token using a refresh token
+ * @param refreshToken Refresh token
+ * @param userData User data to include in new access token
+ * @returns New access token or null if refresh token is invalid
+ */
+export async function refreshToken(
+  refreshToken: string,
+  userData: Omit<JwtPayload, 'userId'>
+): Promise<string | null> {
+  // Check if refresh token is blacklisted
+  if (await isTokenBlacklisted(refreshToken)) {
+    logger.warn('Blacklisted refresh token used');
+    return null;
+  }
+
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    console.error('JWT_SECRET environment variable is not set!');
+    throw new Error('Server configuration error');
+  }
+
+  try {
+    // Verify the refresh token
+    const decoded = jwt.verify(refreshToken, jwtSecret) as RefreshTokenPayload;
+
+    // Create a new access token
+    const payload: JwtPayload = {
+      userId: decoded.userId,
+      email: userData.email,
+      role: userData.role,
+    };
+
+    return generateAccessToken(payload);
+  } catch (error) {
+    console.warn('Refresh token verification failed:', error);
+    return null;
   }
 }
 
@@ -188,6 +281,12 @@ export function forbiddenResponse(message = 'Forbidden'): NextResponse {
  * @returns Decoded JWT payload or null if invalid
  */
 export async function verifyJWT(token: string): Promise<JwtPayload | null> {
+  // Check if token is blacklisted
+  if (await isTokenBlacklisted(token)) {
+    logger.warn('Blacklisted token used for verification');
+    return null;
+  }
+
   const jwtSecret = process.env.JWT_SECRET;
   if (!jwtSecret) {
     console.error('JWT_SECRET environment variable is not set!');

@@ -4,12 +4,13 @@ import { userService } from '@/lib/services/user-service'; // Import refactored 
 import { withRateLimit, rateLimits } from '@/lib/rateLimit';
 import { logger } from '@/lib/logger';
 import { withCsrfProtection } from '@/lib/csrf-server';
+import { generateRefreshToken } from '@/lib/auth';
 import { z } from 'zod';
 
 // Zod schema for login request validation
 const loginSchema = z.object({
-  email: z.string().email("Valid email is required."),
-  password: z.string().min(1, "Password is required."),
+  email: z.string().email('Valid email is required.'),
+  password: z.string().min(1, 'Password is required.'),
 });
 
 export const POST = withRateLimit(
@@ -20,9 +21,11 @@ export const POST = withRateLimit(
       // --- Input Validation with Zod ---
       const validationResult = loginSchema.safeParse(body);
       if (!validationResult.success) {
-          logger.warn('Login validation failed', { errors: validationResult.error.flatten().fieldErrors });
-          // Return a generic message but log specific errors
-          return NextResponse.json({ message: 'Invalid email or password format.' }, { status: 400 });
+        logger.warn('Login validation failed', {
+          errors: validationResult.error.flatten().fieldErrors,
+        });
+        // Return a generic message but log specific errors
+        return NextResponse.json({ message: 'Invalid email or password format.' }, { status: 400 });
       }
       const { email, password } = validationResult.data;
       const lowerCaseEmail = email.toLowerCase();
@@ -39,6 +42,9 @@ export const POST = withRateLimit(
         return NextResponse.json({ message: 'Invalid credentials.' }, { status: 401 });
       }
 
+      // Generate refresh token
+      const refreshToken = generateRefreshToken(authResult.user.id);
+
       logger.info('Login successful', { userId: authResult.user.id, email: lowerCaseEmail });
 
       // --- Success Response ---
@@ -47,23 +53,23 @@ export const POST = withRateLimit(
         message: 'Login successful',
         user: authResult.user,
         token: authResult.token,
+        refreshToken: refreshToken,
       });
 
       // Set Authorization header (optional, depends on client handling)
       // response.headers.set('Authorization', `Bearer ${authResult.token}`);
 
       return response;
-
     } catch (error: any) {
       // Catch specific configuration errors from the service
       if (error.message === 'Authentication configuration error.') {
-         logger.error('Login API configuration error', {}, error);
-         return NextResponse.json({ message: error.message }, { status: 500 });
+        logger.error('Login API configuration error', {}, error);
+        return NextResponse.json({ message: error.message }, { status: 500 });
       }
       // Catch JSON parsing errors
       if (error instanceof SyntaxError) {
-          logger.warn('Invalid JSON in login request body');
-          return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
+        logger.warn('Invalid JSON in login request body');
+        return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
       }
 
       // Log unexpected errors
