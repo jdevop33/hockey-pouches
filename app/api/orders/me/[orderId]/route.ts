@@ -1,21 +1,17 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
-import { db, sql } from '@/lib/db'; // Keep db and sql import from stash
-import { logger } from '@/lib/logger'; // Keep logger import from stash
-import { orders } from '@/lib/schema/orders'; // Specific imports from upstream
-import { orderItems } from '@/lib/schema/orderItems'; // Specific imports from upstream
-import { products } from '@/lib/schema/products'; // Specific imports from upstream
-import { productVariations } from '@/lib/schema/productVariations'; // Need this for join
-import { users } from '@/lib/schema/users'; // Need this for join
-import * as schema from '@/lib/schema'; // Keep wildcard for enums/other if needed
+import { db, sql } from '@/lib/db';
+import { logger } from '@/lib/logger';
+// Rely solely on the wildcard import
+import * as schema from '@/lib/schema';
 
 export const dynamic = 'force-dynamic';
 
 // Define types based on schema inference
-type OrderSelect = typeof orders.$inferSelect;
-type OrderItemSelect = typeof orderItems.$inferSelect;
+type OrderSelect = typeof schema.orders.$inferSelect;
+type OrderItemSelect = typeof schema.orderItems.$inferSelect;
 
-// Define Address interface (adjust based on actual structure)
+// Define Address interface
 interface Address {
     street: string;
     city: string;
@@ -24,12 +20,11 @@ interface Address {
     country: string;
 }
 
-// Define the structure for the response, including necessary fields
+// Define the structure for the response
 interface OrderDetailsResponse extends Omit<OrderSelect, 'userId' | 'distributorId' | 'commissionAmount' | 'shippingAddress' | 'billingAddress' | 'discountCode' | 'discountAmount' | 'appliedReferralCode' | 'updatedAt'> {
   shippingAddress: Address | null;
   billingAddress: Address | null;
   items: Array<Omit<OrderItemSelect, 'orderId' | 'createdAt'> & { productName: string | null; variationName: string | null; imageUrl: string | null; subtotal: number }>;
-  // Explicitly add fields queried but potentially excluded by Omit
   subtotal: number;
   shippingCost: number;
   taxes: number;
@@ -69,15 +64,13 @@ interface ItemQueryResultRow {
 
 export async function GET(request: NextRequest, { params }: { params: { orderId: string } }) {
   const { orderId } = params;
-  // More robust validation (e.g., check if it's a number if IDs are numeric)
-  if (!orderId || isNaN(parseInt(orderId))) { // Example if ID is numeric
+  if (!orderId || isNaN(parseInt(orderId))) {
       logger.warn('Invalid Order ID format received for /me/orders/[orderId]', { orderId });
       return NextResponse.json({ message: 'Valid Order ID is required' }, { status: 400 });
   }
   const orderIdNum = parseInt(orderId);
 
   try {
-    // Verify authentication
     const authResult = await verifyAuth(request);
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.message);
@@ -90,8 +83,7 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
     }
     logger.info('Fetching user order details', { userId, orderId: orderIdNum });
 
-    // Fetch order details
-    // Use sql tag correctly
+    // Use schema namespace for tables
     const orderQuery = sql`
       SELECT
         o.id, o.status,
@@ -102,12 +94,11 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
         o.shipping_address, o.billing_address,
         o.payment_method, o.payment_status, o.created_at,
         o.tracking_number, o.notes
-      FROM ${orders} o
+      FROM ${schema.orders} o
       WHERE o.id = ${orderIdNum} AND o.user_id = ${userId}
     `;
 
-    // Fetch order items
-    // Use sql tag correctly
+    // Use schema namespace for tables
     const itemsQuery = sql`
       SELECT
         oi.id, oi.product_variation_id as "productVariationId",
@@ -117,19 +108,17 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
         CAST(oi.price_at_purchase AS FLOAT) as price_at_purchase,
         pv.image_url as variation_image_url,
         p.image_url as product_image_url
-      FROM ${orderItems} oi
-      JOIN ${productVariations} pv ON oi.product_variation_id = pv.id
-      JOIN ${products} p ON pv.product_id = p.id
+      FROM ${schema.orderItems} oi
+      JOIN ${schema.productVariations} pv ON oi.product_variation_id = pv.id
+      JOIN ${schema.products} p ON pv.product_id = p.id
       WHERE oi.order_id = ${orderIdNum}
     `;
 
-    // Execute queries using db.execute (Correct usage from stash)
     const [orderResult, itemsResult] = await Promise.all([
       db.execute(orderQuery),
       db.execute(itemsQuery),
     ]);
 
-    // Check if order exists and belongs to user (Correct usage from stash)
     if (orderResult.rows.length === 0) {
         logger.warn('Order not found or user not authorized', { userId, orderId: orderIdNum });
       return NextResponse.json(
@@ -138,11 +127,9 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
       );
     }
 
-    // Access rows correctly (Correct usage from stash)
     const orderData = orderResult.rows[0] as OrderQueryResultRow;
     const itemRows = itemsResult.rows as ItemQueryResultRow[];
 
-    // Format order items (Correct usage from stash)
     const items = itemRows.map((item) => ({
       id: item.id,
       productVariationId: item.productVariationId,
@@ -154,7 +141,6 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
       subtotal: item.price_at_purchase * item.quantity,
     }));
 
-    // Safely parse address JSON (Correct usage from stash)
     let shippingAddress: Address | null = null;
     let billingAddress: Address | null = null;
     try {
@@ -178,7 +164,6 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
         billingAddress = null;
     }
 
-    // Format order for response, matching OrderDetailsResponse structure (Correct usage from stash)
     const orderResponse: OrderDetailsResponse = {
       id: orderData.id,
       status: orderData.status as any, // TODO: Validate against schema.orderStatusEnum

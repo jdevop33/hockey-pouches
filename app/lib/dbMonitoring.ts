@@ -1,11 +1,10 @@
 // app/lib/dbMonitoring.ts
 import { db, sql } from './db';
-import { getRows, type DbQueryResult } from './db-types';
+import { getRows, type DbQueryResult, type DbRow } from './db-types'; // Ensure DbRow is imported if used
 import { logger } from './logger';
+import { SQL } from 'drizzle-orm'; // Import SQL type for parameter typing
 
-/**
- * Represents the structure of connection statistics
- */
+// ... (interfaces ConnectionStats, QueryPerformanceStats remain the same) ...
 export interface ConnectionStats {
   total_connections: number;
   active_connections: number;
@@ -14,10 +13,6 @@ export interface ConnectionStats {
   max_connections: number;
   wait_event_counts: Record<string, number>;
 }
-
-/**
- * Represents the structure of query performance statistics
- */
 export interface QueryPerformanceStats {
   query_id: string;
   query: string;
@@ -37,31 +32,10 @@ export interface QueryPerformanceStats {
 }
 
 /**
- * Execute a read-only query with basic timing
- */
-async function executeReadOnlyQuery(query: string, params: any[] = []): Promise<DbQueryResult> {
-  const startTime = performance.now();
-  try {
-    // Use db.execute with the sql tag helper for parameters
-    const result = await db.execute(sql.raw(query, ...params)); 
-    // Note: sql.raw might be needed if the query string isn't already a tagged literal
-    // If using a tagged literal directly: const result = await db.execute(sql`${query}`); etc.
-    const endTime = performance.now();
-    logger.debug(`Executed read-only query in ${endTime - startTime}ms`, { query });
-    return result;
-  } catch (error) {
-    const endTime = performance.now();
-    logger.error(`Error executing read-only query (${endTime - startTime}ms):`, { query, error });
-    throw error;
-  }
-}
-
-/**
  * Get current connection statistics
  */
 export async function getConnectionStats(): Promise<ConnectionStats> {
   try {
-    // Query to get basic connection counts
     const statsQuery = sql`
       SELECT
         count(*) as total_connections,
@@ -71,12 +45,10 @@ export async function getConnectionStats(): Promise<ConnectionStats> {
       FROM pg_stat_activity
       WHERE datname = current_database();
     `;
-    // Query to get max connections setting
     const maxConnQuery = sql`SHOW max_connections;`;
-    // Query to get wait events (simplified example)
     const waitEventsQuery = sql`
-      SELECT wait_event_type, count(*) as count 
-      FROM pg_stat_activity 
+      SELECT wait_event_type, count(*) as count
+      FROM pg_stat_activity
       WHERE state = 'active' AND wait_event_type IS NOT NULL
       GROUP BY wait_event_type;`;
 
@@ -86,19 +58,24 @@ export async function getConnectionStats(): Promise<ConnectionStats> {
       db.execute(waitEventsQuery),
     ]);
 
-    const stats = getRows(statsResult)[0];
-    const maxConnections = parseInt(getRows(maxConnResult)[0].max_connections as string);
-    const waitEventsRaw = getRows(waitEventsResult);
+    const statsRows = getRows(statsResult) as DbRow[];
+    const maxConnRows = getRows(maxConnResult) as DbRow[];
+    const waitEventsRows = getRows(waitEventsResult) as DbRow[];
+
+    const stats = statsRows[0];
+    const maxConnections = parseInt(maxConnRows[0]?.max_connections as string || '0');
     const waitEvents: Record<string, number> = {};
-    waitEventsRaw.forEach(row => {
-      waitEvents[row.wait_event_type as string] = parseInt(row.count as string);
+    waitEventsRows.forEach(row => {
+      if (row.wait_event_type) {
+          waitEvents[row.wait_event_type as string] = parseInt(row.count as string || '0');
+      }
     });
 
     return {
-      total_connections: parseInt(stats.total_connections as string),
-      active_connections: parseInt(stats.active_connections as string),
-      idle_connections: parseInt(stats.idle_connections as string),
-      idle_in_transaction_connections: parseInt(stats.idle_in_transaction_connections as string),
+      total_connections: parseInt(stats?.total_connections as string || '0'),
+      active_connections: parseInt(stats?.active_connections as string || '0'),
+      idle_connections: parseInt(stats?.idle_connections as string || '0'),
+      idle_in_transaction_connections: parseInt(stats?.idle_in_transaction_connections as string || '0'),
       max_connections: maxConnections,
       wait_event_counts: waitEvents,
     };
@@ -113,7 +90,6 @@ export async function getConnectionStats(): Promise<ConnectionStats> {
  */
 export async function getSlowQueries(limit: number = 10): Promise<QueryPerformanceStats[]> {
   try {
-    // Ensure pg_stat_statements is enabled and queryable
     const slowQuery = sql`
       SELECT
         queryid::text as query_id,
@@ -137,31 +113,29 @@ export async function getSlowQueries(limit: number = 10): Promise<QueryPerforman
     `;
 
     const result = await db.execute(slowQuery);
-    const rows = getRows(result);
+    const rows = getRows(result) as DbRow[];
 
-    // Map results to the defined interface
     return rows.map(row => ({
-        query_id: row.query_id as string,
-        query: row.query as string,
-        calls: parseInt(row.calls as string),
-        total_time_ms: parseFloat(row.total_time_ms as string),
-        mean_time_ms: parseFloat(row.mean_time_ms as string),
-        stddev_time_ms: parseFloat(row.stddev_time_ms as string),
-        min_time_ms: parseFloat(row.min_time_ms as string),
-        max_time_ms: parseFloat(row.max_time_ms as string),
-        rows: parseInt(row.rows as string),
-        shared_blks_hit: parseInt(row.shared_blks_hit as string),
-        shared_blks_read: parseInt(row.shared_blks_read as string),
-        local_blks_hit: parseInt(row.local_blks_hit as string),
-        local_blks_read: parseInt(row.local_blks_read as string),
-        temp_blks_read: parseInt(row.temp_blks_read as string),
-        temp_blks_written: parseInt(row.temp_blks_written as string),
+        query_id: String(row.query_id ?? ''),
+        query: String(row.query ?? ''),
+        calls: parseInt(String(row.calls ?? '0')),
+        total_time_ms: parseFloat(String(row.total_time_ms ?? '0')),
+        mean_time_ms: parseFloat(String(row.mean_time_ms ?? '0')),
+        stddev_time_ms: parseFloat(String(row.stddev_time_ms ?? '0')),
+        min_time_ms: parseFloat(String(row.min_time_ms ?? '0')),
+        max_time_ms: parseFloat(String(row.max_time_ms ?? '0')),
+        rows: parseInt(String(row.rows ?? '0')),
+        shared_blks_hit: parseInt(String(row.shared_blks_hit ?? '0')),
+        shared_blks_read: parseInt(String(row.shared_blks_read ?? '0')),
+        local_blks_hit: parseInt(String(row.local_blks_hit ?? '0')),
+        local_blks_read: parseInt(String(row.local_blks_read ?? '0')),
+        temp_blks_read: parseInt(String(row.temp_blks_read ?? '0')),
+        temp_blks_written: parseInt(String(row.temp_blks_written ?? '0')),
     }));
   } catch (error) {
-    // Check for specific error if pg_stat_statements doesn't exist
     if (error instanceof Error && error.message.includes('relation "pg_stat_statements" does not exist')) {
         logger.warn('pg_stat_statements extension not found or enabled. Cannot fetch slow queries.');
-        return []; // Return empty array if extension is not available
+        return [];
     }
     logger.error('Failed to get slow query stats:', { error });
     throw new Error('Could not retrieve slow query statistics.');
@@ -170,23 +144,25 @@ export async function getSlowQueries(limit: number = 10): Promise<QueryPerforman
 
 /**
  * Analyze a query plan using EXPLAIN
- * @param query The SQL query string
- * @param params Optional parameters for the query
+ * @param query The SQL query (Drizzle sql object)
  * @returns The query plan as a string
  */
-export async function analyzeQueryPlan(query: string, params: any[] = []): Promise<string> {
+// Rewriting the function body completely to fix syntax issues
+export async function analyzeQueryPlan(query: SQL<unknown>): Promise<string> {
   try {
-    // Use sql.raw for dynamic query string with parameters
-    const explainQuery = sql`EXPLAIN (ANALYZE, BUFFERS) ${sql.raw(query, ...params)}`;
-
+    const explainQuery = sql`EXPLAIN (ANALYZE, BUFFERS) ${query}`;
     const result = await db.execute(explainQuery);
-    const rows = getRows(result);
+    const rows = getRows(result) as { 'QUERY PLAN': string }[];
 
-    // Format the plan rows into a single string
-    return rows.map(row => row['QUERY PLAN'] as string).join('
+    // Correct way to join the plan lines with a newline
+    if (rows && rows.length > 0) {
+        return rows.map(row => row['QUERY PLAN']).join('
 ');
+    } else {
+        return 'No query plan returned.';
+    }
   } catch (error) {
-    logger.error('Failed to analyze query plan:', { query, error });
+    logger.error('Failed to analyze query plan:', { query: query, error });
     throw new Error('Could not analyze query plan.');
   }
 }
@@ -200,6 +176,7 @@ export async function checkDbHealth(): Promise<{ healthy: boolean; message: stri
     if (getRows(result)?.[0]?.check === 1) {
       return { healthy: true, message: 'Database connection successful.' };
     } else {
+      logger.warn('Health check query returned unexpected result', { result });
       return { healthy: false, message: 'Health check query returned unexpected result.' };
     }
   } catch (error) {
