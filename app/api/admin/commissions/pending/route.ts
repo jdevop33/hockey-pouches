@@ -2,7 +2,6 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 import { db, sql } from '@/lib/db';
 import { getRows } from '@/lib/db-types';
-import * as schema from '@/lib/schema';
 
 export const dynamic = 'force-dynamic';
 

@@ -8,7 +8,7 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
   },
-  plugins: ['@typescript-eslint'],
+  plugins: ['@typescript-eslint', 'drizzle'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
@@ -18,6 +18,17 @@ module.exports = {
   rules: {
     'react/no-unescaped-entities': 'off',
     '@next/next/no-img-element': 'off',
+    'drizzle/enforce-delete-with-where': 'error',
+    'drizzle/enforce-update-with-where': 'error',
+    'no-unused-vars': [
+      'warn',
+      {
+        vars: 'all',
+        varsIgnorePattern: '^_',
+        args: 'after-used',
+        ignoreRestSiblings: true,
+      },
+    ],
     // Add any additional custom rules here
   },
   overrides: [
