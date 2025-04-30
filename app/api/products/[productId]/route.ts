@@ -15,15 +15,28 @@ import { logger } from '@/lib/logger'; // Added logger
 type ProductSelect = typeof schema.products.$inferSelect;
 
 // Cache product details for 1 hour (3600 seconds)
-// Refactored to use Drizzle query builder
 const getProductFromDb = unstable_cache(
   async (productId: number): Promise<ProductSelect | null> => {
     try {
       logger.info('Fetching product from DB', { productId });
       const product = await db.query.products.findFirst({
         where: and(eq(schema.products.id, productId), eq(schema.products.isActive, true)),
-        // Optionally add relations if needed, e.g., variations:
-        // with: { variations: { where: eq(schema.productVariations.isActive, true) } }
+        // Optionally fetch active variations if needed for the detail page
+        with: {
+           productVariations: {
+              where: eq(schema.productVariations.isActive, true),
+              columns: { // Select specific variation columns needed
+                  id: true,
+                  name: true,
+                  price: true,
+                  sku: true,
+                  imageUrl: true,
+                  // Exclude internal details unless required
+              }
+           }
+        },
+        // Exclude fields not needed on the product detail page if any
+        // columns: { ... }
       });
 
       if (!product) {
@@ -39,9 +52,10 @@ const getProductFromDb = unstable_cache(
     }
   },
   ['product-detail'], // Base cache key
-  { 
+  {
+      // Pass productId to the cache function scope for use in tags
+      tags: (productId) => [`product:${productId}`],
       revalidate: 3600, // Revalidate every hour
-      tags: [`product:${productId}`] // Tag for potential revalidation
   }
 );
 
@@ -64,8 +78,8 @@ export async function GET(request: NextRequest, { params }: { params: { productI
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    // Drizzle returns correct types, no need for manual checks/conversion
-    logger.info(`Product ${productId} found`, { productData: product });
+    logger.info(`Product ${productId} found`, { productId: product.id }); // Log actual ID found
+    // Drizzle returns correct types based on schema and query
     return NextResponse.json(product);
 
   } catch (error) {

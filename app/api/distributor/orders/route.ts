@@ -1,16 +1,15 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { db } from '@/lib/db'; // Corrected import
-import { sql } from 'drizzle-orm';
+import { db, sql } from '@/lib/db'; // Use db instance and sql helper
 import { verifyDistributor, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 import * as schema from '@/lib/schema'; // Import schema namespace
+import { logger } from '@/lib/logger'; // Use logger
 
 export const dynamic = 'force-dynamic';
 
 // Define types based on schema enums
 type OrderStatus = (typeof schema.orderStatusEnum.enumValues)[number];
 
-// Define Pagination interface (assuming basic structure)
-// TODO: Verify if a more specific definition exists elsewhere
+// Define Pagination interface
 interface Pagination {
   page: number;
   limit: number;
@@ -28,7 +27,7 @@ type DistributorOrderListItem = {
   customerLocation: string | null;
 };
 
-// Type for database row
+// Type for database row (adjust based on actual query result)
 interface OrderRow {
   id: number;
   created_at: string;
@@ -36,8 +35,10 @@ interface OrderRow {
   total_amount: number;
   customer_name: string | null;
   customer_location: string | null;
-  count?: string;
-  [key: string]: unknown;
+}
+
+interface CountRow {
+    count: string | number; // Count might return as string
 }
 
 export async function GET(request: NextRequest) {
@@ -55,6 +56,7 @@ export async function GET(request: NextRequest) {
 
     const distributorId = authResult.userId;
     if (!distributorId) {
+        logger.warn('Distributor ID not found in token');
       return NextResponse.json({ message: 'Distributor ID not found in token' }, { status: 401 });
     }
     const searchParams = request.nextUrl.searchParams;
@@ -70,24 +72,19 @@ export async function GET(request: NextRequest) {
         ? (statusFilterParam as OrderStatus)
         : null;
 
-    console.log(
-      `Distributor GET /api/distributor/orders - Distributor: ${distributorId}, Page: ${page}, Limit: ${limit}, Status: ${statusFilter}`
-    );
+    logger.info('Fetching distributor orders', {
+        distributorId, page, limit, offset, statusFilter
+    });
 
-    // Build query conditions
-    const conditions = [`o.assigned_distributor_id = $1`];
-    const queryParams: (string | number | null)[] = [distributorId];
-    let paramIndex = 2;
-
+    // Build query conditions using Drizzle sql helper for safe parameter embedding
+    let conditions = [sql`o.assigned_distributor_id = ${distributorId}`];
     if (statusFilter) {
-      conditions.push(`o.status = $${paramIndex++}`);
-      queryParams.push(statusFilter);
+        conditions.push(sql`o.status = ${statusFilter}`);
     }
+    const whereClause = sql.join(conditions, sql` AND `);
 
-    const whereClause = `WHERE ${conditions.join(' AND ')}`;
-
-    // Fetch orders assigned to this distributor
-    const ordersQuery = `
+    // Fetch orders assigned to this distributor using db.execute and sql tag
+    const ordersQuery = sql`
       SELECT
         o.id, o.created_at, o.status,
         CAST(o.total_amount AS FLOAT) as total_amount,
@@ -95,7 +92,7 @@ export async function GET(request: NextRequest) {
         u.location as customer_location -- Assuming users table has a location column
       FROM orders o
       LEFT JOIN users u ON o.user_id = u.id
-      ${whereClause}
+      WHERE ${whereClause}
       ORDER BY
         CASE
           WHEN o.status = 'ReadyForFulfillment' THEN 1 -- Prioritize orders needing fulfillment
@@ -104,27 +101,34 @@ export async function GET(request: NextRequest) {
           ELSE 4
         END,
         o.created_at DESC
-      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+      LIMIT ${limit} OFFSET ${offset}
     `;
-    queryParams.push(limit, offset); // Add limit and offset
 
-    // Fetch count
-    const countQuery = `
+    // Fetch count using db.execute and sql tag
+    const countQuery = sql`
       SELECT COUNT(*) as count
       FROM orders o
-      ${whereClause}
+      WHERE ${whereClause}
     `;
 
+    // Execute queries
+    // Note: db.execute returns a driver-specific result. For neon-http it's NeonHttpQueryResult
+    // which has a `rows` property.
     const [ordersResult, totalResult] = await Promise.all([
-      db.execute(ordersQuery, queryParams),
-      db.execute(countQuery, queryParams.slice(0, paramIndex - 2)), // Exclude limit/offset params
+        db.execute(ordersQuery),
+        db.execute(countQuery),
     ]);
 
-    const totalOrders = parseInt(totalResult[0]?.count || '0');
+    // Safely access rows and count
+    const orderRows = ordersResult.rows as OrderRow[]; // Cast rows after accessing
+    const countRow = totalResult.rows[0] as CountRow; // Cast row after accessing
+    const totalOrders = parseInt(String(countRow?.count || '0')); // Convert count safely
     const totalPages = Math.ceil(totalOrders / limit);
 
+    logger.info(`Found ${totalOrders} orders for distributor`, { distributorId });
+
     // Format orders for response
-    const orders: DistributorOrderListItem[] = ordersResult.map((row: OrderRow) => ({
+    const orders: DistributorOrderListItem[] = orderRows.map((row: OrderRow) => ({
       id: row.id,
       createdAt: row.created_at, // Keep as string
       status: row.status as OrderStatus, // Cast to OrderStatus
@@ -143,7 +147,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Failed to get distributor orders:', error);
+    logger.error('Failed to get distributor orders', { error });
     const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
     return NextResponse.json({ message: errorMessage }, { status: 500 });
   }

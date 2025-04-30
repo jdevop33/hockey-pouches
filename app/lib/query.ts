@@ -1,28 +1,43 @@
+// app/lib/query.ts
 import { db, sql } from './db';
-import { getRows } from './db-types';
+import { PoolClient } from 'pg'; // Keep pg type if PoolClient is still used elsewhere
+import { logger } from './logger';
 
 /**
- * Helper to execute a SQL query and return plain rows.
- * Keeps Neon's rich typing under the hood but surfaces simple T[].
+ * Executes a raw SQL query with parameters using the db instance.
+ * IMPORTANT: Prefer Drizzle ORM methods (db.query..., db.select..., db.insert...) 
+ * over this raw query function whenever possible for type safety.
+ *
+ * @param text The raw SQL query string.
+ * @param params Optional array of parameters for the query.
+ * @returns Promise<any[]> The array of rows returned by the query.
  */
-export async function queryRows<T = unknown>(text: string, params?: unknown[]): Promise<T[]> {
-  try {
-    // Use the sql tag function to create a parameterized query
-    let query;
-
-    if (!params || params.length === 0) {
-      // If no params, use the raw SQL string
-      query = sql`${sql.raw(text)}`;
-      const result = await db.execute(query);
-      return getRows(result) as T[];
-    } else {
-      // For parameterized queries, use the execute method directly
-      const result = await db.execute(text, params);
-      return getRows(result) as T[];
+export async function query(text: string, params?: any[]): Promise<any[]> {
+    const start = Date.now();
+    try {
+        // Use db.execute with the sql helper tag for parameters
+        // sql.raw is used here assuming `text` is a raw string; adjust if `text` is already tagged.
+        logger.debug('Executing raw query:', { text, params });
+        const result = await db.execute(sql.raw(text, ...(params || [])));
+        const duration = Date.now() - start;
+        logger.debug('Query executed successfully', { text, duration, rowCount: result.rowCount });
+        // Return the rows array directly
+        return result.rows;
+    } catch (error) {
+        const duration = Date.now() - start;
+        logger.error('Error executing raw query:', { text, params, duration, error });
+        throw error; // Re-throw the error after logging
     }
-  } catch (error) {
-    console.error('Error executing query:', error);
-    // Re-throw the error for handling at a higher level
-    throw error;
-  }
 }
+
+// Example usage (illustrative - prefer ORM methods)
+// async function example() {
+//     try {
+//         const userId = 'some-user-id';
+//         const status = 'Active';
+//         const users = await query('SELECT * FROM users WHERE id = $1 AND status = $2', [userId, status]);
+//         console.log(users);
+//     } catch (err) {
+//         console.error('Query failed:', err);
+//     }
+// }

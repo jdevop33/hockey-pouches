@@ -1,43 +1,72 @@
 'use client';
-import { useEffect, useCallback } from 'react';
-import { useAuthStore } from '@/store';
 
-/**
- * AuthTokenRefresher Component
- *
- * This component manages automatic token refresh based on token expiration time.
- * It should be added to the application layout to ensure tokens are refreshed
- * across all pages.
- */
+import { useEffect, useRef } from 'react';
+import { useAuthStore } from '@/store/slices/authStore';
+import { useHydration } from '@/store/initializeStore';
+import { logger } from '@/lib/logger';
+
+const REFRESH_INTERVAL = 5 * 60 * 1000; // Check every 5 minutes
+const REFRESH_THRESHOLD_MS = 10 * 60 * 1000; // Refresh if token expires within 10 minutes
+
 export function AuthTokenRefresher() {
-  const { isAuthenticated, tokenExpiryTime, refreshAccessToken } = useAuthStore();
+  // Wait for the auth store to be hydrated
+  const isHydrated = useHydration(useAuthStore);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Function to check token expiry and refresh if needed
-  const checkAndRefreshToken = useCallback(async () => {
-    if (!isAuthenticated || !tokenExpiryTime) return;
+  // Access store state *after* hydration check
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const tokenExpiryTime = useAuthStore(state => state.tokenExpiryTime);
+  const refreshAccessToken = useAuthStore(state => state.refreshAccessToken);
 
-    const now = Date.now();
-
-    // If token is about to expire (within 5 minutes), refresh it
-    if (now >= tokenExpiryTime - 5 * 60 * 1000) {
-      console.log('Token expiring soon, refreshing...');
-      await refreshAccessToken();
-    }
-  }, [isAuthenticated, tokenExpiryTime, refreshAccessToken]);
-
-  // Set up interval to check token expiry every minute
   useEffect(() => {
-    if (!isAuthenticated) return;
+    // Only run the effect if the store is hydrated
+    if (!isHydrated) {
+      return;
+    }
 
-    // Check immediately on mount
-    checkAndRefreshToken();
+    const checkAndRefreshToken = async () => {
+      if (isAuthenticated && tokenExpiryTime) {
+        const now = Date.now();
+        const timeUntilExpiry = tokenExpiryTime - now;
 
-    // Then check periodically
-    const interval = setInterval(checkAndRefreshToken, 60 * 1000);
+        // Check if token is nearing expiry
+        if (timeUntilExpiry < REFRESH_THRESHOLD_MS) {
+          logger.info('Auth token nearing expiry, attempting refresh.');
+          try {
+            await refreshAccessToken();
+            logger.info('Auth token refreshed successfully.');
+          } catch (error) {
+            logger.error('Failed to refresh auth token automatically', { error });
+            // Consider triggering logout or showing a message if refresh fails persistently
+          }
+        }
+      }
+    };
 
-    return () => clearInterval(interval);
-  }, [isAuthenticated, checkAndRefreshToken]);
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
 
-  // This component doesn't render anything
-  return null;
+    // Set up interval only if authenticated
+    if (isAuthenticated) {
+        // Check immediately on becoming authenticated/hydrated
+        checkAndRefreshToken(); 
+        // Set interval for periodic checks
+        intervalRef.current = setInterval(checkAndRefreshToken, REFRESH_INTERVAL);
+        logger.debug('AuthTokenRefresher interval started.');
+    } else {
+         logger.debug('AuthTokenRefresher interval stopped (user not authenticated).');
+    }
+
+    // Cleanup interval on component unmount or when auth state changes
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        logger.debug('AuthTokenRefresher interval cleared.');
+      }
+    };
+  }, [isAuthenticated, tokenExpiryTime, refreshAccessToken, isHydrated]); // Include isHydrated dependency
+
+  return null; // This component doesn't render anything
 }

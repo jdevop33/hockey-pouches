@@ -1,36 +1,26 @@
 import { NextResponse, type NextRequest } from 'next/server';
-// Removed: import { pool } from '@/lib/db'; 
-import { db } from '@/lib/db'; // Import db instead of pool
+import { db } from '@/lib/db'; // Import db instance
 import jwt from 'jsonwebtoken';
-import type { PoolClient } from 'pg'; // Keep for type checking if helpers still expect it
-import { sendOrderConfirmationEmail } from '../../lib/email';
-import { orderItems } from '@/lib/schema/orderItems';
-import { orders } from '@/lib/schema/orders';
-import { tasks } from '@/lib/schema/tasks';
-import { users } from '@/lib/schema/users';
-import { cart } from '@/lib/schema/cart';
-import { orderItems } from '@/lib/schema/orderItems';
-import { orders } from '@/lib/schema/orders';
-import { tasks } from '@/lib/schema/tasks';
-import { users } from '@/lib/schema/users';
-import { cart } from '@/lib/schema/cart';
-import { orderItems } from '@/lib/schema/orderItems';
-import { orders } from '@/lib/schema/orders';
-import { tasks } from '@/lib/schema/tasks';
-import { users } from '@/lib/schema/users';
-import { cart } from '@/lib/schema/cart';
-import * as schema from '@/lib/schema'; // Keep for other schema references
-// Keep for other schema references
-// Keep for other schema references
-// Use central schema index
+import { sendOrderConfirmationEmail, type OrderItem as EmailOrderItem } from '@/lib/email'; // Keep specific import
 import { eq, and, sql } from 'drizzle-orm';
-import { logger } from '@/lib/logger'; // Assuming logger exists
+import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
+import * as schema from '@/lib/schema'; // Keep wildcard for enums and complex types
 
 // --- Interfaces ---
 
 // Use schema-derived types where possible
 type UserRole = typeof schema.userRoleEnum.enumValues[number];
+type OrderStatus = typeof schema.orderStatusEnum.enumValues[number]; // Defined based on enum (from stash)
+type PaymentStatus = typeof schema.paymentStatusEnum.enumValues[number]; // Defined based on enum (from stash)
+type PaymentMethod = typeof schema.paymentMethodEnum.enumValues[number]; // Defined based on enum (from stash)
+type OrderType = typeof schema.orderTypeEnum.enumValues[number]; // Defined based on enum (from stash)
+type TaskCategory = typeof schema.taskCategoryEnum.enumValues[number]; // Defined based on enum (from stash)
+type TaskStatus = typeof schema.taskStatusEnum.enumValues[number]; // Defined based on enum (from stash)
+type TaskPriority = typeof schema.taskPriorityEnum.enumValues[number]; // Defined based on enum (from stash)
+type TaskRelatedEntity = typeof schema.taskRelatedEntityEnum.enumValues[number]; // Defined based on enum (from stash)
+type TaskInsert = typeof schema.tasks.$inferInsert;
+
 
 interface JwtPayload {
   userId: string;
@@ -41,17 +31,14 @@ interface OrderItemInput {
   quantity: number;
 }
 
-// Assuming Address type is defined elsewhere or locally
-// If not, define it here
 interface AddressInput {
   street?: string;
   city?: string;
   province?: string;
   postalCode?: string;
   country?: string;
-  name?: string; // Added name based on usage
-  // Add other potential fields if needed from JSON usage
-  address1?: string; 
+  name?: string;
+  address1?: string;
   address2?: string;
   firstName?: string;
   lastName?: string;
@@ -61,25 +48,14 @@ interface CreateOrderBody {
   items?: OrderItemInput[];
   shippingAddress?: AddressInput;
   billingAddress?: AddressInput;
-  paymentMethod?: typeof schema.paymentMethodEnum.enumValues[number]; // Use enum type
+  paymentMethod?: PaymentMethod;
   discountCode?: string | null;
-  referralCode?: string | null; // Added referral code
-  notes?: string | null; // Added notes
-}
-
-interface ProductVariationInfo {
-  id: number;
-  productId: number;
-  name: string | null;
-  price: string;
-  isActive: boolean;
-  productName: string | null;
-  productIsActive: boolean;
+  referralCode?: string | null;
+  notes?: string | null;
 }
 
 // --- Helper Functions ---
 
-// (getUserFromToken remains largely the same)
 async function getUserFromToken(
   request: NextRequest
 ): Promise<{ userId: string; role: UserRole } | null> {
@@ -92,14 +68,12 @@ async function getUserFromToken(
     throw new Error('Server configuration error: JWT_SECRET missing.');
   }
   try {
-    // Assert the type after verification
     const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
-    // Validate role against enum
     if (schema.userRoleEnum.enumValues.includes(decoded.role)) {
         return { userId: decoded.userId, role: decoded.role };
     } else {
         logger.warn('Invalid role found in token', { userId: decoded.userId, role: decoded.role });
-        return null; // Or handle as unauthorized
+        return null;
     }
   } catch (error) {
     logger.warn('Token verification failed:', { error });
@@ -107,23 +81,27 @@ async function getUserFromToken(
   }
 }
 
-// Simplified location logic - needs refinement based on actual location schema/strategy
-function getTargetLocation(address: AddressInput | undefined): string {
-  const province = address?.province?.toUpperCase() || '';
-  // This logic is likely too simple and needs to map to actual StockLocation IDs/names
-  if (['BC'].includes(province)) return 'WAREHOUSE_VAN'; // Example ID
-  if (['AB', 'SK', 'MB'].includes(province)) return 'WAREHOUSE_CGY'; // Example ID
-  if (['ON', 'QC'].includes(province)) return 'WAREHOUSE_TOR'; // Example ID
-  logger.warn(`Could not determine specific stock location ID for province: ${province}, using fallback 'WAREHOUSE_TOR'.`);
-  return 'WAREHOUSE_TOR'; // Fallback stock location ID
+async function getTargetLocationId(address: AddressInput | undefined): Promise<string | null> {
+    const defaultLocationId = 'clwvv35r6000012dk95zk1fvs';
+    logger.warn(`Using default stock location ID ${defaultLocationId}. Implement proper location lookup.`);
+    return defaultLocationId;
 }
 
+// Map payment method from schema enum to email function expected type (from stash)
+function mapPaymentMethodForEmail(paymentMethod: PaymentMethod): 'etransfer' | 'btc' | 'credit-card' | undefined {
+    switch (paymentMethod) {
+        case 'ETransfer': return 'etransfer';
+        case 'Bitcoin': return 'btc';
+        case 'CreditCard': return 'credit-card';
+        default: return undefined;
+    }
+}
 
 // --- Main POST Handler ---
 export async function POST(request: NextRequest) {
   let userInfo: { userId: string; role: UserRole } | null = null;
   let orderCreated = false;
-  let newOrderId: string | null = null; // Order ID is now UUID (string)
+  let newOrderId: string | null = null;
 
   try {
     userInfo = await getUserFromToken(request);
@@ -141,31 +119,27 @@ export async function POST(request: NextRequest) {
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ message: 'Order must contain items.' }, { status: 400 });
     }
-    // Basic address validation (can be improved with Zod)
     if (!shippingAddress?.street || !shippingAddress?.city || !shippingAddress?.province || !shippingAddress?.postalCode || !shippingAddress?.country || !shippingAddress?.name) {
       return NextResponse.json({ message: 'Incomplete shipping address (street, city, province, postalCode, country, name required).' }, { status: 400 });
     }
     if (!paymentMethod || !schema.paymentMethodEnum.enumValues.includes(paymentMethod)) {
       return NextResponse.json({ message: `Payment method is required and must be one of: ${schema.paymentMethodEnum.enumValues.join(', ')}` }, { status: 400 });
     }
-    // Ensure quantities are positive integers
     if (items.some(item => !Number.isInteger(item.quantity) || item.quantity <= 0)) {
         return NextResponse.json({ message: 'Item quantities must be positive integers.' }, { status: 400 });
     }
-    
+
     const variationIds = items.map(item => item.productVariationId);
     if (variationIds.some(id => typeof id !== 'number') || variationIds.length === 0) {
       return NextResponse.json({ message: 'Invalid product variation IDs provided.' }, { status: 400 });
     }
 
-    // Determine order type based on role
-    const orderType: typeof schema.orderTypeEnum.enumValues[number] = 
-        role === 'Wholesale Buyer' ? 'Wholesale' : 'Retail';
+    const orderType: OrderType = role === 'Wholesale Buyer' ? schema.orderTypeEnum.Wholesale : schema.orderTypeEnum.Retail;
 
     // Start DB Transaction using Drizzle
     const result = await db.transaction(async (tx) => {
         logger.info('Beginning order creation transaction', { userId, role, itemCount: items.length });
-        
+
         // --- Fetch Product Variation Details & Check Stock ---
         const variationDetails = await tx.query.productVariations.findMany({
             where: (variations, { inArray }) => inArray(variations.id, variationIds),
@@ -181,24 +155,22 @@ export async function POST(request: NextRequest) {
         let subtotal = 0;
         const orderItemsData: Array<typeof schema.orderItems.$inferInsert & { name?: string | null }> = [];
 
-        // TODO: Implement proper location determination based on address/rules
-        const targetLocationId = 'clwvv35r6000012dk95zk1fvs'; // Hardcoded main warehouse ID FOR NOW
+        const targetLocationId = await getTargetLocationId(shippingAddress);
         if (!targetLocationId) {
              logger.error('Target stock location ID could not be determined', { shippingAddress });
              throw new Error('Could not determine fulfillment location.');
         }
-        
+
         for (const item of items) {
             const variation = variationMap.get(item.productVariationId);
             if (!variation || !variation.isActive || !variation.product.isActive) {
                 throw new Error(`Product variation ID ${item.productVariationId} (${variation?.product.name} - ${variation?.name}) not found or is inactive.`);
             }
-            
-            // Check stock level at the target location
+
             const stockLevel = await tx.query.stockLevels.findFirst({
                 where: and(
                     eq(schema.stockLevels.productVariationId, item.productVariationId),
-                    eq(schema.stockLevels.locationId, targetLocationId) 
+                    eq(schema.stockLevels.locationId, targetLocationId)
                 ),
                 columns: { quantity: true, reservedQuantity: true }
             });
@@ -217,32 +189,28 @@ export async function POST(request: NextRequest) {
                 quantity: item.quantity,
                 priceAtPurchase: pricePerItem.toFixed(2),
                 subtotal: itemSubtotal.toFixed(2),
-                name: `${variation.product.name} - ${variation.name}` // For potential email/logging use
+                name: `${variation.product.name} - ${variation.name}`
             });
         }
         logger.info('Stock levels verified', { userId, targetLocationId });
 
         // --- Calculate Shipping, Taxes, Discounts ---
-        // TODO: Implement dynamic shipping calculation
-        const shippingCost = 5.00; 
-        // TODO: Implement dynamic tax calculation based on address
-        const taxes = subtotal * 0.13; 
-        // TODO: Apply discountCode validation and calculation (using discount-service?)
+        const shippingCost = 5.00; // Placeholder
+        const taxes = subtotal * 0.13; // Placeholder
         const discountAmount = 0.00; // Placeholder
         const totalAmount = subtotal + shippingCost + taxes - discountAmount;
 
         // --- Create Order Record ---
         const orderId = uuidv4();
-        const initialStatus: OrderStatus = paymentMethod === 'CreditCard' ? 'Processing' : 'PendingPayment'; // Adjust based on payment
-        const initialPaymentStatus: PaymentStatus = paymentMethod === 'CreditCard' ? 'Completed' : 'Pending';
+        // Use enums correctly (from stash)
+        const initialStatus: OrderStatus = paymentMethod === 'CreditCard' ? schema.orderStatusEnum.Processing : schema.orderStatusEnum.PendingPayment;
+        const initialPaymentStatus: PaymentStatus = paymentMethod === 'CreditCard' ? schema.paymentStatusEnum.Completed : schema.paymentStatusEnum.Pending;
 
         const insertedOrder = await tx.insert(schema.orders).values({
             id: orderId,
             userId: userId,
             status: initialStatus,
             totalAmount: totalAmount.toFixed(2),
-            // distributorId: null, // Assign later if needed
-            // commissionAmount: null,
             paymentMethod: paymentMethod,
             paymentStatus: initialPaymentStatus,
             type: orderType,
@@ -252,7 +220,6 @@ export async function POST(request: NextRequest) {
             discountCode: discountCode,
             discountAmount: discountAmount.toFixed(2),
             appliedReferralCode: referralCode,
-            // createdAt, updatedAt handled by default
         }).returning({ id: schema.orders.id });
 
         newOrderId = insertedOrder[0]?.id;
@@ -263,28 +230,25 @@ export async function POST(request: NextRequest) {
 
         // --- Create Order Items ---
         for (const itemData of orderItemsData) {
-            itemData.orderId = newOrderId; // Assign the generated order ID
+            itemData.orderId = newOrderId;
         }
-        await tx.insert(schema.orderItems).values(orderItemsData.map(({ name, ...rest }) => rest)); // Insert items without the temporary name field
+        await tx.insert(schema.orderItems).values(orderItemsData.map(({ name, ...rest }) => rest));
         logger.info('Order items created', { orderId: newOrderId });
 
         // --- Update Stock Levels (Reserve Quantity) ---
-        // Instead of decrementing, we increment reservedQuantity
-        const stockUpdatePromises = items.map(item => 
+        const stockUpdatePromises = items.map(item =>
             tx.update(schema.stockLevels)
-                .set({ 
+                .set({
                     reservedQuantity: sql`${schema.stockLevels.reservedQuantity} + ${item.quantity}`,
                     updatedAt: new Date()
                 })
                 .where(and(
                     eq(schema.stockLevels.productVariationId, item.productVariationId),
                     eq(schema.stockLevels.locationId, targetLocationId),
-                    // Ensure we don't reserve more than available (quantity >= reserved + requested)
                     sql`${schema.stockLevels.quantity} >= ${schema.stockLevels.reservedQuantity} + ${item.quantity}`
                 ))
         );
         const stockUpdateResults = await Promise.all(stockUpdatePromises);
-        // Check if any update failed (rowCount is 0)
         if (stockUpdateResults.some(res => res.rowCount === 0)) {
             logger.error('Inventory reservation failed for one or more items', { orderId: newOrderId });
             throw new Error('Failed to reserve stock for all items. Please try again.');
@@ -296,81 +260,87 @@ export async function POST(request: NextRequest) {
             orderId: newOrderId,
             status: initialStatus,
             notes: 'Order created',
-            // changedByUserId: userId // Optional: log who initiated
         });
         logger.info('Order history added', { orderId: newOrderId });
-        
+
         // --- Clear User's Cart --- 
         await tx.delete(schema.cartItems).where(eq(schema.cartItems.userId, userId));
         logger.info('User cart cleared', { userId });
 
-        // --- Create Tasks (e.g., for manual payment confirmation) ---
+        // --- Create Tasks ---
         if (paymentMethod === 'ETransfer' || paymentMethod === 'Bitcoin') {
-             await tx.insert(schema.tasks).values({
+            const adminUser = await tx.query.users.findFirst({
+                where: eq(schema.users.role, 'Admin'),
+                columns: { id: true }
+            });
+             const task: TaskInsert = {
                 title: `Confirm ${paymentMethod} Payment for Order ${newOrderId}`,
-                category: 'Payment',
-                status: 'Pending',
-                priority: 'Medium',
-                relatedTo: 'Order',
+                category: schema.taskCategoryEnum.PaymentReview, // Use enum (from stash)
+                status: schema.taskStatusEnum.Pending, // Use enum
+                priority: schema.taskPriorityEnum.Medium, // Use enum
+                relatedTo: schema.taskRelatedEntityEnum.Order, // Use enum
                 relatedId: newOrderId,
-                // assignedTo: admin // Assign to a specific admin or group if possible
-             });
-             logger.info(`Created task to confirm ${paymentMethod} payment`, { orderId: newOrderId });
+                assignedTo: adminUser?.id
+             };
+             await tx.insert(schema.tasks).values(task);
+             logger.info(`Created task to confirm ${paymentMethod} payment`, { orderId: newOrderId, assignedTo: adminUser?.id });
         }
-         // Task for order review/processing (regardless of payment?)
-        await tx.insert(schema.tasks).values({
+        const adminUserForReview = await tx.query.users.findFirst({
+            where: eq(schema.users.role, 'Admin'),
+            columns: { id: true }
+         });
+         const reviewTask: TaskInsert = {
             title: `Process Order ${newOrderId}`,
-            category: 'OrderReview',
-            status: 'Pending',
-            priority: 'High',
-            relatedTo: 'Order',
+            category: schema.taskCategoryEnum.OrderReview, // Use enum
+            status: schema.taskStatusEnum.Pending, // Use enum
+            priority: schema.taskPriorityEnum.High, // Use enum
+            relatedTo: schema.taskRelatedEntityEnum.Order, // Use enum
             relatedId: newOrderId,
-        });
-        logger.info('Created task to process order', { orderId: newOrderId });
-        
+            assignedTo: adminUserForReview?.id
+        };
+        await tx.insert(schema.tasks).values(reviewTask);
+        logger.info('Created task to process order', { orderId: newOrderId, assignedTo: adminUserForReview?.id });
+
         orderCreated = true;
-        return { 
-            orderId: newOrderId, 
-            initialStatus,
-            initialPaymentStatus,
-            totalAmount 
-        }; // Return data needed outside transaction
+        return { orderId: newOrderId, initialStatus, initialPaymentStatus, totalAmount };
     }); // End Drizzle Transaction
 
-    // --- Post-Transaction Actions (Email, Payment Processing) ---
+    // --- Post-Transaction Actions ---
     if (orderCreated && result?.orderId) {
-        // Removed payment processing call - should happen via Stripe Intent or manual confirmation
         logger.info('Order creation transaction successful', { orderId: result.orderId });
-        
-        // Send order confirmation email
+
         try {
             const user = await db.query.users.findFirst({
                 where: eq(schema.users.id, userId),
                 columns: { email: true, name: true }
             });
-            
+
             if (user?.email) {
-                 // Re-fetch order items with names for email
-                const emailOrderItems = await db.query.orderItems.findMany({
+                const emailOrderItemsResult = await db.query.orderItems.findMany({
                     where: eq(schema.orderItems.orderId, result.orderId),
                     with: {
                         productVariation: { columns: { name: true }, with: { product: { columns: { name: true } } } }
                     },
                     columns: { quantity: true, priceAtPurchase: true }
                 });
-                
+
+                const emailItems: EmailOrderItem[] = emailOrderItemsResult.map(item => ({
+                    name: `${item.productVariation?.product?.name ?? 'Product'} - ${item.productVariation?.name ?? 'Variation'}`,
+                    price: parseFloat(item.priceAtPurchase),
+                    quantity: item.quantity,
+                }));
+
+                // Use mapping function (from stash)
+                const mappedPaymentMethod = mapPaymentMethodForEmail(paymentMethod);
+
                 await sendOrderConfirmationEmail({
                     customerEmail: user.email,
                     customerName: user.name ?? 'Customer',
                     orderId: result.orderId,
                     orderTotal: result.totalAmount,
-                    orderItems: emailOrderItems.map(item => ({
-                        name: `${item.productVariation.product.name} - ${item.productVariation.name}`,
-                        price: parseFloat(item.priceAtPurchase),
-                        quantity: item.quantity,
-                    })),
-                    shippingAddress: shippingAddress as any, // Cast needed if Address type isn't fully defined
-                    paymentMethod: paymentMethod,
+                    orderItems: emailItems,
+                    shippingAddress: shippingAddress as any,
+                    paymentMethod: mappedPaymentMethod,
                 });
                  logger.info('Order confirmation email sent', { orderId: result.orderId, email: user.email });
             } else {
@@ -378,32 +348,28 @@ export async function POST(request: NextRequest) {
             }
         } catch (emailError) {
             logger.error('Failed to send order confirmation email (order created successfully)', { orderId: result.orderId, error: emailError });
-            // Do not fail the request if email fails
         }
-        
+
         return NextResponse.json(
             {
                 message: 'Order placed successfully!',
                 orderId: result.orderId,
                 status: result.initialStatus,
-                paymentStatus: result.initialPaymentStatus, 
+                paymentStatus: result.initialPaymentStatus,
             },
             { status: 201 }
         );
 
     } else {
-         // This case should not happen if transaction succeeded, but included as fallback
          logger.error('Order transaction seemed successful but did not return expected data', { result });
          throw new Error('Order creation failed after transaction.');
     }
 
   } catch (error: unknown) {
-    // Transaction should have rolled back automatically on error
     logger.error(`POST /api/orders - Failed for user ${userInfo?.userId || '(unknown)'}`, { error });
     return NextResponse.json(
       { message: error instanceof Error ? error.message : 'Internal Server Error' },
       { status: error instanceof Error && error.message.includes('Insufficient stock') ? 400 : 500 }
     );
   }
-  // No finally block needed as drizzle.transaction handles connection release
 }

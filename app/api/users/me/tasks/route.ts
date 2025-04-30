@@ -1,59 +1,69 @@
 // app/api/users/me/tasks/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
-import { taskService } from '@/lib/services/task-service'; // Use new service
-import { users } from '@/lib/schema/users';
-import { tasks } from '@/lib/schema/tasks';
-import { users } from '@/lib/schema/users';
-import { tasks } from '@/lib/schema/tasks';
-import { users } from '@/lib/schema/users';
-import { tasks } from '@/lib/schema/tasks';
-import * as schema from '@/lib/schema'; // Keep for other schema references
-// Keep for other schema references
-// Keep for other schema references
-// Use schema for enums
-import { logger } from '@/lib/logger';
+import { taskService } from '@/lib/services/task-service'; // Keep specific service import
+import { logger } from '@/lib/logger'; // Keep logger import
+import * as schema from '@/lib/schema'; // Keep wildcard for enums
+
+// Define types based on schema enums (from stash)
+type TaskStatus = typeof schema.taskStatusEnum.enumValues[number];
+type TaskCategory = typeof schema.taskCategoryEnum.enumValues[number];
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
     try {
-        // --- Authentication ---
         const authResult = await verifyAuth(request);
         if (!authResult.isAuthenticated || !authResult.userId) {
             return unauthorizedResponse(authResult.message);
         }
         const userId = authResult.userId;
 
-        // --- Parse Query Params ---
-        const { searchParams } = new URL(request.url);
+        const searchParams = request.nextUrl.searchParams;
+        // Get and validate query parameters
+        const statusParam = searchParams.get('status');
+        const categoryParam = searchParams.get('category');
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '10');
-        const status = searchParams.get('status') as schema.TaskStatus | undefined;
-        const category = searchParams.get('category') as schema.TaskCategory | undefined;
 
-        logger.info(`GET /api/users/me/tasks request`, { userId, page, limit, status, category });
-
-        // Optional: Validate enums
-        if (status && !schema.taskStatusEnum.enumValues.includes(status)) {
-             return NextResponse.json({ message: `Invalid status filter: ${status}` }, { status: 400 });
-        }
-         if (category && !schema.taskCategoryEnum.enumValues.includes(category)) {
-             return NextResponse.json({ message: `Invalid category filter: ${category}` }, { status: 400 });
+        // Validate enum parameters if provided (from stash)
+        let status: TaskStatus | undefined;
+        if (statusParam) {
+            if (!schema.taskStatusEnum.enumValues.includes(statusParam as TaskStatus)) {
+                return NextResponse.json({ message: 'Invalid status parameter' }, { status: 400 });
+            }
+            status = statusParam as TaskStatus;
         }
 
-        // --- Call Service Method ---
+        let category: TaskCategory | undefined;
+        if (categoryParam) {
+            if (!schema.taskCategoryEnum.enumValues.includes(categoryParam as TaskCategory)) {
+                 return NextResponse.json({ message: 'Invalid category parameter' }, { status: 400 });
+            }
+            category = categoryParam as TaskCategory;
+        }
+
+        logger.info('Fetching tasks for user', { userId, status, category, page, limit });
+
+        // Call task service method
+        // Assuming taskService.listUserTasks exists and is implemented
         const result = await taskService.listUserTasks(userId, {
-            page,
-            limit,
             status,
             category,
+            page,
+            limit,
         });
 
+        logger.info(`Found ${result.pagination.total} tasks for user`, { userId });
         return NextResponse.json(result);
 
-    } catch (error) {
-        logger.error('Failed to get user tasks:', { error });
+    } catch (error: any) {
+        // Catch potential errors if taskService isn't implemented
+        if (error.message?.includes('not implemented') || error.message?.includes('taskService.listUserTasks is not a function')){
+             logger.error('TaskService.listUserTasks not implemented', { userId });
+             return NextResponse.json({ message: 'Task fetching is not available.' }, { status: 501 });
+        }
+        logger.error('GET /api/users/me/tasks error:', { error });
         return NextResponse.json({ message: 'Internal Server Error fetching tasks.' }, { status: 500 });
     }
 }

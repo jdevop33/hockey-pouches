@@ -1,181 +1,121 @@
+// app/api/payments/manual/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
-import { db, sql } from '@/lib/db'; // Corrected import, added db
-import { orders } from '@/lib/schema/orders';
-import { tasks } from '@/lib/schema/tasks';
-import { orders } from '@/lib/schema/orders';
-import { tasks } from '@/lib/schema/tasks';
-import { orders } from '@/lib/schema/orders';
-import { tasks } from '@/lib/schema/tasks';
-import * as schema from '@/lib/schema'; // Keep for other schema references
-// Keep for other schema references
-// Keep for other schema references
-// Import schema
-import { eq, and } from 'drizzle-orm'; // Import operators
-import { v4 as uuidv4 } from 'uuid';
-import { logger } from '@/lib/logger'; // Added logger
+import { db, sql } from '@/lib/db'; // Keep db and sql import
+import { logger } from '@/lib/logger'; // Keep logger import
+import { orders } from '@/lib/schema/orders'; // Specific imports from upstream
+import { tasks } from '@/lib/schema/tasks'; // Specific imports from upstream
+import { users } from '@/lib/schema/users'; // Specific imports from upstream
+import { payments } from '@/lib/schema/payments'; // Need payments schema
+import * as schema from '@/lib/schema'; // Keep wildcard for enums
+import { eq, and } from 'drizzle-orm';
+
+// Define types based on schema enums (from stash)
+type PaymentMethod = typeof schema.paymentMethodEnum.enumValues[number];
+type OrderStatus = typeof schema.orderStatusEnum.enumValues[number];
+type PaymentStatus = typeof schema.paymentStatusEnum.enumValues[number];
+type TaskCategory = typeof schema.taskCategoryEnum.enumValues[number];
+type TaskStatus = typeof schema.taskStatusEnum.enumValues[number];
+type TaskPriority = typeof schema.taskPriorityEnum.enumValues[number];
+type TaskRelatedEntity = typeof schema.taskRelatedEntityEnum.enumValues[number];
+type TaskInsert = typeof schema.tasks.$inferInsert;
 
 export const dynamic = 'force-dynamic';
 
-// Define types based on schema enums
-type PaymentMethod = typeof schema.paymentMethodEnum.enumValues[number];
-type OrderStatus = typeof schema.orderStatusEnum.enumValues[number];
-
 interface ManualPaymentBody {
-  orderId: string;
-  paymentMethod: 'ETransfer' | 'Bitcoin'; // Use specific allowed values
+  orderId: string; // Assuming order ID is passed as string
+  paymentMethod: PaymentMethod;
+  amount: number;
+  transactionDetails?: string; // E.g., e-transfer sender, BTC tx id
 }
 
-/**
- * Handles initiation of manual payment methods (e-transfer, bitcoin)
- */
 export async function POST(request: NextRequest) {
   try {
     const authResult = await verifyAuth(request);
-    if (!authResult.isAuthenticated) {
+    if (!authResult.isAuthenticated || !authResult.userId) {
       return unauthorizedResponse(authResult.message);
     }
-
     const userId = authResult.userId;
-    if (!userId) {
-        logger.error('Manual Payment: User ID missing from auth token');
-        return NextResponse.json({ message: 'Authentication error' }, { status: 401 });
-    }
 
     const body: ManualPaymentBody = await request.json();
-    const { orderId, paymentMethod } = body;
+    const { orderId, paymentMethod, amount, transactionDetails } = body;
 
+    // --- Validation ---
     if (!orderId) {
       return NextResponse.json({ message: 'Order ID is required' }, { status: 400 });
     }
-
-    if (!paymentMethod || (paymentMethod !== 'ETransfer' && paymentMethod !== 'Bitcoin')) {
-      return NextResponse.json(
-        { message: 'Valid payment method is required (ETransfer or Bitcoin)' },
-        { status: 400 }
-      );
+    if (!paymentMethod || (paymentMethod !== schema.paymentMethodEnum.ETransfer && paymentMethod !== schema.paymentMethodEnum.Bitcoin)) {
+      return NextResponse.json({ message: 'Invalid manual payment method specified (ETransfer or Bitcoin only)' }, { status: 400 });
+    }
+    if (typeof amount !== 'number' || amount <= 0) {
+        return NextResponse.json({ message: 'Valid payment amount is required' }, { status: 400 });
     }
 
-    logger.info('Initiating manual payment', { userId, orderId, paymentMethod });
+    logger.info('Initiating manual payment recording', { userId, orderId, paymentMethod, amount });
 
-    // Use Drizzle transaction for atomicity
-    const result = await db.transaction(async (tx) => {
-        // Get the order to verify it belongs to the user and is in a valid state
-        const order = await tx.query.orders.findFirst({
-            where: and(eq(schema.orders.id, orderId), eq(schema.orders.userId, userId)),
-            columns: { id: true, status: true, paymentStatus: true, totalAmount: true }
-        });
+    // --- Database Transaction ---
+    await db.transaction(async (tx) => {
+      // 1. Find the order
+      const order = await tx.query.orders.findFirst({
+        where: and(eq(schema.orders.id, orderId), eq(schema.orders.userId, userId)),
+        columns: { id: true, status: true, paymentStatus: true, totalAmount: true }
+      });
 
-        if (!order) {
-            logger.warn('Manual Payment: Order not found or doesnt belong to user', { userId, orderId });
-            // Throw error to rollback transaction and return 404
-            throw { status: 404, message: 'Order not found or not owned by the current user' }; 
-        }
+      if (!order) {
+        logger.warn('Order not found or user mismatch for manual payment', { userId, orderId });
+        throw new Error('Order not found or access denied.');
+      }
 
-        // Allow initiating manual payment only if payment is Pending
-        if (order.paymentStatus !== 'Pending') {
-             logger.warn('Manual Payment: Order payment status not Pending', { userId, orderId, status: order.paymentStatus });
-             throw { status: 400, message: 'This order has already been processed for payment or is awaiting confirmation.' };
-        }
+      // 2. Check if order is already paid or cancelled
+      if (order.paymentStatus === schema.paymentStatusEnum.Completed || order.status === schema.orderStatusEnum.Cancelled || order.status === schema.orderStatusEnum.Refunded) {
+        logger.warn('Attempted manual payment on already paid/cancelled order', { userId, orderId, status: order.status, paymentStatus: order.paymentStatus });
+        throw new Error(`Order is already ${order.paymentStatus || order.status}.`);
+      }
 
-        // Generate payment reference ID (using transactionId field in payments table)
-        const paymentTransactionId = `${paymentMethod.substring(0, 3).toLowerCase()}-${uuidv4()}`;
+      // 3. Create a Payment Record
+      await tx.insert(payments).values({
+          orderId: orderId,
+          amount: amount.toFixed(2),
+          method: paymentMethod,
+          status: schema.paymentStatusEnum.PendingConfirmation, // Use enum
+          transactionId: transactionDetails,
+          userId: userId,
+      });
+      logger.info('Manual payment record created', { orderId, userId, paymentMethod });
 
-        // Create a payment record
-        await tx.insert(schema.payments).values({
-            orderId: orderId,
-            amount: order.totalAmount, // Use totalAmount from order
-            paymentMethod: paymentMethod,
-            status: 'Pending', // Payment itself is pending confirmation
-            transactionId: paymentTransactionId,
-            // referenceNumber: paymentReference, // Use transactionId for reference
-            notes: `Manual ${paymentMethod} payment initiated by user.`,
-        });
+      // 5. Create Task for Admin to Confirm Payment
+      const adminUser = await tx.query.users.findFirst({
+        where: eq(users.role, 'Admin'), // Use imported users table
+        columns: { id: true }
+      });
 
-        // Update order status to reflect pending payment confirmation
-        const updatedOrder = await tx.update(schema.orders)
-            .set({ 
-                paymentStatus: 'Pending', // Keep payment status pending overall
-                status: 'PendingPayment', // Order moves to PendingPayment
-                paymentMethod: paymentMethod, // Record the chosen method
-                updatedAt: new Date()
-            })
-            .where(eq(schema.orders.id, orderId))
-            .returning({ id: schema.orders.id });
-            
-        if (updatedOrder.length === 0) {
-             throw new Error('Failed to update order status for manual payment.');
-        }
+      const task: TaskInsert = {
+        title: `Confirm ${paymentMethod} for Order ${orderId}`,
+        description: `User ${userId} reported manual payment of $${amount.toFixed(2)} via ${paymentMethod}. Details: ${transactionDetails || 'N/A'}`,
+        category: schema.taskCategoryEnum.PaymentReview, // Use correct enum value (from stash)
+        status: schema.taskStatusEnum.Pending, // Use enum
+        priority: schema.taskPriorityEnum.High, // Use enum
+        relatedTo: schema.taskRelatedEntityEnum.Order, // Use enum
+        relatedId: orderId,
+        assignedTo: adminUser?.id
+      };
+      await tx.insert(tasks).values(task);
+      logger.info('Task created for manual payment confirmation', { orderId, userId, paymentMethod, assignedTo: adminUser?.id });
 
-        // Create task for admin to confirm payment
-        const taskTitle = `Confirm ${paymentMethod} Payment for Order ${orderId}`;
-        await tx.insert(schema.tasks).values({
-            // id: uuidv4(), // Use default serial
-            title: taskTitle,
-            category: 'Payment', // Use enum value
-            status: 'Pending',
-            priority: 'High',
-            // assigned_user_id: // Assign to admin group?
-            relatedTo: 'Order',
-            relatedId: orderId,
-            // due_date: // Set due date?
-        });
-
-        // Add entry to order history
-        await tx.insert(schema.orderStatusHistory).values({
-            orderId: orderId,
-            status: 'PendingPayment',
-            paymentStatus: 'Pending', // Reflect order's payment status
-            notes: `Manual ${paymentMethod} payment initiated. Ref: ${paymentTransactionId}. Awaiting confirmation.`,
-            // changedByUserId: userId // Log user initiating
-        });
-
-        logger.info('Manual payment initiated successfully', { userId, orderId, paymentMethod, paymentTransactionId });
-
-        // Return necessary info for frontend instructions
-        return { paymentMethod, paymentTransactionId };
     }); // End transaction
 
-    // Generate payment instructions based on payment method
-    let paymentInstructions = '';
-    if (result.paymentMethod === 'ETransfer') {
-      paymentInstructions = `
-        Please send your e-transfer to payments@nicotinetins.com with the reference code: ${result.paymentTransactionId}
-        
-        Important instructions:
-        1. Use the exact reference code as your e-transfer message/memo.
-        2. Ensure the amount matches your order total.
-        3. You will receive a confirmation email once we've verified your payment.
-      `;
-    } else if (result.paymentMethod === 'Bitcoin') {
-      // TODO: Get actual BTC address from config/env
-      const btcAddress = process.env.BITCOIN_ADDRESS || 'YOUR_PLACEHOLDER_BTC_ADDRESS'; 
-      paymentInstructions = `
-        Please send the exact Bitcoin amount for your order total to the following address:
-        ${btcAddress}
-        
-        Important instructions:
-        1. Include the reference code ${result.paymentTransactionId} in the transaction memo/note if possible.
-        2. Transaction fees are your responsibility. Ensure the received amount matches your order total.
-        3. Email payments@nicotinetins.com with your reference code (${result.paymentTransactionId}) and the transaction ID/hash after sending.
-        4. You will receive a confirmation email once we've verified your payment (this may take time due to blockchain confirmations).
-      `;
-    }
-
-    return NextResponse.json({
-      success: true,
-      paymentMethod: result.paymentMethod,
-      paymentReference: result.paymentTransactionId, // Return the generated ID as reference
-      paymentInstructions,
-      message: 'Payment initiated. Please follow the instructions provided.',
-    });
+    logger.info('Manual payment recorded successfully, pending confirmation', { userId, orderId });
+    return NextResponse.json({ message: 'Payment details submitted successfully. Awaiting confirmation.' });
 
   } catch (error: any) {
-    logger.error('Error processing manual payment request:', { error });
-    // Handle custom errors thrown from transaction
-    if (error && typeof error === 'object' && 'status' in error && 'message' in error) {
-         return NextResponse.json({ message: error.message }, { status: error.status });
+    logger.error('POST /api/payments/manual error:', { error });
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
     }
-    return NextResponse.json({ message: 'Failed to process payment request' }, { status: 500 });
+    // Return specific errors caught within transaction
+    if (error.message === 'Order not found or access denied.' || error.message.startsWith('Order is already')) {
+        return NextResponse.json({ message: error.message }, { status: 400 });
+    }
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
