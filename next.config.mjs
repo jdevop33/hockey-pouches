@@ -19,13 +19,13 @@ if (process.env.NODE_ENV === 'production') {
 
 const nextConfig = {
   reactStrictMode: true,
-  // Disable ESLint during build
+  // Enable ESLint during build
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
-  // Ignore TypeScript errors during production builds
+  // Enable TypeScript error checking during production builds
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   // Image optimization settings
   images: {
@@ -36,6 +36,7 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
+    unoptimized: process.env.NODE_ENV !== 'production', // Only optimize in production
     // Enable image domains
     remotePatterns: [
       {
@@ -136,6 +137,10 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ['localhost:3000', 'nicotinetins.com'],
     },
+    // Enable optimized image loading
+    optimizeImages: true,
+    // Enable optimized font loading
+    optimizeFonts: true,
   },
   // Fix the module typeless warning
   webpack: config => {

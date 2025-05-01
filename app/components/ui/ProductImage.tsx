@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Loader } from 'lucide-react';
@@ -42,11 +42,30 @@ const ProductImage: React.FC<ProductImageProps> = ({
   const [isZoomed, setIsZoomed] = useState(false);
   const fallbackImage = '/images/products/puxxcoolmint22mg.png';
 
-  // Ensure src is properly formatted
-  const normalizedSrc = src ? (src.startsWith('/') ? src : `/${src}`) : null;
+  // Ensure src is properly formatted and handle relative/absolute paths
+  const getNormalizedSrc = (path: string | null | undefined) => {
+    if (!path) return null;
+
+    // If it's already a full URL, return it
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+
+    // Make sure it starts with a slash for local paths
+    return path.startsWith('/') ? path : `/${path}`;
+  };
+
+  const normalizedSrc = getNormalizedSrc(src);
 
   // Use fallback if src is null/undefined or if there was an error loading the image
   const imageSrc = normalizedSrc && !imageError ? normalizedSrc : fallbackImage;
+
+  // Debug info (remove in production)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`ProductImage: ${src} → ${normalizedSrc} → ${imageSrc}`);
+    }
+  }, [src, normalizedSrc, imageSrc]);
 
   // Configure size dimensions
   const getSizeClasses = () => {
@@ -153,7 +172,7 @@ const ProductImage: React.FC<ProductImageProps> = ({
         alt={alt}
         fill
         priority={priority || size === 'large'}
-        quality={90}
+        quality={size === 'large' ? 90 : 80}
         style={{ objectFit }}
         className={cn(
           'transition-all duration-300',
@@ -164,6 +183,7 @@ const ProductImage: React.FC<ProductImageProps> = ({
         onLoad={handleImageLoad}
         sizes={getSizes()}
         loading={priority ? 'eager' : 'lazy'}
+        unoptimized={false} // Make sure we use Next.js image optimization
       />
 
       {/* Zoomed view modal */}
@@ -204,6 +224,7 @@ const ProductImage: React.FC<ProductImageProps> = ({
                 quality={100}
                 className="object-contain p-4"
                 sizes="90vw"
+                unoptimized={false}
               />
             </div>
           </div>

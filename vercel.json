@@ -13,14 +13,45 @@
     "NEXT_PUBLIC_BASE_URL": "https://nicotinetins.com",
     "NEXT_PUBLIC_CONTACT_EMAIL": "info@nicotinetins.com",
     "NEXT_PUBLIC_SITE_NAME": "Nicotine Tins",
-    "HUSKY": "0"
+    "HUSKY": "0",
+    "ANALYZE": "false",
+    "NEXT_DISABLE_ESLINT_DURING_BUILD": "false",
+    "NEXT_DISABLE_TYPECHECK_DURING_BUILD": "false",
+    "NEXT_SHARP_PATH": "/tmp/node_modules/sharp"
   },
   "images": {
-    "sizes": [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    "sizes": [16, 32, 64, 96, 128, 256, 384, 640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    "minimumCacheTTL": 60,
+    "formats": ["image/webp", "image/avif"],
     "remotePatterns": [
       {
         "protocol": "https",
         "hostname": "i.ytimg.com",
+        "pathname": "/**"
+      },
+      {
+        "protocol": "https",
+        "hostname": "img.youtube.com",
+        "pathname": "/**"
+      },
+      {
+        "protocol": "https",
+        "hostname": "randomuser.me",
+        "pathname": "/**"
+      },
+      {
+        "protocol": "https",
+        "hostname": "poucheswholesale.com",
+        "pathname": "/**"
+      },
+      {
+        "protocol": "https",
+        "hostname": "hockeypouches.ca",
+        "pathname": "/**"
+      },
+      {
+        "protocol": "https",
+        "hostname": "nicotinetins.com",
         "pathname": "/**"
       }
     ]
@@ -44,6 +75,24 @@
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(jpg|jpeg|png|webp|avif|svg|ico)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/_next/image(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
         }
       ]
     }
