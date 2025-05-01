@@ -97,7 +97,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
 
         logger.info('Distributor: Order fulfilled successfully', { orderId });
         return NextResponse.json({ message: `Order ${orderId} marked as fulfilled. Awaiting verification.`, order: updatedOrder });
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Distributor: Failed to fulfill order ${params.orderId}:`, { error });
         if (error instanceof SyntaxError) return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
         if (error.message?.includes('not found') || error.message?.includes('Cannot record fulfillment')) return NextResponse.json({ message: error.message }, { status: 400 });

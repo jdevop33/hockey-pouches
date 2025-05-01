@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Parse and validate the request body
     const body = await request.json();
-    console.log('Admin: Inventory transfer request:', body);
+    
 
     // Validate required fields
     if (!body.sourceInventoryId || !body.targetLocation || !body.quantity || !body.reason) {

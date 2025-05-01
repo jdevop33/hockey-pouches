@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
         const result = await wholesaleService.listApplications(options);
         return NextResponse.json(result);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error('Admin: Failed to get wholesale applications list:', { error });
         return NextResponse.json({ message: 'Internal Server Error fetching wholesale applications.' }, { status: 500 });
     }

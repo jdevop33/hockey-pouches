@@ -12,7 +12,7 @@ import { logger } from './logger';
  * @param params Optional array of parameters for the query.
  * @returns Promise<any[]> The array of rows returned by the query.
  */
-export async function query(text: string, params?: any[]): Promise<any[]> {
+export async function query(text: string, params?: unknown[]): Promise<any[]> {
     const start = Date.now();
     try {
         // Use db.execute with the sql helper tag for parameters
@@ -36,7 +36,7 @@ export async function query(text: string, params?: any[]): Promise<any[]> {
 //         const userId = 'some-user-id';
 //         const status = 'Active';
 //         const users = await query('SELECT * FROM users WHERE id = $1 AND status = $2', [userId, status]);
-//         console.log(users);
+//         
 //     } catch (err) {
 //         console.error('Query failed:', err);
 //     }

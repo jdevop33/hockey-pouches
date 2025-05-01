@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     if (!schema.paymentMethodEnum.enumValues.includes(paymentMethod)) {
       return NextResponse.json({ message: `Invalid payment method: ${paymentMethod}` }, { status: 400 });
     }
-    console.log(`POST /api/checkout - User: ${userId}, Payment Method: ${paymentMethod}`);
+    
     // Get cart items
     const cartItems = await sql`
       SELECT
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
     // Calculate order totals
     const subtotal = cartItems.reduce(
-      (sum: number, item: any) => sum + item.price * item.quantity,
+      (sum: number, item: unknown) => sum + item.price * item.quantity,
       0
     );
     const shippingCost = 10.0; // Fixed shipping cost for now
@@ -141,13 +141,13 @@ export async function POST(request: NextRequest) {
         CURRENT_TIMESTAMP
       )
     `;
-    console.log(`Created task 'Review Order ${orderId}'`);
+    
     // Process payment based on payment method
     let paymentResult = { success: false, message: '', transactionId: '' };
     switch (paymentMethod) {
       case 'CreditCard': // Match enum value
         // In a real implementation, this would call a payment gateway API
-        console.log(`Processing credit card payment for order ${orderId}`);
+        
         paymentResult = {
           success: true,
           message: 'Payment processed successfully',
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
         };
         break;
       case 'ETransfer': // Match enum value
-        console.log(`Creating pending e-transfer payment for order ${orderId}`);
+        
         paymentResult = {
           success: true,
           message: 'E-transfer instructions sent',
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
         `;
         break;
       case 'Bitcoin': // Match enum value
-        console.log(`Creating pending bitcoin payment for order ${orderId}`);
+        
         paymentResult = {
           success: true,
           message: 'Bitcoin payment instructions sent',
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
         `;
         break;
       case 'Manual': // Match enum value
-        console.log(`Creating manual payment task for order ${orderId}`);
+        
         paymentResult = { success: true, message: 'Manual payment noted', transactionId: `man-${uuidv4()}` };
          // Create task for admin to process manual payment
         await sql`

@@ -20,7 +20,7 @@ const verifyFulfillmentSchema = z.object({
 });
 
 export async function POST(request: NextRequest, { params }: { params: { orderId: string } }) {
-    let body: any; // Declare body outside try for catch block access
+    let body: unknown; // Declare body outside try for catch block access
     try {
         const authResult = await verifyAdmin(request);
         if (!authResult.isAuthenticated || !authResult.userId || authResult.role !== 'Admin') {
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
         logger.info(`Admin: Fulfillment ${action} successful`, { orderId, fulfillmentId, adminId: adminUserId });
         return NextResponse.json({ message: `Fulfillment for order ${orderId} successfully ${action === 'approve' ? 'approved' : 'rejected'}.` });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         // Use optional chaining for body?.action in case body parsing failed
         logger.error(`Admin: Failed to ${body?.action || 'process'} fulfillment for order ${params.orderId}:`, { error });
         if (error instanceof SyntaxError) {

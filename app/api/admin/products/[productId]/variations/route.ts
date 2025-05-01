@@ -41,7 +41,7 @@ export async function GET(request: NextRequest, { params }: { params: { productI
 
         return NextResponse.json(variations);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Admin: Failed to fetch variations for product ${params.productId}:`, { error });
          if (error.message?.includes('not found')) { // Check if service threw product not found
              return NextResponse.json({ message: error.message }, { status: 404 });
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest, { params }: { params: { product
         logger.info('Admin: Variation created successfully', { variationId: createdVariation.id, productId: productIdNum, adminId: authResult.userId });
         return NextResponse.json(createdVariation, { status: 201 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Admin: Failed to add variation to product ${params.productId}:`, { error });
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

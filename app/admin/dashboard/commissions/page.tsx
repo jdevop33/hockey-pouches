@@ -176,7 +176,7 @@ export default function AdminCommissionsPage() {
     setIsPayoutLoading(true);
     setPayoutError(null);
     const idsToPayout = Array.from(selectedCommissions);
-    console.log('Initiating payout for:', idsToPayout);
+    
     try {
       // TODO: Call POST /api/admin/commissions/payout with { commissionIds: idsToPayout }
       // const response = await fetch('/api/admin/commissions/payout', {...});

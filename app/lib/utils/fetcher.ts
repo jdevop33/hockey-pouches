@@ -40,7 +40,7 @@ export async function fetchWithAuth(url: string, options: FetchOptions = {}): Pr
 
   // Handle 401 Unauthorized - try to refresh token and retry if enabled
   if (response.status === 401 && options.refreshOnUnauthorized !== false) {
-    console.log('Received 401, attempting to refresh token...');
+    
 
     // Try to refresh the token
     const refreshed = await refreshAccessToken();
@@ -51,7 +51,7 @@ export async function fetchWithAuth(url: string, options: FetchOptions = {}): Pr
       headers.set('Authorization', `Bearer ${newToken}`);
 
       // Retry the request
-      console.log('Token refreshed, retrying request...');
+      
       response = await fetch(url, {
         ...requestOptions,
         headers,

@@ -82,7 +82,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
             order: updatedOrder // Return updated order data
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Admin: Failed to assign distributor to order ${params.orderId}:`, { error });
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

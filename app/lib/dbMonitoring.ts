@@ -1,6 +1,6 @@
 // app/lib/dbMonitoring.ts
 import { db, sql } from './db';
-import { getRows, type DbQueryResult, type DbRow } from './db-types'; // Ensure DbRow is imported if used
+import { getRows, type DbRow } from './db-types'; // Ensure DbRow is imported if used
 import { logger } from './logger';
 import { SQL } from 'drizzle-orm'; // Import SQL type for parameter typing
 
@@ -63,19 +63,21 @@ export async function getConnectionStats(): Promise<ConnectionStats> {
     const waitEventsRows = getRows(waitEventsResult) as DbRow[];
 
     const stats = statsRows[0];
-    const maxConnections = parseInt(maxConnRows[0]?.max_connections as string || '0');
+    const maxConnections = parseInt((maxConnRows[0]?.max_connections as string) || '0');
     const waitEvents: Record<string, number> = {};
     waitEventsRows.forEach(row => {
       if (row.wait_event_type) {
-          waitEvents[row.wait_event_type as string] = parseInt(row.count as string || '0');
+        waitEvents[row.wait_event_type as string] = parseInt((row.count as string) || '0');
       }
     });
 
     return {
-      total_connections: parseInt(stats?.total_connections as string || '0'),
-      active_connections: parseInt(stats?.active_connections as string || '0'),
-      idle_connections: parseInt(stats?.idle_connections as string || '0'),
-      idle_in_transaction_connections: parseInt(stats?.idle_in_transaction_connections as string || '0'),
+      total_connections: parseInt((stats?.total_connections as string) || '0'),
+      active_connections: parseInt((stats?.active_connections as string) || '0'),
+      idle_connections: parseInt((stats?.idle_connections as string) || '0'),
+      idle_in_transaction_connections: parseInt(
+        (stats?.idle_in_transaction_connections as string) || '0'
+      ),
       max_connections: maxConnections,
       wait_event_counts: waitEvents,
     };
@@ -116,26 +118,29 @@ export async function getSlowQueries(limit: number = 10): Promise<QueryPerforman
     const rows = getRows(result) as DbRow[];
 
     return rows.map(row => ({
-        query_id: String(row.query_id ?? ''),
-        query: String(row.query ?? ''),
-        calls: parseInt(String(row.calls ?? '0')),
-        total_time_ms: parseFloat(String(row.total_time_ms ?? '0')),
-        mean_time_ms: parseFloat(String(row.mean_time_ms ?? '0')),
-        stddev_time_ms: parseFloat(String(row.stddev_time_ms ?? '0')),
-        min_time_ms: parseFloat(String(row.min_time_ms ?? '0')),
-        max_time_ms: parseFloat(String(row.max_time_ms ?? '0')),
-        rows: parseInt(String(row.rows ?? '0')),
-        shared_blks_hit: parseInt(String(row.shared_blks_hit ?? '0')),
-        shared_blks_read: parseInt(String(row.shared_blks_read ?? '0')),
-        local_blks_hit: parseInt(String(row.local_blks_hit ?? '0')),
-        local_blks_read: parseInt(String(row.local_blks_read ?? '0')),
-        temp_blks_read: parseInt(String(row.temp_blks_read ?? '0')),
-        temp_blks_written: parseInt(String(row.temp_blks_written ?? '0')),
+      query_id: String(row.query_id ?? ''),
+      query: String(row.query ?? ''),
+      calls: parseInt(String(row.calls ?? '0')),
+      total_time_ms: parseFloat(String(row.total_time_ms ?? '0')),
+      mean_time_ms: parseFloat(String(row.mean_time_ms ?? '0')),
+      stddev_time_ms: parseFloat(String(row.stddev_time_ms ?? '0')),
+      min_time_ms: parseFloat(String(row.min_time_ms ?? '0')),
+      max_time_ms: parseFloat(String(row.max_time_ms ?? '0')),
+      rows: parseInt(String(row.rows ?? '0')),
+      shared_blks_hit: parseInt(String(row.shared_blks_hit ?? '0')),
+      shared_blks_read: parseInt(String(row.shared_blks_read ?? '0')),
+      local_blks_hit: parseInt(String(row.local_blks_hit ?? '0')),
+      local_blks_read: parseInt(String(row.local_blks_read ?? '0')),
+      temp_blks_read: parseInt(String(row.temp_blks_read ?? '0')),
+      temp_blks_written: parseInt(String(row.temp_blks_written ?? '0')),
     }));
   } catch (error) {
-    if (error instanceof Error && error.message.includes('relation "pg_stat_statements" does not exist')) {
-        logger.warn('pg_stat_statements extension not found or enabled. Cannot fetch slow queries.');
-        return [];
+    if (
+      error instanceof Error &&
+      error.message.includes('relation "pg_stat_statements" does not exist')
+    ) {
+      logger.warn('pg_stat_statements extension not found or enabled. Cannot fetch slow queries.');
+      return [];
     }
     logger.error('Failed to get slow query stats:', { error });
     throw new Error('Could not retrieve slow query statistics.');
@@ -147,7 +152,6 @@ export async function getSlowQueries(limit: number = 10): Promise<QueryPerforman
  * @param query The SQL query (Drizzle sql object)
  * @returns The query plan as a string
  */
-// Rewriting the function body completely to fix syntax issues
 export async function analyzeQueryPlan(query: SQL<unknown>): Promise<string> {
   try {
     const explainQuery = sql`EXPLAIN (ANALYZE, BUFFERS) ${query}`;
@@ -156,10 +160,9 @@ export async function analyzeQueryPlan(query: SQL<unknown>): Promise<string> {
 
     // Correct way to join the plan lines with a newline
     if (rows && rows.length > 0) {
-        return rows.map(row => row['QUERY PLAN']).join('
-');
+      return rows.map(row => row['QUERY PLAN']).join('\n');
     } else {
-        return 'No query plan returned.';
+      return 'No query plan returned.';
     }
   } catch (error) {
     logger.error('Failed to analyze query plan:', { query: query, error });

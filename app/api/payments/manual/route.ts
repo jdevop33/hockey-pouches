@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     }); // End transaction
     logger.info('Manual payment recorded successfully, pending confirmation', { userId, orderId });
     return NextResponse.json({ message: 'Payment details submitted successfully. Awaiting confirmation.' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('POST /api/payments/manual error:', { error });
     if (error instanceof SyntaxError) {
       return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

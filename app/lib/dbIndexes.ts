@@ -32,7 +32,7 @@ export async function createIndexIfNotExists(index: IndexDefinition): Promise<un
       CREATE ${sql.raw(uniqueClause)} INDEX IF NOT EXISTS ${sql.raw(indexName)}
       ON ${sql.raw(table)} (${sql.raw(columnsStr)})
     `);
-    console.log(`Index ${indexName} created or already exists`);
+    
     return result;
   } catch (error) {
     console.error(`Error creating index ${indexName}:`, error);
@@ -48,7 +48,7 @@ export async function createIndexIfNotExists(index: IndexDefinition): Promise<un
 export async function dropIndexIfExists(indexName: string): Promise<unknown> {
   try {
     const result = await db.execute(sql`DROP INDEX IF EXISTS ${sql.raw(indexName)}`);
-    console.log(`Index ${indexName} dropped or doesn't exist`);
+    
     return result;
   } catch (error) {
     console.error(`Error dropping index ${indexName}:`, error);
@@ -171,7 +171,7 @@ export async function createRecommendedIndexes(): Promise<void> {
 
   // Create indexes in parallel
   await Promise.all(indexes.map(index => createIndexIfNotExists(index)));
-  console.log('All recommended indexes created or already exist');
+  
 }
 
 /**
@@ -182,7 +182,7 @@ export async function createRecommendedIndexes(): Promise<void> {
 export async function analyzeTable(tableName: string): Promise<unknown> {
   try {
     const result = await db.execute(sql`ANALYZE ${sql.raw(tableName)}`);
-    console.log(`Table ${tableName} analyzed`);
+    
     return result;
   } catch (error) {
     console.error(`Error analyzing table ${tableName}:`, error);
@@ -197,7 +197,7 @@ export async function analyzeTable(tableName: string): Promise<unknown> {
 export async function analyzeAllTables(): Promise<unknown> {
   try {
     const result = await db.execute(sql`ANALYZE`);
-    console.log('All tables analyzed');
+    
     return result;
   } catch (error) {
     console.error('Error analyzing all tables:', error);

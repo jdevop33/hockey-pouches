@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     // }
     // const adminUserId = adminCheck.userId; // Get current admin's ID
 
-    console.log(`Admin: Get pending tasks request`); // Placeholder
+     // Placeholder
 
     // --- Fetch Pending Tasks Logic Here ---
     // Potentially filter by assignedUserId = adminUserId or tasks unassigned in admin categories

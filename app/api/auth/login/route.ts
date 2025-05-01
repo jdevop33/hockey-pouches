@@ -60,7 +60,7 @@ export const POST = withRateLimit(
       // response.headers.set('Authorization', `Bearer ${authResult.token}`);
 
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Catch specific configuration errors from the service
       if (error.message === 'Authentication configuration error.') {
         logger.error('Login API configuration error', {}, error);

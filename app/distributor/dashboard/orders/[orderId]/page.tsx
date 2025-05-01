@@ -139,7 +139,7 @@ export default function DistributorOrderDetailPage() {
           setOrder(data);
           setTrackingNumber(data.tracking_number || '');
           setFulfillmentNotes(data.fulfillment_notes || '');
-        } catch (err: any) {
+        } catch (err: unknown) {
           setError('Failed to load order details.');
           console.error(err);
         } finally {
@@ -255,7 +255,7 @@ export default function DistributorOrderDetailPage() {
 
       // Redirect to the orders list
       router.push('/distributor/dashboard/orders?success=true');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting fulfillment:', error);
       setSubmitError(error.message || 'Failed to submit fulfillment. Please try again.');
     } finally {

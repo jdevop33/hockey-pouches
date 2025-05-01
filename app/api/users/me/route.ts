@@ -75,7 +75,7 @@ export async function PATCH(request: NextRequest) {
         // Return updated profile (excluding sensitive info)
         return NextResponse.json(updatedUser);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error('PATCH /api/users/me error:', { error });
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

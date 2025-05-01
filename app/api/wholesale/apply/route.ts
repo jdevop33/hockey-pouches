@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
             { status: 201 }
         );
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error('Error processing wholesale application:', { error });
          if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

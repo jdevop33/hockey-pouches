@@ -37,7 +37,7 @@ const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  * const data = await fetchWithRetry('/api/data', {
  *   retries: 3,
  *   retryDelay: 1000,
- *   onRetry: (attempt) => console.log(`Retrying... attempt ${attempt}`),
+ *   onRetry: (attempt) => ,
  * });
  * ```
  */

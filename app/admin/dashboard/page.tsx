@@ -34,14 +34,14 @@ export default function AdminDashboardPage() {
 
       if (!user || !token) {
         // Not logged in
-        console.log('Admin Dashboard: Not logged in, redirecting...');
+        
         // Only redirect if we're not already in a redirection process
         if (isAdminDashboard) {
           router.push('/login?redirect=/admin/dashboard');
         }
       } else if (user.role !== 'Admin') {
         // Logged in, but not an Admin
-        console.log(`Admin Dashboard: User is ${user.role}, not Admin. Redirecting...`);
+        
         // Only redirect if we're not already in a redirection process
         if (isAdminDashboard) {
           // Redirect to their appropriate dashboard or home
@@ -60,7 +60,7 @@ export default function AdminDashboardPage() {
 
     // Ensure we only fetch data if the user is authenticated and confirmed as Admin
     if (!authLoading && user && token && user.role === 'Admin') {
-      console.log('Admin Dashboard: Fetching admin data...');
+      
       const loadData = async () => {
         setIsLoadingData(true);
         setError(null);

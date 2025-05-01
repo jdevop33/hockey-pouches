@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
             }
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error('Admin: Failed to process commission payout request:', { error });
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

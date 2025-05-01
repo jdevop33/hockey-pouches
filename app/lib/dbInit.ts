@@ -8,24 +8,21 @@ import { checkConnection } from './dbConnectionPool';
  */
 export async function initializeDatabase(): Promise<void> {
   try {
-    console.log('Initializing database...');
-    
+        
     // Check database connection
     const isConnected = await checkConnection();
     if (!isConnected) {
       throw new Error('Database connection failed');
     }
     
-    console.log('Database connection successful');
-    
+        
     // Create recommended indexes
     await createRecommendedIndexes();
     
     // Analyze tables for query optimization
     await analyzeAllTables();
     
-    console.log('Database initialization complete');
-  } catch (error) {
+      } catch (error) {
     console.error('Database initialization failed:', error);
     throw error;
   }

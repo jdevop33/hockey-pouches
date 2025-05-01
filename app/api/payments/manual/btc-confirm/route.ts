@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         logger.info('Manual BTC payment confirmed successfully', { orderId, transactionId, adminUserId });
         return NextResponse.json({ message: 'Payment confirmed successfully' });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
          logger.error('POST /api/payments/manual/btc-confirm error:', { error });
          if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

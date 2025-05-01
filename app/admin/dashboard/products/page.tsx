@@ -99,7 +99,7 @@ export default function AdminProductsPage() {
     if (!confirm(`Are you sure you want to deactivate product #${productId} (${productName})?`))
       return;
 
-    console.log(`Deactivating product ${productId}...`);
+    
     try {
       const response = await fetch(`/api/admin/products/${productId}`, {
         method: 'DELETE',

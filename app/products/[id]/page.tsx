@@ -8,6 +8,7 @@ import SocialShare from '../../components/SocialShare';
 import ProductSchema from '../../components/ProductSchema';
 import ProductImage from '../../components/ui/ProductImage';
 import { cn, formatCurrency } from '@/lib/utils';
+import * as schema from '@/lib/schema';
 import {
   Star,
   ChevronRight,

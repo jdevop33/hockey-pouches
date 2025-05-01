@@ -107,7 +107,7 @@ export default function AdminTaskDetailPage() {
    const handleSaveChanges = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!task) return;
-      console.log('Saving task changes...', editData);
+      
       // TODO: Call PUT /api/tasks/[taskId] with relevant fields from editData
       try {
           await new Promise(resolve => setTimeout(resolve, 500)); // Simulate save
@@ -128,7 +128,7 @@ export default function AdminTaskDetailPage() {
       setIsActionLoading(true);
       setActionError(null);
       const endpoint = `/api/tasks/${taskId}/complete`;
-      console.log(`Calling complete endpoint...`);
+      
       try {
           // TODO: Call POST endpoint
           await new Promise(resolve => setTimeout(resolve, 500)); // Simulate action
@@ -138,7 +138,7 @@ export default function AdminTaskDetailPage() {
           setTask(prev => prev ? { ...prev, status: newStatus, completedAt: completionTime } : null);
           setEditData(prev => ({ ...prev, status: newStatus, completedAt: completionTime }));
           alert('Task marked as complete!');
-      } catch (err: any) {
+      } catch (err: unknown) {
            setActionError(err.message || `Failed to complete task.`);
       } finally {
            setIsActionLoading(false);

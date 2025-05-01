@@ -144,7 +144,7 @@ export default function ReferralsPage() {
             totalCommission: 0,
           }
         );
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error loading referral data:', err);
         setError(err.message || 'Failed to load referral and commission data.');
       } finally {

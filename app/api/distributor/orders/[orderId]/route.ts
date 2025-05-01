@@ -72,7 +72,7 @@ export async function GET(
         if (!distributorId) {
             return NextResponse.json({ message: 'Distributor ID not found in token' }, { status: 401 });
         }
-        console.log(`GET /api/distributor/orders/${orderId} request by Distributor ${distributorId}`);
+        
 
         // 2. Fetch Order Details and Verify Assignment
         const orderQuery = sql`
@@ -130,7 +130,7 @@ export async function GET(
 
         return NextResponse.json(responseData);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(`Distributor: Failed to get order ${orderId}:`, error);
         if (error.message?.includes('Server configuration error')) {
              return NextResponse.json({ message: error.message }, { status: 500 });

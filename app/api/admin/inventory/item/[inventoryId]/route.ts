@@ -33,7 +33,7 @@ export async function PUT(
     }
 
     const adminUserId = authResult.userId;
-    console.log(`PUT /api/admin/inventory/item/${inventoryId} request by admin: ${adminUserId}`);
+    
 
     const body: UpdateInventoryBody = await request.json();
     const { quantity, reason } = body;
@@ -56,7 +56,7 @@ export async function PUT(
     const oldQuantity = currentInventory[0].quantity;
 
     // --- Update Inventory in DB ---
-    console.log(`Updating inventory item ${inventoryId} from ${oldQuantity} to ${quantity}. Reason: ${trimmedReason}`);
+    
 
     const result = await sql`
         UPDATE inventory
@@ -66,16 +66,16 @@ export async function PUT(
 
     // Note: Neon sql tag doesn't reliably return rowCount for UPDATE.
     // We assume success if no error is thrown, but a SELECT check after could confirm.
-    console.log(`Inventory item ${inventoryId} update attempted.`);
+    
 
     // --- Log Adjustment ---
     // TODO: Implement proper logging to an audit table
     // Log: Timestamp, AdminUserID, InventoryID, ProductID, Location, OldQty, NewQty, Reason
-    console.log(`Placeholder: Log adjustment for inventory item ${inventoryId} (Product: ${currentInventory[0].product_id}, Loc: ${currentInventory[0].location}) by Admin ${adminUserId}. Old: ${oldQuantity}, New: ${quantity}, Reason: ${trimmedReason}`);
+     by Admin ${adminUserId}. Old: ${oldQuantity}, New: ${quantity}, Reason: ${trimmedReason}`);
 
     return NextResponse.json({ message: `Inventory ${inventoryId} updated successfully to quantity ${quantity}.` });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
      if (error instanceof SyntaxError) {
         return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
     }

@@ -91,8 +91,7 @@ export async function POST(request: NextRequest) {
       addRandomSuffix: false, // Use our own unique naming scheme
     });
 
-    console.log(`File uploaded successfully: ${url}`);
-
+    
     return NextResponse.json({ url });
   } catch (error) {
     console.error('Error uploading file:', error);

@@ -93,7 +93,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { produc
         logger.info('Admin: Product updated successfully', { productId, adminId: authResult.userId });
         return NextResponse.json(updatedProduct);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Admin: Failed to update product ${params.productId}:`, { error });
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
@@ -130,7 +130,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { produ
         logger.info('Admin: Product deactivated successfully', { productId, adminId: authResult.userId });
         return NextResponse.json({ message: `Product ${productId} deactivated successfully.` }); // Use 200 OK or 204 No Content
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Admin: Failed to deactivate product ${params.productId}:`, { error });
         if (error.message?.includes('not found')) {
              return NextResponse.json({ message: error.message }, { status: 404 });

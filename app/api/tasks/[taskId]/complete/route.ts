@@ -4,13 +4,13 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 // Re-use or adapt access check logic
 async function checkTaskAccess(taskId: string, userId: string, userRole: string): Promise<boolean> {
-  console.log(`Checking access for task ${taskId} by user ${userId} (Role: ${userRole})`);
+  `);
   return true; // Placeholder
 }
 
 export async function POST(
     request: NextRequest, 
-    context: any // Applying workaround universally
+    context: unknown // Applying workaround universally
 ) {
   const taskId = context?.params?.taskId as string | undefined;
   if (!taskId) {
@@ -27,7 +27,7 @@ export async function POST(
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
-    console.log(`Complete task request for ID: ${taskId}`);
+    
 
     // --- Complete Task Logic Here ---
     // ...

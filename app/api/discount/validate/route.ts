@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
           : `$${discountCode.discount_value.toFixed(2)} off`
       }`
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error validating discount code:', error);
     return NextResponse.json(
       { message: error.message || 'Internal Server Error' },

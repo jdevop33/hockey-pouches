@@ -30,7 +30,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
     }
 
     const adminUserId = authResult.userId;
-    console.log(`POST /api/admin/orders/${orderId}/ship request by admin: ${adminUserId}`);
+    
 
     // Tracking number might already be on the order from fulfillment step,
     // but allow overriding/adding it here via optional body.
@@ -57,9 +57,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
     }
 
     const newStatus = 'Shipped';
-    console.log(
-      `Updating order ${orderId} status to ${newStatus} with tracking: ${finalTrackingNumber || 'N/A'}`
-    );
+    
 
     await sql`
         UPDATE orders
@@ -96,7 +94,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
 
     // Calculate referral commissions for this order
     try {
-      console.log(`Calculating referral commissions for order ${orderId}`);
+      
 
       // Call the commission calculation endpoint
       const commissionResponse = await fetch(
@@ -112,7 +110,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
 
       if (commissionResponse.ok) {
         const commissionResult = await commissionResponse.json();
-        console.log(`Commission calculation result:`, commissionResult);
+        
       } else {
         console.error(
           `Failed to calculate commissions for order ${orderId}:`,
@@ -125,7 +123,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
     }
 
     // Trigger Notifications: Send shipping confirmation email to customer
-    console.log(`Sending shipping email to customer ${customerUserId} for order ${orderId}`);
+    
 
     try {
       // Get customer details
@@ -145,9 +143,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
           trackingNumber: finalTrackingNumber || undefined,
           trackingUrl: body.trackingUrl || undefined,
         });
-        console.log(
-          `Shipping confirmation email sent to customer ${customerUserId} for order ${orderId}`
-        );
+        
       }
     } catch (emailError) {
       // Log the error but don't fail the request
@@ -155,7 +151,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
     }
 
     // Calculate & Record Commissions
-    console.log(`Calculating commissions for order ${orderId}`);
+    
 
     // Get order details including referral code
     const orderDetails = await sql`
@@ -207,8 +203,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
             )
           `;
 
-          console.log(
-            `Created commission of $${commissionAmount.toFixed(2)} for user ${referrerUserId} from order ${orderId}`
+          } for user ${referrerUserId} from order ${orderId}`
           );
 
           // Create task for admin to review commission

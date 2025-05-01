@@ -38,7 +38,7 @@ export function getPoolStats(): PoolStats {
  * @param callback Function that executes queries with the connection
  * @returns Result of the callback function
  */
-export async function withConnection<T>(callback: (client: any) => Promise<T>): Promise<T> {
+export async function withConnection<T>(callback: (client: unknown) => Promise<T>): Promise<T> {
   const client = await pool.connect();
 
   try {
@@ -53,7 +53,7 @@ export async function withConnection<T>(callback: (client: any) => Promise<T>): 
  * @param callback Function that executes queries within the transaction
  * @returns Result of the callback function
  */
-export async function withTransaction<T>(callback: (client: any) => Promise<T>): Promise<T> {
+export async function withTransaction<T>(callback: (client: unknown) => Promise<T>): Promise<T> {
   return withConnection(async client => {
     try {
       await client.query('BEGIN');

@@ -30,7 +30,7 @@ export default function ProductsContent() {
         // Handle the API response structure (assuming it matches ProductListResult)
         if (data.products && Array.isArray(data.products)) {
           // Ensure price is a number before setting state
-          const formattedProducts = data.products.map((p: any) => ({
+          const formattedProducts = data.products.map((p: unknown) => ({
             ...p,
             price: typeof p.price === 'string' ? parseFloat(p.price) : p.price,
           }));

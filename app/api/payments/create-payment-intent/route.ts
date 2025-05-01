@@ -19,6 +19,25 @@ import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
 // Use central schema index
 import { eq, and } from 'drizzle-orm';
 import { cartService } from '@/lib/services/cart-service'; // Use refactored cart service
@@ -114,7 +133,7 @@ export async function POST(request: NextRequest) {
         const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
         logger.info('Stripe payment intent created successfully', { userId, paymentIntentId: paymentIntent.id });
         return NextResponse.json({ clientSecret: paymentIntent.client_secret });
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error('Error creating payment intent:', { error: error?.message ?? error });
          if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

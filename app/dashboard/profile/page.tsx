@@ -90,7 +90,7 @@ export default function ProfilePage() {
       return;
     }
 
-    console.log('Updating profile:', updatePayload);
+    
     try {
       const response = await fetch('/api/users/me', {
         method: 'PUT',

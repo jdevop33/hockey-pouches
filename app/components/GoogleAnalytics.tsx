@@ -8,7 +8,7 @@ import { useEffect, Suspense, memo } from 'react';
 declare global {
   interface Window {
     gtag: (command: string, target: string, config?: Record<string, any>) => void;
-    dataLayer: any[];
+    dataLayer: unknown[];
   }
 }
 
@@ -37,7 +37,7 @@ const shouldLoadGA = () => {
 // Debounce function to limit GA events
 const debounce = (func: Function, wait: number) => {
   let timeout: NodeJS.Timeout;
-  return function executedFunction(...args: any[]) {
+  return function executedFunction(...args: unknown[]) {
     const later = () => {
       clearTimeout(timeout);
       func(...args);

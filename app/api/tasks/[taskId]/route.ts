@@ -3,13 +3,13 @@ import { NextResponse, type NextRequest } from 'next/server';
 // import { getTaskDetails, updateTask } from '@/lib/taskService';
 
 async function checkTaskAccess(taskId: string, userId: string, userRole: string): Promise<boolean> {
-  console.log(`Checking access for task ${taskId} by user ${userId} (Role: ${userRole})`);
+  `);
   return true; // Placeholder
 }
 
 export async function GET(
     request: NextRequest, 
-    context: any // Applying workaround universally
+    context: unknown // Applying workaround universally
 ) {
   const taskId = context?.params?.taskId as string | undefined;
   if (!taskId) {
@@ -23,7 +23,7 @@ export async function GET(
     if (!canAccess) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
-    console.log(`Get task details request - Task ID: ${taskId}`);
+    
     const dummyTask = {
       taskId: taskId,
       title: 'Specific Task Title',
@@ -46,7 +46,7 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest, 
-    context: any // Applying workaround universally
+    context: unknown // Applying workaround universally
 ) {
   const taskId = context?.params?.taskId as string | undefined;
   if (!taskId) {
@@ -61,9 +61,9 @@ export async function PUT(
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
     const body = await request.json();
-    console.log(`Update task request for ID: ${taskId}`, body);
+    
     return NextResponse.json({ message: `Task ${taskId} updated successfully` });
-  } catch (error: any) {
+  } catch (error: unknown) {
      if (error instanceof SyntaxError) {
         return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
     }

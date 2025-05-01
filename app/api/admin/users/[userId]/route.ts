@@ -25,7 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
             return NextResponse.json({ message: 'User not found.' }, { status: 404 });
         }
         return NextResponse.json(user);
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Admin: Failed to get user ${params.userId}:`, { error });
         return NextResponse.json({ message: 'Internal Server Error fetching user details.' }, { status: 500 });
     }
@@ -58,7 +58,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { userId
         const updatedUser = await userService.updateUser(userId, updateData as UpdateUserParams);
         logger.info('Admin: User updated successfully', { userId, adminId: authResult.userId });
         return NextResponse.json(updatedUser);
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Admin: Failed to update user ${params.userId}:`, { error });
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

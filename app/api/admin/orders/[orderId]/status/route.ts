@@ -37,7 +37,7 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
       return forbiddenResponse('Only administrators can access this resource');
     }
     const adminUserId = authResult.userId;
-    console.log(`PUT /api/admin/orders/${orderId}/status request by admin: ${adminUserId}`);
+    
     const body: StatusUpdateBody = await request.json();
     const { status: newStatus, reason } = body;
     // Validation
@@ -62,20 +62,16 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
     if (orderCheck.length === 0)
       return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
     const currentStatus = orderCheck[0].status;
-    console.log(
-      `Attempting to manually update order ${orderId} from ${currentStatus} to ${newStatus}. Reason: ${reason}`
-    );
+    
     // Update Order Status
     await sql`
         UPDATE orders SET status = ${newStatus}, updated_at = CURRENT_TIMESTAMP WHERE id = ${orderId}
     `;
     // TODO: Log Action in order_history
-    console.log(
-      `Placeholder: Log manual status change for order ${orderId} to ${newStatus} by Admin ${adminUserId} with reason: ${reason}`
-    );
+    
     // --- CRITICAL: Handle Side Effects ---
     if (newStatus === 'Cancelled') {
-      console.log(`Processing side effects for cancelled order ${orderId}`);
+      
       try {
         // Restock inventory
         const orderItems = await sql`
@@ -99,13 +95,13 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
                         WHERE product_id = ${item.product_id}
                         AND location = ${location}
                     `;
-            console.log(`Restocked ${item.quantity} of product ${item.product_id} at ${location}`);
+            
           }
         }
         // Cancel commissions
         const { cancelCommissionsForOrder } = await import('@/lib/commission');
         const commissionResult = await cancelCommissionsForOrder(orderId);
-        console.log(`Commission cancellation result:`, commissionResult);
+        
       } catch (sideEffectError) {
         console.error(
           `Error processing side effects for cancelled order ${orderId}:`,
@@ -115,7 +111,7 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
       }
     }
     if (newStatus === 'Refunded') {
-      console.log(`Processing side effects for refunded order ${orderId}`);
+      
       try {
         // Get payment information
         const paymentInfo = await sql`
@@ -147,13 +143,13 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
                             ${orderId}
                         )
                     `;
-            console.log(`Created refund task for order ${orderId}`);
+            
           }
         }
         // Cancel commissions (same as for cancelled orders)
         const { cancelCommissionsForOrder } = await import('@/lib/commission');
         const commissionResult = await cancelCommissionsForOrder(orderId);
-        console.log(`Commission cancellation result:`, commissionResult);
+        
       } catch (sideEffectError) {
         console.error(
           `Error processing side effects for refunded order ${orderId}:`,
@@ -164,7 +160,7 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
     }
     // Handle commission calculation for shipped orders
     if (newStatus === 'Shipped') {
-      console.log(`Processing commissions for shipped order ${orderId}`);
+      
       try {
         // Get order details including referral code and total amount
         const orderDetails = await sql`
@@ -183,7 +179,7 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
               parseFloat(total_amount),
               referred_by_code
             );
-            console.log(`Referral commission result:`, referralResult);
+            
           }
           // Calculate distributor fulfillment commission if applicable
           // First check if a distributor was assigned to this order
@@ -200,7 +196,7 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
               parseFloat(total_amount),
               distributorAssignment[0].distributor_id
             );
-            console.log(`Fulfillment commission result:`, fulfillmentResult);
+            
           }
         }
       } catch (commissionError) {
@@ -211,7 +207,7 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
     return NextResponse.json({
       message: `Order ${orderId} status manually updated to ${newStatus}.`,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof SyntaxError)
       return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
     console.error(`Admin: Failed to manually update status for order ${orderId}:`, error);

@@ -145,7 +145,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { invent
       adminId: authResult.userId,
     });
     return NextResponse.json(updatedStockLevel);
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(`Admin: Failed to adjust inventory for ${params.inventoryId}:`, { error });
     if (error instanceof SyntaxError) {
       return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

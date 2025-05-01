@@ -28,7 +28,7 @@ export interface PaymentResult {
     transactionId?: string;
     status: PaymentStatus; // Use the enum-derived type
     message: string;
-    error?: any;
+    error?: unknown;
 }
 /**
  * Confirm a manual payment (e-transfer or Bitcoin).

@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Log the web vitals data
-    console.log('Web Vitals:', body);
+    
 
     // Here you could send the data to your analytics service
     // For example:

@@ -57,6 +57,18 @@ async function main() {
     log('Step 4: Fixing import paths in client components...');
     runCommand('node scripts/fix-import-paths.mjs');
 
+    // 5. Fix image issues
+    log('Step 5: Fixing image issues...');
+    runCommand('node scripts/fix-image-issues.mjs');
+
+    // 6. Fix missing product images
+    log('Step 6: Creating any missing product images...');
+    runCommand('node scripts/fix-missing-product-images.mjs');
+
+    // 7. Fix lint issues
+    log('Step 7: Fixing lint issues...');
+    runCommand('node scripts/fix-lint-issues.mjs');
+
     log('All preparation steps completed successfully!');
     log('Ready for Next.js build.');
 

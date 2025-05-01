@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: { applicat
         }
         return NextResponse.json(application);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Admin: Failed to get wholesale application ${params.applicationId}:`, { error });
         return NextResponse.json({ message: 'Internal Server Error fetching application.' }, { status: 500 });
     }
@@ -74,7 +74,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { applic
         logger.info('Admin: Wholesale application updated successfully', { applicationId, status, adminId: authResult.userId });
         return NextResponse.json(updatedApplication);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Admin: Failed to update wholesale application ${params.applicationId}:`, { error });
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

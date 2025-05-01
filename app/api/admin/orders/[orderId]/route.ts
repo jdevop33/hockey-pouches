@@ -50,7 +50,7 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
             return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
         }
         return NextResponse.json(orderDetails);
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Admin: Failed to get order ${params.orderId}:`, { error });
         return NextResponse.json({ message: 'Internal Server Error fetching order details.' }, { status: 500 });
     }
@@ -103,7 +103,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { orderI
         }
         logger.info('Admin: Order updated successfully', { orderId, adminId: authResult.userId });
         return NextResponse.json(updatedOrder);
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Admin: Failed to update order ${params.orderId}:`, { error });
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

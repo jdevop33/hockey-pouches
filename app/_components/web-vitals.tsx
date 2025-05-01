@@ -5,7 +5,7 @@ import { useReportWebVitals } from 'next/web-vitals';
 export function WebVitals() {
   useReportWebVitals(metric => {
     // You can send the metrics to your analytics service
-    // console.log(metric);
+    // 
 
     // Example: send to Google Analytics if available
     if (typeof window !== 'undefined' && window.gtag) {

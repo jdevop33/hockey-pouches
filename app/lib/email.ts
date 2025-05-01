@@ -85,7 +85,7 @@ export const sendEmail = async (options: EmailOptions) => {
     }
 
     const result = await response.json();
-    console.log('Email sent successfully:', result.id);
+    
     return { success: true, messageId: result.id };
   } catch (error) {
     console.error('Error sending email:', error);

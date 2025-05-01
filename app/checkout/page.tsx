@@ -284,7 +284,7 @@ export default function CheckoutPage() {
       paymentMethod: paymentMethod,
       discountCode: appliedDiscount?.code || null,
     };
-    console.log('Placing order with data:', orderData);
+    
 
     try {
       const response = await fetch('/api/orders', {
@@ -306,7 +306,7 @@ export default function CheckoutPage() {
       }
       const result = await response.json();
       const orderId = result.orderId;
-      console.log('Order placed successfully:', result);
+      
 
       clearCart();
       setOrderSuccess(true);

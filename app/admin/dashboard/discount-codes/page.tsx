@@ -83,7 +83,7 @@ export default function DiscountCodesPage() {
           code.id === id ? { ...code, is_active: !currentStatus } : code
         )
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       setActionError(err.message || 'An error occurred while updating the discount code');
       console.error('Error toggling discount code status:', err);
     }
@@ -113,7 +113,7 @@ export default function DiscountCodesPage() {
 
       // Remove the deleted code from the local state
       setDiscountCodes(prevCodes => prevCodes.filter(code => code.id !== id));
-    } catch (err: any) {
+    } catch (err: unknown) {
       setActionError(err.message || 'An error occurred while deleting the discount code');
       console.error('Error deleting discount code:', err);
     }
@@ -168,7 +168,7 @@ export default function DiscountCodesPage() {
             totalPages: data.pagination.totalPages || 1,
           });
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError(err.message || 'An error occurred while loading discount codes');
         console.error('Error loading discount codes:', err);
       } finally {

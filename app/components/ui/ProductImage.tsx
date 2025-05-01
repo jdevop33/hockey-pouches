@@ -63,7 +63,7 @@ const ProductImage: React.FC<ProductImageProps> = ({
   // Debug info (remove in production)
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log(`ProductImage: ${src} → ${normalizedSrc} → ${imageSrc}`);
+      
     }
   }, [src, normalizedSrc, imageSrc]);
 

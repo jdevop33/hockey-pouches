@@ -19,7 +19,7 @@ const Navigation: React.FC = () => {
 
   const toggleMenu = () => {
     setIsMenuOpen(prevState => !prevState);
-    console.log('Menu toggled:', !isMenuOpen); // Debug log
+     // Debug log
   };
 
   const navItems: NavItem[] = [

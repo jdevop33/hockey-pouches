@@ -77,11 +77,11 @@ export default function AdminInventoryPage() {
     async (page = pagination.page) => {
       // Ensure token/user are available before fetching
       if (!token || !user) {
-        console.log('Inventory: Skipping fetch, no user/token');
+        
         setIsLoadingData(false); // Stop loading if auth isn't ready
         return;
       }
-      console.log(`Inventory: Loading page ${page} with location filter: '${filterLocation}'`);
+      
       setIsLoadingData(true);
       setError(null);
       setActionError(null);
@@ -178,7 +178,7 @@ export default function AdminInventoryPage() {
     setIsAdjusting(item.inventoryId);
     setActionError(null);
 
-    console.log(`Calling API: PUT /api/admin/inventory/item/${item.inventoryId}`);
+    
     try {
       const response = await fetch(`/api/admin/inventory/item/${item.inventoryId}`, {
         method: 'PUT',

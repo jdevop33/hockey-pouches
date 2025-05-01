@@ -59,7 +59,7 @@ export interface ApplyWholesaleParams {
   business_number?: string | null;
   website?: string | null;
   phone_number?: string | null;
-  address?: any;
+  address?: unknown;
   notes?: string | null;
 }
 export interface ApplyWholesaleResult {

@@ -118,7 +118,7 @@ export default function AdminOrderDetailPage() {
     setActionError(null);
     try {
       // Fetch order details from the implemented API endpoint
-      console.log(`Fetching order details from: /api/admin/orders/${orderId}`);
+      
       const orderResponse = await fetch(`/api/admin/orders/${orderId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -135,7 +135,7 @@ export default function AdminOrderDetailPage() {
         throw new Error(errData.message || `Failed to fetch order (${orderResponse.status})`);
       }
       const orderData = await orderResponse.json();
-      console.log('Order data received:', orderData);
+      
       setOrder(orderData as AdminOrderDetails);
       setSelectedDistributor(orderData.assigned_distributor_id || '');
 
@@ -149,7 +149,7 @@ export default function AdminOrderDetailPage() {
       } else {
         const distData = await distResponse.json();
         setAvailableDistributors(distData.users || []);
-        console.log('Distributors fetched:', distData.users?.length || 0);
+        
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load order data.');
@@ -196,7 +196,7 @@ export default function AdminOrderDetailPage() {
       }
     }
 
-    console.log(`Performing action: ${action} on order ${orderId}`);
+    
     try {
       const response = await fetch(endpoint, {
         method: method,
@@ -213,7 +213,7 @@ export default function AdminOrderDetailPage() {
         throw new Error(errorData.message || `Action '${action}' failed (${response.status})`);
       }
       const result = await response.json();
-      console.log('Action successful:', result);
+      
       alert(`Action '${action}' successful! Refreshing data...`);
       await loadOrderData(); // Re-fetch data to update UI
     } catch (err: unknown) {

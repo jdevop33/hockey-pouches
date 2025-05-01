@@ -28,7 +28,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ message: 'Discount code not found.' }, { status: 404 });
     }
     return NextResponse.json(discountCode);
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(`Admin: Failed to get discount code ${params.id}:`, { error });
     return NextResponse.json(
       { message: 'Internal Server Error fetching discount code.' },
@@ -95,7 +95,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       adminId: authResult.userId,
     });
     return NextResponse.json(updatedDiscountCode);
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(`Admin: Failed to update discount code ${params.id}:`, { error });
     if (error instanceof SyntaxError) {
       return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
@@ -138,7 +138,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       adminId: authResult.userId,
     });
     return new NextResponse(null, { status: 204 }); // No Content
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(`Admin: Failed to delete discount code ${params.id}:`, { error });
     if (error.message?.includes('not found')) {
       return NextResponse.json({ message: error.message }, { status: 404 });

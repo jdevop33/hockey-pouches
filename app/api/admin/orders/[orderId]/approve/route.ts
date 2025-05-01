@@ -39,7 +39,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
             message: `Order ${orderId} approved. Status updated to ${approvedStatus}.`,
             order: updatedOrder, // Return updated order data
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Admin: Failed to approve order ${params.orderId}:`, { error });
         // Handle specific errors from service (e.g., not found, invalid transition)
         if (error.message?.includes('not found') || error.message?.includes('Invalid status transition')) {

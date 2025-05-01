@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       page, limit, role: role ?? undefined, status: status ?? undefined, search: search ?? undefined,
     });
     return NextResponse.json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Admin: Failed to get users list:', { error });
     return NextResponse.json({ message: 'Internal Server Error fetching users.' }, { status: 500 });
   }

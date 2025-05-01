@@ -40,9 +40,7 @@ export async function GET(request: NextRequest) {
     }
 
     const adminUserId = authResult.userId;
-    console.log(
-      `Admin GET /api/admin/commissions/pending - Admin: ${adminUserId}, Page: ${page}, Limit: ${limit}, User: ${userIdFilter}`
-    );
+    
 
     // Query using SQL tagged templates instead of string interpolation
     let commissionsQuery;
@@ -93,7 +91,7 @@ export async function GET(request: NextRequest) {
       commissions: commissions,
       pagination: { page, limit, total: totalPending, totalPages },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Admin: Failed to get pending commissions:', error);
     return NextResponse.json(
       { message: error.message || 'Internal Server Error' },

@@ -55,7 +55,7 @@ export default function AdminTasksPage() {
                    });
                    if (!response.ok) throw new Error('Failed to fetch users');
                    const data = await response.json();
-                   setAssignableUsers(data.users?.map((u: any) => ({ id: u.id, name: u.name })) || []);
+                   setAssignableUsers(data.users?.map((u: unknown) => ({ id: u.id, name: u.name })) || []);
               } catch (err) {
                    console.error("Failed to fetch assignable users:", err);
               }
@@ -89,7 +89,7 @@ export default function AdminTasksPage() {
                 const data = await response.json();
                 setTasks(data.tasks || []);
                 setPagination(data.pagination || { page: 1, limit: 15, total: 0, totalPages: 1 });
-            } catch (err: any) {
+            } catch (err: unknown) {
                 setError(err.message || 'Failed to load tasks.');
                 console.error(err);
             } finally {

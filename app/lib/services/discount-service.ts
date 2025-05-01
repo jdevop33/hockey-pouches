@@ -138,7 +138,7 @@ export class DiscountService {
   }> {
     /* ... implementation ... */
   }
-  async incrementDiscountCodeUsage(code: string, transaction?: any): Promise<boolean> {
+  async incrementDiscountCodeUsage(code: string, transaction?: unknown): Promise<boolean> {
     const dbOrTx = transaction ?? db;
     try {
       const result = await dbOrTx

@@ -36,12 +36,12 @@ export async function cachedQuery<T>(
   const cachedResult = queryCache[queryKey];
 
   if (cachedResult && cachedResult.expiresAt > Date.now()) {
-    console.log(`Cache hit for query: ${queryKey}`);
+    
     return cachedResult.data as T;
   }
 
   // Execute the query
-  console.log(`Cache miss for query: ${queryKey}`);
+  
   try {
     const data = await queryFn();
 
@@ -65,7 +65,7 @@ export async function cachedQuery<T>(
  */
 export function invalidateCache(queryKey: string): void {
   delete queryCache[queryKey];
-  console.log(`Cache invalidated for query: ${queryKey}`);
+  
 }
 
 /**
@@ -73,7 +73,7 @@ export function invalidateCache(queryKey: string): void {
  */
 export function invalidateAllCache(): void {
   Object.keys(queryCache).forEach(key => delete queryCache[key]);
-  console.log('All cache entries invalidated');
+  
 }
 
 /**
@@ -84,7 +84,7 @@ export function invalidateCacheByPrefix(prefix: string): void {
   Object.keys(queryCache)
     .filter(key => key.startsWith(prefix))
     .forEach(key => delete queryCache[key]);
-  console.log(`Cache entries with prefix ${prefix} invalidated`);
+  
 }
 
 /**
@@ -135,12 +135,12 @@ export function buildPaginationQuery({
   `;
 
   // Debug logging
-  console.log('Building Pagination Query:');
-  console.log('- Table:', table);
-  console.log('- Where Conditions:', whereConditions);
-  console.log('- Parameter Count:', whereParams.length);
-  console.log('- Order By:', orderBy);
-  console.log('- Page:', validPage, 'Limit:', validLimit, 'Offset:', offset);
+  
+  
+  
+  
+  
+  
 
   return {
     query,

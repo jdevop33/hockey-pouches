@@ -231,7 +231,7 @@ export default function AdminProductDetailPage() {
       return;
     }
 
-    console.log('Saving changes...', payload);
+    
     try {
       const response = await fetch(`/api/admin/products/${productId}`, {
         method: 'PUT',

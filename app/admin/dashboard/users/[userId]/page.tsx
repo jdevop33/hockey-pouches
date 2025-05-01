@@ -50,7 +50,7 @@ export default function AdminUserDetailPage() {
     setError(null);
     setActionError(null);
     try {
-      console.log(`Fetching user data for ID: ${userId}`);
+      
       const response = await fetch(`/api/admin/users/${userId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -61,10 +61,10 @@ export default function AdminUserDetailPage() {
           throw new Error(errData.message || `Failed to fetch user (${response.status})`);
       }
       const data = await response.json();
-      console.log("User data received:", data);
+      
       setUser(data as AdminUserDetails);
       setEditData(data); // Initialize edit form state
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || 'Failed to load user details.');
       console.error(err);
     } finally {
@@ -101,7 +101,7 @@ export default function AdminUserDetailPage() {
           setIsEditing(false); setIsActionLoading(false); return; // No changes
       }
       
-      console.log(`Saving user changes for ${userId}:`, payload);
+      
       try {
           const response = await fetch(`/api/admin/users/${userId}`, {
               method: 'PUT',
@@ -116,7 +116,7 @@ export default function AdminUserDetailPage() {
           alert('User updated successfully! Reloading data...');
           setIsEditing(false);
           await loadUserData(); // Refresh data
-      } catch (err: any) {
+      } catch (err: unknown) {
           setActionError(err.message || 'Could not update user.');
           console.error(err);
       } finally {
@@ -132,7 +132,7 @@ export default function AdminUserDetailPage() {
       setIsActionLoading(true);
       setActionError(null);
       const endpoint = `/api/admin/users/${userId}/${action}`;
-      console.log(`Calling ${action} endpoint for user ${userId}...`);
+      
       try {
           const response = await fetch(endpoint, {
               method: 'POST',
@@ -145,7 +145,7 @@ export default function AdminUserDetailPage() {
           }
           alert(`User ${action}d successfully! Reloading data...`);
           await loadUserData(); // Refresh data
-      } catch (err: any) {
+      } catch (err: unknown) {
            setActionError(err.message || `Failed to ${action} user.`);
            console.error(err);
       } finally {

@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
             inventory: inventoryResult as InventoryViewItem[],
             pagination: { page, limit, total: totalItems, totalPages },
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error('Admin: Failed to get inventory list:', { error });
         return NextResponse.json({ message: 'Internal Server Error fetching inventory.' }, { status: 500 });
     }

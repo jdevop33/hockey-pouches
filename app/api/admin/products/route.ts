@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     // Return the newly created product data
     return NextResponse.json(newProduct, { status: 201 });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Admin: Failed to create product:', { error });
     if (error instanceof SyntaxError) {
         return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

@@ -39,7 +39,7 @@ interface TaskRow {
 
 export async function GET(request: NextRequest) {
   // TODO: Admin Auth Check
-  console.log('GET /api/admin/tasks request');
+  
 
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
 // --- POST Handler (Create New Task by Admin) ---
 export async function POST(request: NextRequest) {
   // TODO: Add Admin Auth Check
-  console.log('POST /api/admin/tasks request');
+  
 
   try {
     const body = await request.json();
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
     }
     // TODO: Add validation for status, priority, assignedUserId (exists?), relatedTo format, date format?
 
-    console.log('Creating new task:', body);
+    
 
     // Insert new task
     const result = await sql`
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
     if (!newTaskId) {
       throw new Error('Failed to create task.');
     }
-    console.log('New task created with ID:', newTaskId);
+    
 
     // Fetch the created task to return it
     // (Might need the complex query from GET handler)
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
     // TODO: Re-map newTask to AdminTaskList type if necessary
 
     return NextResponse.json(newTask[0], { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof SyntaxError)
       return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
     console.error('Admin: Failed to create task:', error);

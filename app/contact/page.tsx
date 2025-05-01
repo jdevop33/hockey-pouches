@@ -30,7 +30,7 @@ export default function ContactPage() {
   const onSubmit = async (data: FormData) => {
     // Check if honeypot field is filled (spam bot)
     if (data.honeypot) {
-      console.log('Spam detected');
+      
       setIsSubmitted(true);
       return;
     }

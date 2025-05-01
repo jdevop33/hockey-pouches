@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     const result = await commissionService.listCommissions(options);
 
     return NextResponse.json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Admin: Failed to get commissions list:', { error });
     return NextResponse.json(
       { message: 'Internal Server Error fetching commissions.' },

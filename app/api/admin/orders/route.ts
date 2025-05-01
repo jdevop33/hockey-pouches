@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
             search: search ?? undefined,
         });
         return NextResponse.json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error('Admin: Failed to get orders list:', { error });
         return NextResponse.json({ message: 'Internal Server Error fetching orders.' }, { status: 500 });
     }

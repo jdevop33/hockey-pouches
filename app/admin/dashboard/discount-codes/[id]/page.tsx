@@ -95,7 +95,7 @@ export default function DiscountCodeFormPage() {
           usageLimit: data.usage_limit?.toString() || '',
           isActive: data.is_active,
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError(err.message || 'An error occurred while loading the discount code');
         console.error('Error loading discount code:', err);
       } finally {
@@ -231,7 +231,7 @@ export default function DiscountCodeFormPage() {
       
       // Redirect back to discount codes list
       router.push('/admin/dashboard/discount-codes');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || 'An error occurred while saving the discount code');
       console.error('Error saving discount code:', err);
     } finally {

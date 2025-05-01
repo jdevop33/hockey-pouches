@@ -93,7 +93,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { variat
         logger.info('Admin: Variation updated successfully', { variationId: variationIdNum, adminId: authResult.userId });
         return NextResponse.json(updatedVariation);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Admin: Failed to update variation ${params.variationId}:`, { error });
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
@@ -135,7 +135,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { varia
         // Return 204 No Content for successful deletions
         return new NextResponse(null, { status: 204 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Admin: Failed to delete variation ${params.variationId}:`, { error });
          if (error.message?.includes('not found')) {
              return NextResponse.json({ message: error.message }, { status: 404 });

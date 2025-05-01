@@ -40,18 +40,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Construct the full path including the desired folder
     const blobPathname = `fulfillment_proof/${filename}`;
-    console.log(`Attempting to upload blob to: ${blobPathname}`);
+    
     
     // Corrected: Pass pathname directly in options
     const blob = await put(blobPathname, fileBody, {
       access: 'public',
       // contentType: request.headers.get('content-type') || undefined, // Optional
     });
-    console.log('Blob upload successful:', blob.url);
+    
 
     return NextResponse.json(blob);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Blob upload failed:', error);
     return NextResponse.json(
       { message: `Blob upload failed: ${error.message}` },

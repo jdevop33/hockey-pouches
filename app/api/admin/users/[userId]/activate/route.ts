@@ -16,7 +16,7 @@ export async function POST(request: NextRequest, { params }: { params: { userId:
       return NextResponse.json({ message: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    console.log(`Admin: Activate user request for ID: ${userId}`);
+    
 
     // First, check if user exists and get their current status and role
     const userResult = await sql`
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest, { params }: { params: { userId:
     // If user was pending approval, send them a notification email
     if (user.status === 'Pending Approval') {
       // TODO: Add email notification logic here
-      console.log(`Email notification logic would go here for approved user ${userId}`);
+      
 
       // Create user notification
       await sql`

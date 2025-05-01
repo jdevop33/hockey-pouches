@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
         const result = await discountService.listDiscountCodes(options);
         return NextResponse.json(result);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error('Admin: Error fetching discount codes:', { error });
         return NextResponse.json({ message: 'Internal Server Error fetching discount codes.' }, { status: 500 });
     }
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         logger.info('Admin: Discount code created successfully', { codeId: newDiscountCode.id, adminId: authResult.userId });
         return NextResponse.json(newDiscountCode, { status: 201 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error('Admin: Error creating discount code:', { error });
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

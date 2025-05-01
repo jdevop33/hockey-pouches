@@ -52,7 +52,7 @@ export const POST = withRateLimit(
                     requiresApproval: requiresApproval,
                 },{ status: 201 }
             );
-        } catch (error: any) {
+        } catch (error: unknown) {
             logger.error('Registration failed', {}, error);
             if (error instanceof SyntaxError) {
                 return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });

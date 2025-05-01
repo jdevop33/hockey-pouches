@@ -275,9 +275,7 @@ export default function OrderDetailPage() {
         if (!response.ok) {
           if (response.status === 401 || response.status === 403 || response.status === 404) {
             // Unauthorized, Forbidden, or Not Found
-            console.log(
-              'Order detail: Auth token invalid or order not found/accessible, logging out.'
-            );
+            
             logout();
             router.push('/login');
             return;
@@ -286,7 +284,7 @@ export default function OrderDetailPage() {
         }
         const data = await response.json();
         setOrder(data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError(err.message || 'Failed to load order details.');
         console.error(err);
       } finally {

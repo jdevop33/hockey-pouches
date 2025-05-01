@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
         logger.info(`Found ${result.pagination.total} tasks for user`, { userId });
         return NextResponse.json(result);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         // Catch potential errors if taskService isn't implemented
         if (error.message?.includes('not implemented') || error.message?.includes('taskService.listUserTasks is not a function')){
              logger.error('TaskService.listUserTasks not implemented', { userId });

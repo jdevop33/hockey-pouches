@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
             message: 'Referral code regenerated successfully',
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error('POST /api/users/me/referral-link error:', { error });
         if (error.message?.includes('not found')) {
             return NextResponse.json({ message: error.message }, { status: 404 });
