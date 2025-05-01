@@ -1,25 +1,13 @@
 // app/lib/services/product-service.ts (Exporting types)
 import { db } from '@/lib/db';
 import * as schema from '@/lib/schema';
-import {
-  eq,
-  and,
-  or,
-  asc,
-  desc,
-  gte,
-  lte,
-  gt,
-  ilike,
-  isNotNull,
-  sql,
-  count
-} from 'drizzle-orm';
+import { eq, and, or, asc, desc, gte, lte, gt, ilike, isNotNull, sql, count } from 'drizzle-orm';
 import { invalidateCache, invalidateAllCache } from '@/lib/dbOptimization';
 import { logger } from '@/lib/logger';
 import { type DbTransaction } from '@/lib/db-types';
 // --- Export needed types ---
 export type ProductSelect = typeof schema.products.$inferSelect;
+export type ProductInsert = typeof schema.products.$inferInsert;
 export type ProductVariationSelect = typeof schema.productVariations.$inferSelect;
 export type ProductWithVariations = ProductSelect & { variations: ProductVariationSelect[] };
 export interface ProductFilters {
@@ -91,10 +79,12 @@ export class ProductService {
       // Invalidate specific caches
       invalidateCache(this.CACHE_KEYS.PRODUCT_STATS);
 
-      if (productId) {
+      if (productId !== undefined) {
         invalidateCache(this.CACHE_KEYS.PRODUCT_BY_ID(productId));
-        invalidateCache(this.CACHE_KEYS.VARIATIONS_BY_PRODUCT(productId, true));
-        invalidateCache(this.CACHE_KEYS.VARIATIONS_BY_PRODUCT(productId, false));
+        // Ensure productId is string for VARIATIONS_BY_PRODUCT
+        const productIdStr = String(productId);
+        invalidateCache(this.CACHE_KEYS.VARIATIONS_BY_PRODUCT(productIdStr, true));
+        invalidateCache(this.CACHE_KEYS.VARIATIONS_BY_PRODUCT(productIdStr, false));
       }
     } catch (error) {
       logger.error('Error invalidating product caches', { error: error as Error });
@@ -104,12 +94,12 @@ export class ProductService {
     logger.info('Invalidating variation caches', { variationId, productId });
     try {
       // Call cache invalidation functions without awaiting
-      invalidateCache(this.CACHE_KEYS.VARIATION_BY_ID(Number(variationId)));
+      invalidateCache(this.CACHE_KEYS.VARIATION_BY_ID(Number(variationId))); // Ensure variationId is number
       invalidateCache(this.CACHE_KEYS.TOTAL_STOCK(variationId));
       invalidateAllCache();
 
       // Invalidate product caches if product ID is known
-      if (productId) {
+      if (productId !== undefined) {
         this.invalidateProductCaches(productId);
       } else {
         // If product ID unknown, clear broader caches as a fallback
@@ -121,15 +111,17 @@ export class ProductService {
   }
   // --- Methods (Add basic return types for placeholders) ---
   async getProductById(productId: string): Promise<ProductWithVariations | null> {
-    // TODO: Implement getProductById
-    return {} as ProductWithVariations | null;
-
     try {
       logger.info(`Getting product by ID: ${productId}`);
+      const productIdNum = parseInt(productId, 10);
+      if (isNaN(productIdNum)) {
+        logger.warn('Invalid product ID format', { productId });
+        return null;
+      }
 
       // Get the product
       const product = await db.query.products.findFirst({
-        where: eq(schema.products.id, productId),
+        where: eq(schema.products.id, productIdNum), // Use number ID
       });
 
       if (!product) {
@@ -138,21 +130,20 @@ export class ProductService {
       }
 
       // Get variations for the product
-      const variations = await this.getProductVariations(productId, true);
+      const variations = await this.getProductVariations(productId, true); // Keep string ID here
 
-      return {
+      // Ensure the returned object matches ProductWithVariations exactly
+      const result: ProductWithVariations = {
         ...product,
-        variations,
+        variations, // variations is already ProductVariationSelect[]
       };
+      return result;
     } catch (error) {
       logger.error(`Error getting product by ID: ${productId}`, { error });
       return null;
     }
   }
   async getProducts(options: ProductListOptions): Promise<ProductListResult> {
-    // TODO: Implement getProducts
-    return {} as ProductListResult;
-
     try {
       const {
         page = 1,
@@ -165,7 +156,7 @@ export class ProductService {
         search,
         includeInactive = false,
         sortBy = 'name',
-        sortOrder = 'asc'
+        sortOrder = 'asc',
       } = options;
 
       logger.info('Getting products with options', { options });
@@ -177,24 +168,24 @@ export class ProductService {
         conditions.push(eq(schema.products.isActive, true));
       }
 
-      if (category) {
-        conditions.push(eq(schema.products.category, category));
+      if (category !== undefined && category !== null) {
+        conditions.push(eq(schema.products.category, category!));
       }
 
-      if (flavor) {
-        conditions.push(eq(schema.products.flavor, flavor));
+      if (flavor !== undefined && flavor !== null) {
+        conditions.push(eq(schema.products.flavor, flavor!));
       }
 
-      if (strength) {
-        conditions.push(eq(schema.products.strength, strength));
+      if (strength !== undefined && strength !== null) {
+        conditions.push(eq(schema.products.strength, strength!));
       }
 
       if (minPrice !== undefined && minPrice !== null) {
-        conditions.push(gte(schema.products.price, minPrice.toString()));
+        conditions.push(gte(schema.products.price, minPrice!.toString()));
       }
 
       if (maxPrice !== undefined && maxPrice !== null) {
-        conditions.push(lte(schema.products.price, maxPrice.toString()));
+        conditions.push(lte(schema.products.price, maxPrice!.toString()));
       }
 
       if (search) {
@@ -229,14 +220,16 @@ export class ProductService {
           where: conditions.length > 0 ? and(...conditions) : undefined,
           limit,
           offset: (page - 1) * limit,
-          orderBy: sortOrder === 'asc' ? asc(schema.products.createdAt) : desc(schema.products.createdAt),
+          orderBy:
+            sortOrder === 'asc' ? asc(schema.products.createdAt) : desc(schema.products.createdAt),
         });
       } else if (sortBy === 'strength') {
         productsQuery = db.query.products.findMany({
           where: conditions.length > 0 ? and(...conditions) : undefined,
           limit,
           offset: (page - 1) * limit,
-          orderBy: sortOrder === 'asc' ? asc(schema.products.strength) : desc(schema.products.strength),
+          orderBy:
+            sortOrder === 'asc' ? asc(schema.products.strength) : desc(schema.products.strength),
         });
       } else {
         // Default to name if the specified column doesn't exist
@@ -250,9 +243,7 @@ export class ProductService {
 
       // For the total count query, we need to handle the where clause differently
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-      const totalQuery = db.select({ count: count() })
-        .from(schema.products)
-        .where(whereClause);
+      const totalQuery = db.select({ count: count() }).from(schema.products).where(whereClause);
 
       const [products, totalResult] = await Promise.all([productsQuery, totalQuery]);
 
@@ -271,135 +262,6 @@ export class ProductService {
       };
     } catch (error) {
       logger.error('Error getting products', { error });
-      return {
-        products: [],
-        pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
-        filters: {},
-        availableFilters: {},
-        sorting: {},
-      };
-    }
-
-    try {
-      const {
-        page = 1,
-        limit = 10,
-        category,
-        flavor,
-        strength,
-        minPrice,
-        maxPrice,
-        search,
-        includeInactive = false,
-        sortBy = 'name',
-        sortOrder = 'asc'
-      } = options;
-
-      logger.info('Getting products with options', { options });
-
-      const offset = (page - 1) * limit;
-
-      // Build where conditions
-      const conditions = [];
-
-      if (!includeInactive) {
-        conditions.push(eq(schema.products.isActive, true));
-      }
-
-      if (category) {
-        conditions.push(eq(schema.products.category, category));
-      }
-
-      if (flavor) {
-        conditions.push(eq(schema.products.flavor, flavor));
-      }
-
-      if (strength) {
-        conditions.push(eq(schema.products.strength, strength));
-      }
-
-      if (minPrice !== undefined && minPrice !== null) {
-        conditions.push(gte(schema.products.price, minPrice.toString()));
-      }
-
-      if (maxPrice !== undefined && maxPrice !== null) {
-        conditions.push(lte(schema.products.price, maxPrice.toString()));
-      }
-
-      if (search) {
-        conditions.push(
-          or(
-            ilike(schema.products.name, `%${search}%`),
-            ilike(schema.products.description || '', `%${search}%`)
-          )
-        );
-      }
-
-      // Execute query with conditions with safe sorting
-      let productsQuery;
-
-      // Handle sorting based on the column name
-      if (sortBy === 'name') {
-        productsQuery = db.query.products.findMany({
-          where: conditions.length > 0 ? and(...conditions) : undefined,
-          limit,
-          offset,
-          orderBy: sortOrder === 'asc' ? asc(schema.products.name) : desc(schema.products.name),
-        });
-      } else if (sortBy === 'price') {
-        productsQuery = db.query.products.findMany({
-          where: conditions.length > 0 ? and(...conditions) : undefined,
-          limit,
-          offset,
-          orderBy: sortOrder === 'asc' ? asc(schema.products.price) : desc(schema.products.price),
-        });
-      } else if (sortBy === 'createdAt') {
-        productsQuery = db.query.products.findMany({
-          where: conditions.length > 0 ? and(...conditions) : undefined,
-          limit,
-          offset,
-          orderBy: sortOrder === 'asc' ? asc(schema.products.createdAt) : desc(schema.products.createdAt),
-        });
-      } else if (sortBy === 'strength') {
-        productsQuery = db.query.products.findMany({
-          where: conditions.length > 0 ? and(...conditions) : undefined,
-          limit,
-          offset,
-          orderBy: sortOrder === 'asc' ? asc(schema.products.strength) : desc(schema.products.strength),
-        });
-      } else {
-        // Default to name if the specified column doesn't exist
-        productsQuery = db.query.products.findMany({
-          where: conditions.length > 0 ? and(...conditions) : undefined,
-          limit,
-          offset,
-          orderBy: sortOrder === 'asc' ? asc(schema.products.name) : desc(schema.products.name),
-        });
-      }
-
-      // For the total count query, we need to handle the where clause differently
-      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-      const totalQuery = db.select({ count: count() })
-        .from(schema.products)
-        .where(whereClause);
-
-      const [products, totalResult] = await Promise.all([productsQuery, totalQuery]);
-
-      const total = totalResult[0]?.count || 0;
-      const totalPages = Math.ceil(total / limit);
-
-      // Get available filters
-      const availableFilters = await this.getAvailableFilters(includeInactive);
-
-      return {
-        products,
-        pagination: { page, limit, total, totalPages },
-        filters: { category, flavor, strength, minPrice, maxPrice, search },
-        availableFilters,
-        sorting: { sortBy, sortOrder },
-      };
-    } catch (error) {
-      logger.error('Error getting products', { options, error });
       return {
         products: [],
         pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
@@ -427,31 +289,21 @@ export class ProductService {
       const flavorsQuery = db
         .selectDistinct({ flavor: schema.products.flavor })
         .from(schema.products)
-        .where(
-          and(
-            whereCondition || undefined,
-            isNotNull(schema.products.flavor)
-          )
-        )
+        .where(and(whereCondition || undefined, isNotNull(schema.products.flavor)))
         .orderBy(asc(schema.products.flavor));
 
       // Get unique strengths
       const strengthsQuery = db
         .selectDistinct({ strength: schema.products.strength })
         .from(schema.products)
-        .where(
-          and(
-            whereCondition || undefined,
-            isNotNull(schema.products.strength)
-          )
-        )
+        .where(and(whereCondition || undefined, isNotNull(schema.products.strength)))
         .orderBy(asc(schema.products.strength));
 
       // Get min and max prices
       const priceRangeQuery = db
         .select({
           minPrice: sql<string>`MIN(${schema.products.price})`,
-          maxPrice: sql<string>`MAX(${schema.products.price})`
+          maxPrice: sql<string>`MAX(${schema.products.price})`,
         })
         .from(schema.products)
         .where(whereCondition);
@@ -461,24 +313,21 @@ export class ProductService {
         categoriesQuery,
         flavorsQuery,
         strengthsQuery,
-        priceRangeQuery
+        priceRangeQuery,
       ]);
 
       // Format the results
       return {
-        categories: categories
-          .filter(c => c.category !== null)
-          .map(c => c.category),
-        flavors: flavors
-          .filter(f => f.flavor !== null)
-          .map(f => f.flavor),
-        strengths: strengths
-          .filter(s => s.strength !== null)
-          .map(s => s.strength),
-        priceRange: priceRange.length > 0 ? {
-          min: parseFloat(priceRange[0].minPrice || '0'),
-          max: parseFloat(priceRange[0].maxPrice || '0')
-        } : { min: 0, max: 0 }
+        categories: categories.filter(c => c.category !== null).map(c => c.category),
+        flavors: flavors.filter(f => f.flavor !== null).map(f => f.flavor),
+        strengths: strengths.filter(s => s.strength !== null).map(s => s.strength),
+        priceRange:
+          priceRange.length > 0
+            ? {
+                min: parseFloat(priceRange[0].minPrice || '0'),
+                max: parseFloat(priceRange[0].maxPrice || '0'),
+              }
+            : { min: 0, max: 0 },
       };
     } catch (error) {
       logger.error('Error getting available filters', { error });
@@ -486,9 +335,6 @@ export class ProductService {
     }
   }
   async createProduct(productData: ProductInsert): Promise<ProductSelect> {
-    // TODO: Implement createProduct
-    return {} as ProductSelect;
-
     try {
       logger.info('Creating new product', { productData });
 
@@ -531,10 +377,14 @@ export class ProductService {
   ): Promise<ProductSelect> {
     try {
       logger.info('Updating product', { productId, updates });
+      const productIdNum = parseInt(productId, 10);
+      if (isNaN(productIdNum)) {
+        throw new Error(`Invalid product ID format: ${productId}`);
+      }
 
       // Check if product exists
       const existingProduct = await db.query.products.findFirst({
-        where: eq(schema.products.id, productId),
+        where: eq(schema.products.id, productIdNum), // Use number ID
       });
 
       if (!existingProduct) {
@@ -548,7 +398,7 @@ export class ProductService {
           ...updates,
           updatedAt: new Date(),
         })
-        .where(eq(schema.products.id, productId))
+        .where(eq(schema.products.id, productIdNum)) // Use number ID
         .returning();
 
       if (!updatedProducts || updatedProducts.length === 0) {
@@ -558,7 +408,7 @@ export class ProductService {
       const updatedProduct = updatedProducts[0];
 
       // Invalidate caches
-      await this.invalidateProductCaches(productId);
+      await this.invalidateProductCaches(productIdNum); // Use number ID
 
       logger.info('Product updated successfully', { productId });
 
@@ -569,15 +419,17 @@ export class ProductService {
     }
   }
   async deleteProduct(productId: string): Promise<boolean> {
-    // TODO: Implement deleteProduct
-    return {} as boolean;
-
     try {
       logger.info('Deleting product (soft delete)', { productId });
+      const productIdNum = parseInt(productId, 10);
+      if (isNaN(productIdNum)) {
+        logger.warn('Invalid product ID format for deletion', { productId });
+        return false;
+      }
 
       // Check if product exists
       const existingProduct = await db.query.products.findFirst({
-        where: eq(schema.products.id, productId),
+        where: eq(schema.products.id, productIdNum), // Use number ID
       });
 
       if (!existingProduct) {
@@ -592,7 +444,7 @@ export class ProductService {
           isActive: false,
           updatedAt: new Date(),
         })
-        .where(eq(schema.products.id, productId))
+        .where(eq(schema.products.id, productIdNum)) // Use number ID
         .returning();
 
       if (!updatedProducts || updatedProducts.length === 0) {
@@ -607,10 +459,10 @@ export class ProductService {
           isActive: false,
           updatedAt: new Date(),
         })
-        .where(eq(schema.productVariations.productId, productId));
+        .where(eq(schema.productVariations.productId, productIdNum)); // Use number ID
 
       // Invalidate caches
-      await this.invalidateProductCaches(productId);
+      await this.invalidateProductCaches(productIdNum); // Use number ID
 
       logger.info('Product soft deleted successfully', { productId });
       return true;
@@ -624,10 +476,17 @@ export class ProductService {
     includeInactive: boolean = false
   ): Promise<ProductVariationSelect[]> {
     try {
-      logger.info(`Getting product variations for product ID: ${productId}, includeInactive: ${includeInactive}`);
+      logger.info(
+        `Getting product variations for product ID: ${productId}, includeInactive: ${includeInactive}`
+      );
+      const productIdNum = parseInt(productId, 10);
+      if (isNaN(productIdNum)) {
+        logger.warn('Invalid product ID format for getProductVariations', { productId });
+        return [];
+      }
 
       // Build the query conditions
-      const conditions = [eq(schema.productVariations.productId, productId)];
+      const conditions = [eq(schema.productVariations.productId, productIdNum)]; // Use number ID
 
       // Only include active variations if specified
       if (!includeInactive) {
@@ -647,14 +506,16 @@ export class ProductService {
     }
   }
   async getVariationById(variationId: string): Promise<ProductVariationSelect | null> {
-    // TODO: Implement getVariationById
-    return {} as ProductVariationSelect | null;
-
     try {
       logger.info(`Getting variation by ID: ${variationId}`);
+      const variationIdNum = parseInt(variationId, 10);
+      if (isNaN(variationIdNum)) {
+        logger.warn('Invalid variation ID format', { variationId });
+        return null;
+      }
 
       const variation = await db.query.productVariations.findFirst({
-        where: eq(schema.productVariations.id, variationId),
+        where: eq(schema.productVariations.id, variationIdNum), // Use number ID
       });
 
       return variation || null;
@@ -672,10 +533,14 @@ export class ProductService {
   ): Promise<ProductVariationSelect> {
     try {
       logger.info('Creating new product variation', { productId, variationData });
+      const productIdNum = parseInt(productId, 10);
+      if (isNaN(productIdNum)) {
+        throw new Error(`Invalid product ID format: ${productId}`);
+      }
 
       // Check if product exists
       const product = await db.query.products.findFirst({
-        where: eq(schema.products.id, productId),
+        where: eq(schema.products.id, productIdNum), // Use number ID
       });
 
       if (!product) {
@@ -687,7 +552,7 @@ export class ProductService {
       const insertedVariations = await db
         .insert(schema.productVariations)
         .values({
-          productId,
+          productId: productIdNum, // Use number ID
           name: variationData.name,
           flavor: variationData.flavor,
           strength: variationData.strength,
@@ -706,15 +571,16 @@ export class ProductService {
       const newVariation = insertedVariations[0];
 
       // Initialize stock levels for the new variation
-      await this.initializeVariationStockLevels(newVariation.id, productId);
+      // Ensure variation ID is string for initializeVariationStockLevels
+      await this.initializeVariationStockLevels(String(newVariation.id), productIdNum);
 
       // Invalidate caches
-      await this.invalidateProductCaches(productId);
-      await this.invalidateVariationCache(newVariation.id, productId);
+      await this.invalidateProductCaches(productIdNum);
+      await this.invalidateVariationCache(String(newVariation.id), productIdNum);
 
       logger.info('Product variation created successfully', {
         variationId: String(newVariation.id),
-        productId
+        productId,
       });
 
       return newVariation;
@@ -729,18 +595,29 @@ export class ProductService {
   ): Promise<ProductVariationSelect> {
     try {
       logger.info('Updating product variation', { variationId, updates });
+      const variationIdNum = parseInt(variationId, 10);
+      if (isNaN(variationIdNum)) {
+        throw new Error(`Invalid variation ID format: ${variationId}`);
+      }
 
       // Check if variation exists and get its product ID
       const existingVariation = await db.query.productVariations.findFirst({
-        where: eq(schema.productVariations.id, variationId),
+        where: eq(schema.productVariations.id, variationIdNum), // Use number ID
       });
 
+      // Ensure existingVariation is checked before accessing properties
       if (!existingVariation) {
         logger.error('Variation not found for update', { variationId });
         throw new Error(`Product variation not found with ID: ${variationId}`);
       }
 
-      const productId = existingVariation.productId;
+      // Add null check before accessing productId
+      if (existingVariation.productId === null) {
+        logger.error('Existing variation is missing product ID', { variationId });
+        throw new Error(`Variation ${variationId} has no associated product ID.`);
+      }
+      // Force productId to be a definite number
+      const productId = Number(existingVariation.productId);
 
       // Update the variation
       const updatedVariations = await db
@@ -749,7 +626,7 @@ export class ProductService {
           ...updates,
           updatedAt: new Date(),
         })
-        .where(eq(schema.productVariations.id, variationId))
+        .where(eq(schema.productVariations.id, variationIdNum)) // Use number ID
         .returning();
 
       if (!updatedVariations || updatedVariations.length === 0) {
@@ -758,7 +635,7 @@ export class ProductService {
 
       const updatedVariation = updatedVariations[0];
 
-      // Invalidate caches
+      // Invalidate caches with proper type handling
       await this.invalidateProductCaches(productId);
       await this.invalidateVariationCache(variationId, productId);
 
@@ -771,15 +648,17 @@ export class ProductService {
     }
   }
   async deleteVariation(variationId: string): Promise<boolean> {
-    // TODO: Implement deleteVariation
-    return {} as boolean;
-
     try {
       logger.info('Deleting product variation (soft delete)', { variationId });
+      const variationIdNum = parseInt(variationId, 10);
+      if (isNaN(variationIdNum)) {
+        logger.warn('Invalid variation ID format for deletion', { variationId });
+        return false;
+      }
 
       // Check if variation exists and get its product ID
       const existingVariation = await db.query.productVariations.findFirst({
-        where: eq(schema.productVariations.id, variationId),
+        where: eq(schema.productVariations.id, variationIdNum), // Use number ID
       });
 
       if (!existingVariation) {
@@ -787,7 +666,14 @@ export class ProductService {
         return false;
       }
 
-      const productId = existingVariation.productId;
+      // Make sure existingVariation.productId exists before accessing it
+      if (existingVariation.productId === null || existingVariation.productId === undefined) {
+        logger.error('Variation found but has no product ID', { variationId });
+        return false;
+      }
+
+      // Force productId to be a definite number
+      const productId = Number(existingVariation.productId);
 
       // Perform soft delete by setting isActive to false
       const updatedVariations = await db
@@ -796,7 +682,7 @@ export class ProductService {
           isActive: false,
           updatedAt: new Date(),
         })
-        .where(eq(schema.productVariations.id, variationId))
+        .where(eq(schema.productVariations.id, variationIdNum)) // Use number ID
         .returning();
 
       if (!updatedVariations || updatedVariations.length === 0) {
@@ -805,8 +691,8 @@ export class ProductService {
       }
 
       // Invalidate caches
-      await this.invalidateProductCaches(productId);
-      await this.invalidateVariationCache(variationId, productId);
+      await this.invalidateProductCaches(productId); // Now safe to pass
+      await this.invalidateVariationCache(variationId, productId); // Now safe to pass
 
       logger.info('Product variation soft deleted successfully', { variationId, productId });
       return true;
@@ -821,6 +707,11 @@ export class ProductService {
   ): Promise<void> {
     try {
       logger.info('Initializing stock levels for new variation', { variationId, productId });
+      const variationIdNum = parseInt(variationId, 10);
+      if (isNaN(variationIdNum)) {
+        logger.error('Invalid variation ID in initializeVariationStockLevels', { variationId });
+        return; // Don't throw, but log and exit
+      }
 
       // For simplicity, we'll use a default location since we don't have a locations table
       const defaultLocationId = 'default';
@@ -828,7 +719,7 @@ export class ProductService {
       // Check if stock level already exists
       const existingStockLevel = await db.query.stockLevels.findFirst({
         where: and(
-          eq(schema.stockLevels.productVariationId, variationId),
+          eq(schema.stockLevels.productVariationId, variationIdNum), // Use number ID
           eq(schema.stockLevels.locationId, defaultLocationId)
         ),
       });
@@ -836,8 +727,8 @@ export class ProductService {
       if (!existingStockLevel) {
         // Create new stock level with zero quantity
         await db.insert(schema.stockLevels).values({
-          productId,
-          productVariationId: String(variationId),
+          productId, // Use number ID
+          productVariationId: variationIdNum, // Use number ID
           locationId: String(defaultLocationId),
           quantity: 0,
           reservedQuantity: 0,
@@ -851,7 +742,11 @@ export class ProductService {
 
       logger.info('Stock levels initialized for variation', { variationId });
     } catch (error) {
-      logger.error('Error initializing stock levels for variation', { error, variationId, productId });
+      logger.error('Error initializing stock levels for variation', {
+        error,
+        variationId,
+        productId,
+      });
       // We don't throw here to avoid breaking the variation creation process
       // The variation can still be created even if stock initialization fails
     }
@@ -862,6 +757,13 @@ export class ProductService {
   ): Promise<StockLevelSelect | null> {
     try {
       logger.info('Getting stock level', { productVariationId, locationId });
+      const variationIdNum = parseInt(productVariationId, 10);
+      if (isNaN(variationIdNum)) {
+        logger.warn('Invalid product variation ID format for getStockLevel', {
+          productVariationId,
+        });
+        return null;
+      }
 
       // Get the stock level
       const stockLevel = await db.query.stockLevels.findFirst({
@@ -883,9 +785,6 @@ export class ProductService {
     }
   }
   async getTotalAvailableStock(productVariationId: string): Promise<number> {
-    // TODO: Implement getTotalAvailableStock
-    return {} as number;
-
     try {
       logger.info('Getting total available stock', { productVariationId });
 
@@ -908,9 +807,6 @@ export class ProductService {
     }
   }
   async updateInventory(params: InventoryUpdateParams): Promise<boolean> {
-    // TODO: Implement updateInventory
-    return {} as boolean;
-
     // Use transaction if provided
     const executor = params.transaction || db;
 
@@ -926,27 +822,31 @@ export class ProductService {
         referenceId,
         referenceType,
         notes,
-        userId
+        userId,
       } = params;
 
       if (!stockLevelId && (!productVariationId || !locationId)) {
-        throw new Error('Either stockLevelId or both productVariationId and locationId must be provided');
+        throw new Error(
+          'Either stockLevelId or both productVariationId and locationId must be provided'
+        );
       }
 
       // Get the stock level
       let stockLevel: typeof schema.stockLevels.$inferSelect | null = null;
 
       if (stockLevelId) {
-        stockLevel = await executor.query.stockLevels.findFirst({
-          where: eq(schema.stockLevels.id, stockLevelId),
-        }) || null;
+        stockLevel =
+          (await executor.query.stockLevels.findFirst({
+            where: eq(schema.stockLevels.id, stockLevelId),
+          })) || null;
       } else if (productVariationId && locationId) {
-        stockLevel = await executor.query.stockLevels.findFirst({
-          where: and(
-            eq(schema.stockLevels.productVariationId, productVariationId),
-            eq(schema.stockLevels.locationId, locationId)
-          ),
-        }) || null;
+        stockLevel =
+          (await executor.query.stockLevels.findFirst({
+            where: and(
+              eq(schema.stockLevels.productVariationId, productVariationId),
+              eq(schema.stockLevels.locationId, locationId)
+            ),
+          })) || null;
       }
 
       if (!stockLevel) {
@@ -958,15 +858,23 @@ export class ProductService {
             columns: { productId: true },
           });
 
+          // Check if variation exists first
           if (!variation) {
-            throw new Error(`Product variation not found with ID: ${productVariationId}`);
+            throw new Error(`Product variation query failed for ID: ${productVariationId}`);
           }
 
-          // Create a new stock level
+          // Now check productId - only if variation exists
+          if (variation.productId === null) {
+            throw new Error(
+              `Product variation found, but its product ID is null: ${productVariationId}`
+            );
+          }
+
+          // Create a new stock level - safe now as we've checked variation and variation.productId
           const insertedStockLevels = await executor
             .insert(schema.stockLevels)
             .values({
-              productId: String(variation.productId),
+              productId: variation.productId,
               productVariationId,
               locationId,
               quantity: Math.max(0, changeQuantity), // Only allow positive initial quantity
@@ -980,12 +888,19 @@ export class ProductService {
 
           stockLevel = insertedStockLevels[0];
         } else {
-          throw new Error('Stock level not found');
+          // This case should ideally be handled by the creation logic above, but as a safeguard:
+          throw new Error('Stock level could not be found or created.');
         }
       }
 
-      // Calculate new quantity
-      const newQuantity = Math.max(0, stockLevel.quantity + params.changeQuantity);
+      // At this point, stockLevel is guaranteed to be non-null
+      if (!stockLevel) {
+        throw new Error('Failed to retrieve or create stock level');
+      }
+
+      // Calculate new quantity safely
+      const currentQuantity = Number(stockLevel.quantity ?? 0); // Ensure numeric
+      const newQuantity = Math.max(0, currentQuantity + changeQuantity);
 
       // Update the stock level
       const updatedStockLevels = await executor
@@ -1001,30 +916,43 @@ export class ProductService {
         throw new Error('Failed to update stock level');
       }
 
+      // Null check before accessing stockLevel.id for logging
+      const stockLevelIdForLog = stockLevel.id ?? 'unknown';
+
       // Record the stock movement
-      await executor
-        .insert(schema.stockMovements)
-        .values({
-          productId: String(stockLevel.productId),
-          productVariationId: String(stockLevel.productVariationId),
-          locationId: String(stockLevel.locationId),
-          quantity: changeQuantity,
-          type,
-          referenceId,
-          referenceType,
-          notes,
-          createdBy: userId,
-        });
+      await executor.insert(schema.stockMovements).values({
+        productId: stockLevel.productId,
+        productVariationId: stockLevel.productVariationId,
+        locationId: stockLevel.locationId,
+        quantity: changeQuantity,
+        type,
+        referenceId,
+        referenceType,
+        notes,
+        createdBy: userId,
+      });
 
       // Invalidate caches
       if (stockLevel.productVariationId) {
-        await this.invalidateVariationCache(stockLevel.productVariationId, stockLevel.productId);
-      } else {
-        await this.invalidateProductCaches(stockLevel.productId);
+        // Ensure productVariationId is a string
+        const variationIdStr = String(stockLevel.productVariationId);
+
+        // Ensure productId is a number if it exists
+        if (stockLevel.productId !== null && stockLevel.productId !== undefined) {
+          const productIdNum = Number(stockLevel.productId);
+          // Now both parameters are correctly typed
+          await this.invalidateVariationCache(variationIdStr, productIdNum);
+        } else {
+          await this.invalidateVariationCache(variationIdStr);
+        }
+      } else if (stockLevel.productId !== null && stockLevel.productId !== undefined) {
+        // Ensure productId is a number
+        const productIdNum = Number(stockLevel.productId);
+        await this.invalidateProductCaches(productIdNum);
       }
 
       logger.info('Inventory updated successfully', {
-        stockLevelId: String(stockLevel.id),
+        stockLevelId: String(stockLevelIdForLog),
         newQuantity,
         changeQuantity,
       });
@@ -1035,17 +963,12 @@ export class ProductService {
       return false;
     }
   }
-  async getProductStats(...args): Promise<ProductStats> {
-    // TODO: Implement getProductStats
-    return {} as ProductStats;
-
+  async getProductStats(): Promise<ProductStats> {
     try {
       logger.info('Getting product statistics');
 
       // Get total products count
-      const totalProductsResult = await db
-        .select({ count: count() })
-        .from(schema.products);
+      const totalProductsResult = await db.select({ count: count() }).from(schema.products);
       const totalProducts = totalProductsResult[0]?.count || 0;
 
       // Get active products count
@@ -1114,10 +1037,9 @@ export class ProductService {
       };
     }
   }
-  async validateWholesaleOrder(...args): Promise<{ valid: boolean; totalUnits: number; minimumRequired: number; message?: string }> {
-    // TODO: Implement validateWholesaleOrder
-    return {} as { valid: boolean; totalUnits: number; minimumRequired: number; message?: string };
-
+  async validateWholesaleOrder(
+    items: Array<{ productVariationId: string; quantity: number }>
+  ): Promise<{ valid: boolean; totalUnits: number; minimumRequired: number; message?: string }> {
     try {
       logger.info('Validating wholesale order', { items });
 
@@ -1136,13 +1058,14 @@ export class ProductService {
 
       // Calculate total units
       let totalUnits = 0;
-      const invalidItems: Array<{ id: number; reason: string }> = [];
+      // Adjust the type to match the requirements - using number instead of potentially string ID
+      const invalidItems: Array<{ id: string; reason: string }> = [];
 
       // Validate each item
       for (const item of items) {
         if (!item.productVariationId || typeof item.quantity !== 'number' || item.quantity <= 0) {
           invalidItems.push({
-            id: item.productVariationId || 0,
+            id: item.productVariationId || '0',
             reason: 'Invalid product variation or quantity',
           });
           continue;
@@ -1150,10 +1073,18 @@ export class ProductService {
 
         // Check if variation exists and is active
         const variation = await this.getVariationById(item.productVariationId);
-        if (!variation || !variation.isActive) {
+        if (!variation) {
           invalidItems.push({
             id: item.productVariationId,
-            reason: variation ? 'Product variation is inactive' : 'Product variation not found',
+            reason: 'Product variation not found',
+          });
+          continue;
+        }
+
+        if (!variation.isActive) {
+          invalidItems.push({
+            id: item.productVariationId,
+            reason: 'Product variation is inactive',
           });
           continue;
         }
@@ -1211,4 +1142,3 @@ export class ProductService {
   }
 }
 export const productService = new ProductService();
-}
