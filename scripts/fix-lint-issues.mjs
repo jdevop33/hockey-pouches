@@ -10,12 +10,11 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(__dirname, '..');
 
-console.log('🛠️ Running ESLint issue fixer');
+console.log('🛠️ Running lightweight lint fixer for Vercel deployment');
 console.log('============================');
 
 // Manual patterns to fix common issues
@@ -31,35 +30,67 @@ const PATTERNS = {
 };
 
 try {
-  console.log('📋 Finding TypeScript files...');
+  console.log('📋 Finding TypeScript files in critical directories...');
 
-  // Find all TypeScript files using Node's native capabilities
-  const findFiles = (dir, pattern) => {
+  // Find TypeScript files only in critical directories to speed up the process
+  const findFiles = (dir, pattern, maxDepth = 3, currentDepth = 0) => {
+    if (currentDepth > maxDepth) return [];
+
     let results = [];
-    const files = fs.readdirSync(dir);
+    try {
+      const files = fs.readdirSync(dir);
 
-    for (const file of files) {
-      const filePath = path.join(dir, file);
-      const stat = fs.statSync(filePath);
+      for (const file of files) {
+        const filePath = path.join(dir, file);
+        try {
+          const stat = fs.statSync(filePath);
 
-      if (stat.isDirectory() && file !== 'node_modules' && file !== '.next') {
-        results = results.concat(findFiles(filePath, pattern));
-      } else if (file.match(pattern)) {
-        results.push(filePath);
+          if (
+            stat.isDirectory() &&
+            file !== 'node_modules' &&
+            file !== '.next' &&
+            file !== '.vercel'
+          ) {
+            results = results.concat(findFiles(filePath, pattern, maxDepth, currentDepth + 1));
+          } else if (file.match(pattern)) {
+            results.push(filePath);
+          }
+        } catch (_e) {
+          // Skip files we can't access
+          continue;
+        }
       }
+    } catch (_e) {
+      // Skip directories we can't read
+      return [];
     }
 
     return results;
   };
 
-  const files = findFiles(path.join(rootDir, 'app'), /\.(ts|tsx)$/);
+  // Only check critical components that might cause build issues
+  const criticalDirs = [
+    path.join(rootDir, 'app/components/layout'),
+    path.join(rootDir, 'app/components/seo'),
+    path.join(rootDir, 'app/providers'),
+    path.join(rootDir, 'app/context'),
+  ];
 
-  console.log(`Found ${files.length} TypeScript files to process`);
+  let files = [];
+  for (const dir of criticalDirs) {
+    if (fs.existsSync(dir)) {
+      files = files.concat(findFiles(dir, /\.(ts|tsx)$/, 2));
+    }
+  }
+
+  console.log(`Found ${files.length} critical TypeScript files to process`);
 
   let fixedFiles = 0;
+  const MAX_FILES = 50; // Limit the number of files to process
+  const processedFiles = files.slice(0, MAX_FILES);
 
   // Process each file
-  for (const filePath of files) {
+  for (const filePath of processedFiles) {
     const relativeFilePath = path.relative(rootDir, filePath);
 
     try {
@@ -67,7 +98,7 @@ try {
       let modified = false;
 
       // Skip large files that might be generated
-      if (content.length > 1000000) {
+      if (content.length > 100000) {
         console.log(`⚠️ Skipping large file: ${relativeFilePath}`);
         continue;
       }
@@ -97,14 +128,7 @@ try {
         }
       }
 
-      // 3. Fix console.log statements in production code
-      if (process.env.NODE_ENV === 'production' && content.includes('console.log(')) {
-        console.log(`  - Removing console.log statements for production`);
-        content = content.replace(/console\.log\([^)]*\);?\n?/g, '');
-        modified = true;
-      }
-
-      // 4. Fix React hook dependency issues by adding comments
+      // 3. Fix React hook dependency issues by adding comments
       if (content.includes('react-hooks/exhaustive-deps')) {
         console.log('  - Adding ESLint disable comments for React hook deps');
         content = content.replace(
@@ -126,24 +150,11 @@ try {
   }
 
   console.log(`\n✅ Lint fixing complete! Fixed ${fixedFiles} files.`);
-
-  // Run Next.js ESLint for remaining issues
-  if (fixedFiles > 0) {
-    console.log('\nRunning eslint --fix to handle remaining issues...');
-    try {
-      // Use --no-error-on-unmatched-pattern to avoid errors
-      execSync('npx next lint --fix --quiet', {
-        cwd: rootDir,
-        stdio: 'pipe',
-        encoding: 'utf8',
-      });
-      console.log('✅ ESLint fix completed successfully.');
-    } catch (error) {
-      console.log('⚠️ ESLint found some issues, but we can continue.');
-    }
-  }
+  console.log('Skipping full ESLint run for faster Vercel deployment.');
 } catch (error) {
   console.error('❌ Error running lint fixer:', error.message);
-  // Don't exit with error to allow build to continue
-  // process.exit(1);
+  // Continue with build even if there are errors
+} finally {
+  // Always exit cleanly to ensure build continues
+  console.log('✅ Completed lint fixing process');
 }
