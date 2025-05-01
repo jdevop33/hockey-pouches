@@ -1,0 +1,26 @@
+[1mdiff --git a/package-lock.json b/package-lock.json[m
+[1mindex bb333cf..c25df89 100644[m
+[1m--- a/package-lock.json[m
+[1m+++ b/package-lock.json[m
+[36m@@ -69,7 +69,7 @@[m
+         "husky": "^8.0.3",[m
+         "jiti": "^2.0.0",[m
+         "lint-staged": "^15.0.0",[m
+[31m-        "node-fetch": "^3.3.2",[m
+[32m+[m[32m        "node-fetch": "3.3.2",[m
+         "postcss": "^8.5.3",[m
+         "prettier": "^3.5.3",[m
+         "prettier-plugin-tailwindcss": "^0.6.11",[m
+[1mdiff --git a/package.json b/package.json[m
+[1mindex 32296c3..9a66270 100644[m
+[1m--- a/package.json[m
+[1m+++ b/package.json[m
+[36m@@ -99,7 +99,7 @@[m
+     "husky": "^8.0.3",[m
+     "jiti": "^2.0.0",[m
+     "lint-staged": "^15.0.0",[m
+[31m-    "node-fetch": "^3.3.2",[m
+[32m+[m[32m    "node-fetch": "3.3.2",[m
+     "postcss": "^8.5.3",[m
+     "prettier": "^3.5.3",[m
+     "prettier-plugin-tailwindcss": "^0.6.11",[m
