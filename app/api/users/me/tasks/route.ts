@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
 
         const searchParams = request.nextUrl.searchParams;
         // Get and validate query parameters
-        const statusParam = sear$1?.$2('status');
-        const categoryParam = $1?.$2('category');
+        const statusParam = searparams.id('status');
+        const categoryParam = params.id('category');
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '10');
 
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
     } catch (error: unknown) {
         // Catch potential errors if taskService isn't implemented
-        if (errorMessage || errorMessage){
+        if (error instanceof Error ? error.message : String(error) || error instanceof Error ? error.message : String(error)){
              logger.error('TaskService.listUserTasks not implemented', { userId });
              return NextResponse.json({ message: 'Task fetching is not available.' }, { status: 501 });
         }

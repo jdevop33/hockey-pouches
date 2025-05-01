@@ -46,7 +46,7 @@ export default function ContrastPage() {
   // Analyze the brand palette
   const analyzeThemePalette = () => {
     // Extract just the hex values
-    const colors = $1?.$2(c => c.hex).concat(accentColors.map(c => c.hex));
+    const colors = params.id(c => c.hex).concat(accentColors.map(c => c.hex));
     const analysis = analyzePalette(colors);
     setPaletteAnalysis(analysis);
   };

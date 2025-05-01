@@ -132,9 +132,9 @@ export async function GET(
 
     } catch (error: unknown) {
         console.error(`Distributor: Failed to get order ${orderId}:`, error);
-        if (errorMessage) {
-             return NextResponse.json({ message: errorMessage }, { status: 500 });
+        if (error instanceof Error ? error.message : String(error)) {
+             return NextResponse.json({ message: error instanceof Error ? error.message : String(error) }, { status: 500 });
         }
-        return NextResponse.json({ message: errorMessage || 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ message: error instanceof Error ? error.message : String(error) || 'Internal Server Error' }, { status: 500 });
     }
 }

@@ -201,7 +201,7 @@ export async function POST(
     return NextResponse.json({
       message: 'Commission calculated successfully',
       commissionId,
-      referrerId: String(referrerUserId),
+      referrerId: referrerUserId,
       amount: roundedCommissionAmount,
       status: schema.commissionStatusEnum.Pending // Return enum value
     });

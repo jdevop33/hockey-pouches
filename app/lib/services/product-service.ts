@@ -547,7 +547,7 @@ export class ProductService {
       const insertedVariations = await db
         .insert(schema.productVariations)
         .values({
-          productId: String(productIdNum), // Use number ID
+          productId: productIdNum, // Use number ID
           name: variationData.name,
           flavor: variationData.flavor,
           strength: variationData.strength,

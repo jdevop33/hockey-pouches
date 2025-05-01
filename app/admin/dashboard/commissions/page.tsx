@@ -128,7 +128,7 @@ export default function AdminCommissionsPage() {
         })) as AdminCommission[];
 
         setCommissions(typedCommissions);
-        setTotalPages($1?.$2.totalPages);
+        setTotalPages(params.id.totalPages);
       } catch (err) {
         setError('Failed to load commissions.');
         console.error(err);
@@ -176,7 +176,7 @@ export default function AdminCommissionsPage() {
     setIsPayoutLoading(true);
     setPayoutError(null);
     const idsToPayout = Array.from(selectedCommissions);
-    
+
     try {
       // TODO: Call POST /api/admin/commissions/payout with { commissionIds: idsToPayout }
       // const response = await fetch('/api/admin/commissions/payout', {...});

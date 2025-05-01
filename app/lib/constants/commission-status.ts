@@ -10,8 +10,8 @@ export type CommissionStatus = (typeof COMMISSION_STATUS)[keyof typeof COMMISSIO
 
 // For validation
 export const COMMISSION_STATUS_VALUES: readonly CommissionStatus[] = [
-  $1?.$2,
-  $1?.$2,
+  params.id,
+  params.id,
   COMMISSION_STATUS.PAID,
   COMMISSION_STATUS.CANCELLED,
 ];

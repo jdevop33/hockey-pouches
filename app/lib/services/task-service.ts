@@ -37,9 +37,18 @@ export class TaskService {
       assignedTo?: string;
     } = {}
   ): Promise<ListTasksResult> {
-    // TODO: Implement listTasks
-    return {
-      // Default empty object for ListTasksResult
+    // Default empty object for ListTasksResult
+    const defaultTask = {
+      id: 0,
+      status: "Pending",
+      createdAt: null,
+      updatedAt: null,
+      notes: null,
+      description: null,
+      dueDate: null,
+      priority: null,
+      category: null,
+      assignedTo: null
     };
 
     const { page = 1, limit = 20, status, category, priority, assignedTo } = options;
@@ -60,17 +69,17 @@ export class TaskService {
         conditions.push(
           assignedTo === null
             ? sql`${schema.tasks.assignedTo} IS NULL`
-            : eq(schema.tasks.assignedTo, assignedTo)
+            : assignedTo ? eq(schema.tasks.assignedTo, assignedTo) : undefined
         );
       }
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
       // Custom sorting logic (Priority -> Due Date -> Created Date)
       // Note: Drizzle doesn't directly support CASE in orderBy easily, use raw SQL or map priorities
-      const priorityOrder = sql`CASE 
-                WHEN ${schema.tasks.priority} = 'Urgent' THEN 1 
-                WHEN ${schema.tasks.priority} = 'High' THEN 2 
-                WHEN ${schema.tasks.priority} = 'Medium' THEN 3 
-                WHEN ${schema.tasks.priority} = 'Low' THEN 4 
+      const priorityOrder = sql`CASE
+                WHEN ${schema.tasks.priority} = 'Urgent' THEN 1
+                WHEN ${schema.tasks.priority} = 'High' THEN 2
+                WHEN ${schema.tasks.priority} = 'Medium' THEN 3
+                WHEN ${schema.tasks.priority} = 'Low' THEN 4
                 ELSE 5 END`;
       // TODO: Add Due Date sorting if schema has it
       // const dueDateOrder = sql`CASE WHEN ${schema.tasks.dueDate} IS NULL THEN 1 ELSE 0 END, ${schema.tasks.dueDate} ASC`;
@@ -85,9 +94,10 @@ export class TaskService {
       const countQuery = db.select({ total: count() }).from(schema.tasks).where(whereClause);
       const [results, countResult] = await Promise.all([query, countQuery]);
       const total = countResult[0].total;
+
       return {
         tasks: results,
-        pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
+        pagination: { total, page, limit, totalPages: Math.ceil(total / limit) }
       };
     } catch (error) {
       logger.error('Error listing tasks:', { options, error });
@@ -103,17 +113,14 @@ export class TaskService {
   }
   // TODO: Add methods for createTask, updateTask, getTaskById, etc.
   async updateTaskStatus(taskId: string, status: string, userId: string): Promise<TaskSelect> {
-    // TODO: Implement updateTaskStatus
-    return {
-      // Default empty object for TaskSelect
-    };
+    // Implementation of updateTaskStatus
 
     try {
       const result = await db
         .update(schema.tasks)
         .set({ status: status as TaskStatus, updatedAt: new Date() })
         // Optionally add check if task is assigned to user? userId: string
-        .where(eq(schema.tasks.id, taskId))
+        .where(eq(schema.tasks.id, Number(taskId)))
         .returning();
       if (result.length === 0) throw new Error('Task not found or update failed.');
       logger.info('Task status updated', { taskId, status, userId });

@@ -8,7 +8,7 @@ export const createSelectors = <T extends object>(
   store: UseBoundStore<StoreApi<T>>
 ): StoreWithSelectors<T> => {
   const storeWithSelectors = store as StoreWithSelectors<T>;
-  $1?.$2 = {} as StoreWithSelectors<T>['use'];
+  params.id = {} as StoreWithSelectors<T>['use'];
 
   const keys = Object.keys(store.getState());
   keys.forEach(key => {

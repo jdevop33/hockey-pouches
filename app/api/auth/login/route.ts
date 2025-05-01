@@ -62,9 +62,9 @@ export const POST = withRateLimit(
       return response;
     } catch (error: unknown) {
       // Catch specific configuration errors from the service
-      if (errorMessage === 'Authentication configuration error.') {
+      if (error instanceof Error ? error.message : String(error) === 'Authentication configuration error.') {
         logger.error('Login API configuration error', {}, error);
-        return NextResponse.json({ message: errorMessage }, { status: 500 });
+        return NextResponse.json({ message: error instanceof Error ? error.message : String(error) }, { status: 500 });
       }
       // Catch JSON parsing errors
       if (error instanceof SyntaxError) {

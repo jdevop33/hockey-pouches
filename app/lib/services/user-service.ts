@@ -382,7 +382,7 @@ export class UserService {
       const accessToken = generateAccessToken(payload);
       const refreshToken = generateRefreshToken(user.id);
 
-      await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
+      await db.update(users).set({ updatedAt: new Date() }).where(eq(users.id, user.id));
 
       return {
         success: true,
@@ -548,7 +548,7 @@ export class UserService {
         logger.warn('Wholesale application failed: User not found', { userId });
         return { success: false, message: 'User not found.' };
       }
-      if (user.role === 'Wholesale' || user.status === 'Pending') {
+      if (user.role === 'Wholesale Buyer' || user.status === 'Pending') {
         logger.warn('User already has wholesale status or application pending.', {
           userId,
           role: user.role,
@@ -569,10 +569,11 @@ export class UserService {
       // 3. Create Wholesale Application Record
       const [application] = await db
         .insert(schema.wholesaleApplications)
-        .values({
+        .values({ // Fixed properties
+        
           userId: userId,
           companyName: params.company_name,
-          businessNumber: params.business_number,
+          taxId: params.business_number,
           website: params.website,
           phoneNumber: params.phone_number,
           address: params.address ? JSON.stringify(params.address) : null, // Store address as JSON string

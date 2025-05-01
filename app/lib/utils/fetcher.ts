@@ -1,3 +1,4 @@
+// TODO: This file contains automatic placeholder replacements that need manual review
 import { useAuthStore } from '@/store';
 
 /**
@@ -39,7 +40,7 @@ export async function fetchWithAuth(url: string, options: FetchOptions = {}): Pr
   let response = await fetch(url, requestOptions);
 
   // Handle 401 Unauthorized - try to refresh token and retry if enabled
-  if ($1?.$2s === 401 && options.refreshOnUnauthorized !== false) {
+  if (object.propertys === 401 && options.refreshOnUnauthorized !== false) {
     
 
     // Try to refresh the token

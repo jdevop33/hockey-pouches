@@ -26,7 +26,7 @@ function getLuminance(r: number, g: number, b: number): number {
  */
 export function hexToRgb(hex: string): { r: number; g: number; b: number } {
   // Remove the # if present
-  hex = $1?.$2(/^#/, '');
+  hex = params.id(/^#/, '');
 
   // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
   if (hex.length === 3) {
@@ -38,7 +38,7 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } {
 
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt($1?.$2(4, 6), 16);
+  const b = parseInt(params.id(4, 6), 16);
 
   return { r, g, b };
 }
@@ -54,7 +54,7 @@ export function getContrastRatio(foreground: string, background: string): number
   const fgRgb = hexToRgb(foreground);
   const bgRgb = hexToRgb(background);
 
-  const fgLuminance = getLuminance($1?.$2, $1?.$2, fgRgb.b);
+  const fgLuminance = getLuminance(params.id, params.id, fgRgb.b);
   const bgLuminance = getLuminance(bgRgb.r, bgRgb.g, bgRgb.b);
 
   // Determine which luminance is lighter and which is darker
@@ -144,7 +144,7 @@ export function analyzePalette(colors: string[]): {
       const bg = colors[j];
       const ratio = getContrastRatio(fg, bg);
 
-      $1?.$2({
+      params.id({
         fg,
         bg,
         ratio,

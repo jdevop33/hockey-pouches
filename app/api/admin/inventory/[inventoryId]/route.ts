@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: { inventor
       return forbiddenResponse('Admin access required');
     }
     const stockLevelId = params.inventoryId;
-    if (!stockLevelId || Array.isArray(stockLevelId) ? Array.isArray(stockLevelId) ? Array.isArray(stockLevelId) ? Array.isArray(stockLevelId) ? stockLevelId.length : 0 : 0 : 0 : 0 !== 36) {
+    if (!stockLevelId || Array.isArray(stockLevelId) || stockLevelId.length !== 36) {
       return NextResponse.json({ message: 'Invalid Stock Level ID format.' }, { status: 400 });
     }
     logger.info(`Admin GET /api/admin/inventory/${stockLevelId} request`, {
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest, { params }: { params: { inventor
             WHERE sl.id = ${stockLevelId}
         `);
 
-    const stockLevel = getFirstRow(result as unknown as DbQueryResult) as StockLevel | null;
+    const stockLevel = getFirstRow(result as any) as StockLevel | null;
     if (!stockLevel) {
       return NextResponse.json({ message: 'Stock level not found.' }, { status: 404 });
     }
@@ -83,7 +83,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { invent
       return forbiddenResponse('Admin access required');
     }
     const stockLevelId = params.inventoryId;
-    if (!stockLevelId || Array.isArray(stockLevelId) ? Array.isArray(stockLevelId) ? Array.isArray(stockLevelId) ? Array.isArray(stockLevelId) ? stockLevelId.length : 0 : 0 : 0 : 0 !== 36) {
+    if (!stockLevelId || Array.isArray(stockLevelId) || stockLevelId.length !== 36) {
       return NextResponse.json({ message: 'Invalid Stock Level ID format.' }, { status: 400 });
     }
 
@@ -110,7 +110,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { invent
             WHERE id = ${stockLevelId}
         `);
 
-    const stockLevel = getFirstRow(result as unknown as DbQueryResult) as StockLevel | null;
+    const stockLevel = getFirstRow(result as any) as StockLevel | null;
     if (!stockLevel) {
       return NextResponse.json({ message: 'Stock level not found.' }, { status: 404 });
     }
@@ -127,7 +127,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { invent
       productVariationId: stockLevel.product_variation_id,
       locationId: stockLevel.location_id,
       changeQuantity: changeQuantity,
-      type: 'adjustment' as const,
+      type: 'Adjustment' as const,
       notes: notes ? `Admin Adjustment: ${notes}` : 'Admin Adjustment',
       userId: authResult.userId,
     });
@@ -139,7 +139,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { invent
             SELECT * FROM stock_levels WHERE id = ${stockLevelId}
         `);
 
-    const updatedStockLevel = getFirstRow(updatedResult as unknown as DbQueryResult);
+    const updatedStockLevel = getFirstRow(updatedResult as any);
 
     logger.info('Admin: Inventory adjusted successfully', {
       stockLevelId,
@@ -151,7 +151,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { invent
     if (error instanceof SyntaxError) {
       return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
     }
-    if (errorMessage || errorMessage) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage) {
       return NextResponse.json(
         { message: errorMessage },
         { status: errorMessage.includes('Insufficient stock') ? 400 : 404 }

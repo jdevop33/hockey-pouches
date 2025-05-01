@@ -66,8 +66,8 @@ export function DashboardContent({ token, getProfileDataAction }: DashboardConte
       try {
         const data = await getProfileDataAction(token);
         setProfile(data.profile);
-        setOrders($1?.$2);
-        setCommissions($1?.$2 || null);
+        setOrders(params.id);
+        setCommissions(params.id || null);
       } catch (err) {
         setError('Unable to load profile data. Please try again later.');
         toast({
@@ -149,7 +149,7 @@ export function DashboardContent({ token, getProfileDataAction }: DashboardConte
               </div>
               <div className="pt-4">
                 <button
-                  onClick={() => $1?.$2('/dashboard/profile')}
+                  onClick={() => router.push('/dashboard/profile')}
                   className="w-full rounded-md border border-gold-500 bg-transparent px-4 py-2 text-gold-500 transition-all hover:bg-gold-500 hover:text-dark-900"
                 >
                   Edit Profile
@@ -163,7 +163,7 @@ export function DashboardContent({ token, getProfileDataAction }: DashboardConte
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gold-500">Recent Orders</h2>
               <button
-                onClick={() => $1?.$2('/dashboard/orders')}
+                onClick={() => router.push('/dashboard/orders')}
                 className="text-sm text-gold-400 hover:text-gold-300"
               >
                 View All
@@ -226,7 +226,7 @@ export function DashboardContent({ token, getProfileDataAction }: DashboardConte
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gold-500">Commissions & Referrals</h2>
                 <button
-                  onClick={() => $1?.$2('/dashboard/referrals')}
+                  onClick={() => router.push('/dashboard/referrals')}
                   className="text-sm text-gold-400 hover:text-gold-300"
                 >
                   Referral Program

@@ -66,7 +66,7 @@ export default function OrdersListPage() {
 
     // Redirect if not logged in
     if (!user || !token) {
-      $1?.$2('/login');
+      router.push('/login');
       return;
     }
 

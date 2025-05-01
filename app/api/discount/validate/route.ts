@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
         AND (usage_limit IS NULL OR times_used < usage_limit)
     `;
 
-    if ($1?.$2h === 0) {
+    if (params.idh === 0) {
       return NextResponse.json(
         { valid: false, message: 'Invalid or expired discount code' },
         { status: 200 } // Return 200 OK with valid: false for validation checks
@@ -67,8 +67,8 @@ export async function GET(request: NextRequest) {
       if (discountCode.max_discount_amount && discountAmount > discountCode.max_discount_amount) {
         discountAmount = discountCode.max_discount_amount;
       }
-    } else if ($1?.$2e === 'fixed_amount') {
-      discountAmount = $1?.$2;
+    } else if (params.ide === 'fixed_amount') {
+      discountAmount = params.id;
       
       // Ensure discount doesn't exceed order total
       if (discountAmount > subtotal) {
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     console.error('Error validating discount code:', error);
     return NextResponse.json(
-      { message: errorMessage || 'Internal Server Error' },
+      { message: error instanceof Error ? error.message : String(error) || 'Internal Server Error' },
       { status: 500 }
     );
   }

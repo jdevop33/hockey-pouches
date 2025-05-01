@@ -36,7 +36,7 @@ export default function SocialShare({ url, title, description }: SocialShareProp
       </p>
       <div className="flex flex-wrap gap-2">
         <a
-          href={$1?.$2}
+          href={params.id}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center rounded-full bg-black px-4 py-2 text-sm font-medium text-white transition-transform hover:scale-105"

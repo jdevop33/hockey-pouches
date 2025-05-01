@@ -88,9 +88,9 @@ export async function GET(request: NextRequest) {
             default: orderByClause = sortOrder(schema.products.name); break;
         }
         const inventoryQuery = db.select({
-          stockLevelId: String(schema.stockLevels.id),
+          stockLevelId: schema.stockLevels.id,
           productId: schema.stockLevels.productId,
-          productVariationId: String(schema.stockLevels.productVariationId),
+          productVariationId: schema.stockLevels.productVariationId,
           productName: schema.products.name,
           variationName: schema.productVariations.name,
           locationId: schema.stockLevels.locationId,

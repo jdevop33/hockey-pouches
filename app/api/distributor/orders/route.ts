@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
     logger.info(`Found ${totalOrders} orders for distributor`, { distributorId });
 
     // Format orders for response
-    const orders: DistributorOrderListItem[] = $1?.$2((row: OrderRow) => ({
+    const orders: DistributorOrderListItem[] = params.id((row: OrderRow) => ({
       id: row.id,
       createdAt: row.created_at, // Keep as string
       status: row.status as OrderStatus, // Cast to OrderStatus
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('Failed to get distributor orders', { error });
-    const errorMessage = error instanceof Error ? errorMessage : 'Internal Server Error';
-    return NextResponse.json({ message: errorMessage }, { status: 500 });
+    const displayError = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ message: displayError }, { status: 500 });
   }
 }

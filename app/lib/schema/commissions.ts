@@ -15,21 +15,21 @@ export const commissions = pgTable('commissions', {
     // Use Serial based on migration
     id: serial('id').primaryKey(),
     // User earning the commission (Distributor)
-    userId: String(text('user_id').notNull().references(() => users.id)), // Assuming users.id is text/uuid
+    userId: text('user_id'.notNull().references(() => users.id)), // Assuming users.id is text/uuid
     // Order that generated the commission
-    orderId: String(uuid('order_id').notNull().references(() => orders.id)), // Assuming orders.id is uuid
+    orderId: uuid('order_id'.notNull().references(() => orders.id)), // Assuming orders.id is uuid
     amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
     rate: decimal('rate', { precision: 5, scale: 2 }).notNull(), // Commission rate at time of calculation
     // Use enum for status
     status: commissionStatusEnum('status').notNull().default('Pending'),
     type: commissionTypeEnum('type').notNull().default('OrderReferral'), // Added type field using enum
     relatedTo: commissionRelatedEntityEnum('related_to'), // Added relatedTo field using enum
-    relatedId: String(text('related_id')), // Added relatedId field
+    relatedId: text('related_id'), // Added relatedId field
     // Payout details (nullable until paid)
     paymentDate: timestamp('payment_date', { withTimezone: true }),
     paymentReference: varchar('payment_reference', { length: 255 }), // e.g., transaction ID of payout
     // Optional: Link to a payout batch
-    // payoutBatchId: String(uuid('payout_batch_id').references(() => payoutBatches.id)), // Requires payoutBatches table
+    // payoutBatchId: uuid('payout_batch_id'.references(() => payoutBatches.id)), // Requires payoutBatches table
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({

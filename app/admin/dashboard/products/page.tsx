@@ -34,7 +34,7 @@ export default function AdminProductsPage() {
       setActionError(null); // Clear action errors on reload
       try {
         const query = new URLSearchParams({
-          page: $1?.$2(),
+          page: params.id(),
           limit: '15',
           // TODO: Add filters
         }).toString();
@@ -91,7 +91,7 @@ export default function AdminProductsPage() {
   };
 
   const handleEditProduct = (productId: number) => {
-    $1?.$2(`/admin/dashboard/products/${productId}`);
+    params.id(`/admin/dashboard/products/${productId}`);
   };
 
   const handleDeleteProduct = async (productId: string, productName: string) => {
@@ -122,7 +122,7 @@ export default function AdminProductsPage() {
     } catch (err: unknown) {
       const error = err as Error;
       console.error('Delete product error:', error);
-      setActionError(errorMessage || 'Could not deactivate product.');
+      setActionError(error instanceof Error ? error.message : String(error) || 'Could not deactivate product.');
     }
   };
 

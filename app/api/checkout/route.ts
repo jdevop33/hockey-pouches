@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     if (!schema.paymentMethodEnum.enumValues.includes(paymentMethod)) {
       return NextResponse.json({ message: `Invalid payment method: ${paymentMethod}` }, { status: 400 });
     }
-    
+
     // Get cart items
     const cartItems = await sql`
       SELECT
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     const orderId = uuidv4();
     // Set initial statuses based on enums
     const initialOrderStatus: OrderStatus = 'PendingPayment';
-    const initialPaymentStatus: PaymentStatus = 'Pending'; 
+    const initialPaymentStatus: PaymentStatus = 'Pending';
     await sql`
       INSERT INTO orders (
         id, user_id, status, subtotal, shipping_cost, taxes, total_amount,
@@ -141,25 +141,25 @@ export async function POST(request: NextRequest) {
         CURRENT_TIMESTAMP
       )
     `;
-    
+
     // Process payment based on payment method
     let paymentResult = { success: false, message: '', transactionId: '' };
     switch (paymentMethod) {
       case 'CreditCard': // Match enum value
         // In a real implementation, this would call a payment gateway API
-        
+
         paymentResult = {
           success: true,
           message: 'Payment processed successfully',
-          transactionId: String(`cc-${uuidv4()}`),
+          transactionId: `cc-${uuidv4()}`,
         };
         break;
       case 'ETransfer': // Match enum value
-        
+
         paymentResult = {
           success: true,
           message: 'E-transfer instructions sent',
-          transactionId: String(`et-${uuidv4()}`),
+          transactionId: `et-${uuidv4()}`,
         };
         // Create task for admin to confirm e-transfer
         await sql`
@@ -168,11 +168,11 @@ export async function POST(request: NextRequest) {
         `;
         break;
       case 'Bitcoin': // Match enum value
-        
+
         paymentResult = {
           success: true,
           message: 'Bitcoin payment instructions sent',
-          transactionId: String(`btc-${uuidv4()}`),
+          transactionId: `btc-${uuidv4()}`,
         };
         // Create task for admin to confirm bitcoin payment
         await sql`
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
         `;
         break;
       case 'Manual': // Match enum value
-        
+
         paymentResult = { success: true, message: 'Manual payment noted', transactionId: `man-${uuidv4()}` };
          // Create task for admin to process manual payment
         await sql`
@@ -201,8 +201,8 @@ export async function POST(request: NextRequest) {
       const finalOrderStatus: OrderStatus = paymentMethod === 'CreditCard' ? 'Processing' : 'PendingPayment'; // Update order status too
       await sql`
         UPDATE orders
-        SET payment_status = ${finalPaymentStatus}, 
-            status = ${finalOrderStatus}, 
+        SET payment_status = ${finalPaymentStatus},
+            status = ${finalOrderStatus},
             payment_transaction_id = ${paymentResult.transactionId}
         WHERE id = ${orderId}
       `;

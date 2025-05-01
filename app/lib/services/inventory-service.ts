@@ -1,5 +1,20 @@
+import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
+import { schema } from '@/lib/schema';
 import { db, sql } from '@/lib/db'; // Import db and sql
 import { getRows, castDbRows, castDbRow, DbQueryResult } from '@/lib/db-types'; // Ensure DbQueryResult is imported
+
+
+// Stock movement insert type
+type StockMovementInsert = {
+  id: string;
+  stockLevelId: string;
+  quantity: number;
+  type: 'Sale' | 'Return' | 'Restock' | 'Adjustment' | 'TransferOut' | 'TransferIn' | 'Initial';
+  notes?: string | null;
+  referenceId?: string | null;
+  createdAt?: Date;
+};
 
 // Types for inventory management
 export type StockLocationType = 'Warehouse' | 'Store' | 'Distribution Center';
@@ -74,7 +89,7 @@ export class InventoryService {
       `);
 
       // Use HEAD version for return (castDbRows)
-      return castDbRows<StockLevel[]>(getRows(result));
+      return (getRows(result) as unknown) as StockLevel[];
     } catch (error) {
       // Use HEAD version for catch (errorMsg, correct indentation)
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -110,7 +125,7 @@ export class InventoryService {
       `);
 
       // Use HEAD version for return (castDbRows)
-      return castDbRows<StockLevel[]>(getRows(result));
+      return (getRows(result) as unknown) as StockLevel[];
     } catch (error) {
       // Use HEAD version for catch (errorMsg, correct indentation)
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -147,7 +162,7 @@ export class InventoryService {
       `);
 
       // Use HEAD version for return (castDbRows)
-      return castDbRows<StockLevel[]>(getRows(result));
+      return (getRows(result) as unknown) as StockLevel[];
     } catch (error) {
       // Use HEAD version for catch (errorMsg, correct indentation)
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -304,7 +319,7 @@ export class InventoryService {
           const stockResult = await sql`
             SELECT id, quantity, reserved_quantity
             FROM stock_levels
-            WHERE 
+            WHERE
               product_id = ${item.productId}
               AND location_id = ${locationId}
               ${item.variationId ? sql`AND product_variation_id = ${item.variationId}` : sql`AND product_variation_id IS NULL`}
@@ -328,7 +343,7 @@ export class InventoryService {
               ? stockRows[0]
               : null
             : null;
-          const availableQuantity = stockLevel.quantity - stockLevel.reserved_quantity;
+          const availableQuantity = stockLevel ? stockLevel.quantity - stockLevel.reserved_quantity : 0;
 
           if (availableQuantity < item.quantity) {
             errors.push({
@@ -342,10 +357,10 @@ export class InventoryService {
           // Update reserved quantity
           await sql`
             UPDATE stock_levels
-            SET 
+            SET
               reserved_quantity = reserved_quantity + ${item.quantity},
               updated_at = NOW()
-            WHERE id = ${stockLevel.id}
+            WHERE id = ${stockLevel?.id}
           `;
 
           // Create stock movement record
@@ -380,7 +395,7 @@ export class InventoryService {
         await sql`COMMIT`;
 
         return {
-          success: Array.isArray(errors) ? (Array.isArray(errors) ? errors.length : 0) : 0 === 0,
+          success: Array.isArray(errors) ? errors.length === 0 : true,
           errors,
         };
       } catch (error) {
@@ -420,7 +435,7 @@ export class InventoryService {
           const stockResult = await sql`
             SELECT id, quantity, reserved_quantity
             FROM stock_levels
-            WHERE 
+            WHERE
               product_id = ${item.productId}
               AND location_id = ${locationId}
               ${item.variationId ? sql`AND product_variation_id = ${item.variationId}` : sql`AND product_variation_id IS NULL`}
@@ -455,7 +470,7 @@ export class InventoryService {
           // Update quantities
           await sql`
             UPDATE stock_levels
-            SET 
+            SET
               quantity = quantity - ${item.quantity},
               reserved_quantity = reserved_quantity - ${item.quantity},
               updated_at = NOW()
@@ -532,7 +547,7 @@ export class InventoryService {
         const sourceResult = await sql`
           SELECT id, quantity, reserved_quantity
           FROM stock_levels
-          WHERE 
+          WHERE
             product_id = ${productId}
             AND location_id = ${sourceLocationId}
             ${variationId ? sql`AND product_variation_id = ${variationId}` : sql`AND product_variation_id IS NULL`}
@@ -555,7 +570,7 @@ export class InventoryService {
             ? sourceRows[0]
             : null
           : null;
-        const availableQuantity = sourceStock.quantity - sourceStock.reserved_quantity;
+        const availableQuantity = sourceStock ? sourceStock.quantity - sourceStock.reserved_quantity : 0;
 
         if (availableQuantity < quantity) {
           await sql`ROLLBACK`;
@@ -568,10 +583,10 @@ export class InventoryService {
         // Reduce stock at source location
         await sql`
           UPDATE stock_levels
-          SET 
+          SET
             quantity = quantity - ${quantity},
             updated_at = NOW()
-          WHERE id = ${sourceStock.id}
+          WHERE id = ${sourceStock?.id}
         `;
 
         // Create stock movement record for source
@@ -605,7 +620,7 @@ export class InventoryService {
         const targetResult = await sql`
           SELECT id, quantity
           FROM stock_levels
-          WHERE 
+          WHERE
             product_id = ${productId}
             AND location_id = ${targetLocationId}
             ${variationId ? sql`AND product_variation_id = ${variationId}` : sql`AND product_variation_id IS NULL`}
@@ -640,7 +655,7 @@ export class InventoryService {
           // Update existing target stock
           await sql`
             UPDATE stock_levels
-            SET 
+            SET
               quantity = quantity + ${quantity},
               updated_at = NOW()
             WHERE id = ${targetRows[0].id}
@@ -702,7 +717,7 @@ export class InventoryService {
   > {
     try {
       const result = await sql`
-        SELECT 
+        SELECT
           sl.id,
           sl.product_id,
           sl.product_variation_id,
@@ -713,14 +728,14 @@ export class InventoryService {
           sl.reorder_quantity,
           p.name as product_name,
           pv.name as variation_name
-        FROM 
+        FROM
           stock_levels sl
           JOIN products p ON p.id = sl.product_id
           LEFT JOIN product_variations pv ON pv.id = sl.product_variation_id
-        WHERE 
+        WHERE
           sl.reorder_point IS NOT NULL
           AND sl.quantity - sl.reserved_quantity <= sl.reorder_point
-        ORDER BY 
+        ORDER BY
           (sl.quantity - sl.reserved_quantity) ASC
       `;
 
@@ -760,17 +775,17 @@ export class InventoryService {
 
       // Get movements with user names
       const movementsResult = await sql`
-        SELECT 
+        SELECT
           sm.*,
           u.name as created_by_name
-        FROM 
+        FROM
           stock_movements sm
           LEFT JOIN users u ON sm.created_by = u.id
-        WHERE 
+        WHERE
           sm.product_id = ${productId}
           ${variationId ? sql`AND sm.product_variation_id = ${variationId}` : sql``}
           ${locationId ? sql`AND sm.location_id = ${locationId}` : sql``}
-        ORDER BY 
+        ORDER BY
           sm.created_at DESC
         LIMIT ${limit}
         OFFSET ${offset}
@@ -802,8 +817,8 @@ export class InventoryService {
       if (location.id) {
         // Update existing location
         const updateResult = await sql`
-          UPDATE stock_locations 
-          SET 
+          UPDATE stock_locations
+          SET
             name = ${location.name},
             address = ${location.address || null},
             type = ${location.type},
@@ -853,13 +868,13 @@ export class InventoryService {
   async getStockLocations(activeOnly = false): Promise<StockLocation[]> {
     try {
       const result = await sql`
-        SELECT 
-          id, 
-          name, 
-          address, 
-          type, 
-          is_active, 
-          created_at, 
+        SELECT
+          id,
+          name,
+          address,
+          type,
+          is_active,
+          created_at,
           updated_at
         FROM stock_locations
         ${activeOnly ? sql`WHERE is_active = true` : sql``}
@@ -889,18 +904,18 @@ export class InventoryService {
   > {
     try {
       const result = await sql`
-        SELECT 
+        SELECT
           sl.location_id,
           l.name as location_name,
-          COUNT(DISTINCT 
-            CASE 
-              WHEN sl.product_variation_id IS NULL THEN sl.product_id 
-              ELSE sl.product_variation_id 
+          COUNT(DISTINCT
+            CASE
+              WHEN sl.product_variation_id IS NULL THEN sl.product_id
+              ELSE sl.product_variation_id
             END
           ) as total_items,
           SUM(sl.quantity) as total_quantity,
           SUM(
-            CASE 
+            CASE
               WHEN sl.product_variation_id IS NULL THEN sl.quantity * p.price
               ELSE sl.quantity * pv.price
             END
@@ -913,7 +928,7 @@ export class InventoryService {
         ORDER BY l.name
       `;
 
-      return castDbRows<
+      return rows as unknown as
         Array<{
           location_id: string;
           location_name: string;
@@ -986,7 +1001,7 @@ CREATE INDEX IF NOT EXISTS idx_stock_movements_location ON stock_movements(locat
 CREATE INDEX IF NOT EXISTS idx_stock_movements_created_at ON stock_movements(created_at);
 
 -- Insert default warehouse location if none exists
-INSERT INTO stock_locations (name, type, is_active) 
+INSERT INTO stock_locations (name, type, is_active)
 SELECT 'Main Warehouse', 'Warehouse', true
 WHERE NOT EXISTS (SELECT 1 FROM stock_locations LIMIT 1);
     `;

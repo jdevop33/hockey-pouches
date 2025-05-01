@@ -30,7 +30,7 @@ interface CacheEntry<T> {
 export async function cachedQuery<T>(
   queryKey: string,
   queryFn: () => Promise<T>,
-  duration: number = $1?.$2
+  duration: number = params.id
 ): Promise<T> {
   // Check if cache exists and is not expired
   const cachedResult = queryCache[queryKey];

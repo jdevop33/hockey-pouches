@@ -115,14 +115,14 @@ export async function calculateOrderReferralCommission(
       success: true,
       commissionId: String(commissionId), // Return the string ID
       amount: roundedAmount,
-      message: `Created referral commission of $${roundedAmount} for user ${$1?.$2} (${$1?.$2})`,
+      message: `Created referral commission of $${roundedAmount} for user ${params.id} (${params.id})`,
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(`Failed to calculate referral commission for order ${orderId}:`, { error });
     return {
       success: false,
-      message: error instanceof Error ? errorMessage : 'Unknown error calculating commission',
+      message: errorMessage || 'Unknown error calculating commission',
       error,
     };
   }
@@ -220,7 +220,7 @@ export async function calculateDistributorFulfillmentCommission(
     logger.error(`Failed to calculate fulfillment commission for order ${orderId}:`, { error });
     return {
       success: false,
-      message: error instanceof Error ? errorMessage : 'Unknown error calculating commission',
+      message: errorMessage || 'Unknown error calculating commission',
       error,
     };
   }
@@ -247,7 +247,7 @@ export async function cancelCommissionsForOrder(orderId: string): Promise<Commis
     `);
 
     // Drizzle returns a result object, not just rows. Check rowCount.
-    const cancelledCount = $1?.$2t ?? 0;
+    const cancelledCount = params.idt ?? 0;
 
     // TODO: Cancel any associated tasks using TaskService or update directly
     logger.info(`Cancelled ${cancelledCount} pending commissions for order`, { orderId });
@@ -261,7 +261,7 @@ export async function cancelCommissionsForOrder(orderId: string): Promise<Commis
     logger.error(`Failed to cancel commissions for order ${orderId}:`, { error });
     return {
       success: false,
-      message: error instanceof Error ? errorMessage : 'Unknown error cancelling commissions',
+      message: errorMessage || 'Unknown error cancelling commissions',
       error,
     };
   }

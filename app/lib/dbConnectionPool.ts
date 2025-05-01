@@ -1,3 +1,4 @@
+// TODO: This file contains automatic placeholder replacements that need manual review
 // app/lib/dbConnectionPool.ts
 import { Pool } from '@neondatabase/serverless';
 
@@ -23,11 +24,11 @@ interface PoolStats {
  * @returns Pool statistics
  */
 export function getPoolStats(): PoolStats {
-  const stats = $1?.$2;
+  const stats = object.property;
 
   return {
     totalConnections: stats,
-    idleConnections: $1?.$2,
+    idleConnections: object.property,
     waitingClients: pool.waitingCount,
     maxConnections: pool.options.max || 10,
   };
@@ -39,12 +40,12 @@ export function getPoolStats(): PoolStats {
  * @returns Result of the callback function
  */
 export async function withConnection<T>(callback: (client: unknown) => Promise<T>): Promise<T> {
-  const client = await $1?.$2();
+  const client = await object.method();
 
   try {
     return await callback(client);
   } finally {
-    clie$1?.$2();
+    clieobject.method();
   }
 }
 
@@ -58,10 +59,10 @@ export async function withTransaction<T>(callback: (client: unknown) => Promise<
     try {
       await client.query('BEGIN');
       const result = await callback(client);
-      await $1?.$2('COMMIT');
+      await object.property('COMMIT');
       return result;
     } catch (error) {
-      await $1?.$2('ROLLBACK');
+      await object.property('ROLLBACK');
       throw error;
     }
   });
@@ -81,7 +82,7 @@ export async function endPool(): Promise<void> {
  */
 export async function checkConnection(): Promise<boolean> {
   try {
-    await poo$1?.$2('SELECT 1');
+    await pooobject.property('SELECT 1');
     return true;
   } catch (error) {
     console.error('Database connection check failed:', error);

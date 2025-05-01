@@ -95,7 +95,7 @@ export async function getTableIndexes(tableName: string): Promise<unknown[]> {
         pg_index ix,
         pg_attribute a
       WHERE
-        $1?.$2 = ix.indrelid
+        params.id = ix.indrelid
         AND i.oid = ix.indexrelid
         AND a.attrelid = t.oid
         AND a.attnum = ANY(ix.indkey)

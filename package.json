@@ -42,7 +42,12 @@
     "check:db": "node --loader ts-node/esm scripts/check-database.ts",
     "fix:typescript": "node scripts/fix-typescript-issues.mjs",
     "fix:params": "node scripts/fix-missing-parameters.mjs",
-    "fix:types:all": "npm run fix:typescript && npm run fix:params && npm run typecheck"
+    "fix:types:all": "npm run fix:typescript && npm run fix:params && npm run typecheck",
+    "fix:placeholders": "node scripts/revert-placeholder-changes.mjs",
+    "fix:template-literals": "node scripts/fix-template-literals-all.mjs",
+    "fix:critical-ts": "node scripts/fix-critical-typescript-errors.mjs",
+    "fix:remaining-ts": "node scripts/fix-remaining-ts-errors.mjs",
+    "fix:all-ts": "node scripts/fix-all-typescript-errors.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

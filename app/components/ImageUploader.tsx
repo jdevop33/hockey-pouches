@@ -56,8 +56,8 @@ export default function ImageUploader({
 
       // Prepare form data for upload
       const formData = new FormData();
-      $1?.$2('file', file);
-      $1?.$2('folder', folder);
+      formData.append('file', file);
+      formData.append('folder', folder);
 
       // Upload the image
       const response = await fetch('/api/upload', {
@@ -86,15 +86,15 @@ export default function ImageUploader({
     } catch (error: unknown) {
       console.error('Error uploading image:', error);
       setUploadError(
-        error instanceof Error ? errorMessage : 'Failed to upload image. Please try again.'
+        error instanceof Error ? error.message : 'Failed to upload image. Please try again.'
       );
       // Revert to the previous image if there was an error
       setPreviewUrl(currentImageUrl || null);
     } finally {
       setIsUploading(false);
       // Reset the file input
-      if ($1?.$2t) {
-        $1?.$2.value = '';
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
     }
   };

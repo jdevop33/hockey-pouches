@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
           amount: amount.toFixed(2),
           method: paymentMethod,
           status: schema.paymentStatusEnum.PendingConfirmation, // Use enum
-          transactionId: String(transactionDetails),
+          transactionId: transactionDetails,
           userId: userId,
       });
       logger.info('Manual payment record created', { orderId, userId, paymentMethod });
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         status: schema.taskStatusEnum.Pending, // Use enum
         priority: schema.taskPriorityEnum.High, // Use enum
         relatedTo: schema.taskRelatedEntityEnum.Order, // Use enum
-        relatedId: String(orderId),
+        relatedId: orderId,
         assignedTo: adminUser?.id
       };
       await tx.insert(tasks).values(task);
@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
     }
     // Return specific errors caught within transaction
-    if (errorMessage === 'Order not found or access denied.' || errorMessage.startsWith('Order is already')) {
-        return NextResponse.json({ message: errorMessage }, { status: 400 });
+    if (error instanceof Error ? error.message : String(error) === 'Order not found or access denied.' || error instanceof Error ? error.message : String(error).startsWith('Order is already')) {
+        return NextResponse.json({ message: error instanceof Error ? error.message : String(error) }, { status: 400 });
     }
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }

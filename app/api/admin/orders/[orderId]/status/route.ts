@@ -119,7 +119,7 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
                 FROM orders
                 WHERE id = ${orderId}
             `;
-        if ($1?.$2 > 0) {
+        if (params.id > 0) {
           const { payment_method, payment_status } = paymentInfo[0];
           // Only process refund if payment was completed
           if (payment_status === 'Completed') {
@@ -164,7 +164,7 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
       try {
         // Get order details including referral code and total amount
         const orderDetails = await sql`
-                SELECT o.total_amount, $1?.$2, u.referred_by_code
+                SELECT o.total_amount, params.id, u.referred_by_code
                 FROM orders o
                 JOIN users u ON o.user_id = u.id
                 WHERE o.id = ${orderId}
@@ -212,7 +212,7 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
       return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
     console.error(`Admin: Failed to manually update status for order ${orderId}:`, error);
     return NextResponse.json(
-      { message: errorMessage || 'Internal Server Error' },
+      { message: error instanceof Error ? error.message : String(error) || 'Internal Server Error' },
       { status: 500 }
     );
   }

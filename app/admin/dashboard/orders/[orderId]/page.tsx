@@ -125,7 +125,7 @@ export default function AdminOrderDetailPage() {
       if (!orderResponse.ok) {
         if (orderResponse.status === 401) {
           logout();
-          $1?.$2('/login');
+          router.push('/login');
           return;
         }
         if (orderResponse.status === 404) {

@@ -13,8 +13,8 @@ const CartIcon: React.FC = () => {
   useEffect(() => {
     // Only update state after component is mounted on client
     setIsMounted(true);
-    setCount($1?.$2);
-  }, [$1?.$2]);
+    setCount(params.id);
+  }, [params.id]);
 
   // When server-side rendering or before hydration, use the fallback
   if (!isMounted) {

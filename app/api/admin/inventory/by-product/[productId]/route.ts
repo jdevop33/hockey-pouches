@@ -3,10 +3,7 @@ import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth
 import { db, sql } from '@/lib/db';
 import { getRows } from '@/lib/db-types';
 import { logger } from '@/lib/logger';
-import { castDbRows } from '@/lib/db-types';
-
 export const dynamic = 'force-dynamic';
-
 // Basic inventory item type
 interface InventoryItem {
   inventoryId: string;
@@ -19,25 +16,20 @@ interface InventoryItem {
   imageUrl?: string;
   [key: string]: unknown;
 }
-
 export async function GET(request: NextRequest, { params }: { params: { productId: string } }) {
   const { productId } = params;
-
   try {
     // Verify admin authentication
     const authResult = await verifyAdmin(request);
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.message);
     }
-
     // Check if user is an admin
     if (authResult.role !== 'Admin') {
       return forbiddenResponse('Only administrators can access this resource');
     }
-
     const adminUserId = authResult.userId;
     logger.info(`Admin: Get inventory for product ID: ${productId} by admin: ${adminUserId}`);
-
     // Fetch inventory for this product from all locations using SQL tagged templates
     const result = await db.execute(sql`
       SELECT 
@@ -56,15 +48,12 @@ export async function GET(request: NextRequest, { params }: { params: { productI
       WHERE pv.product_id = ${productId}
       ORDER BY l.name
     `);
-
-    const inventoryItems = castDbRows<InventoryItem[]>(getRows(result));
-
+    const inventoryItems = result as InventoryItem[]>(getRows(result));
     // Calculate available quantity for each item
     const inventoryWithAvailable = inventoryItems.map(item => ({
       ...item,
       availableQuantity: Number(item.quantity) - Number(item.reservedQuantity),
     }));
-
     return NextResponse.json(inventoryWithAvailable);
   } catch (error) {
     logger.error(`Admin: Failed to get inventory for product ${productId}:`, error);

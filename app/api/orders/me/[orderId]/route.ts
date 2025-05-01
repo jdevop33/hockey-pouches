@@ -152,7 +152,7 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
 
     const items = itemRows.map(item => ({
       id: item.id,
-      productVariationId: String(item.productVariationId),
+      productVariationId: item.productVariationId,
       productName: item.product_name,
       variationName: item.variation_name,
       quantity: item.quantity,
@@ -193,7 +193,7 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
     }
 
     const orderResponse: OrderDetailsResponse = {
-      id: $1?.$2,
+      id: params.id,
       status: orderData.status as any, // TODO: Validate against schema.orderStatusEnum
       totalAmount: orderData.total_amount,
       paymentMethod: orderData.payment_method as any, // TODO: Validate against schema.paymentMethodEnum

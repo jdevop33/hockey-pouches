@@ -23,8 +23,8 @@ export const breakpoints = {
 
 // Media Queries
 export const media = {
-  xs: `@media (min-width: ${$1?.$2})`,
-  sm: `@media (min-width: ${$1?.$2})`,
+  xs: `@media (min-width: ${params.id})`,
+  sm: `@media (min-width: ${params.id})`,
   md: `@media (min-width: ${breakpoints.md})`,
   lg: `@media (min-width: ${breakpoints.lg})`,
   xl: `@media (min-width: ${breakpoints.xl})`,

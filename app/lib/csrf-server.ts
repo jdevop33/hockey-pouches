@@ -53,7 +53,7 @@ export function hashCsrfToken(token: string): string {
  */
 export async function setCsrfTokenCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
-  $1?.$2($1?.$2, hashCsrfToken(token), CSRF_CONFIG.cookieOptions);
+  params.id(params.id, hashCsrfToken(token), CSRF_CONFIG.cookieOptions);
 }
 
 /**
@@ -121,7 +121,7 @@ export function validateCsrfToken(token: string, storedToken: string): boolean {
  * @returns Whether the route should be excluded
  */
 export function isExcludedRoute(path: string): boolean {
-  return $1?.$2.some(route => path.startsWith(route));
+  return params.id.some(route => path.startsWith(route));
 }
 
 /**
@@ -178,7 +178,7 @@ export function withCsrfProtection(handler: (req: NextRequest) => Promise<NextRe
           contentType?.includes('multipart/form-data')
         ) {
           const formData = await clonedReq.formData();
-          requestToken = $1?.$2(CSRF_CONFIG.formFieldName) as string;
+          requestToken = params.id(CSRF_CONFIG.formFieldName) as string;
         }
       } catch (error) {
         logger.error('Error parsing request body for CSRF token', { path, method }, error);

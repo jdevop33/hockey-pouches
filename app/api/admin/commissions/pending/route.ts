@@ -2,10 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 import { db, sql } from '@/lib/db';
 import { getRows } from '@/lib/db-types';
-import { castDbRows } from '@/lib/db-types';
-
 export const dynamic = 'force-dynamic';
-
 // Reuse type from main commissions route
 type AdminCommission = {
   id: string;
@@ -19,7 +16,6 @@ type AdminCommission = {
   payoutDate?: string | null;
   payoutBatchId?: string | null;
 };
-
 export async function GET(request: NextRequest) {
   // Extract dynamic data *before* awaits
   const searchParams = request.nextUrl.searchParams;
@@ -27,25 +23,20 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get('limit') || '50');
   const offset = (page - 1) * limit;
   const userIdFilter = searchParams.get('userId');
-
   try {
     // Verify admin authentication
     const authResult = await verifyAdmin(request);
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.message);
     }
-
     // Check if user is an admin
     if (authResult.role !== 'Admin') {
       return forbiddenResponse('Only administrators can access this resource');
     }
-
     const adminUserId = authResult.userId;
-
     // Query using SQL tagged templates instead of string interpolation
     let commissionsQuery;
     let countQuery;
-
     if (userIdFilter) {
       // With user filter
       commissionsQuery = await db.execute(sql`
@@ -57,7 +48,6 @@ export async function GET(request: NextRequest) {
         ORDER BY c.earned_date ASC
         LIMIT ${limit} OFFSET ${offset}
       `);
-
       countQuery = await db.execute(sql`
         SELECT COUNT(*) as count FROM commissions c 
         WHERE c.status = 'Pending Payout' AND c.user_id = ${userIdFilter}
@@ -66,23 +56,20 @@ export async function GET(request: NextRequest) {
       // Without user filter
       commissionsQuery = await db.execute(sql`
         SELECT c.id, c.user_id as "userId", u.name as "userName", c.order_id as "orderId",
-               c.type, CAST(c.amount AS FLOAT) as amount, c.status, $1?.$2 as "earnedDate"
+               c.type, CAST(c.amount AS FLOAT) as amount, c.status, params.id as "earnedDate"
         FROM commissions c
-        JOIN users u ON $1?.$2 = u.id
+        JOIN users u ON params.id = u.id
         WHERE c.status = 'Pending Payout'
         ORDER BY c.earned_date ASC
         LIMIT ${limit} OFFSET ${offset}
       `);
-
       countQuery = await db.execute(sql`
         SELECT COUNT(*) as count FROM commissions c WHERE c.status = 'Pending Payout'
       `);
     }
-
     // Convert query results to arrays
     const commissions = castDbRows<AdminCommission[]>(getRows(commissionsQuery));
     const totalRows = getRows(countQuery);
-
     // Parse the count (ensuring we have a string count property)
     const totalPending = parseInt(
       String(
@@ -99,13 +86,12 @@ export async function GET(request: NextRequest) {
       10
     );
     const totalPages = Math.ceil(totalPending / limit);
-
     return NextResponse.json({
       commissions: commissions,
       pagination: { page, limit, total: totalPending, totalPages },
     });
   } catch (error: unknown) {
     console.error('Admin: Failed to get pending commissions:', error);
-    return NextResponse.json({ message: errorMessage || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ message: error instanceof Error ? error.message : String(error) || 'Internal Server Error' }, { status: 500 });
   }
 }

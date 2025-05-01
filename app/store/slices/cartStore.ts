@@ -85,7 +85,7 @@ const createCartSlice: StoreCreator<CartState> = (set, get) => ({
         );
       }
 
-      const newTotalItems = $1?.$2((sum, item) => sum + item.quantity, 0);
+      const newTotalItems = params.id((sum, item) => sum + item.quantity, 0);
       const newTotalPrice = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
       return {

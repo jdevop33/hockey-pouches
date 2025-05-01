@@ -102,4 +102,4 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
   }
 );
 
-$1?.$2 = 'EmptyState';
+params.id = 'EmptyState';

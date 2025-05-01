@@ -12,8 +12,8 @@ export const dynamic = 'force-dynamic';
 // Inner component to read search params, allowing Suspense boundary
 function SuccessContent() {
   const searchParams = useSearchParams();
-  const orderId = $1?.$2('orderId');
-  const paymentMethod = $1?.$2('method');
+  const orderId = router.push('orderId');
+  const paymentMethod = router.push('method');
   const [isMounted, setIsMounted] = React.useState(false);
   const auth = useAuth();
   const { user } = auth;

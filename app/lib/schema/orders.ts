@@ -68,7 +68,7 @@ export const orders = pgTable(
       .references(() => users.id), // Assuming users.id is text/uuid
     status: orderStatusEnum('status').notNull().default('PendingPayment'),
     totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).notNull(),
-    distributorId: String(text('distributor_id').references(() => users.id), { onDelete: 'set null' }),
+    distributorId: text('distributor_id'.references(() => users.id), { onDelete: 'set null' }),
     commissionAmount: decimal('commission_amount', { precision: 10, scale: 2 }),
     paymentMethod: paymentMethodEnum('payment_method').notNull(),
     paymentStatus: paymentStatusEnum('payment_status').notNull().default('Pending'),
@@ -126,7 +126,7 @@ export const orderStatusHistory = pgTable(
     status: orderStatusEnum('status').notNull(),
     paymentStatus: paymentStatusEnum('payment_status'), // Added payment status
     notes: text('notes'),
-    changedByUserId: String(text('changed_by_user_id').references(() => users.id)), // Added user making change
+    changedByUserId: text('changed_by_user_id'.references(() => users.id)), // Added user making change
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
   table => ({
@@ -172,7 +172,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     relationName: 'referralOrders',
   }),
   // Add relation to user via referral code if needed
-  // referralCodeUser: one(users, { fields: [$1?.$2], references: [users.referralCode], relationName: 'ReferralCodeOrderRelation' })
+  // referralCodeUser: one(users, { fields: [params.id], references: [users.referralCode], relationName: 'ReferralCodeOrderRelation' })
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({

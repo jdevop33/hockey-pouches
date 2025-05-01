@@ -19,7 +19,7 @@ export default function AdminProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user, token, isLoading: authLoading, logout } = useAuth();
-  const productIdString = $1?.$2 as string;
+  const productIdString = params.id as string;
   const productId = productIdString ? parseInt(productIdString) : undefined;
 
   const [product, setProduct] = useState<ProductDetails | null>(null);
@@ -69,7 +69,7 @@ export default function AdminProductDetailPage() {
           setEditData(data);
         } catch (err: unknown) {
           const error = err as Error;
-          setError(errorMessage || 'Failed to load product details.');
+          setError(error instanceof Error ? error.message : String(error) || 'Failed to load product details.');
           console.error(err);
         } finally {
           setIsLoadingData(false);
@@ -94,7 +94,7 @@ export default function AdminProductDetailPage() {
       if (!response.ok) {
         if (response.status === 401) {
           logout();
-          ro$1?.$2('/login');
+          rorouter.push('/login');
           return;
         }
         throw new Error(`Failed to load variations (${response.status})`);
@@ -104,7 +104,7 @@ export default function AdminProductDetailPage() {
       setVariations(data as ProductVariation[]);
     } catch (err: unknown) {
       const error = err as Error;
-      setVariationError(errorMessage || 'Failed to load variations.');
+      setVariationError(error instanceof Error ? error.message : String(error) || 'Failed to load variations.');
       console.error(err);
     } finally {
       setIsLoadingVariations(false);
@@ -147,7 +147,7 @@ export default function AdminProductDetailPage() {
   };
 
   const handleSaveChanges = async (e: React.FormEvent) => {
-    $1?.$2();
+    params.id();
     if (!product || !token) return;
     setIsSaving(true);
     setError(null);
@@ -254,7 +254,7 @@ export default function AdminProductDetailPage() {
       alert('Changes saved!');
     } catch (err: unknown) {
       const error = err as Error;
-      setError(errorMessage || 'Failed to save changes.');
+      setError(error instanceof Error ? error.message : String(error) || 'Failed to save changes.');
       console.error(err);
     } finally {
       setIsSaving(false);
@@ -332,7 +332,7 @@ export default function AdminProductDetailPage() {
       setCurrentVariation(null);
     } catch (err: unknown) {
       const error = err as Error;
-      setVariationError(errorMessage || 'Failed to save variation.');
+      setVariationError(error instanceof Error ? error.message : String(error) || 'Failed to save variation.');
       console.error(err);
     } finally {
       setIsSavingVariation(false);
@@ -364,7 +364,7 @@ export default function AdminProductDetailPage() {
       await loadVariations();
     } catch (err: unknown) {
       const error = err as Error;
-      setVariationError(errorMessage || 'Failed to delete variation.');
+      setVariationError(error instanceof Error ? error.message : String(error) || 'Failed to delete variation.');
       console.error(err);
     }
   };
@@ -793,7 +793,7 @@ export default function AdminProductDetailPage() {
                             id="variation-flavor"
                             value={currentVariation.flavor || ''}
                             onChange={e =>
-                              setCurrentVariation({ ...currentVariation, flavor: $1?.$2.value })
+                              setCurrentVariation({ ...currentVariation, flavor: e.target.value })
                             }
                             className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500"
                           />

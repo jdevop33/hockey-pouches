@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
             billingAddress: billingAddress ?? shippingAddress, // Store as JSONB
             notes: notes,
             discountCode: discountCode,
-            discountAmount: $1?.$2(2),
+            discountAmount: params.id(2),
             appliedReferralCode: referralCode,
         }).returning({ id: schema.orders.id });
 
@@ -270,7 +270,7 @@ export async function POST(request: NextRequest) {
         });
         logger.info('Order history added', { orderId: newOrderId });
 
-        // --- Clear User's Cart --- 
+        // --- Clear User's Cart ---
         await tx.delete(schema.cartItems).where(eq(schema.cartItems.userId, userId));
         logger.info('User cart cleared', { userId });
 
@@ -374,9 +374,10 @@ export async function POST(request: NextRequest) {
 
   } catch (error: unknown) {
     logger.error(`POST /api/orders - Failed for user ${userInfo?.userId || '(unknown)'}`, { error });
+    const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
     return NextResponse.json(
-      { message: error instanceof Error ? errorMessage : 'Internal Server Error' },
-      { status: error instanceof Error && $1?.$2('Insufficient stock') ? 400 : 500 }
+      { message: errorMessage },
+      { status: error instanceof Error && errorMessage.includes('Insufficient stock') ? 400 : 500 }
     );
   }
 }

@@ -60,11 +60,23 @@ import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
 import { COMMISSION_STATUS, type CommissionStatus } from '@/lib/constants/commission-status';
 import { eq, and, count, desc } from 'drizzle-orm';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
 import { type DbTransaction } from '@/lib/db-types';
+
+
+export type ListCommissionsOptions = {
+  page?: number;
+  limit?: number;
+  status?: string;
+  userId?: string;
+  startDate?: Date;
+  endDate?: Date;
+};
 // ... (Types and other functions remain the same) ...
 // --- Service Class ---
 export class CommissionService {
@@ -162,10 +174,8 @@ export class CommissionService {
     // Removed TODO and default return block
     const { page = 1, limit = 20, status, userId } = options;
     const offset = (page - 1) * limit;
-
     // Ensure db is not null
     if (!db) throw new Error('Database connection not available.');
-
     const conditions = [];
     if (status) {
       conditions.push(eq(schema.commissions.status, status));
@@ -174,16 +184,13 @@ export class CommissionService {
       conditions.push(eq(schema.commissions.userId, userId));
     }
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
     try {
       const countResult = await db
         .select({ count: count() })
         .from(schema.commissions)
         .where(whereClause);
-
       const total = Number(countResult[0]?.count || '0');
       const totalPages = Math.ceil(total / limit);
-
       const results = await db.query.commissions.findMany({
         where: whereClause,
         with: {
@@ -194,7 +201,6 @@ export class CommissionService {
         limit: limit,
         offset: offset,
       });
-
       // Map results to the expected AdminCommissionListItem structure if needed, or adjust the type
       const commissionsList = results.map(c => ({
         ...c,
@@ -203,14 +209,12 @@ export class CommissionService {
         userEmail: c.user?.email ?? 'N/A',
         orderId: c.orderId?.toString() ?? undefined,
       })) as AdminCommissionListItem[]; // Adjust type/mapping as necessary
-
       return { commissions: commissionsList, pagination: { total, page, limit, totalPages } };
     } catch (error) {
       logger.error('Failed to list commissions', { options, error });
       throw new Error('Failed to list commissions.');
     }
   }
-
   /**
    * Gets commissions specifically for a given user with pagination.
    * @param userId - The ID of the user whose commissions to fetch.
@@ -245,9 +249,7 @@ export const commissionService = new CommissionService();
 // type CommissionInsert = typeof schema.commissions.$inferInsert;
 // Export the CommissionStatus type if used elsewhere
 // export { CommissionStatus };
-
 // --- Define types used within the service ---
-
 // Type for commission stats returned for a user dashboard
 interface UserCommissionStats {
   pendingAmount: number;
@@ -256,13 +258,11 @@ interface UserCommissionStats {
   totalLifetimeAmount: number;
   recentCommissions: Array<typeof schema.commissions.$inferSelect>;
 }
-
 // Type for the result of listCommissions (including pagination)
 interface ListCommissionsResult {
   commissions: AdminCommissionListItem[];
   pagination: { total: number; page: number; limit: number; totalPages: number };
 }
-
 // Type for individual commission item in the admin list
 interface AdminCommissionListItem extends Omit<typeof schema.commissions.$inferSelect, 'amount'> {
   amount: number;

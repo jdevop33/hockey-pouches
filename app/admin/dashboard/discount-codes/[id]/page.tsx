@@ -27,8 +27,8 @@ export default function DiscountCodeFormPage() {
   const params = useParams();
   const router = useRouter();
   const { user, token, isLoading: authLoading } = useAuth();
-  const isNewCode = $1?.$2d === 'new';
-  const discountCodeId = isNewCode ? null : Number($1?.$2);
+  const isNewCode = params.id === 'new';
+  const discountCodeId = isNewCode ? null : Number(params.id);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -147,7 +147,7 @@ export default function DiscountCodeFormPage() {
     if (isNaN(discountValue) || discountValue <= 0) {
       errors.discountValue = 'Discount value must be a positive number';
     } else if (formData.discountType === 'percentage' && discountValue > 100) {
-      error$1?.$2 = 'Percentage discount cannot exceed 100%';
+      errors.discountValue = 'Percentage discount cannot exceed 100%';
     }
 
     if (!formData.startDate) {

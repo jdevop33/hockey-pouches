@@ -49,12 +49,12 @@ export default function DiscountCodesPage() {
 
   // Handle creating a new discount code
   const handleAddDiscountCode = () => {
-    $1?.$2('/admin/dashboard/discount-codes/new');
+    router.push('/admin/dashboard/discount-codes/new');
   };
 
   // Handle editing a discount code
   const handleEditDiscountCode = (id: number) => {
-    $1?.$2(`/admin/dashboard/discount-codes/${id}`);
+    params.id(`/admin/dashboard/discount-codes/${id}`);
   };
 
   // Handle toggling a discount code's active status
@@ -108,7 +108,7 @@ export default function DiscountCodesPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error($1?.$2 || 'Failed to delete discount code');
+        throw new Error(params.id || 'Failed to delete discount code');
       }
 
       // Remove the deleted code from the local state
@@ -162,8 +162,8 @@ export default function DiscountCodesPage() {
         // Update pagination if provided
         if (data.pagination) {
           setPagination({
-            page: $1?.$2.currentPage || 1,
-            limit: $1?.$2.limit || 10,
+            page: params.id.currentPage || 1,
+            limit: params.id.limit || 10,
             total: data.pagination.total || 0,
             totalPages: data.pagination.totalPages || 1,
           });

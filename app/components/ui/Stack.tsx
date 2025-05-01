@@ -46,4 +46,4 @@ export const Stack = React.forwardRef<HTMLDivElement, StackProps>(
   }
 );
 
-$1?.$2 = 'Stack';
+params.id = 'Stack';

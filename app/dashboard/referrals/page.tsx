@@ -67,7 +67,7 @@ export default function ReferralsPage() {
 
     // Redirect if not authenticated
     if (!user || !token) {
-      $1?.$2('/login?redirect=/dashboard/referrals');
+      router.push('/login?redirect=/dashboard/referrals');
       return;
     }
 

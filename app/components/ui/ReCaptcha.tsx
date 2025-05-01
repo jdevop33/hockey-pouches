@@ -75,8 +75,8 @@ const ReCaptcha: React.FC<ReCaptchaProps> = memo(function ReCaptcha({
 
       try {
         // Check if reCAPTCHA has already been rendered in this element
-        if ($1?.$2t === null) {
-          $1?.$2 = window.grecaptcha.render(containerRef.current, {
+        if (widgetId.current === null) {
+          widgetId.current = window.grecaptcha.render(containerRef.current, {
             sitekey: siteKey,
             callback: onVerify,
             theme,
@@ -96,7 +96,7 @@ const ReCaptcha: React.FC<ReCaptchaProps> = memo(function ReCaptcha({
       }
     } else {
       // If grecaptcha is not available yet, try again after a short delay
-      $1?.$2 += 1;
+      renderAttempts.current += 1;
       const delay = Math.min(500 * Math.pow(1.5, renderAttempts.current), 5000);
       setTimeout(renderReCaptcha, delay);
     }

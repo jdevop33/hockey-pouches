@@ -206,6 +206,7 @@ export class OrderService {
 
         // Insert Order Items
         const orderItemsToInsert: OrderItemInsert[] = items.map(item => ({
+          subtotal: (parseFloat(item.priceAtPurchase) * item.quantity).toFixed(2),
           id: uuidv4(),
           orderId,
           productVariationId: item.productVariationId,
@@ -378,11 +379,11 @@ export class OrderService {
           schema.orderStatusEnum.enumValues[3],
           schema.orderStatusEnum.enumValues[4],
         ];
-        if (!validStatuses.includes(order.status))
+        if (!validStatuses.includes(order.status as any))
           throw new Error(`Cannot assign distributor in current status: ${order.status}`);
         const updateResult = await tx
           .update(schema.orders)
-          .set({ distributorId: String(distributorId), updatedAt: new Date() })
+          .set({ distributorId: distributorId, updatedAt: new Date() })
           .where(eq(schema.orders.id, orderId))
           .returning();
         if (updateResult.length === 0) throw new Error('Failed to assign distributor');
@@ -416,7 +417,7 @@ export class OrderService {
           where: eq(schema.orders.id, orderId),
           columns: {
             status: true,
-            distributorId: String(true),
+            distributorId: true,
             totalAmount: true,
             commissionAmount: true,
           },
@@ -426,7 +427,7 @@ export class OrderService {
           schema.orderStatusEnum.enumValues[4],
           schema.orderStatusEnum.enumValues[3],
         ]; // ReadyForFulfillment, Processing
-        if (!validStatuses.includes(order.status))
+        if (!validStatuses.includes(order.status as any))
           throw new Error(`Cannot record fulfillment in current status: ${order.status}`);
         if (order.distributorId !== distributorUserId)
           throw new Error('Order not assigned to this distributor');

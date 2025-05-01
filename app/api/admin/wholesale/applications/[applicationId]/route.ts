@@ -42,7 +42,7 @@ const updateApplicationSchema = z.object({
 export async function PATCH(request: NextRequest, { params }: { params: { applicationId: string } }) {
     try {
         const authResult = await verifyAdmin(request);
-        if (!authResul$1?.$2 || !authResult.userId || authResult.role !== 'Admin') {
+        if (!authResulparams.id || !authResult.userId || authResult.role !== 'Admin') {
             return forbiddenResponse('Admin access required');
         }
         const { applicationId } = params;
@@ -71,7 +71,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { applic
             updatedApplication = await wholesaleService.rejectApplication(applicationId, authResult.userId, notes!); // Notes is guaranteed by check above
         }
 
-        logger.info('Admin: Wholesale application updated successfully', { applicationId, status, adminId: a$1?.$2 });
+        logger.info('Admin: Wholesale application updated successfully', { applicationId, status, adminId: aparams.id });
         return NextResponse.json(updatedApplication);
 
     } catch (error: unknown) {
@@ -79,8 +79,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { applic
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
         }
-        if (errorMessage) {
-            return NextResponse.json({ message: errorMessage }, { status: 404 });
+        if (error instanceof Error ? error.message : String(error)) {
+            return NextResponse.json({ message: error instanceof Error ? error.message : String(error) }, { status: 404 });
         }
         return NextResponse.json({ message: 'Internal Server Error updating application.' }, { status: 500 });
     }

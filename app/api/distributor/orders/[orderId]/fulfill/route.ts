@@ -88,7 +88,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
                 priority: 'High',
                 category: taskCategoryEnum.enumValues[0], // Use enum value e.g. 'OrderReview'
                 relatedTo: 'Order', // Use enum value e.g. taskRelatedEntityEnum.enumValues[0]
-                relatedId: String(orderId),
+                relatedId: orderId,
             });
             logger.info('Created verify fulfillment task for admin', { orderId });
         } catch (taskError) {
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
     } catch (error: unknown) {
         logger.error(`Distributor: Failed to fulfill order ${params.orderId}:`, { error });
         if (error instanceof SyntaxError) return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
-        if (errorMessage || errorMessage) return NextResponse.json({ message: errorMessage }, { status: 400 });
+        if (error instanceof Error ? error.message : String(error) || error instanceof Error ? error.message : String(error)) return NextResponse.json({ message: error instanceof Error ? error.message : String(error) }, { status: 400 });
         return NextResponse.json({ message: 'Internal Server Error fulfilling order.' }, { status: 500 });
     }
 }

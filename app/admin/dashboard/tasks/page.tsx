@@ -78,7 +78,7 @@ export default function AdminTasksPage() {
                     ...(filterCategory && { category: filterCategory }),
                     ...(filterAssignedUser && { assignedUserId: filterAssignedUser }),
                 });
-                const response = await fetch(`/api/admin/tasks?${$1?.$2()}`, {
+                const response = await fetch(`/api/admin/tasks?${params.id()}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!response.ok) {

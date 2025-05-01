@@ -100,11 +100,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     if (error instanceof SyntaxError) {
       return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
     }
-    if (errorMessage) {
-      return NextResponse.json({ message: errorMessage }, { status: 404 });
+    if (error instanceof Error ? error.message : String(error)) {
+      return NextResponse.json({ message: error instanceof Error ? error.message : String(error) }, { status: 404 });
     }
-    if (errorMessage) {
-      return NextResponse.json({ message: errorMessage }, { status: 409 }); // Conflict
+    if (error instanceof Error ? error.message : String(error)) {
+      return NextResponse.json({ message: error instanceof Error ? error.message : String(error) }, { status: 409 }); // Conflict
     }
     return NextResponse.json(
       { message: 'Internal Server Error updating discount code.' },
@@ -140,8 +140,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     return new NextResponse(null, { status: 204 }); // No Content
   } catch (error: unknown) {
     logger.error(`Admin: Failed to delete discount code ${params.id}:`, { error });
-    if (errorMessage) {
-      return NextResponse.json({ message: errorMessage }, { status: 404 });
+    if (error instanceof Error ? error.message : String(error)) {
+      return NextResponse.json({ message: error instanceof Error ? error.message : String(error) }, { status: 404 });
     }
     return NextResponse.json(
       { message: 'Internal Server Error deleting discount code.' },

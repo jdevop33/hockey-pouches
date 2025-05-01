@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 const verifyFulfillmentSchema = z.object({
     action: z.enum(['approve', 'reject']),
-    fulfillmentId: String(z.string().uuid("Valid Fulfillment ID is required")),
+    fulfillmentId: z.string().uuid("Valid Fulfillment ID is required"),
     notes: z.string().optional().nullable(),
 }).refine(data => data.action === 'approve' || (data.action === 'reject' && data.notes && data.notes.trim() !== ''), {
     message: "Rejection reason (notes) is required when rejecting.",
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
         const { action, fulfillmentId, notes } = validation.data;
         const adminUserId = authResult.userId;
 
-        logger.info(`Admin POST /api/admin/orders/${orderId}/verify-fulfillment request`, { adminId: String(adminUserId), action, fulfillmentId, orderId });
+        logger.info(`Admin POST /api/admin/orders/${orderId}/verify-fulfillment request`, { adminId: adminUserId, action, fulfillmentId, orderId });
 
         // Call the appropriate service method. Assume success if no error is thrown.
         if (action === 'approve') {
@@ -59,7 +59,8 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
         }
-        if (errorMessage || errorMessage || errorMessage) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (errorMessage) {
             return NextResponse.json({ message: errorMessage }, { status: 400 });
         }
         return NextResponse.json({ message: `Internal Server Error processing fulfillment.` }, { status: 500 });

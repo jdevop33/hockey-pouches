@@ -10,7 +10,7 @@ export default function ReferralLandingPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const referralCode = $1?.$2 as string;
+  const referralCode = params.id as string;
 
   const [referrer, setReferrer] = useState<{ name: string; id: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +49,7 @@ export default function ReferralLandingPage() {
   // If user is already logged in, redirect to products page
   useEffect(() => {
     if (user) {
-      $1?.$2('/products');
+      router.push('/products');
     }
   }, [user, router]);
 

@@ -39,7 +39,7 @@ interface TaskRow {
 
 export async function GET(request: NextRequest) {
   // TODO: Admin Auth Check
-  
+
 
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -96,8 +96,8 @@ export async function GET(request: NextRequest) {
     `;
 
     const countQuery = sql`
-      SELECT COUNT(*) as count 
-      FROM tasks t 
+      SELECT COUNT(*) as count
+      FROM tasks t
       ${whereClause}
     `;
 
@@ -134,15 +134,14 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Admin: Failed to get tasks:', error);
-    const errorMessage = error instanceof Error ? errorMessage : 'Internal Server Error';
-    return NextResponse.json({ message: errorMessage }, { status: 500 });
+    return NextResponse.json({ message: errorMessage || 'Internal Server Error' }, { status: 500 });
   }
 }
 
 // --- POST Handler (Create New Task by Admin) ---
 export async function POST(request: NextRequest) {
   // TODO: Add Admin Auth Check
-  
+
 
   try {
     const body = await request.json();
@@ -163,7 +162,7 @@ export async function POST(request: NextRequest) {
     }
     // TODO: Add validation for status, priority, assignedUserId (exists?), relatedTo format, date format?
 
-    
+
 
     // Insert new task
     const result = await sql`
@@ -183,7 +182,7 @@ export async function POST(request: NextRequest) {
     if (!newTaskId) {
       throw new Error('Failed to create task.');
     }
-    
+
 
     // Fetch the created task to return it
     // (Might need the complex query from GET handler)
@@ -197,8 +196,9 @@ export async function POST(request: NextRequest) {
     if (error instanceof SyntaxError)
       return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
     console.error('Admin: Failed to create task:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Internal Server Error';
     return NextResponse.json(
-      { message: errorMessage || 'Internal Server Error' },
+      { message: error instanceof Error ? error.message : 'Internal Server Error' },
       { status: 500 }
     );
   }

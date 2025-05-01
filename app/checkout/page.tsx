@@ -86,9 +86,9 @@ export default function CheckoutPage() {
 
     if (!authLoading) {
       if (!user || !token) {
-        $1?.$2('/login?redirect=/checkout');
+        router.push('/login?redirect=/checkout');
       } else if (itemCount === 0) {
-        $1?.$2('/products');
+        router.push('/products');
       } else {
         // Check minimum order quantity
         const orderValidation = validateMinimumOrder();
@@ -244,7 +244,7 @@ export default function CheckoutPage() {
         message: data.message,
       });
     } catch (error: unknown) {
-      setDiscountError(error instanceof Error ? errorMessage : 'Failed to apply discount code');
+      setDiscountError(error instanceof Error ? error instanceof Error ? error.message : String(error) : 'Failed to apply discount code');
     } finally {
       setIsApplyingDiscount(false);
     }

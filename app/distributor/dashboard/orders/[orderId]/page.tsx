@@ -201,8 +201,8 @@ export default function DistributorOrderDetailPage() {
       // If a photo was uploaded, send it to the upload API first
       if (photoFile) {
         const formData = new FormData();
-        $1?.$2('file', photoFile);
-        $1?.$2('orderId', orderId);
+        params.id('file', photoFile);
+        params.id('orderId', orderId);
         formData.append('type', 'fulfillment');
 
         const uploadResponse = await fetch('/api/upload', {
@@ -257,7 +257,7 @@ export default function DistributorOrderDetailPage() {
       router.push('/distributor/dashboard/orders?success=true');
     } catch (error: unknown) {
       console.error('Error submitting fulfillment:', error);
-      setSubmitError(errorMessage || 'Failed to submit fulfillment. Please try again.');
+      setSubmitError(error instanceof Error ? error.message : String(error) || 'Failed to submit fulfillment. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

@@ -125,4 +125,4 @@ export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
   }
 );
 
-$1?.$2 = 'Image';
+params.id = 'Image';

@@ -29,7 +29,7 @@ export default function AdminTaskDetailPage() {
   const params = useParams();
   const router = useRouter();
   // const { user: adminUser, loading: authLoading } = useAuth(); // Example
-  const taskId = $1?.$2 as string;
+  const taskId = params.id as string;
 
   const [task, setTask] = useState<AdminTaskDetails | null>(null);
   const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]); // Admins/Distributors?

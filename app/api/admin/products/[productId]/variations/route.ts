@@ -43,8 +43,8 @@ export async function GET(request: NextRequest, { params }: { params: { productI
 
     } catch (error: unknown) {
         logger.error(`Admin: Failed to fetch variations for product ${params.productId}:`, { error });
-         if (errorMessage) { // Check if service threw product not found
-             return NextResponse.json({ message: errorMessage }, { status: 404 });
+         if (error instanceof Error ? error.message : String(error)) { // Check if service threw product not found
+             return NextResponse.json({ message: error instanceof Error ? error.message : String(error) }, { status: 404 });
          }
         return NextResponse.json({ message: 'Internal Server Error fetching variations.' }, { status: 500 });
     }
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest, { params }: { params: { product
             compareAtPrice: variationData.compareAtPrice ? variationData.compareAtPrice.toFixed(2) : null,
             sku: variationData.sku ?? null,
             imageUrl: variationData.imageUrl ?? null,
-            isActive: $1?.$2,
+            isActive: params.id,
             // Exclude inventoryQuantity - service handles initialization
         };
 
@@ -99,11 +99,11 @@ export async function POST(request: NextRequest, { params }: { params: { product
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
         }
         // Handle unique constraint error (e.g., duplicate flavor/strength for product)
-        if (errorMessage || error.code === '23505') {
+        if (error instanceof Error ? error.message : String(error) || error.code === '23505') {
              return NextResponse.json({ message: 'A variation with this flavor and strength likely already exists for this product.' }, { status: 409 }); // Conflict
         }
-         if (errorMessage && errorMessage) {
-            return NextResponse.json({ message: errorMessage }, { status: 404 }); // Product not found
+         if (error instanceof Error ? error.message : String(error) && error instanceof Error ? error.message : String(error)) {
+            return NextResponse.json({ message: error instanceof Error ? error.message : String(error) }, { status: 404 }); // Product not found
         }
         return NextResponse.json({ message: 'Internal Server Error creating variation.' }, { status: 500 });
     }

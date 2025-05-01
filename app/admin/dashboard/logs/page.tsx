@@ -42,10 +42,10 @@ export default function LogsPage() {
       const queryParams = new URLSearchParams();
 
       if (selectedLevel !== 'all') {
-        $1?.$2('level', selectedLevel);
+        params.id('level', selectedLevel);
       }
 
-      $1?.$2('limit', limit.toString());
+      params.id('limit', limit.toString());
 
       const response = await fetch(`/api/admin/logs?${queryParams.toString()}`, {
         headers: {
@@ -66,8 +66,7 @@ export default function LogsPage() {
       setLogs(data.logs || []);
       setIsDevelopment(true);
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'An error occurred while fetching logs';
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching logs';
       setError(errorMessage);
       console.error('Error fetching logs:', err);
       showToast('Failed to fetch logs', 'destructive');
@@ -99,8 +98,7 @@ export default function LogsPage() {
       showToast('Logs cleared successfully', 'success');
       fetchLogs();
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'An error occurred while clearing logs';
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred while clearing logs';
       setError(errorMessage);
       showToast('Failed to clear logs', 'destructive');
       console.error('Error clearing logs:', err);
@@ -187,7 +185,7 @@ export default function LogsPage() {
               <select
                 id="level"
                 value={selectedLevel}
-                onChange={e => setSelectedLevel($1?.$2.value)}
+                onChange={e => setSelectedLevel(e.target.value)}
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               >
                 <option value="all">All Levels</option>
@@ -204,7 +202,7 @@ export default function LogsPage() {
               <select
                 id="limit"
                 value={limit}
-                onChange={e => setLimit(parseInt($1?.$2.value))}
+                onChange={e => setLimit(parseInt(e.target.value))}
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               >
                 <option value={50}>50 entries</option>

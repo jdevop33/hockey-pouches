@@ -35,12 +35,12 @@ export default function DistributorDashboardPage() {
     if (authLoading) return;
 
     if (!isAuthenticated) {
-      $1?.$2('/login');
+      router.push('/login');
       return;
     }
 
     if (!isDistributor) {
-      $1?.$2('/dashboard');
+      router.push('/dashboard');
       return;
     }
 

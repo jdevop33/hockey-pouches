@@ -63,11 +63,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { userId
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
         }
-        if (errorMessage) {
-            return NextResponse.json({ message: errorMessage }, { status: 404 });
+        if (error instanceof Error ? error.message : String(error)) {
+            return NextResponse.json({ message: error instanceof Error ? error.message : String(error) }, { status: 404 });
         }
-        if (errorMessage) {
-            return NextResponse.json({ message: errorMessage }, { status: 409 });
+        if (error instanceof Error ? error.message : String(error)) {
+            return NextResponse.json({ message: error instanceof Error ? error.message : String(error) }, { status: 409 });
         }
         return NextResponse.json({ message: 'Internal Server Error updating user.' }, { status: 500 });
     }

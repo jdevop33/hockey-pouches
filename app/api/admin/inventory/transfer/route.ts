@@ -48,11 +48,11 @@ export async function POST(request: NextRequest) {
       WHERE i.id = ${body.sourceInventoryId}
     `;
 
-    if (!sourceInventoryResult || sourceInventoryResult.length === 0) {
+    if (!sourceInventoryResult || (sourceInventoryResult as any[]).length === 0) {
       return NextResponse.json({ message: 'Source inventory item not found' }, { status: 404 });
     }
 
-    const sourceInventory = sourceInventoryResult[0];
+    const sourceInventory = sourceInventoryResult as any[0];
 
     if (sourceInventory.quantity < body.quantity) {
       return NextResponse.json(
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         location = ${body.targetLocation}
     `;
 
-    const targetInventory = targetInventoryResult.length > 0 ? targetInventoryResult[0] : null;
+    const targetInventory = (targetInventoryResult as any[]).length > 0 ? targetInventoryResult as any[0] : null;
 
     // 5. Perform the transfer
     // Reduce quantity from source

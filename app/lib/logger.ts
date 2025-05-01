@@ -40,12 +40,12 @@ function formatError(error: Error | unknown): Record<string, any> {
   if (error instanceof Error) {
     return {
       name: error.name,
-      message: errorMessage,
+      message: error instanceof Error ? error.message : String(error),
       stack: error.stack,
       cause: error.cause,
     };
   }
-  
+
   return { error };
 }
 
@@ -59,18 +59,18 @@ function createLogEntry(
   error?: Error | unknown
 ): LogEntry {
   const timestamp = new Date().toISOString();
-  
+
   const logEntry: LogEntry = {
     timestamp,
     level,
     message,
     context,
   };
-  
+
   if (error) {
     logEntry.error = formatError(error);
   }
-  
+
   return logEntry;
 }
 
@@ -79,9 +79,9 @@ function createLogEntry(
  */
 function logToConsole(entry: LogEntry): void {
   const { timestamp, level, message, context, error } = entry;
-  
+
   const formattedMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
-  
+
   switch (level) {
     case LogLevel.DEBUG:
       console.debug(formattedMessage, context || '', error || '');
@@ -103,7 +103,7 @@ function logToConsole(entry: LogEntry): void {
  */
 function storeLogEntry(entry: LogEntry): void {
   logHistory.unshift(entry);
-  
+
   // Trim log history if it exceeds maximum size
   if (logHistory.length > MAX_LOG_HISTORY) {
     logHistory.length = MAX_LOG_HISTORY;
@@ -120,15 +120,15 @@ function log(
   error?: Error | unknown
 ): void {
   const entry = createLogEntry(level, message, context, error);
-  
+
   // Always log to console
   logToConsole(entry);
-  
+
   // Store in memory for development
   if (isDevelopment) {
     storeLogEntry(entry);
   }
-  
+
   // In production, we could send logs to a service like Vercel Logs, LogDNA, etc.
   // This would be implemented here
 }
@@ -137,37 +137,37 @@ function log(
  * Logger object with convenience methods
  */
 export const logger = {
-  debug: (message: string, context?: Record<string, any>) => 
+  debug: (message: string, context?: Record<string, any>) =>
     log(LogLevel.DEBUG, message, context),
-  
-  info: (message: string, context?: Record<string, any>) => 
+
+  info: (message: string, context?: Record<string, any>) =>
     log(LogLevel.INFO, message, context),
-  
-  warn: (message: string, context?: Record<string, any>, error?: Error | unknown) => 
+
+  warn: (message: string, context?: Record<string, any>, error?: Error | unknown) =>
     log(LogLevel.WARN, message, context, error),
-  
-  error: (message: string, context?: Record<string, any>, error?: Error | unknown) => 
+
+  error: (message: string, context?: Record<string, any>, error?: Error | unknown) =>
     log(LogLevel.ERROR, message, context, error),
-  
+
   /**
    * Get log history (for development)
    */
-  getHistory: (limit: number = MAX_LOG_HISTORY): LogEntry[] => 
+  getHistory: (limit: number = MAX_LOG_HISTORY): LogEntry[] =>
     logHistory.slice(0, limit),
-  
+
   /**
    * Clear log history (for development)
    */
   clearHistory: (): void => {
     logHistory.length = 0;
   },
-  
+
   /**
    * Log API request
    */
   logRequest: (req: NextRequest, context?: Record<string, any>): void => {
     const url = new URL(req.url);
-    
+
     log(LogLevel.INFO, `API Request: ${req.method} ${url.pathname}`, {
       method: req.method,
       path: url.pathname,
@@ -176,7 +176,7 @@ export const logger = {
       ...context,
     });
   },
-  
+
   /**
    * Log API response
    */
@@ -187,7 +187,7 @@ export const logger = {
     context?: Record<string, any>
   ): void => {
     const url = new URL(req.url);
-    
+
     log(LogLevel.INFO, `API Response: ${req.method} ${url.pathname}`, {
       method: req.method,
       path: url.pathname,
@@ -206,17 +206,17 @@ export function createContextLogger(
   defaultContext?: Record<string, any>
 ) {
   return {
-    debug: (message: string, context?: Record<string, any>) => 
+    debug: (message: string, context?: Record<string, any>) =>
       logger.debug(message, { ...defaultContext, ...context, contextName }),
-    
-    info: (message: string, context?: Record<string, any>) => 
+
+    info: (message: string, context?: Record<string, any>) =>
       logger.info(message, { ...defaultContext, ...context, contextName }),
-    
-    warn: (message: string, context?: Record<string, any>, error?: Error | unknown) => 
-      $1?.$2(message, { ...defaultContext, ...context, contextName }, error),
-    
-    error: (message: string, context?: Record<string, any>, error?: Error | unknown) => 
-      $1?.$2(message, { ...defaultContext, ...context, contextName }, error),
+
+    warn: (message: string, context?: Record<string, any>, error?: Error | unknown) =>
+      params.id(message, { ...defaultContext, ...context, contextName }, error),
+
+    error: (message: string, context?: Record<string, any>, error?: Error | unknown) =>
+      params.id(message, { ...defaultContext, ...context, contextName }, error),
   };
 }
 
@@ -226,33 +226,33 @@ export function createContextLogger(
 export function withLogging(handler: (req: NextRequest) => Promise<NextResponse>) {
   return async (req: NextRequest): Promise<NextResponse> => {
     const startTime = Date.now();
-    
+
     // Log the request
     logger.logRequest(req);
-    
+
     try {
       // Execute the handler
       const response = await handler(req);
-      
+
       // Calculate response time
       const responseTime = Date.now() - startTime;
-      
+
       // Log the response
       logger.logResponse(req, response, responseTime);
-      
+
       return response;
     } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
       // Calculate response time
       const responseTime = Date.now() - startTime;
-      
+
       // Log the error
       logger.error(
         `API Error: ${req.method} ${new URL(req.url).pathname}`,
         { responseTime: `${responseTime}ms` },
         error
       );
-      
+
       // Return error response
       return NextResponse.json(
         { message: 'Internal Server Error' },

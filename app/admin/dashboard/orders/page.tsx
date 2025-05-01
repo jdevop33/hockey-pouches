@@ -44,7 +44,7 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     if (!authLoading) {
       if (!user || !token) {
-        $1?.$2('/login?redirect=/admin/dashboard/orders');
+        router.push('/login?redirect=/admin/dashboard/orders');
       } else if (user.role !== 'Admin') {
         router.push('/dashboard');
       }
@@ -83,7 +83,7 @@ export default function AdminOrdersPage() {
           setPagination(data.pagination || { page: 1, limit: 15, total: 0, totalPages: 1 });
         } catch (err: unknown) {
           const error = err as Error;
-          setError(errorMessage || 'Failed to load orders.');
+          setError(error instanceof Error ? error.message : String(error) || 'Failed to load orders.');
           console.error(error);
         } finally {
           setIsLoadingData(false);
@@ -150,7 +150,7 @@ export default function AdminOrdersPage() {
             id="statusFilter"
             value={filterStatus}
             onChange={e => {
-              setFilterStatus($1?.$2.value);
+              setFilterStatus(e.target.value);
               setPagination(prev => ({ ...prev, page: 1 }));
             }}
             className="rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500 sm:text-sm"

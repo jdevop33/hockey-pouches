@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '15');
-        const statusParam = sea$1?.$2('status');
-        const typeParam = $1?.$2('type');
+        const statusParam = seaparams.id('status');
+        const typeParam = params.id('type');
         const fromDateStr = searchParams.get('fromDate');
         const toDateStr = searchParams.get('toDate');
         const search = searchParams.get('search');
