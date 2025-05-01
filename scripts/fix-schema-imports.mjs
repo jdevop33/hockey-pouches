@@ -6,6 +6,8 @@
  * 1. Removes unused schema imports
  * 2. Converts namespace imports to specific imports where possible
  * 3. Identifies correct table imports based on usage
+ * 4. Fixes duplicate imports
+ * 5. Ensures schema.* references maintain schema namespace import
  */
 
 import fs from 'fs';
@@ -31,6 +33,19 @@ const SCHEMA_TABLES = [
   'referrals',
   'wholesaleApplications',
   'logs',
+];
+
+// Enum types used with schema reference
+const SCHEMA_ENUMS = [
+  'userRoleEnum',
+  'orderStatusEnum',
+  'paymentStatusEnum',
+  'paymentMethodEnum',
+  'orderTypeEnum',
+  'taskCategoryEnum',
+  'taskStatusEnum',
+  'taskPriorityEnum',
+  'taskRelatedEntityEnum',
 ];
 
 // Files to analyze
@@ -76,24 +91,41 @@ const hasUnusedSchemaImport = content => {
   return schemaUsageCount === 0;
 };
 
+// Check if a file uses schema.* references
+const usesSchemaReferences = content => {
+  // Look for schema.something references
+  const schemaRefs = content.match(/schema\.\w+/g);
+  return schemaRefs !== null && schemaRefs.length > 0;
+};
+
 // Identify schema tables used in a file
 const identifyTablesUsed = content => {
   const usedTables = [];
 
-  // Check for namespace usage
-  const schemaMatches = content.match(/schema\.(\w+)/g) || [];
-  for (const match of schemaMatches) {
-    const table = match.replace('schema.', '');
-    if (SCHEMA_TABLES.includes(table) && !usedTables.includes(table)) {
+  // Check for namespace usage with tables
+  for (const table of SCHEMA_TABLES) {
+    const tableUsage = new RegExp(`schema\\.${table}\\b`, 'g');
+    if (tableUsage.test(content) && !usedTables.includes(table)) {
       usedTables.push(table);
     }
   }
 
-  // Check for direct table usage
-  for (const table of SCHEMA_TABLES) {
-    const directUsage = new RegExp(`\\b${table}\\b`, 'g');
-    if (directUsage.test(content) && !usedTables.includes(table)) {
-      usedTables.push(table);
+  // Check for namespace usage with enums
+  for (const enumType of SCHEMA_ENUMS) {
+    const enumUsage = new RegExp(`schema\\.${enumType}\\b`, 'g');
+    if (enumUsage.test(content)) {
+      // If using enums, we need to keep the global schema import
+      return [];
+    }
+  }
+
+  // Check for other schema references
+  const otherRefs = content.match(/schema\.(\w+)/g) || [];
+  for (const match of otherRefs) {
+    const ref = match.replace('schema.', '');
+    if (!SCHEMA_TABLES.includes(ref) && !SCHEMA_ENUMS.includes(ref) && otherRefs.length > 0) {
+      // If there are other schema references we don't recognize, keep the namespace import
+      return [];
     }
   }
 
@@ -103,6 +135,11 @@ const identifyTablesUsed = content => {
 // Convert namespace import to specific imports
 const convertToSpecificImports = (content, usedTables) => {
   if (usedTables.length === 0) {
+    // Either there are no tables used or we need to keep the namespace import
+    if (usesSchemaReferences(content)) {
+      // Keep the namespace import if there are schema references
+      return content;
+    }
     // Remove unused import
     return content.replace(/import\s+\*\s+as\s+schema\s+from\s+['"]@\/lib\/schema['"];\s*\n?/g, '');
   }
@@ -113,15 +150,69 @@ const convertToSpecificImports = (content, usedTables) => {
   );
   if (!namespaceImport) return content;
 
-  const specificImports = usedTables
+  const specificImports = [...new Set(usedTables)]
     .map(table => `import { ${table} } from '@/lib/schema/${table}';`)
     .join('\n');
 
-  // Keep the schema namespace import but add specific imports
+  // Keep the schema namespace import for other schema references
   return content.replace(
     namespaceImport[0],
     `${specificImports}\nimport * as schema from '@/lib/schema'; // Keep for other schema references\n`
   );
+};
+
+// Fix duplicate imports
+const fixDuplicateImports = content => {
+  // Create a map to track imports by their module path
+  const importsByModule = new Map();
+  const importLines = content.match(/import\s+.*?from\s+['"].*?['"]/g) || [];
+
+  for (const line of importLines) {
+    const modulePath = line.match(/from\s+['"](.*?)['"]/)[1];
+
+    if (!importsByModule.has(modulePath)) {
+      importsByModule.set(modulePath, []);
+    }
+
+    importsByModule.get(modulePath).push(line);
+  }
+
+  let fixedContent = content;
+
+  // Fix duplicate imports
+  for (const [_, imports] of importsByModule.entries()) {
+    if (imports.length > 1) {
+      // If we have multiple imports from the same module, remove all but the first one
+      for (let i = 1; i < imports.length; i++) {
+        fixedContent = fixedContent.replace(imports[i] + ';', '');
+        // Also remove any empty lines left behind
+        fixedContent = fixedContent.replace(/\n\s*\n/g, '\n');
+      }
+    }
+  }
+
+  return fixedContent;
+};
+
+// Fix schema reference issues
+const fixSchemaReferences = content => {
+  // If we have schema references but no namespace import, add it
+  if (usesSchemaReferences(content)) {
+    // Check if there's already a namespace import
+    const hasNamespaceImport = /import\s+\*\s+as\s+schema\s+from\s+['"]@\/lib\/schema['"]/.test(
+      content
+    );
+
+    if (!hasNamespaceImport) {
+      // Add namespace import at the top of the file, after other imports
+      return content.replace(
+        /(import .+;(\s*\n|\n\s*))+/,
+        "$&import * as schema from '@/lib/schema';\n"
+      );
+    }
+  }
+
+  return content;
 };
 
 // Main function
@@ -140,8 +231,9 @@ const run = async () => {
     const content = fs.readFileSync(filePath, 'utf8');
     let needsFix = false;
     let fixedContent = content;
+    let fileLogged = false;
 
-    // Check for unused schema imports
+    // Step 1: Check for unused schema imports and convert namespace imports
     if (hasUnusedSchemaImport(content)) {
       console.log(`🛠️ Fixing unused schema import in ${path.relative(ROOT_DIR, filePath)}`);
       fixedContent = content.replace(
@@ -149,6 +241,7 @@ const run = async () => {
         ''
       );
       needsFix = true;
+      fileLogged = true;
     }
     // Check for namespace imports that should be specific
     else if (content.includes("import * as schema from '@/lib/schema'")) {
@@ -160,7 +253,30 @@ const run = async () => {
         console.log(`   Tables used: ${tablesUsed.join(', ')}`);
         fixedContent = convertToSpecificImports(content, tablesUsed);
         needsFix = true;
+        fileLogged = true;
       }
+    }
+
+    // Step 2: Fix duplicate imports
+    let beforeDupesFix = fixedContent;
+    fixedContent = fixDuplicateImports(fixedContent);
+    if (fixedContent !== beforeDupesFix) {
+      if (!fileLogged) {
+        console.log(`🔧 Fixing duplicate imports in ${path.relative(ROOT_DIR, filePath)}`);
+        fileLogged = true;
+      }
+      needsFix = true;
+    }
+
+    // Step 3: Ensure schema namespace import exists if schema.* is used
+    let beforeRefsFix = fixedContent;
+    fixedContent = fixSchemaReferences(fixedContent);
+    if (fixedContent !== beforeRefsFix) {
+      if (!fileLogged) {
+        console.log(`🔗 Ensuring schema references in ${path.relative(ROOT_DIR, filePath)}`);
+        fileLogged = true;
+      }
+      needsFix = true;
     }
 
     // Write fixes back to file
