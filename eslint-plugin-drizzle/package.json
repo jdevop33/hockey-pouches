@@ -1,0 +1,11 @@
+{
+  "name": "eslint-plugin-drizzle",
+  "version": "1.0.0",
+  "description": "Custom ESLint plugin for Drizzle ORM",
+  "main": "index.js",
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "eslint": ">=7.0.0"
+  }
+}

@@ -2,6 +2,7 @@
 import { pgTable, text, timestamp, varchar, boolean, decimal, integer, primaryKey, pgEnum, uniqueIndex, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
+import * as schema from '@/lib/schema';
 // Define Enums FIRST
 export const userRoleEnum = pgEnum('user_role', ['Admin', 'Customer', 'Distributor', 'Wholesale Buyer', 'Retail Referrer']);
 export const userStatusEnum = pgEnum('user_status', ['Active', 'Inactive', 'Suspended', 'Pending']);

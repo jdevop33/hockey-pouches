@@ -2,15 +2,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { orders } from '@/lib/schema/orders';
 import { cart } from '@/lib/schema/cart';
 import { orders } from '@/lib/schema/orders';
-import { cart } from '@/lib/schema/cart';
-import { orders } from '@/lib/schema/orders';
-import { cart } from '@/lib/schema/cart';
-import { orders } from '@/lib/schema/orders';
-import { cart } from '@/lib/schema/cart';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
@@ -19,7 +14,6 @@ import { eq, and } from 'drizzle-orm';
 import { cartService } from '@/lib/services/cart-service'; // Use refactored cart service
 import { logger } from '@/lib/logger';
 import type Stripe from 'stripe';
-
 let stripe: Stripe | undefined;
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 if (stripeSecretKey) {
@@ -36,9 +30,7 @@ if (stripeSecretKey) {
 } else {
     logger.warn('STRIPE_SECRET_KEY environment variable not set. Stripe payments disabled.');
 }
-
 export const dynamic = 'force-dynamic';
-
 // TODO: Move calculation logic to a shared place (e.g., order service)
 function calculateFinalAmount(subtotal: number): number {
     const shippingCost = 5.00; // Placeholder
@@ -48,7 +40,6 @@ function calculateFinalAmount(subtotal: number): number {
     // Ensure amount is at least 50 cents (Stripe minimum)
     return Math.max(50, Math.round(totalAmount * 100));
 }
-
 export async function POST(request: NextRequest) {
     if (!stripe) {
         logger.warn('Stripe not configured for createPaymentIntent');
@@ -67,7 +58,6 @@ export async function POST(request: NextRequest) {
         const { orderId } = body; // Optional order ID
         let amountInCents = 0;
         let orderMetadataId: string | undefined = orderId;
-
         // Scenario 1: Payment intent for an existing order (e.g., user retries payment)
         if (orderId && typeof orderId === 'string') {
             logger.info(`Creating payment intent for existing order`, { userId, orderId });
@@ -81,7 +71,6 @@ export async function POST(request: NextRequest) {
             }
             // Use the total amount from the existing order
             amountInCents = Math.max(50, Math.round(parseFloat(order.totalAmount) * 100));
-
         // Scenario 2: Payment intent for a new checkout based on cart
         } else {
             logger.info(`Creating payment intent for current cart`, { userId });
@@ -94,13 +83,11 @@ export async function POST(request: NextRequest) {
             amountInCents = calculateFinalAmount(cartSummary.subtotal);
             orderMetadataId = undefined; // No order ID yet
         }
-
         // Final validation on amount
         if (amountInCents < 50) { // Stripe minimum is usually $0.50 CAD
              logger.warn('Calculated amount too low for payment intent', { userId, orderId, amountInCents });
              return NextResponse.json({ message: 'Invalid amount for payment intent (minimum $0.50).' }, { status: 400 });
         }
-
         // Create Payment Intent parameters
         const paymentIntentParams: Stripe.PaymentIntentCreateParams = {
             amount: amountInCents,
@@ -113,13 +100,10 @@ export async function POST(request: NextRequest) {
             // Add customer ID if available to link payments
             // customer: stripeCustomerId, 
         };
-
         logger.info('Creating Stripe payment intent', { userId, amount: amountInCents, orderId: orderMetadataId });
         const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
         logger.info('Stripe payment intent created successfully', { userId, paymentIntentId: paymentIntent.id });
-
         return NextResponse.json({ clientSecret: paymentIntent.client_secret });
-
     } catch (error: any) {
         logger.error('Error creating payment intent:', { error: error?.message ?? error });
          if (error instanceof SyntaxError) {

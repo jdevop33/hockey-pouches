@@ -1,23 +1,18 @@
 // app/lib/services/task-service.ts
 import { db } from '@/lib/db';
 import { tasks } from '@/lib/schema/tasks';
-import { tasks } from '@/lib/schema/tasks';
-import { tasks } from '@/lib/schema/tasks';
-import { tasks } from '@/lib/schema/tasks';
 import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 import { eq, and, or, ilike, count, desc, asc, sql, SQL } from 'drizzle-orm';
 import { logger } from '@/lib/logger';
-
 // Types
 export type TaskSelect = typeof schema.tasks.$inferSelect;
 export type TaskInsert = typeof schema.tasks.$inferInsert;
 export type TaskStatus = typeof schema.taskStatusEnum.enumValues[number];
 export type TaskPriority = typeof schema.taskPriorityEnum.enumValues[number];
 export type TaskCategory = typeof schema.taskCategoryEnum.enumValues[number];
-
 export interface ListTasksOptions {
     page?: number;
     limit?: number;
@@ -27,20 +22,16 @@ export interface ListTasksOptions {
     assignedTo?: string | null; // User ID or null for unassigned?
     // Add date range, relatedTo/Id filters if needed
 }
-
 export interface ListTasksResult {
     tasks: TaskSelect[];
     pagination: { total: number; page: number; limit: number; totalPages: number; };
 }
-
 export class TaskService {
-
     async listTasks(options: ListTasksOptions): Promise<ListTasksResult> {
         const { page = 1, limit = 20, status, category, priority, assignedTo } = options;
         try {
             const offset = (page - 1) * limit;
             const conditions = [];
-
             if (status) {
                 conditions.push(eq(schema.tasks.status, status));
             }
@@ -53,9 +44,7 @@ export class TaskService {
             if (assignedTo !== undefined) { // Handle null for unassigned or specific user ID
                 conditions.push(assignedTo === null ? sql`${schema.tasks.assignedTo} IS NULL` : eq(schema.tasks.assignedTo, assignedTo));
             }
-
             const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
             // Custom sorting logic (Priority -> Due Date -> Created Date)
             // Note: Drizzle doesn't directly support CASE in orderBy easily, use raw SQL or map priorities
             const priorityOrder = sql`CASE 
@@ -66,7 +55,6 @@ export class TaskService {
                 ELSE 5 END`;
             // TODO: Add Due Date sorting if schema has it
             // const dueDateOrder = sql`CASE WHEN ${schema.tasks.dueDate} IS NULL THEN 1 ELSE 0 END, ${schema.tasks.dueDate} ASC`;
-
             const query = db.query.tasks.findMany({
                 where: whereClause,
                 orderBy: [asc(priorityOrder), /* asc(dueDateOrder), */ desc(schema.tasks.createdAt)],
@@ -75,12 +63,9 @@ export class TaskService {
                 // Optionally include assignee relation
                 // with: { assignee: { columns: { name: true } } }
             });
-
             const countQuery = db.select({ total: count() }).from(schema.tasks).where(whereClause);
-
             const [results, countResult] = await Promise.all([query, countQuery]);
             const total = countResult[0].total;
-
             return {
                 tasks: results,
                 pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
@@ -90,12 +75,10 @@ export class TaskService {
             throw new Error('Failed to list tasks.');
         }
     }
-
     // Simplified version for user's own tasks
     async listUserTasks(userId: string, options: { page?: number; limit?: number; status?: TaskStatus; category?: TaskCategory; }): Promise<ListTasksResult> {
         return this.listTasks({ ...options, assignedTo: userId });
     }
-
     // TODO: Add methods for createTask, updateTask, getTaskById, etc.
     async updateTaskStatus(taskId: number, status: TaskStatus, userId: string): Promise<TaskSelect> {
         try {
@@ -113,5 +96,4 @@ export class TaskService {
         }
     }
 }
-
 export const taskService = new TaskService();

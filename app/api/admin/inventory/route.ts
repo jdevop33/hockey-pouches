@@ -4,21 +4,13 @@ import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth
 import { db } from '@/lib/db';
 import { products } from '@/lib/schema/products';
 import { inventory } from '@/lib/schema/inventory';
-import { products } from '@/lib/schema/products';
-import { inventory } from '@/lib/schema/inventory';
-import { products } from '@/lib/schema/products';
-import { inventory } from '@/lib/schema/inventory';
-import { products } from '@/lib/schema/products';
-import { inventory } from '@/lib/schema/inventory';
 import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 import { eq, and, or, ilike, count, desc, asc, gte, lte, sql as dSql, gt, lt, isNotNull, isNull, Placeholder, SQL } from 'drizzle-orm'; // Added isNotNull, isNull and SQL
 import { logger } from '@/lib/logger';
-
 export const dynamic = 'force-dynamic';
-
 interface InventoryViewItem {
   stockLevelId: string;
   productId: number;
@@ -34,7 +26,6 @@ interface InventoryViewItem {
   sku: string | null;
   imageUrl: string | null;
 }
-
 export async function GET(request: NextRequest) {
     try {
         const authResult = await verifyAdmin(request);
@@ -42,7 +33,6 @@ export async function GET(request: NextRequest) {
             return forbiddenResponse('Admin access required');
         }
         logger.info(`Admin GET /api/admin/inventory request`, { adminId: authResult.userId });
-
         const searchParams = request.nextUrl.searchParams;
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '20');
@@ -55,12 +45,10 @@ export async function GET(request: NextRequest) {
         const searchQuery = searchParams.get('search');
         const sortBy = searchParams.get('sortBy') || 'productName';
         const sortOrder = searchParams.get('sortOrder') === 'desc' ? desc : asc;
-
         const conditions: (SQL<unknown> | Placeholder)[] = [];
         if (locationIdFilter) conditions.push(eq(schema.stockLevels.locationId, locationIdFilter));
         if (productIdFilter) conditions.push(eq(schema.stockLevels.productId, parseInt(productIdFilter)));
         if (variationIdFilter) conditions.push(eq(schema.stockLevels.productVariationId, parseInt(variationIdFilter)));
-
         const availableStockSql = dSql`${schema.stockLevels.quantity} - ${schema.stockLevels.reservedQuantity}`;
         if (lowStockFilter) {
             const lowStockThreshold = 10;
@@ -90,7 +78,6 @@ export async function GET(request: NextRequest) {
             ));
         }
         const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
         let orderByClause: SQL<unknown> | SQL<unknown>[];
         switch (sortBy) {
             case 'locationName': orderByClause = sortOrder(schema.stockLocations.name); break;
@@ -100,7 +87,6 @@ export async function GET(request: NextRequest) {
             case 'sku': orderByClause = sortOrder(schema.productVariations.sku); break;
             default: orderByClause = sortOrder(schema.products.name); break;
         }
-
         const inventoryQuery = db.select({
           stockLevelId: schema.stockLevels.id,
           productId: schema.stockLevels.productId,
@@ -125,18 +111,15 @@ export async function GET(request: NextRequest) {
             .orderBy(...(Array.isArray(orderByClause) ? orderByClause : [orderByClause]), asc(schema.stockLevels.id))
             .limit(limit)
             .offset(offset);
-
         const countQuery = db.select({ total: count() })
             .from(schema.stockLevels)
             .leftJoin(schema.stockLocations, eq(schema.stockLevels.locationId, schema.stockLocations.id))
             .leftJoin(schema.productVariations, eq(schema.stockLevels.productVariationId, schema.productVariations.id))
             .leftJoin(schema.products, eq(schema.stockLevels.productId, schema.products.id))
             .where(whereClause);
-
         const [inventoryResult, totalResult] = await Promise.all([inventoryQuery, countQuery]);
         const totalItems = totalResult[0]?.total ?? 0;
         const totalPages = Math.ceil(totalItems / limit);
-
         return NextResponse.json({
             inventory: inventoryResult as InventoryViewItem[],
             pagination: { page, limit, total: totalItems, totalPages },
@@ -146,6 +129,5 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ message: 'Internal Server Error fetching inventory.' }, { status: 500 });
     }
 }
-
 // POST commented out
 // Definitions for fields in db.select({...}) should be added back

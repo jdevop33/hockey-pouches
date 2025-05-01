@@ -2,19 +2,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, sql } from '@/lib/db'; // Keep db and sql imports
 import { logger } from '@/lib/logger'; // Keep logger import
-import { products } from '@/lib/schema/products'; // Specific import from upstream
+ // Specific import from upstream
 import { products } from '@/lib/schema/products';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep wildcard for enums/other
 import { eq, and, not, desc } from 'drizzle-orm'; // Combine operators
 import { unstable_cache } from 'next/cache';
-
 // Use schema-derived types
 type ProductSelect = typeof schema.products.$inferSelect;
-
 // Define public-facing product type for lists/cards
 type ProductListItem = Pick<ProductSelect, 'id' | 'name' | 'description' | 'price' | 'category' | 'imageUrl' | 'slug'>;
-
 /**
  * Fetches related products based on category.
  * - Caches results for 15 minutes.
@@ -26,12 +24,10 @@ const getRelatedProductsFromDb = unstable_cache(
   async (productId: number, categoryName: string | null, limit: number): Promise<ProductListItem[]> => {
     try {
       logger.info('Fetching related products from DB', { productId, categoryName, limit });
-
       if (!categoryName) {
         logger.warn('No category found for product, cannot fetch related by category', { productId });
         return [];
       }
-
       const relatedProducts = await db.query.products.findMany({
         where: and(
           eq(products.category, categoryName), // Use imported products table
@@ -51,10 +47,8 @@ const getRelatedProductsFromDb = unstable_cache(
             slug: true,
         }
       });
-
       logger.info(`Found ${relatedProducts.length} related products`, { productId, categoryName });
       return relatedProducts;
-
     } catch (error) {
       logger.error(`Database error fetching related products for ${productId}:`, { error });
       return []; // Return empty array on error
@@ -67,37 +61,29 @@ const getRelatedProductsFromDb = unstable_cache(
     revalidate: 900, // Revalidate every 15 minutes
   }
 );
-
 export async function GET(request: NextRequest, { params }: { params: { productId: string } }) {
   const { productId: productIdStr } = params;
   const limit = parseInt(request.nextUrl.searchParams.get('limit') || '4'); // Default limit
-
   logger.info(`GET request for related products for ID: ${productIdStr}`);
-
   try {
     const productId = parseInt(productIdStr, 10);
     if (isNaN(productId)) {
       logger.warn('Invalid product ID format for related products', { productIdStr });
       return NextResponse.json({ error: 'Invalid product ID format' }, { status: 400 });
     }
-
     // 1. Get the category of the original product
     const originalProduct = await db.query.products.findFirst({
         where: eq(products.id, productId),
         columns: { category: true }
     });
-
     if (!originalProduct) {
         logger.warn('Original product not found for related lookup', { productId });
         return NextResponse.json({ error: 'Original product not found' }, { status: 404 });
     }
-
     // 2. Fetch related products using the cached function
     const relatedProducts = await getRelatedProductsFromDb(productId, originalProduct.category, limit);
-
     logger.info(`Returning ${relatedProducts.length} related products`, { productId });
     return NextResponse.json(relatedProducts);
-
   } catch (error) {
     logger.error(`Error in GET handler for related products ${productIdStr}:`, { error });
     return NextResponse.json({ error: 'Failed to fetch related products' }, { status: 500 });

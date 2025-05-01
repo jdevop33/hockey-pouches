@@ -1,5 +1,4 @@
 'use client';
-
 import React, { ReactNode } from 'react';
 import { ThemeProviderClient } from '@/components/theme-provider-client';
 import { AuthProvider } from '@/context/AuthContext';
@@ -9,15 +8,12 @@ import { CartProvider } from '@/context/CartContext';
 import { StoreProvider } from './StoreProvider'; // Assumes StoreProvider handles Zustand hydration
 import { Toaster } from '@/components/ui/Toaster';
 import ClientAnalyticsWrapper from './ClientAnalyticsWrapper'; // Assuming this handles dynamic loading
-
 // Removed: import ClientProviders from './ClientProviders'; // This seemed incorrect
 // If ClientProviders was intended, ensure it has a default export or use named import:
-// import { ClientProviders } from './ClientProviders';
-
+// 
 interface ProvidersProps {
   children: ReactNode;
 }
-
 /**
  * AppProviders: Combines all essential application-wide providers.
  * Order matters here - contexts that depend on others should be nested inside.

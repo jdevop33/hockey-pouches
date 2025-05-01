@@ -1,12 +1,6 @@
 import { db } from '@/lib/db';
 import { inventory } from '@/lib/schema/inventory';
 import { cart } from '@/lib/schema/cart';
-import { inventory } from '@/lib/schema/inventory';
-import { cart } from '@/lib/schema/cart';
-import { inventory } from '@/lib/schema/inventory';
-import { cart } from '@/lib/schema/cart';
-import { inventory } from '@/lib/schema/inventory';
-import { cart } from '@/lib/schema/cart';
 import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
@@ -16,11 +10,9 @@ import { eq, and, sql as drizzleSql, sum, desc, sql } from 'drizzle-orm';
 import { logger } from '@/lib/logger';
 import { productService } from './product-service';
 import { v4 as uuidv4 } from 'uuid';
-
 // --- Types ---
 type CartItemSelect = typeof schema.cartItems.$inferSelect;
 type CartItemInsert = typeof schema.cartItems.$inferInsert;
-
 interface CartItemWithDetails extends CartItemSelect {
     productVariation: {
         name: string; price: string; imageUrl: string | null; flavor: string | null;
@@ -34,12 +26,10 @@ export interface CartSummary {
     minimumOrderRequirements: { retail: { met: boolean; required: number; current: number }; wholesale: { met: boolean; required: number; current: number }; };
 }
 export type CartValidationResult = { isValid: boolean; errors: string[]; message: string; };
-
 // --- Service ---
 export class CartService {
     private RETAIL_MIN_UNITS = 5;
     private WHOLESALE_MIN_UNITS = 100;
-
     async getCartItems(userId: string): Promise<CartSummary> {
         try {
             logger.info(`Getting cart items for user: ${userId}`);

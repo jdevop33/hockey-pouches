@@ -3,6 +3,7 @@
 import React from 'react';
 import Script from 'next/script';
 
+import * as schema from '@/lib/schema';
 interface Product {
   id: number;
   name: string;

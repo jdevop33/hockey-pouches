@@ -1,6 +1,7 @@
 import React from 'react';
 import Script from 'next/script';
 
+import * as schema from '@/lib/schema';
 interface WebsiteSchemaProps {
   siteUrl?: string;
   siteName?: string;

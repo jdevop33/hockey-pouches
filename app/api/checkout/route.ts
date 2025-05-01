@@ -6,35 +6,17 @@ import { products } from '@/lib/schema/products';
 import { orders } from '@/lib/schema/orders';
 import { tasks } from '@/lib/schema/tasks';
 import { cart } from '@/lib/schema/cart';
-import { users } from '@/lib/schema/users';
-import { products } from '@/lib/schema/products';
-import { orders } from '@/lib/schema/orders';
-import { tasks } from '@/lib/schema/tasks';
-import { cart } from '@/lib/schema/cart';
-import { users } from '@/lib/schema/users';
-import { products } from '@/lib/schema/products';
-import { orders } from '@/lib/schema/orders';
-import { tasks } from '@/lib/schema/tasks';
-import { cart } from '@/lib/schema/cart';
-import { users } from '@/lib/schema/users';
-import { products } from '@/lib/schema/products';
-import { orders } from '@/lib/schema/orders';
-import { tasks } from '@/lib/schema/tasks';
-import { cart } from '@/lib/schema/cart';
 import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Import schema namespace
 import { v4 as uuidv4 } from 'uuid';
-
 export const dynamic = 'force-dynamic';
-
 // Define types based on schema enums
 type OrderStatus = typeof schema.orderStatusEnum.enumValues[number];
 type PaymentStatus = typeof schema.paymentStatusEnum.enumValues[number];
 type PaymentMethod = typeof schema.paymentMethodEnum.enumValues[number];
-
 // Define Address interface (assuming basic structure)
 // TODO: Verify if a more specific definition exists elsewhere
 interface Address {
@@ -46,14 +28,12 @@ interface Address {
   name?: string; // Optional name
   phone?: string; // Optional phone
 }
-
 interface CheckoutBody {
   shippingAddress: Address;
   billingAddress?: Address;
   paymentMethod: PaymentMethod; // Use enum type
   referralCode?: string;
 }
-
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
@@ -61,17 +41,14 @@ export async function POST(request: NextRequest) {
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.message);
     }
-
     const userId = authResult.userId;
     if (!userId) {
         // This case should theoretically not happen if verifyAuth passes
         return NextResponse.json({ message: 'User ID not found in token' }, { status: 401 });
     }
-
     // Parse request body
     const body: CheckoutBody = await request.json();
     const { shippingAddress, billingAddress, paymentMethod, referralCode } = body;
-
     // Validate required fields
     if (!shippingAddress || !paymentMethod) {
       return NextResponse.json(
@@ -85,9 +62,7 @@ export async function POST(request: NextRequest) {
     if (!schema.paymentMethodEnum.enumValues.includes(paymentMethod)) {
       return NextResponse.json({ message: `Invalid payment method: ${paymentMethod}` }, { status: 400 });
     }
-
     console.log(`POST /api/checkout - User: ${userId}, Payment Method: ${paymentMethod}`);
-
     // Get cart items
     const cartItems = await sql`
       SELECT
@@ -97,11 +72,9 @@ export async function POST(request: NextRequest) {
       JOIN products p ON c.product_id = p.id
       WHERE c.user_id = ${userId}
     `;
-
     if (cartItems.length === 0) {
       return NextResponse.json({ message: 'Cart is empty' }, { status: 400 });
     }
-
     // Calculate order totals
     const subtotal = cartItems.reduce(
       (sum: number, item: any) => sum + item.price * item.quantity,
@@ -111,13 +84,11 @@ export async function POST(request: NextRequest) {
     const taxRate = 0.13; // 13% tax rate for Canada
     const taxes = subtotal * taxRate;
     const totalAmount = subtotal + shippingCost + taxes;
-
     // Create order
     const orderId = uuidv4();
     // Set initial statuses based on enums
     const initialOrderStatus: OrderStatus = 'PendingPayment';
     const initialPaymentStatus: PaymentStatus = 'Pending'; 
-
     await sql`
       INSERT INTO orders (
         id, user_id, status, subtotal, shipping_cost, taxes, total_amount,
@@ -130,7 +101,6 @@ export async function POST(request: NextRequest) {
         ${paymentMethod}, ${initialPaymentStatus}, ${referralCode || null}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
       )
     `;
-
     // Create order items
     for (const item of cartItems) {
       await sql`
@@ -138,7 +108,6 @@ export async function POST(request: NextRequest) {
         VALUES (${orderId}, ${item.product_id}, ${item.quantity}, ${item.price})
       `;
     }
-
     // Add order history entry
     await sql`
       INSERT INTO order_history (order_id, status, user_id, notes, timestamp)
@@ -150,10 +119,8 @@ export async function POST(request: NextRequest) {
         CURRENT_TIMESTAMP
       )
     `;
-
     // Clear cart
     await sql`DELETE FROM cart_items WHERE user_id = ${userId}`;
-
     // Create task for admin to approve order (Consider if needed for all orders)
     // If payment is processed immediately, maybe only create task if payment pending?
     // Let's keep it for now for consistency.
@@ -175,10 +142,8 @@ export async function POST(request: NextRequest) {
       )
     `;
     console.log(`Created task 'Review Order ${orderId}'`);
-
     // Process payment based on payment method
     let paymentResult = { success: false, message: '', transactionId: '' };
-
     switch (paymentMethod) {
       case 'CreditCard': // Match enum value
         // In a real implementation, this would call a payment gateway API
@@ -189,7 +154,6 @@ export async function POST(request: NextRequest) {
           transactionId: `cc-${uuidv4()}`,
         };
         break;
-
       case 'ETransfer': // Match enum value
         console.log(`Creating pending e-transfer payment for order ${orderId}`);
         paymentResult = {
@@ -203,7 +167,6 @@ export async function POST(request: NextRequest) {
           VALUES (${`Confirm E-Transfer for Order ${orderId}`}, ${'Payment'}, ${'Pending'}, ${'Medium'}, (SELECT id FROM users WHERE role = 'Admin' LIMIT 1), ${'Order'}, ${orderId}, (CURRENT_DATE + INTERVAL '3 days'), CURRENT_TIMESTAMP)
         `;
         break;
-
       case 'Bitcoin': // Match enum value
         console.log(`Creating pending bitcoin payment for order ${orderId}`);
         paymentResult = {
@@ -217,7 +180,6 @@ export async function POST(request: NextRequest) {
           VALUES (${`Confirm Bitcoin Payment for Order ${orderId}`}, ${'Payment'}, ${'Pending'}, ${'Medium'}, (SELECT id FROM users WHERE role = 'Admin' LIMIT 1), ${'Order'}, ${orderId}, (CURRENT_DATE + INTERVAL '3 days'), CURRENT_TIMESTAMP)
         `;
         break;
-
       case 'Manual': // Match enum value
         console.log(`Creating manual payment task for order ${orderId}`);
         paymentResult = { success: true, message: 'Manual payment noted', transactionId: `man-${uuidv4()}` };
@@ -227,13 +189,11 @@ export async function POST(request: NextRequest) {
           VALUES (${`Process Manual Payment for Order ${orderId}`}, ${'Payment'}, ${'Pending'}, ${'High'}, (SELECT id FROM users WHERE role = 'Admin' LIMIT 1), ${'Order'}, ${orderId}, (CURRENT_DATE + INTERVAL '1 day'), CURRENT_TIMESTAMP)
         `;
         break;
-
       default:
         // This should not happen due to earlier validation
         console.error(`Unsupported payment method reached switch: ${paymentMethod}`);
         paymentResult = { success: false, message: 'Unsupported payment method', transactionId: '' };
     }
-
     // Update order with payment result
     if (paymentResult.success) {
       // Determine payment status based on method
@@ -261,7 +221,6 @@ export async function POST(request: NextRequest) {
           VALUES (${orderId}, 'PendingPayment', 'Failed', ${userId}, ${'Payment processing failed: ' + paymentResult.message}, CURRENT_TIMESTAMP)
         `;
     }
-
     return NextResponse.json(
       {
         message: 'Order created successfully',

@@ -1,6 +1,6 @@
 // app/lib/services/user-service.ts
 import { db, sql } from '@/lib/db'; // Keep db and sql import
-import { users } from '@/lib/schema/users'; // Specific import from upstream
+ // Specific import from upstream
 import { users } from '@/lib/schema/users';
 import { referrals } from '@/lib/schema/referrals';
 import * as schema from '@/lib/schema'; // Keep for other schema references
@@ -11,13 +11,11 @@ import bcrypt from 'bcrypt'; // Keep bcrypt import
 import { v4 as uuidv4 } from 'uuid'; // Keep uuid import
 import { logger } from '../logger'; // Keep logger import
 import { generateAccessToken, generateRefreshToken } from '@/lib/auth'; // Keep token util import
-
 // --- Export needed Types (Keep updated types from stash) ---
 export type UserSelect = typeof schema.users.$inferSelect;
 export type UserRole = (typeof schema.userRoleEnum.enumValues)[number];
 type UserPublicSelect = Omit<UserSelect, 'passwordHash' | 'referredBy' | 'wholesaleApprovedBy' | 'emailVerified' | 'verificationToken' | 'passwordResetToken' | 'passwordResetExpires' | 'tokenVersion'>;
 type UserWithPasswordHash = UserSelect;
-
 export interface CreateUserParams {
   email: string;
   password: string;
@@ -84,7 +82,6 @@ export interface ReferralListResult {
   referrals: Referral[];
   pagination: { total: number; page: number; limit: number; totalPages: number };
 }
-
 // Helper function to exclude sensitive fields (Keep updated from stash)
 function excludeSensitiveFields(user: UserSelect | null): UserPublicSelect | null {
     if (!user) return null;
@@ -104,10 +101,8 @@ function excludeSensitiveFields(user: UserSelect | null): UserPublicSelect | nul
     } = user;
     return publicData as UserPublicSelect; // Cast after explicitly removing fields
 }
-
 // --- UserService Class (Keep implementations from stash) ---
 export class UserService {
-
   async getUserById(userId: string): Promise<UserPublicSelect | null> {
       try {
           logger.debug('Fetching user by ID', { userId });
@@ -125,7 +120,6 @@ export class UserService {
           throw new Error('Database error retrieving user.');
       }
   }
-
   async getUserByEmail(email: string): Promise<UserPublicSelect | null> {
       try {
           logger.debug('Fetching user by email', { email });
@@ -143,7 +137,6 @@ export class UserService {
           throw new Error('Database error retrieving user.');
       }
   }
-
   private async getUserWithPasswordByEmail(email: string): Promise<UserWithPasswordHash | null> {
       try {
           logger.debug('Fetching user with password hash by email', { email });
@@ -165,22 +158,18 @@ export class UserService {
           throw new Error('Database error retrieving user data.');
       }
   }
-
   private async getUserPasswordHashById(_userId: string): Promise<string | null> {
     logger.warn('getUserPasswordHashById not fully implemented');
     return null;
   }
-
   async createUser(params: CreateUserParams): Promise<UserPublicSelect> {
     logger.warn('createUser not fully implemented');
     throw new Error('createUser not implemented');
   }
-
   async updateUser(userId: string, params: UpdateUserParams): Promise<UserPublicSelect> {
     logger.warn('updateUser not fully implemented');
     throw new Error('updateUser not implemented');
   }
-
   async authenticate(email: string, password: string): Promise<AuthResult> {
       logger.info('Attempting authentication', { email });
       const jwtSecret = process.env.JWT_SECRET;
@@ -188,7 +177,6 @@ export class UserService {
           logger.error('JWT_SECRET environment variable is not set!');
           return { success: false, message: 'Authentication configuration error.' };
       }
-
       try {
           const user = await this.getUserWithPasswordByEmail(email);
           if (!user) {
@@ -220,35 +208,29 @@ export class UserService {
           return { success: false, message: 'An internal error occurred during authentication.' };
       }
   }
-
   async changePassword(params: ChangePasswordParams): Promise<{ success: boolean; message: string }> {
     logger.warn('changePassword not fully implemented');
     return { success: false, message: 'Password change not implemented' };
   }
-
   async listUsers(options: ListUsersOptions = {}): Promise<ListUsersResult> {
      logger.warn('listUsers not fully implemented');
      return { users: [], pagination: { total: 0, page: 1, limit: options.limit || 10, totalPages: 0 } };
   }
-
   // Keep updated signature from stash
   async applyForWholesale(userId: string, params: ApplyWholesaleParams): Promise<ApplyWholesaleResult> {
     logger.warn('applyForWholesale not fully implemented', { userId, params });
     return { success: false, message: 'Wholesale application not implemented' };
   }
-
   async regenerateReferralCode(userId: string): Promise<string | null> {
     logger.warn('regenerateReferralCode not fully implemented');
     return null;
   }
-
   // Keep updated signature from stash
   async getReferrals(userId: string, options: ListReferralsOptions = {}): Promise<ReferralListResult> {
     logger.warn('getReferrals not fully implemented', { userId, options });
     const { page = 1, limit = 10 } = options;
     return { referrals: [], pagination: { total: 0, page, limit, totalPages: 0 } };
   }
-
   async getUserFromRefreshToken(refreshToken: string): Promise<{ id: string; email: string; role: string } | null> {
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret) {

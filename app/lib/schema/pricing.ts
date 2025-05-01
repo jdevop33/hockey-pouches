@@ -3,7 +3,6 @@ import { pgTable, text, timestamp, decimal, integer, primaryKey, uuid, uniqueInd
 import { relations } from 'drizzle-orm';
 import { users } from './users'; // Import for relations
 import { productVariations } from './products'; // Import for relations
-
 // --- Custom Pricing Table ---
 // Allows admins to set specific prices for users on specific product variations
 export const customPricing = pgTable('custom_pricing', {
@@ -25,18 +24,13 @@ export const customPricing = pgTable('custom_pricing', {
     // Ensure a user can only have one custom price per variation
     userVariationUnique: uniqueIndex('custom_pricing_user_variation_idx').on(table.userId, table.productVariationId),
 }));
-
 export const customPricingRelations = relations(customPricing, ({ one }) => ({
     user: one(users, { fields: [customPricing.userId], references: [users.id] }),
     productVariation: one(productVariations, { fields: [customPricing.productVariationId], references: [productVariations.id] }),
 }));
-
 // --- Volume Discount Tiers (Not creating table, logic in code) ---
 // Keep this commented out unless requirements change
 /*
-import { userRoleEnum } from './users';
-import { serial, boolean } from 'drizzle-orm/pg-core';
-
 export const volumeDiscountTiers = pgTable('volume_discount_tiers', {
     id: serial('id').primaryKey(),
     minQuantity: integer('min_quantity').notNull(),

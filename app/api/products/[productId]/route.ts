@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db'; // Corrected import
 import { products } from '@/lib/schema/products';
-import { products } from '@/lib/schema/products';
-import { products } from '@/lib/schema/products';
-import { products } from '@/lib/schema/products';
 import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
@@ -12,10 +9,8 @@ import * as schema from '@/lib/schema'; // Keep for other schema references
 import { eq, and } from 'drizzle-orm'; // Import operators
 import { unstable_cache } from 'next/cache';
 import { logger } from '@/lib/logger'; // Added logger
-
 // Use ProductSelect type from schema
 type ProductSelect = typeof schema.products.$inferSelect;
-
 // Cache product details for 1 hour (3600 seconds)
 const getProductFromDb = unstable_cache(
   async (productId: number): Promise<ProductSelect | null> => {
@@ -40,12 +35,10 @@ const getProductFromDb = unstable_cache(
         // Exclude fields not needed on the product detail page if any
         // columns: { ... }
       });
-
       if (!product) {
         logger.warn('Active product not found in DB', { productId });
         return null;
       }
-
       logger.info('Product found in DB', { productId });
       return product;
     } catch (error) {
@@ -60,30 +53,24 @@ const getProductFromDb = unstable_cache(
       revalidate: 3600, // Revalidate every hour
   }
 );
-
 export async function GET(request: NextRequest, { params }: { params: { productId: string } }) {
   const { productId: productIdStr } = params;
   logger.info(`GET request for product ID: ${productIdStr}`);
-
   try {
     const productId = parseInt(productIdStr, 10);
     if (isNaN(productId)) {
       logger.warn('Invalid product ID format received', { productIdStr });
       return NextResponse.json({ error: 'Invalid product ID format' }, { status: 400 });
     }
-
     logger.info(`Fetching active product ${productId}...`);
     const product = await getProductFromDb(productId);
-
     if (!product) {
       logger.warn(`Product ${productId} not found by getProductFromDb`);
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
-
     logger.info(`Product ${productId} found`, { productId: product.id }); // Log actual ID found
     // Drizzle returns correct types based on schema and query
     return NextResponse.json(product);
-
   } catch (error) {
     logger.error(`Error in GET handler for product ${productIdStr}:`, { error });
     return NextResponse.json({ error: 'Failed to fetch product details' }, { status: 500 });

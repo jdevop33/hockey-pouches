@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import * as schema from '@/lib/schema';
 interface Video {
   title: string;
   description: string;

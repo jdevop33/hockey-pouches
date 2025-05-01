@@ -1,9 +1,6 @@
 // app/lib/services/product-service.ts (Exporting types)
 import { db } from '@/lib/db';
 import { products } from '@/lib/schema/products';
-import { products } from '@/lib/schema/products';
-import { products } from '@/lib/schema/products';
-import { products } from '@/lib/schema/products';
 import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
@@ -13,7 +10,6 @@ import * as schema from '@/lib/schema'; // Keep for other schema references
 import { invalidateCache, invalidateAllCache } from '@/lib/dbOptimization';
 import { logger } from '@/lib/logger';
 import { type DbTransaction } from '@/lib/db-types';
-
 // --- Export needed types ---
 export type ProductSelect = typeof schema.products.$inferSelect;
 export type ProductVariationSelect = typeof schema.productVariations.$inferSelect;
@@ -62,9 +58,7 @@ export interface InventoryUpdateParams {
   userId: string;
   transaction?: DbTransaction;
 }
-
 type StockLevelSelect = typeof schema.stockLevels.$inferSelect;
-
 // --- Service Class ---
 export class ProductService {
   private LOW_STOCK_THRESHOLD = 10;
@@ -113,7 +107,6 @@ export class ProductService {
       logger.error('Error invalidating variation caches', { error: error as Record<string, any> });
     }
   }
-
   // --- Methods (Add basic return types for placeholders) ---
   async getProductById(_productId: number): Promise<ProductWithVariations | null> {
     console.warn('getProductById not implemented');
@@ -234,5 +227,4 @@ export class ProductService {
   }
 }
 export const productService = new ProductService();
-
 // NOTE: Ellipses (...) indicate unchanged code from the fully refactored version for brevity.

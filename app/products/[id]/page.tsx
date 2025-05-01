@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -9,6 +8,7 @@ import SocialShare from '../../components/SocialShare';
 import ProductSchema from '../../components/ProductSchema';
 import ProductImage from '../../components/ui/ProductImage';
 import { formatCurrency } from '@/lib/utils';
+import * as schema from '@/lib/schema';
 import {
   Star,
   ChevronRight,
@@ -21,8 +21,6 @@ import {
   Award,
 } from 'lucide-react';
 import Image from 'next/image';
-import { cn } from '@/lib/utils';
-
 // Define proper types for the product
 interface Product {
   id: string;
@@ -38,20 +36,17 @@ interface Product {
   rating?: number;
   review_count?: number;
 }
-
 interface RelatedProduct {
   id: string;
   name: string;
   price: number;
   image_url: string;
 }
-
 interface ProductBenefit {
   icon: React.FC<{ className?: string }>;
   title: string;
   description: string;
 }
-
 // Product benefits to highlight key selling points
 const productBenefits: ProductBenefit[] = [
   {
@@ -75,14 +70,12 @@ const productBenefits: ProductBenefit[] = [
     description: 'Expertly crafted',
   },
 ];
-
 // Loading skeleton component for product details
 const ProductSkeleton = () => (
   <div className="animate-pulse">
     <div className="grid gap-8 lg:grid-cols-2">
       {/* Image skeleton */}
       <div className="aspect-square w-full rounded-lg bg-gray-700" />
-
       {/* Content skeleton */}
       <div className="space-y-4">
         <div className="h-8 w-3/4 rounded bg-gray-700" />
@@ -100,12 +93,10 @@ const ProductSkeleton = () => (
     </div>
   </div>
 );
-
 // Enhance product image gallery
 const ProductGallery = ({ product }: { product: Product }) => {
   const [activeImage, setActiveImage] = useState(product.image_url);
   const images = [product.image_url, ...(product.gallery_images || [])];
-
   return (
     <div className="space-y-4">
       {/* Main image */}
@@ -119,7 +110,6 @@ const ProductGallery = ({ product }: { product: Product }) => {
           priority
         />
       </div>
-
       {/* Thumbnail grid */}
       {images.length > 1 && (
         <div className="grid grid-cols-4 gap-4">
@@ -147,7 +137,6 @@ const ProductGallery = ({ product }: { product: Product }) => {
     </div>
   );
 };
-
 export default function ProductDetailPage() {
   const params = useParams();
   const { addToCart } = useCart();
@@ -156,31 +145,23 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     const fetchProductDetails = async () => {
       setIsLoading(true);
       setError(null);
-
       try {
         // Fetch product details
         const productRes = await fetch(`/api/products/${params?.id}`);
-
         if (!productRes.ok) {
           throw new Error('Failed to fetch product details');
         }
-
         const productData = (await productRes.json()) as Product;
-
         setProduct(productData);
-
         // Fetch related products
         const relatedRes = await fetch(`/api/products/${params?.id}/related`);
-
         if (!relatedRes.ok) {
           throw new Error('Failed to fetch related products');
         }
-
         const relatedData = (await relatedRes.json()) as RelatedProduct[];
         setRelatedProducts(relatedData);
       } catch (err) {
@@ -189,12 +170,10 @@ export default function ProductDetailPage() {
         setIsLoading(false);
       }
     };
-
     if (params?.id) {
       fetchProductDetails();
     }
   }, [params?.id]);
-
   const handleAddToCart = () => {
     if (product) {
       // Convert the product to match the Product type required by CartContext
@@ -207,11 +186,9 @@ export default function ProductDetailPage() {
         category: product.category,
         is_active: true,
       };
-
       addToCart(productForCart, quantity);
     }
   };
-
   if (isLoading) {
     return (
       <Layout>
@@ -221,7 +198,6 @@ export default function ProductDetailPage() {
       </Layout>
     );
   }
-
   if (error) {
     return (
       <Layout>
@@ -238,7 +214,6 @@ export default function ProductDetailPage() {
       </Layout>
     );
   }
-
   if (!product) {
     return (
       <Layout>
@@ -254,7 +229,6 @@ export default function ProductDetailPage() {
       </Layout>
     );
   }
-
   // Convert product to format expected by ProductSchema
   const schemaProduct = {
     id: parseInt(product.id),
@@ -264,12 +238,10 @@ export default function ProductDetailPage() {
     image_url: product.image_url,
     category: product.category,
   };
-
   return (
     <Layout>
       {/* Add JSON-LD schema for the product */}
       <ProductSchema product={schemaProduct} />
-
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <nav className="mb-8">
           <ol className="flex items-center space-x-2 text-sm text-gray-400">
@@ -288,11 +260,9 @@ export default function ProductDetailPage() {
             <li className="text-gray-300">{product.name}</li>
           </ol>
         </nav>
-
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Product gallery */}
           <ProductGallery product={product} />
-
           {/* Product info */}
           <div className="flex flex-col gap-8">
             {/* Primary product information */}
@@ -306,7 +276,6 @@ export default function ProductDetailPage() {
                 </p>
               )}
             </div>
-
             {/* Price and availability - High visibility information */}
             <div className="border-b border-gray-800 pb-4 pt-4">
               <div className="flex flex-wrap items-center gap-4">
@@ -324,7 +293,6 @@ export default function ProductDetailPage() {
                 )}
               </div>
             </div>
-
             {/* Rating - Visual representation with stars */}
             {product.rating !== undefined && (
               <div className="flex items-center gap-2">
@@ -345,17 +313,14 @@ export default function ProductDetailPage() {
                 </span>
               </div>
             )}
-
             {/* Description - Clean, readable text block with controlled width */}
             <div className="prose prose-sm prose-invert max-w-none">
               <p className="leading-relaxed text-gray-300">{product.description}</p>
             </div>
-
             {/* Product SKU - De-emphasized label with inline value */}
             <div className="text-sm text-gray-500">
               SKU: <span className="text-gray-400">{product.sku}</span>
             </div>
-
             {/* Add to Cart - Primary CTA with clear emphasis */}
             {product.stock_quantity > 0 && (
               <div className="mt-4 space-y-6">
@@ -398,7 +363,6 @@ export default function ProductDetailPage() {
                 </div>
               </div>
             )}
-
             {/* Benefits - Visual anchors with icons */}
             <div className="mt-8 grid grid-cols-2 gap-6 border-t border-gray-800 pt-6">
               {productBenefits.map((benefit, index) => (
@@ -411,7 +375,6 @@ export default function ProductDetailPage() {
                 </div>
               ))}
             </div>
-
             {/* Social Sharing */}
             <div className="mt-6 border-t border-gray-800 pt-6">
               <SocialShare
@@ -422,7 +385,6 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
-
         {/* Product schema for SEO */}
         <script
           type="application/ld+json"
@@ -452,7 +414,6 @@ export default function ProductDetailPage() {
           }}
         />
       </div>
-
       {/* Reviews Section - Empty state with clear CTA */}
       <section className="mt-24 border-t border-gray-800 pt-8">
         <h2 className="mb-8 text-2xl font-bold">Customer Reviews</h2>
@@ -466,7 +427,6 @@ export default function ProductDetailPage() {
           </button>
         </div>
       </section>
-
       {/* Related Products - Card-based layout with visual consistency */}
       {relatedProducts.length > 0 && (
         <section className="mt-24 border-t border-gray-800 pt-8">

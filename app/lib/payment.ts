@@ -2,20 +2,18 @@
 import { db, sql } from '@/lib/db'; // Keep imports from stash
 import { logger } from './logger'; // Keep logger import
 import { v4 as uuidv4 } from 'uuid';
-import { tasks } from '@/lib/schema/tasks'; // Specific import from upstream
-import { orders } from '@/lib/schema/orders'; // Specific import from upstream
+ // Specific import from upstream
+ // Specific import from upstream
 import { payments } from '@/lib/schema/payments'; // Need payments schema
-import { users } from '@/lib/schema/users'; // Need users schema for tx query
+ // Need users schema for tx query
 import { tasks } from '@/lib/schema/tasks';
 import { users } from '@/lib/schema/users';
 import { orders } from '@/lib/schema/orders';
 import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep wildcard for enums
 import { eq, and } from 'drizzle-orm';
-
 // Re-export enums from schema for easier use
 export { paymentMethodEnum, paymentStatusEnum, orderStatusEnum } from '@/lib/schema';
-
 // Types defined using schema enums (from stash)
 type PaymentStatus = typeof schema.paymentStatusEnum.enumValues[number];
 type PaymentMethod = typeof schema.paymentMethodEnum.enumValues[number];
@@ -24,7 +22,6 @@ type TaskStatus = typeof schema.taskStatusEnum.enumValues[number];
 type TaskCategory = typeof schema.taskCategoryEnum.enumValues[number];
 type TaskRelatedEntity = typeof schema.taskRelatedEntityEnum.enumValues[number];
 type TaskInsert = typeof schema.tasks.$inferInsert;
-
 // Define result interface with correct status type (from stash)
 export interface PaymentResult {
     success: boolean;
@@ -33,7 +30,6 @@ export interface PaymentResult {
     message: string;
     error?: any;
 }
-
 /**
  * Confirm a manual payment (e-transfer or Bitcoin).
  * (Logic from stash)
@@ -53,12 +49,10 @@ export async function confirmManualPayment(
                 ),
                 columns: { id: true, paymentMethod: true }
             });
-
             if (!payment) {
                 logger.warn('Payment record not found or not pending confirmation', { orderId, transactionIdOrRef });
                 throw new Error('Payment record not found or not awaiting confirmation.');
             }
-
             const updatedPayment = await tx.update(payments)
                 .set({
                     status: schema.paymentStatusEnum.Completed,
@@ -68,17 +62,14 @@ export async function confirmManualPayment(
                 })
                 .where(eq(payments.id, payment.id))
                 .returning({ id: payments.id, paymentMethod: payments.paymentMethod });
-
              if (updatedPayment.length === 0) {
                  throw new Error('Failed to update payment status.');
              }
-
             const nextOrderStatus: OrderStatus = schema.orderStatusEnum.Processing;
             await tx.update(orders)
                 .set({ paymentStatus: schema.paymentStatusEnum.Completed, status: nextOrderStatus, updatedAt: new Date() })
                 .where(eq(orders.id, orderId));
             logger.info('Order status updated after manual payment confirmation', { orderId, newStatus: nextOrderStatus });
-
             const verificationTaskUpdate = await tx.update(tasks)
                  .set({
                      status: schema.taskStatusEnum.Completed,
@@ -92,7 +83,6 @@ export async function confirmManualPayment(
                     eq(tasks.status, schema.taskStatusEnum.Pending)
                  ));
             logger.info('Closed payment verification task(s)', { orderId, count: verificationTaskUpdate.rowCount });
-
             return {
                 success: true,
                 transactionId: transactionIdOrRef,
@@ -111,7 +101,6 @@ export async function confirmManualPayment(
         };
     }
 }
-
 // --- Other Dummy Functions --- (Keep as is)
 async function processETransferPayment(orderId: string, amount: number, userId: string): Promise<PaymentResult> {
     logger.info('Processing E-Transfer Payment (Dummy)', { orderId, amount, userId });

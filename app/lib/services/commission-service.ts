@@ -1,24 +1,19 @@
 // app/lib/services/commission-service.ts
 import { db, sql } from '@/lib/db';
-import { commissions } from '@/lib/schema/commissions';
 import { users } from '@/lib/schema/users';
 import { orders } from '@/lib/schema/orders';
 import { commissions } from '@/lib/schema/commissions';
-import { users } from '@/lib/schema/users';
-import { orders } from '@/lib/schema/orders';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 import { COMMISSION_STATUS, type CommissionStatus } from '@/lib/constants/commission-status';
 import { eq, and, count, desc } from 'drizzle-orm';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
 import { type DbTransaction } from '@/lib/db-types';
-
 // ... (Types and other functions remain the same) ...
-
 // --- Service Class ---
 export class CommissionService {
   // ... (createCommission, calculateCommissionForOrder, getPayableCommissions, processCommissionPayout remain the same) ...
-
   async getUserCommissionStats(userId: string): Promise<UserCommissionStats> {
     try {
         // Use a single query to get SUM aggregates grouped by status
@@ -31,28 +26,23 @@ export class CommissionService {
             .from(commissions)
             .where(eq(commissions.userId, userId))
             .groupBy(commissions.status);
-
         let pendingAmount = 0;
         let approvedAmount = 0;
         let paidAmount = 0;
-
         // Process the aggregated results
         statusTotalsResult.forEach(row => {
             if (row.status === COMMISSION_STATUS.PENDING) pendingAmount = row.totalAmount;
             if (row.status === COMMISSION_STATUS.PAYABLE) approvedAmount = row.totalAmount;
             if (row.status === COMMISSION_STATUS.PAID) paidAmount = row.totalAmount;
         });
-
         // Calculate total lifetime (excluding Cancelled)
         const totalLifetimeAmount = pendingAmount + approvedAmount + paidAmount;
-
         // Get 5 most recent commissions
         const recentCommissions = await db.query.commissions.findMany({
             where: eq(commissions.userId, userId),
             orderBy: desc(commissions.createdAt),
             limit: 5
         });
-
         return {
             pendingAmount,
             approvedAmount,
@@ -72,7 +62,6 @@ export class CommissionService {
         };
     }
 }
-
   async listCommissions(options: ListCommissionsOptions): Promise<ListCommissionsResult> {
     const { page = 1, limit = 20, status, userId } = options;
     const offset = (page - 1) * limit;
@@ -87,7 +76,6 @@ export class CommissionService {
     const commissionsList = results as AdminCommissionListItem[];
     return { commissions: commissionsList, pagination: { total, page, limit, totalPages } };
   }
-
   async getUserCommissions(
     userId: string,
     options: { page?: number; limit?: number; status?: CommissionStatus }
@@ -97,9 +85,7 @@ export class CommissionService {
     return result;
   }
 }
-
 export const commissionService = new CommissionService();
-
 // --- Helper Functions / Types from previous version (if needed) ---
 // Placeholder for CommissionInsert if required outside the class
 // type CommissionInsert = typeof schema.commissions.$inferInsert;

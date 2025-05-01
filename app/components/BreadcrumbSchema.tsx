@@ -2,6 +2,7 @@
 
 import React from 'react';
 
+import * as schema from '@/lib/schema';
 interface BreadcrumbItem {
   name: string;
   url: string;

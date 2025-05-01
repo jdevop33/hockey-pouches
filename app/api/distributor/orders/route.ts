@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Build query conditions using Drizzle sql helper for safe parameter embedding
-    let conditions = [sql`o.assigned_distributor_id = ${distributorId}`];
+    const conditions = [sql`o.assigned_distributor_id = ${distributorId}`];
     if (statusFilter) {
         conditions.push(sql`o.status = ${statusFilter}`);
     }

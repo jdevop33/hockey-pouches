@@ -3,9 +3,6 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 import { userService, type UpdateUserParams } from '@/lib/services/user-service'; // Use refactored service
 import { users } from '@/lib/schema/users';
-import { users } from '@/lib/schema/users';
-import { users } from '@/lib/schema/users';
-import { users } from '@/lib/schema/users';
 import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
@@ -13,9 +10,7 @@ import * as schema from '@/lib/schema'; // Keep for other schema references
 // Use central schema index
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
-
 export const dynamic = 'force-dynamic';
-
 // --- GET Handler (Get Specific User Details) ---
 export async function GET(request: NextRequest, { params }: { params: { userId: string } }) {
     try {
@@ -35,7 +30,6 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
         return NextResponse.json({ message: 'Internal Server Error fetching user details.' }, { status: 500 });
     }
 }
-
 // --- PATCH Handler (Update User Details) ---
 const adminUpdateUserSchema = z.object({
     name: z.string().min(1, "Name cannot be empty").optional(),
@@ -43,7 +37,6 @@ const adminUpdateUserSchema = z.object({
     status: z.string().optional(), // Or z.enum(schema.userStatusEnum.enumValues)
     // Add other fields like wholesaleEligibility, commissionRate here if needed
 }).strict();
-
 export async function PATCH(request: NextRequest, { params }: { params: { userId: string } }) {
     try {
         const authResult = await verifyAdmin(request);
@@ -61,10 +54,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { userId
             return NextResponse.json({ message: 'No update data provided.' }, { status: 400 });
         }
         logger.info(`Admin PATCH /api/admin/users/${userId} request`, { adminId: authResult.userId, updateData });
-
         // Use validated data directly if types match UpdateUserParams
         const updatedUser = await userService.updateUser(userId, updateData as UpdateUserParams);
-
         logger.info('Admin: User updated successfully', { userId, adminId: authResult.userId });
         return NextResponse.json(updatedUser);
     } catch (error: any) {
@@ -81,5 +72,4 @@ export async function PATCH(request: NextRequest, { params }: { params: { userId
         return NextResponse.json({ message: 'Internal Server Error updating user.' }, { status: 500 });
     }
 }
-
 // DELETE commented out

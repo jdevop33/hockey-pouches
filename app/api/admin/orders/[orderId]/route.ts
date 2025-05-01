@@ -3,9 +3,6 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { orders } from '@/lib/schema/orders';
-import { orders } from '@/lib/schema/orders';
-import { orders } from '@/lib/schema/orders';
-import { orders } from '@/lib/schema/orders';
 import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
@@ -15,9 +12,7 @@ import { eq, desc } from 'drizzle-orm';
 import { logger } from '@/lib/logger';
 import { orderService } from '@/lib/services/order-service'; // Use refactored service
 import { z } from 'zod';
-
 export const dynamic = 'force-dynamic';
-
 // --- GET Handler (Get Detailed Order Info) ---
 export async function GET(request: NextRequest, { params }: { params: { orderId: string } }) {
     try {
@@ -30,7 +25,6 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
             return NextResponse.json({ message: 'Invalid Order ID format.' }, { status: 400 });
         }
         logger.info(`Admin GET /api/admin/orders/${orderId} request`, { adminId: authResult.userId });
-
         const orderDetails = await db.query.orders.findFirst({
             where: eq(schema.orders.id, orderId),
             with: {
@@ -61,13 +55,11 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
         return NextResponse.json({ message: 'Internal Server Error fetching order details.' }, { status: 500 });
     }
 }
-
 // --- PATCH Handler (Update Order - e.g., Status, Distributor) ---
 const updateOrderSchema = z.object({
     status: z.enum(schema.orderStatusEnum.enumValues).optional(),
     distributorId: z.string().uuid("Invalid Distributor ID format").nullable().optional(),
 }).strict();
-
 export async function PATCH(request: NextRequest, { params }: { params: { orderId: string } }) {
      try {
         const authResult = await verifyAdmin(request);
@@ -88,7 +80,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { orderI
             return NextResponse.json({ message: 'No update data provided.' }, { status: 400 });
         }
         logger.info(`Admin PATCH /api/admin/orders/${orderId} request`, { adminId: authResult.userId, updateData });
-
         // Use the Drizzle inferred type
         let updatedOrder: typeof schema.orders.$inferSelect | null = null;
         if (updateData.status) {
@@ -123,5 +114,4 @@ export async function PATCH(request: NextRequest, { params }: { params: { orderI
         return NextResponse.json({ message: 'Internal Server Error updating order.' }, { status: 500 });
     }
 }
-
 // DELETE commented out

@@ -6,24 +6,6 @@ import { products } from '@/lib/schema/products';
 import { users } from '@/lib/schema/users';
 import { tasks } from '@/lib/schema/tasks';
 import { commissions } from '@/lib/schema/commissions';
-import { orders } from '@/lib/schema/orders';
-import { orderItems } from '@/lib/schema/orderItems';
-import { products } from '@/lib/schema/products';
-import { users } from '@/lib/schema/users';
-import { tasks } from '@/lib/schema/tasks';
-import { commissions } from '@/lib/schema/commissions';
-import { orders } from '@/lib/schema/orders';
-import { orderItems } from '@/lib/schema/orderItems';
-import { products } from '@/lib/schema/products';
-import { users } from '@/lib/schema/users';
-import { tasks } from '@/lib/schema/tasks';
-import { commissions } from '@/lib/schema/commissions';
-import { orders } from '@/lib/schema/orders';
-import { orderItems } from '@/lib/schema/orderItems';
-import { products } from '@/lib/schema/products';
-import { users } from '@/lib/schema/users';
-import { tasks } from '@/lib/schema/tasks';
-import { commissions } from '@/lib/schema/commissions';
 import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
@@ -40,7 +22,6 @@ import {
   commissionTypeEnum,
   commissionRelatedEntityEnum,
 } from '@/lib/schema/commissions';
-
 // --- Types ---
 export type OrderSelect = typeof schema.orders.$inferSelect;
 export type OrderItemInsert = typeof schema.orderItems.$inferInsert;
@@ -94,7 +75,6 @@ export interface FulfillmentData {
   fulfillmentNotes?: string;
   fulfillmentProofUrl?: string | string[];
 }
-
 // --- Service Class ---
 export class OrderService {
   async createOrder(params: CreateOrderParams): Promise<OrderSelect> {
@@ -165,7 +145,6 @@ export class OrderService {
           subtotal: (item.quantity * item.price).toFixed(2),
         }));
         await tx.insert(schema.orderItems).values(orderItemsToInsert);
-
         // Get location ID - using a direct query instead of the helper method to avoid type issues
         let locationId: string | null = null;
         try {
@@ -176,9 +155,7 @@ export class OrderService {
         } catch (err) {
           logger.error('Error getting default stock location', { error: err });
         }
-
         if (!locationId) throw new Error('Cannot determine default stock location');
-
         for (const item of items) {
           await productService.updateInventory({
             productVariationId: item.productVariationId,
@@ -224,7 +201,6 @@ export class OrderService {
       throw new Error('Failed to create order.');
     }
   }
-
   async getOrderById(orderId: string): Promise<OrderWithItems | null> {
     try {
       const orderData = await db.query.orders.findFirst({
@@ -246,9 +222,7 @@ export class OrderService {
           fulfillments: true,
         },
       });
-
       if (!orderData) return null;
-
       // Transform to ensure it matches OrderWithItems type
       const order: OrderWithItems = {
         ...orderData,
@@ -256,14 +230,12 @@ export class OrderService {
         statusHistory: orderData.statusHistory || [],
         fulfillments: orderData.fulfillments || [],
       };
-
       return order;
     } catch (error) {
       logger.error('Error getting order by ID:', { orderId, error });
       return null;
     }
   }
-
   async updateOrderStatus(
     orderId: string,
     newStatus: OrderStatus,
@@ -274,12 +246,10 @@ export class OrderService {
   ): Promise<OrderSelect> {
     // Using options in a basic way to avoid linter error
     const notes = options.notes || 'Status updated';
-
     // Implementation would go here
     logger.info('Updating order status', { orderId, newStatus, notes });
     throw new Error('Not implemented');
   }
-
   async assignDistributor(orderId: string, distributorId: string): Promise<OrderSelect> {
     try {
       const distributor = await userService.getUserById(distributorId);
@@ -320,7 +290,6 @@ export class OrderService {
       throw new Error('Failed to assign distributor.');
     }
   }
-
   async recordFulfillment(
     orderId: string,
     fulfillmentData: FulfillmentData,
@@ -383,7 +352,6 @@ export class OrderService {
           } catch (commissionError) {
             const errorMessage =
               commissionError instanceof Error ? commissionError.message : String(commissionError);
-
             logger.error('Failed commission update on fulfillment', {
               orderId,
               error: errorMessage,
@@ -399,7 +367,6 @@ export class OrderService {
       throw new Error('Failed to record fulfillment.');
     }
   }
-
   async getUserOrders(
     userId: string,
     options: { page?: number; limit?: number; status?: OrderStatus } = {}
@@ -435,7 +402,6 @@ export class OrderService {
       throw new Error('Failed to get user orders');
     }
   }
-
   async getAdminOrders(/* options parameter intentionally removed */): Promise<{
     orders: OrderWithItems[];
     pagination: {
@@ -448,13 +414,11 @@ export class OrderService {
     // Placeholder implementation
     return { orders: [], pagination: { total: 0, page: 1, limit: 10, totalPages: 0 } };
   }
-
   private validateStatusTransition(newStatus: OrderStatus): void {
     // Implementation placeholder - will be properly implemented
     logger.info('Status transition validation', { newStatus });
     // Status transition validation logic will go here based on business rules
   }
-
   async approveFulfillment(
     orderId: string,
     fulfillmentId: string,
@@ -517,7 +481,6 @@ export class OrderService {
       throw error;
     }
   }
-
   async rejectFulfillment(
     orderId: string,
     fulfillmentId: string,
@@ -587,6 +550,5 @@ export class OrderService {
     }
   }
 }
-
 export const orderService = new OrderService();
 // NOTE: Some method bodies omitted for brevity where only import/type changes needed
