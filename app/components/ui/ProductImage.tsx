@@ -40,7 +40,9 @@ const ProductImage: React.FC<ProductImageProps> = ({
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const fallbackImage = '/images/products/puxxcoolmint22mg.png';
+  const maxRetries = 2; // Maximum number of retries before using fallback
 
   // Ensure src is properly formatted and handle relative/absolute paths
   const getNormalizedSrc = (path: string | null | undefined) => {
@@ -77,7 +79,24 @@ const ProductImage: React.FC<ProductImageProps> = ({
   };
 
   const handleImageError = () => {
-    console.error(`Failed to load image: ${src}. Using fallback image instead.`);
+    // If we haven't reached max retries, increment retry count and try again
+    if (retryCount < maxRetries) {
+      console.warn(`Failed to load image: ${src}. Retry attempt ${retryCount + 1} of ${maxRetries}`);
+      setRetryCount(retryCount + 1);
+      // Force a re-render with the same source to retry loading
+      setIsLoading(true);
+
+      // Add a small delay before retry to avoid immediate failure
+      setTimeout(() => {
+        // This will trigger a re-render and attempt to load the image again
+        setIsLoading(true);
+      }, 1000);
+
+      return;
+    }
+
+    // If we've reached max retries, use fallback
+    console.error(`Failed to load image: ${src} after ${maxRetries} retries. Using fallback image instead.`);
     setImageError(true);
     setIsLoading(false);
   };

@@ -46,7 +46,18 @@ const nextConfig = {
         hostname: '**',
       },
     ],
-    domains: ['localhost'],
+    domains: [
+      'localhost',
+      'hockey-pouches.vercel.app',
+      'hockeypouch.com',
+      'www.hockeypouch.com',
+      'nicotinetins.com',
+      'poucheswholesale.com',
+      'hockeypouches.ca',
+      'i.ytimg.com',
+      'img.youtube.com',
+      'randomuser.me'
+    ],
   },
   // Ensure the basePath is set correctly
   basePath: '',

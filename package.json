@@ -32,11 +32,13 @@
     "fix:missing-images": "node scripts/fix-missing-product-images.mjs",
     "fix:lint": "node scripts/fix-lint-issues.mjs",
     "fix:all": "npm run fix:schema && npm run fix:viewport && npm run fix:cache && npm run fix:cache:specific && npm run fix:client-imports && npm run fix:images && npm run fix:missing-images && npm run fix:lint",
-    "prepare-vercel": "node scripts/prepare-vercel-build.mjs",
+    "prepare-vercel": "node scripts/check-env-vars.mjs && node scripts/prepare-vercel-build.mjs",
     "test:deployment": "node scripts/test-deployment.mjs",
-    "build:vercel": "NODE_ENV=production npm run prepare-vercel && next build || node scripts/vercel-build-fallback.mjs",
+    "build:vercel": "NODE_ENV=production npm run check:env && npm run prepare-vercel && next build || node scripts/vercel-build-fallback.mjs",
     "build:vercel:emergency": "node scripts/vercel-build-fallback.mjs",
-    "verify:images": "node scripts/verify-product-images.mjs"
+    "verify:images": "node scripts/verify-product-images.mjs",
+    "check:env": "node scripts/check-env-vars.mjs",
+    "check:db": "node --loader ts-node/esm scripts/check-database.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
