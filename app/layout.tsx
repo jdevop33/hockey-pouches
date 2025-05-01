@@ -9,32 +9,32 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Hockey Pouches - Premium Hockey Equipment Storage',
-  description: 'High-quality hockey equipment storage solutions for professionals and enthusiasts.',
+  title: 'Puxx Pouches - Premium Nicotine Pouches',
+  description:
+    'The perfect blend of elegance, satisfaction, and premium quality. Designed for those who demand the very best.',
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png'},
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Hockey Pouches'},
-  applicationName: 'Hockey Pouches',
+    title: 'Puxx Pouches'},
+  applicationName: 'Puxx Pouches',
   formatDetection: {
     telephone: false,
     date: false,
     email: false,
     address: false},
   openGraph: {
-    siteName: 'Hockey Pouches',
+    siteName: 'Puxx Pouches',
     type: 'website',
     locale: 'en_CA'},
   twitter: {
     card: 'summary_large_image',
-    creator: '@hockeypouches',
-    site: '@hockeypouches'},
-    initialScale: 1},
+    creator: '@puxxpouches',
+    site: '@puxxpouches'},
   manifest: '/manifest.json',
-  metadataBase: new URL('https://hockeypouches.com'),
+  metadataBase: new URL('https://nicotinetins.com/'),
   alternates: {
     canonical: '/'},
   other: {
@@ -45,11 +45,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: '#12121a',
   colorScheme: 'dark',
-  viewport: {
-    width: 'device-width',
+  width: 'device-width',
+  initialScale: 1,
 };
-
-
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

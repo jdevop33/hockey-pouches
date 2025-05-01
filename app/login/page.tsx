@@ -3,16 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Layout from '../components/layout/NewLayout';
 import { useAuth } from '../context/AuthContext';
 import { useToastContext } from '../context/ToastContext';
 import { useCsrf } from '../context/CsrfContext';
+import { isValidEmail } from '../lib/validation';
+
+// Import components
+import Layout from '../components/layout/NewLayout';
 import { Button } from '../components/ui/Button';
 import FormFeedback from '../components/ui/FormFeedback';
 import PageLoading from '../components/ui/PageLoading';
 import FormInput from '../components/ui/FormInput';
 import CsrfToken from '../components/CsrfToken';
-import { isValidEmail } from '../lib/validation';
 
 // Safely access hooks to prevent errors during SSR
 function useSafeToast() {
@@ -37,9 +39,9 @@ function useSafeAuth() {
       user: null,
       token: null,
       isLoading: true,
-      login: () => {},
-      logout: () => {},
-      update: () => {},
+      login: () => Promise.resolve(),
+      logout: () => Promise.resolve(),
+      update: () => Promise.resolve(),
     };
   }
 }
@@ -155,8 +157,13 @@ export default function LoginPage() {
     }
   };
 
+  // Only render on the client
+  if (!isMounted) {
+    return null;
+  }
+
   // Don't render the form if we are loading auth state or already logged in
-  if (!isMounted || authLoading || user) {
+  if (authLoading || user) {
     return (
       <Layout>
         <PageLoading message="Checking authentication status..." />

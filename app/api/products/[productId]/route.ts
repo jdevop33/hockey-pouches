@@ -20,18 +20,18 @@ const getProductFromDb = unstable_cache(
         where: and(eq(schema.products.id, productId), eq(schema.products.isActive, true)),
         // Optionally fetch active variations if needed for the detail page
         with: {
-           productVariations: {
-              where: eq(schema.productVariations.isActive, true),
+          productVariations: {
+            where: eq(schema.productVariations.isActive, true),
             columns: {
               // Select specific variation columns needed
-                  id: true,
-                  name: true,
-                  price: true,
-                  sku: true,
-                  imageUrl: true,
-                  // Exclude internal details unless required
-              }
-           }
+              id: true,
+              name: true,
+              price: true,
+              sku: true,
+              imageUrl: true,
+              // Exclude internal details unless required
+            },
+          },
         },
         // Exclude fields not needed on the product detail page if any
         // columns: { ... }
@@ -49,9 +49,9 @@ const getProductFromDb = unstable_cache(
   },
   ['product-detail'], // Base cache key
   {
-      // Pass productId to the cache function scope for use in tags
-      tags: (productId) => [productId ? `tag-${productId}` : "default-tag"],
-      revalidate: 3600, // Revalidate every hour
+    // Pass productId to the cache function scope for use in tags
+    tags: productId => [productId ? `tag-${productId}` : 'default-tag'],
+    revalidate: 3600, // Revalidate every hour
   }
 );
 export async function GET(request: NextRequest, { params }: { params: { productId: string } }) {
