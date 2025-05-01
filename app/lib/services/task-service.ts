@@ -27,7 +27,7 @@ export interface ListTasksResult {
     pagination: { total: number; page: number; limit: number; totalPages: number; };
 }
 export class TaskService {
-    async listTasks(...args): Promise<ListTasksResult> {
+    async listTasks(options: { page?: number; limit?: number; status?: string; category?: string; priority?: string; assignedTo?: string } = {}): Promise<ListTasksResult> {
     // TODO: Implement listTasks
     return {} as ListTasksResult;
 
@@ -83,7 +83,7 @@ export class TaskService {
         return this.listTasks({ ...options, assignedTo: userId });
     }
     // TODO: Add methods for createTask, updateTask, getTaskById, etc.
-    async updateTaskStatus(...args): Promise<TaskSelect> {
+    async updateTaskStatus(taskId: string, status: string, userId: string): Promise<TaskSelect> {
     // TODO: Implement updateTaskStatus
     return {} as TaskSelect;
 

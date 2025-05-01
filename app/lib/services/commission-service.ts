@@ -133,7 +133,7 @@ export class CommissionService {
     const commissionsList = results as AdminCommissionListItem[];
     return { commissions: commissionsList, pagination: { total, page, limit, totalPages } };
   }
-  async getUserCommissions(...args): Promise<ListCommissionsResult> {
+  async getUserCommissions(userId: string, options: { page?: number; limit?: number; status?: string } = {}): Promise<ListCommissionsResult> {
     // TODO: Implement getUserCommissions
     return {} as ListCommissionsResult;
     const { page = 1, limit = 10, status } = options;

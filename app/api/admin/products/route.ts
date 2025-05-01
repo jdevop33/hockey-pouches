@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     // Call the service method (which handles DB insert and inventory init)
     const newProduct = await productService.createProduct(productData);
 
-    logger.info('Admin: Product created successfully', { productId: String(newProduct.id), adminId: authResult.userId });
+    logger.info('Admin: Product created successfully', { productId: newProduct.id, adminId: authResult.userId });
 
     // Return the newly created product data
     return NextResponse.json(newProduct, { status: 201 });

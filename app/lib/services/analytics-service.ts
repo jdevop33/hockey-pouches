@@ -1,5 +1,5 @@
 import { sql } from '@/lib/db';
-import { getRows } from '@/lib/db-types';
+import { getRows, castDbRows } from '@/lib/db-types';
 
 export interface SalesData {
   period: string;
@@ -102,9 +102,9 @@ export class AnalyticsService {
         ORDER BY period
       `;
 
-      return getRows(result) as SalesData[];
+      return castDbRows<SalesData[]>(getRows(result));
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error fetching sales data by period:', error);
       throw new Error(
         `Failed to fetch sales data: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -157,9 +157,9 @@ export class AnalyticsService {
         LIMIT ${limit}
       `;
 
-      return getRows(result) as ProductPerformance[];
+      return castDbRows<ProductPerformance[]>(getRows(result));
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error fetching top products:', error);
       throw new Error(
         `Failed to fetch top products: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -197,9 +197,9 @@ export class AnalyticsService {
         ORDER BY revenue DESC
       `;
 
-      return getRows(result) as CategoryPerformance[];
+      return castDbRows<CategoryPerformance[]>(getRows(result));
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error fetching sales by category:', error);
       throw new Error(
         `Failed to fetch category sales: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -241,9 +241,9 @@ export class AnalyticsService {
         LIMIT ${limit}
       `;
 
-      return getRows(result) as DistributorPerformance[];
+      return castDbRows<DistributorPerformance[]>(getRows(result));
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error fetching distributor performance:', error);
       throw new Error(
         `Failed to fetch distributor metrics: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -282,9 +282,9 @@ export class AnalyticsService {
         LIMIT ${limit}
       `;
 
-      return getRows(result) as ReferralPerformance[];
+      return castDbRows<ReferralPerformance[]>(getRows(result));
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error fetching referral performance:', error);
       throw new Error(
         `Failed to fetch referral metrics: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -320,9 +320,9 @@ export class AnalyticsService {
         ORDER BY revenue DESC
       `;
 
-      return getRows(result) as GeographicDistribution[];
+      return castDbRows<GeographicDistribution[]>(getRows(result));
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error fetching geographic distribution:', error);
       throw new Error(
         `Failed to fetch geographic data: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -417,7 +417,7 @@ export class AnalyticsService {
         sales_by_category: salesByCategory,
       };
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error fetching business overview:', error);
       throw new Error(
         `Failed to fetch business overview: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -496,27 +496,20 @@ export class AnalyticsService {
         LIMIT 10
       `;
 
-      const slowMovingProducts = getRows(slowMovingResult) as ProductPerformance[];
+      const slowMovingProducts = castDbRows<ProductPerformance[]>(getRows(slowMovingResult));
 
       // Get out of stock products and days out of stock
       const outOfStockResult = await sql`
         WITH last_in_stock AS (
           SELECT 
             sm.product_id,
-            sm.product_variation_id,
             MAX(sm.created_at) as last_date
           FROM stock_movements sm
-          JOIN stock_levels sl ON 
-            sm.product_id = sl.product_id AND
-            COALESCE(sm.product_variation_id, 0) = COALESCE(sl.product_variation_id, 0)
-          WHERE 
-            sl.quantity = 0 AND
-            sm.quantity < 0 AND
-            sm.type IN ('Fulfilled', 'Adjusted')
-          GROUP BY sm.product_id, sm.product_variation_id
+          WHERE sm.quantity > 0
+          GROUP BY sm.product_id
         )
         SELECT 
-          p.id as product_id,
+          lis.product_id,
           p.name as product_name,
           EXTRACT(DAY FROM NOW() - lis.last_date) as days_out_of_stock
         FROM last_in_stock lis
@@ -525,11 +518,13 @@ export class AnalyticsService {
         LIMIT 10
       `;
 
-      const outOfStockProducts = getRows(outOfStockResult) as Array<{
-        product_id: number;
-        product_name: string;
-        days_out_of_stock: number;
-      }>;
+      const outOfStockProducts = castDbRows<
+        Array<{
+          product_id: number;
+          product_name: string;
+          days_out_of_stock: number;
+        }>
+      >(getRows(outOfStockResult));
 
       // Calculate inventory turnover rate
       const turnoverResult = await sql`
@@ -567,11 +562,13 @@ export class AnalyticsService {
         LIMIT 10
       `;
 
-      const inventoryTurnover = getRows(turnoverResult) as Array<{
-        product_id: number;
-        product_name: string;
-        turnover_rate: number;
-      }>;
+      const inventoryTurnover = castDbRows<
+        Array<{
+          product_id: number;
+          product_name: string;
+          turnover_rate: number;
+        }>
+      >(getRows(turnoverResult));
 
       return {
         total_inventory_value: inventoryValue,
@@ -580,7 +577,7 @@ export class AnalyticsService {
         inventory_turnover: inventoryTurnover,
       };
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error fetching inventory analytics:', error);
       throw new Error(
         `Failed to fetch inventory analytics: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -625,10 +622,12 @@ export class AnalyticsService {
         ORDER BY period
       `;
 
-      const historicalData = getRows(historicalResult) as Array<{
-        period: string;
-        total_sales: number;
-      }>;
+      const historicalData = castDbRows<
+        Array<{
+          period: string;
+          total_sales: number;
+        }>
+      >(getRows(historicalResult));
 
       // This is a very simple forecasting model
       // In a real implementation, you would use a more sophisticated algorithm
@@ -641,13 +640,24 @@ export class AnalyticsService {
         sum += data.total_sales;
       });
 
-      const average = sum / Array.isArray(historicalData) ? Array.isArray(historicalData) ? historicalData.length : 0 : 0;
+      const average =
+        sum / Array.isArray(historicalData)
+          ? Array.isArray(historicalData)
+            ? historicalData.length
+            : 0
+          : 0;
 
       historicalData.forEach(data => {
         sumSquaredDiff += Math.pow(data.total_sales - average, 2);
       });
 
-      const stdDev = Math.sqrt(sumSquaredDiff / Array.isArray(historicalData) ? Array.isArray(historicalData) ? historicalData.length : 0 : 0);
+      const stdDev = Math.sqrt(
+        sumSquaredDiff / Array.isArray(historicalData)
+          ? Array.isArray(historicalData)
+            ? historicalData.length
+            : 0
+          : 0
+      );
 
       // Calculate forecast with linear trend
       const forecast: Array<{ period: string; forecasted_sales: number; confidence: number }> = [];
@@ -665,12 +675,23 @@ export class AnalyticsService {
         sumXX += index * index;
       });
 
-      const n = Array.isArray(historicalData) ? Array.isArray(historicalData) ? historicalData.length : 0 : 0;
+      const n = Array.isArray(historicalData)
+        ? Array.isArray(historicalData)
+          ? historicalData.length
+          : 0
+        : 0;
       const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
       const intercept = (sumY - slope * sumX) / n;
 
       // Generate forecast periods
-      const lastPeriod = historicalData[Array.isArray(historicalData) ? Array.isArray(historicalData) ? historicalData.length : 0 : 0 - 1].period;
+      const lastPeriod =
+        historicalData[
+          Array.isArray(historicalData)
+            ? Array.isArray(historicalData)
+              ? historicalData.length
+              : 0
+            : 0 - 1
+        ].period;
 
       for (let i = 1; i <= forecastPeriods; i++) {
         // Calculate next period (simplified)
@@ -715,7 +736,7 @@ export class AnalyticsService {
 
       return forecast;
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error generating sales forecast:', error);
       throw new Error(
         `Failed to generate sales forecast: ${error instanceof Error ? errorMessage : 'Unknown error'}`

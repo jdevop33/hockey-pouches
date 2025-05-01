@@ -147,7 +147,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('Failed to get distributor orders', { error });
     const errorMessage = error instanceof Error ? errorMessage : 'Internal Server Error';
     return NextResponse.json({ message: errorMessage }, { status: 500 });

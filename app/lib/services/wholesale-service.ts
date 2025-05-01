@@ -23,7 +23,7 @@ export interface ListWholesaleAppsResult {
 }
 export class WholesaleService {
     // List applications (e.g., for admin view)
-    async listApplications(...args): Promise<ListWholesaleAppsResult> {
+    async listApplications(options: { page?: number; limit?: number; status?: string } = {}): Promise<ListWholesaleAppsResult> {
     // TODO: Implement listApplications
     return {} as ListWholesaleAppsResult;
 
@@ -61,7 +61,7 @@ export class WholesaleService {
         }
     }
     // Get a single application
-    async getApplicationById(...args): Promise<WholesaleApplicationSelect | null> {
+    async getApplicationById(applicationId: string): Promise<WholesaleApplicationSelect | null> {
     // TODO: Implement getApplicationById
     return {} as WholesaleApplicationSelect | null;
 
@@ -108,7 +108,7 @@ export class WholesaleService {
         }
     }
     // Reject an application
-    async rejectApplication(...args): Promise<WholesaleApplicationSelect> {
+    async rejectApplication(applicationId: string, adminUserId: string, reason: string): Promise<WholesaleApplicationSelect> {
     // TODO: Implement rejectApplication
     return {} as WholesaleApplicationSelect;
 

@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
             currency: 'cad',
             automatic_payment_methods: { enabled: true },
             metadata: {
-                userId: String(userId),
+                userId: userId,
                 ...(orderMetadataId && { orderId: orderMetadataId }) // Add orderId if available
             },
             // Add customer ID if available to link payments

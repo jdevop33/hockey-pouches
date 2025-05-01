@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json(healthStatus, { status: statusCode });
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('Error during health check', {}, error);
     
     return NextResponse.json(

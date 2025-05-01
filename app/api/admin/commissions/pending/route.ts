@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Convert query results to arrays
-    const commissions = getRows(commissionsQuery) as AdminCommission[];
+    const commissions = castDbRows<AdminCommission[]>(getRows(commissionsQuery));
     const totalRows = getRows(countQuery);
 
     // Parse the count (ensuring we have a string count property)

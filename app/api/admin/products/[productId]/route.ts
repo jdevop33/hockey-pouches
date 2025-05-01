@@ -45,7 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: { productI
         return NextResponse.json(product);
 
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
         logger.error(`Admin: Failed to retrieve product ${params.productId}:`, { error });
         return NextResponse.json({ message: 'Internal Server Error retrieving product.' }, { status: 500 });
     }

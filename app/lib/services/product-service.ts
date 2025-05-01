@@ -579,7 +579,7 @@ export class ProductService {
       await this.invalidateVariationCache(String(newVariation.id), productIdNum);
 
       logger.info('Product variation created successfully', {
-        variationId: String(newVariation.id),
+        variationId: newVariation.id,
         productId,
       });
 
@@ -729,14 +729,14 @@ export class ProductService {
         await db.insert(schema.stockLevels).values({
           productId, // Use number ID
           productVariationId: variationIdNum, // Use number ID
-          locationId: String(defaultLocationId),
+          locationId: defaultLocationId,
           quantity: 0,
           reservedQuantity: 0,
         });
 
         logger.info('Created stock level for variation', {
           variationId,
-          locationId: String(defaultLocationId),
+          locationId: defaultLocationId,
         });
       }
 

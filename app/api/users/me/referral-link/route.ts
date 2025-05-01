@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
         });
 
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
         logger.error('GET /api/users/me/referral-link error:', { error });
         return NextResponse.json({ message: 'Internal Server Error fetching referral link.' }, { status: 500 });
     }

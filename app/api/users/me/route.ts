@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(userProfile);
 
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
         logger.error('GET /api/users/me error:', { error });
         return NextResponse.json({ message: 'Internal Server Error fetching profile.' }, { status: 500 });
     }

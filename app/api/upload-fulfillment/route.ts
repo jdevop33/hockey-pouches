@@ -17,7 +17,7 @@ async function verifyDistributor(request: NextRequest): Promise<boolean> { /* ..
         const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
         return decoded.role === 'Distributor';
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
         return false;
     }
 }

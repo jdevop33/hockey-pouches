@@ -77,10 +77,7 @@ export interface FulfillmentData {
 }
 // --- Service Class ---
 export class OrderService {
-  async createOrder(...args): Promise<OrderSelect> {
-    // TODO: Implement createOrder
-    return {} as OrderSelect;
-
+  async createOrder(params: CreateOrderParams): Promise<OrderSelect> {
     const {
       userId,
       items,
@@ -91,36 +88,47 @@ export class OrderService {
       discountCode,
       discountAmount,
     } = params;
+
     if (!items || items.length === 0) throw new Error('Order must contain at least one item');
+
     const totalQuantity = items.reduce((sum: number, item) => sum + item.quantity, 0);
     const orderType: OrderType =
       totalQuantity >= 100
         ? schema.orderTypeEnum.enumValues[1]
         : schema.orderTypeEnum.enumValues[0];
+
     if (orderType === schema.orderTypeEnum.enumValues[0] && totalQuantity < 5)
       throw new Error('Retail orders require minimum 5 items');
     if (orderType === schema.orderTypeEnum.enumValues[1] && totalQuantity < 100)
       throw new Error('Wholesale orders require minimum 100 items');
+
     const user = await userService.getUserById(userId);
     if (!user) throw new Error('User not found');
+
     if (
       orderType === schema.orderTypeEnum.enumValues[1] &&
       user.role !== schema.userRoleEnum.enumValues[3]
     )
       throw new Error('Wholesale orders require approved buyer account');
+
     const totalAmount = items
       .reduce((sum: number, item) => sum + item.quantity * item.price, 0)
       .toFixed(2);
+
     const finalAmountNum = discountAmount
       ? parseFloat(totalAmount) - discountAmount
       : parseFloat(totalAmount);
+
     if (finalAmountNum < 0) throw new Error('Order total cannot be negative');
+
     const finalAmountStr = finalAmountNum.toFixed(2);
     const discountAmountStr = discountAmount?.toFixed(2) ?? '0.00';
+
     try {
       return await db.transaction(async tx => {
         const orderId = uuidv4();
         const initialStatus: OrderStatus = schema.orderStatusEnum.enumValues[1]; // 'PendingPayment'
+
         const insertedOrder = await tx
           .insert(schema.orders)
           .values({
@@ -138,16 +146,20 @@ export class OrderService {
             discountAmount: discountAmountStr,
           })
           .returning();
+
         if (!insertedOrder || insertedOrder.length === 0) throw new Error('Order creation failed');
+
         const orderItemsToInsert: OrderItemInsert[] = items.map(item => ({
           id: uuidv4(),
-          orderId: String(orderId),
-          productVariationId: String(item.productVariationId),
+          orderId,
+          productVariationId: item.productVariationId,
           quantity: item.quantity,
           priceAtPurchase: item.price.toFixed(2),
           subtotal: (item.quantity * item.price).toFixed(2),
         }));
+
         await tx.insert(schema.orderItems).values(orderItemsToInsert);
+
         // Get location ID - using a direct query instead of the helper method to avoid type issues
         let locationId: string | null = null;
         try {
@@ -158,44 +170,50 @@ export class OrderService {
         } catch (err) {
           logger.error('Error getting default stock location', { error: err });
         }
+
         if (!locationId) throw new Error('Cannot determine default stock location');
+
         for (const item of items) {
           await productService.updateInventory({
-            productVariationId: String(item.productVariationId),
-            locationId: String(locationId),
+            productVariationId: item.productVariationId,
+            locationId,
             changeQuantity: -item.quantity,
-            type: "Sale",
-            referenceId: String(orderId),
+            type: 'Sale',
+            referenceId: orderId,
             referenceType: 'order',
-            userId: String(userId),
+            userId,
             transaction: tx,
           });
         }
+
         await tx
           .insert(schema.orderStatusHistory)
           .values({ id: uuidv4(), orderId, status: initialStatus, notes: 'Order created' });
+
         const userForReferralCheck = await tx.query.users.findFirst({
           where: eq(schema.users.id, userId),
           columns: { referredBy: true },
         });
+
         if (userForReferralCheck?.referredBy) {
           const commissionAmountNum = parseFloat((finalAmountNum * 0.05).toFixed(2));
           if (commissionAmountNum > 0) {
             await commissionService.createCommission(
               {
-                userId: String(userForReferralCheck.referredBy),
-                orderId: String(orderId),
+                userId: userForReferralCheck.referredBy,
+                orderId,
                 amount: commissionAmountNum.toString(),
                 rate: '5.00',
                 status: commissionStatusEnum.enumValues[0],
                 type: commissionTypeEnum.enumValues[0],
                 relatedTo: commissionRelatedEntityEnum.enumValues[0],
-                relatedId: String(orderId),
+                relatedId: orderId,
               },
               tx
             );
           }
         }
+
         return insertedOrder[0];
       });
     } catch (error) {
@@ -204,10 +222,7 @@ export class OrderService {
       throw new Error('Failed to create order.');
     }
   }
-  async getOrderById(...args): Promise<OrderWithItems | null> {
-    // TODO: Implement getOrderById
-    return {} as OrderWithItems | null;
-
+  async getOrderById(orderId: string): Promise<OrderWithItems | null> {
     try {
       const orderData = await db.query.orders.findFirst({
         where: eq(schema.orders.id, orderId),
@@ -228,7 +243,9 @@ export class OrderService {
           fulfillments: true,
         },
       });
+
       if (!orderData) return null;
+
       // Transform to ensure it matches OrderWithItems type
       const order: OrderWithItems = {
         ...orderData,
@@ -236,6 +253,7 @@ export class OrderService {
         statusHistory: orderData.statusHistory || [],
         fulfillments: orderData.fulfillments || [],
       };
+
       return order;
     } catch (error) {
       logger.error('Error getting order by ID:', { orderId, error });
@@ -308,7 +326,12 @@ export class OrderService {
       return await db.transaction(async tx => {
         const order = await tx.query.orders.findFirst({
           where: eq(schema.orders.id, orderId),
-          columns: { status: true, distributorId: String(true), totalAmount: true, commissionAmount: true },
+          columns: {
+            status: true,
+            distributorId: String(true),
+            totalAmount: true,
+            commissionAmount: true,
+          },
         });
         if (!order) throw new Error('Order not found');
         const validStatuses: OrderStatus[] = [

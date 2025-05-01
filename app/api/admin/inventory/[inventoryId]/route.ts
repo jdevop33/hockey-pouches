@@ -56,7 +56,7 @@ export async function GET(request: NextRequest, { params }: { params: { inventor
 
     return NextResponse.json(response);
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(`Admin: Failed to get stock level ${params.inventoryId}:`, { error });
     return NextResponse.json(
       { message: 'Internal Server Error fetching stock level.' },

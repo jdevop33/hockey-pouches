@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
         : 'Order meets retail minimum requirements and inventory is available.',
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('Failed to validate cart:', {
       error: error instanceof Error ? errorMessage : String(error),
     });

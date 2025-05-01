@@ -50,14 +50,14 @@ export async function PUT(request: NextRequest, { params }: { params: { cartItem
         quantity: result.quantity,
       });
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       if (error instanceof Error && errorMessage.includes('not found')) {
         return NextResponse.json({ message: errorMessage }, { status: 404 });
       }
       throw error; // Re-throw for the outer catch block
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(`Failed to update cart item ${cartItemId}:`, {
       error: error instanceof Error ? errorMessage : String(error),
     });
@@ -91,14 +91,14 @@ export async function DELETE(request: NextRequest, { params }: { params: { cartI
       await cartService.removeCartItem(userId, cartItemId);
       return NextResponse.json({ message: 'Item removed from cart' });
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       if (error instanceof Error && errorMessage.includes('not found')) {
         return NextResponse.json({ message: errorMessage }, { status: 404 });
       }
       throw error; // Re-throw for the outer catch block
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(`Failed to remove cart item ${cartItemId}:`, {
       error: error instanceof Error ? errorMessage : String(error),
     });

@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(cartSummary);
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('Failed to get cart items:', {
       error: error instanceof Error ? errorMessage : String(error),
     });
@@ -80,14 +80,14 @@ export async function POST(request: NextRequest) {
         { status: 201 }
       );
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       if (error instanceof Error && errorMessage.includes('not found')) {
         return NextResponse.json({ message: errorMessage }, { status: 404 });
       }
       throw error; // Re-throw for the outer catch block
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('Failed to add item to cart:', {
       error: error instanceof Error ? errorMessage : String(error),
     });
@@ -119,7 +119,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ message: 'Cart cleared successfully' });
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('Failed to clear cart:', {
       error: error instanceof Error ? errorMessage : String(error),
     });

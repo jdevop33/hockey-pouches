@@ -90,7 +90,7 @@ export async function POST(request: NextRequest, { params }: { params: { product
         // Call the service method (handles product existence check & inventory init)
         const createdVariation = await productService.createVariation(productIdNum, serviceData);
 
-        logger.info('Admin: Variation created successfully', { variationId: String(createdVariation.id), productId: String(productIdNum), adminId: authResult.userId });
+        logger.info('Admin: Variation created successfully', { variationId: createdVariation.id, productId: productIdNum, adminId: authResult.userId });
         return NextResponse.json(createdVariation, { status: 201 });
 
     } catch (error: unknown) {
