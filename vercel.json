@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "next build",
+  "buildCommand": "node scripts/fix-schema-imports.mjs && next build",
   "devCommand": "next dev",
   "installCommand": "npm install",
   "framework": "nextjs",

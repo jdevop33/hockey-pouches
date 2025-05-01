@@ -7,7 +7,11 @@ import { orders } from '@/lib/schema/orders'; // Specific imports from upstream
 import { tasks } from '@/lib/schema/tasks'; // Specific imports from upstream
 import { users } from '@/lib/schema/users'; // Specific imports from upstream
 import { payments } from '@/lib/schema/payments'; // Need payments schema
-import * as schema from '@/lib/schema'; // Keep wildcard for enums
+import { tasks } from '@/lib/schema/tasks';
+import { orders } from '@/lib/schema/orders';
+import { users } from '@/lib/schema/users';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep wildcard for enums
 import { eq, and } from 'drizzle-orm';
 
 // Define types based on schema enums (from stash)

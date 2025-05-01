@@ -21,7 +21,7 @@
     "db:migrate": "node scripts/run-migrations.js",
     "fix:imports": "node scripts/fix-schema-imports.mjs",
     "preflight": "npm run fix:imports && npm run lint:fix && npm run format && npm run typecheck",
-    "predeploy": "npm run preflight && npm run build"
+    "predeploy": "node scripts/pre-deploy.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -81,14 +81,14 @@
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-drizzle": "0.2.3",
     "globals": "^13.24.0",
+    "husky": "^8.0.3",
     "jiti": "^2.0.0",
+    "lint-staged": "^15.0.0",
     "node-fetch": "^3.3.2",
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
-    "typescript": "^5.0.0",
-    "husky": "^8.0.3",
-    "lint-staged": "^15.0.0"
+    "typescript": "^5.0.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

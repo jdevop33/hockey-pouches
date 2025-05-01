@@ -3,7 +3,9 @@ import { db } from '@/lib/db';
 import { tasks } from '@/lib/schema/tasks';
 import { tasks } from '@/lib/schema/tasks';
 import { tasks } from '@/lib/schema/tasks';
+import { tasks } from '@/lib/schema/tasks';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 import { eq, and, or, ilike, count, desc, asc, sql, SQL } from 'drizzle-orm';

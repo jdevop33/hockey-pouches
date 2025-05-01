@@ -5,7 +5,9 @@ import { userService } from '@/lib/services/user-service'; // Use refactored ser
 import { users } from '@/lib/schema/users';
 import { users } from '@/lib/schema/users';
 import { users } from '@/lib/schema/users';
+import { users } from '@/lib/schema/users';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Use central schema index

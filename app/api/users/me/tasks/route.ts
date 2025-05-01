@@ -3,7 +3,10 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 import { taskService } from '@/lib/services/task-service'; // Keep specific service import
 import { logger } from '@/lib/logger'; // Keep logger import
-import * as schema from '@/lib/schema'; // Keep wildcard for enums
+import { users } from '@/lib/schema/users';
+import { tasks } from '@/lib/schema/tasks';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep wildcard for enums
 
 // Define types based on schema enums (from stash)
 type TaskStatus = typeof schema.taskStatusEnum.enumValues[number];

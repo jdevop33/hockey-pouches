@@ -2,7 +2,12 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 import { db, sql } from '@/lib/db'; // Import db instance and sql helper
 import { logger } from '@/lib/logger'; // Import logger
-import * as schema from '@/lib/schema'; // Import schema
+import { users } from '@/lib/schema/users';
+import { orders } from '@/lib/schema/orders';
+import { commissions } from '@/lib/schema/commissions';
+import { tasks } from '@/lib/schema/tasks';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Import schema
 
 export const dynamic = 'force-dynamic';
 

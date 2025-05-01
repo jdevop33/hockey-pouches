@@ -3,8 +3,10 @@ import { verifyAuth, unauthorizedResponse } from '@/lib/auth';
 import { db, sql } from '@/lib/db';
 import { logger } from '@/lib/logger';
 // Rely solely on the wildcard import
-import * as schema from '@/lib/schema';
-
+import { orders } from '@/lib/schema/orders';
+import { orderItems } from '@/lib/schema/orderItems';
+import { products } from '@/lib/schema/products';
+import * as schema from '@/lib/schema'; // Keep for other schema references
 export const dynamic = 'force-dynamic';
 
 // Define types based on schema inference

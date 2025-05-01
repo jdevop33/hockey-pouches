@@ -5,7 +5,10 @@ import { inventory } from '@/lib/schema/inventory';
 import { cart } from '@/lib/schema/cart';
 import { inventory } from '@/lib/schema/inventory';
 import { cart } from '@/lib/schema/cart';
+import { inventory } from '@/lib/schema/inventory';
+import { cart } from '@/lib/schema/cart';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Use central schema index

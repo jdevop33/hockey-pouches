@@ -5,7 +5,13 @@ import { sendOrderConfirmationEmail, type OrderItem as EmailOrderItem } from '@/
 import { eq, and, sql } from 'drizzle-orm';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
-import * as schema from '@/lib/schema'; // Keep wildcard for enums and complex types
+import { tasks } from '@/lib/schema/tasks';
+import { orderItems } from '@/lib/schema/orderItems';
+import { orders } from '@/lib/schema/orders';
+import { users } from '@/lib/schema/users';
+import { cart } from '@/lib/schema/cart';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep wildcard for enums and complex types
 
 // --- Interfaces ---
 

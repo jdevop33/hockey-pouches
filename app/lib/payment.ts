@@ -6,7 +6,11 @@ import { tasks } from '@/lib/schema/tasks'; // Specific import from upstream
 import { orders } from '@/lib/schema/orders'; // Specific import from upstream
 import { payments } from '@/lib/schema/payments'; // Need payments schema
 import { users } from '@/lib/schema/users'; // Need users schema for tx query
-import * as schema from '@/lib/schema'; // Keep wildcard for enums
+import { tasks } from '@/lib/schema/tasks';
+import { users } from '@/lib/schema/users';
+import { orders } from '@/lib/schema/orders';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep wildcard for enums
 import { eq, and } from 'drizzle-orm';
 
 // Re-export enums from schema for easier use

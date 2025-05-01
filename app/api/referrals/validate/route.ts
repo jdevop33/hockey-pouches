@@ -6,7 +6,10 @@ import { users } from '@/lib/schema/users';
 import { logs } from '@/lib/schema/logs';
 import { users } from '@/lib/schema/users';
 import { logs } from '@/lib/schema/logs';
+import { users } from '@/lib/schema/users';
+import { logs } from '@/lib/schema/logs';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Import schema

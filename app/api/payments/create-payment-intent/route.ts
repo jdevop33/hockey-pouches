@@ -8,7 +8,10 @@ import { orders } from '@/lib/schema/orders';
 import { cart } from '@/lib/schema/cart';
 import { orders } from '@/lib/schema/orders';
 import { cart } from '@/lib/schema/cart';
+import { orders } from '@/lib/schema/orders';
+import { cart } from '@/lib/schema/cart';
 import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Use central schema index

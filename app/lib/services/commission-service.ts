@@ -3,7 +3,10 @@ import { db, sql } from '@/lib/db';
 import { commissions } from '@/lib/schema/commissions';
 import { users } from '@/lib/schema/users';
 import { orders } from '@/lib/schema/orders';
-import * as schema from '@/lib/schema';
+import { commissions } from '@/lib/schema/commissions';
+import { users } from '@/lib/schema/users';
+import { orders } from '@/lib/schema/orders';
+import * as schema from '@/lib/schema'; // Keep for other schema references
 import { COMMISSION_STATUS, type CommissionStatus } from '@/lib/constants/commission-status';
 import { eq, and, count, desc } from 'drizzle-orm';
 import { logger } from '@/lib/logger';

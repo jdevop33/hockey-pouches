@@ -1,7 +1,10 @@
 // app/lib/services/user-service.ts
 import { db, sql } from '@/lib/db'; // Keep db and sql import
 import { users } from '@/lib/schema/users'; // Specific import from upstream
-import * as schema from '@/lib/schema'; // Keep wildcard for enums/other
+import { users } from '@/lib/schema/users';
+import { referrals } from '@/lib/schema/referrals';
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep wildcard for enums/other
 import { eq } from 'drizzle-orm'; // Keep eq operator
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt'; // Keep bcrypt import
