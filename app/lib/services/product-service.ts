@@ -1,6 +1,5 @@
 // app/lib/services/product-service.ts (Exporting types)
 import { db } from '@/lib/db';
-import { products } from '@/lib/schema/products';
 import * as schema from '@/lib/schema';
 import {
   eq,
@@ -59,7 +58,7 @@ export interface InventoryUpdateParams {
   productVariationId?: number;
   locationId?: string;
   changeQuantity: number;
-  type: string;
+  type: 'Sale' | 'Return' | 'Restock' | 'Adjustment' | 'TransferOut' | 'TransferIn' | 'Initial';
   referenceId?: string;
   referenceType?: string;
   notes?: string;
@@ -95,7 +94,7 @@ export class ProductService {
         await invalidateCache(this.CACHE_KEYS.VARIATIONS_BY_PRODUCT(productId, false));
       }
     } catch (error) {
-      logger.error('Error invalidating product caches', { error: error as Record<string, any> });
+      logger.error('Error invalidating product caches', { error: error as Error });
     }
   }
   private async invalidateVariationCache(variationId: number, productId?: number) {
@@ -112,7 +111,7 @@ export class ProductService {
         await this.invalidateProductCaches();
       }
     } catch (error) {
-      logger.error('Error invalidating variation caches', { error: error as Record<string, any> });
+      logger.error('Error invalidating variation caches', { error: error as Error });
     }
   }
   // --- Methods (Add basic return types for placeholders) ---
@@ -198,19 +197,53 @@ export class ProductService {
         );
       }
 
-      // Execute query with conditions
-      const productsQuery = db.query.products.findMany({
-        where: conditions.length > 0 ? and(...conditions) : undefined,
-        limit,
-        offset,
-        orderBy: sortOrder === 'asc'
-          ? asc(schema.products[sortBy as keyof typeof schema.products])
-          : desc(schema.products[sortBy as keyof typeof schema.products]),
-      });
+      // Execute query with conditions with safe sorting
+      let productsQuery;
 
+      // Handle sorting based on the column name
+      if (sortBy === 'name') {
+        productsQuery = db.query.products.findMany({
+          where: conditions.length > 0 ? and(...conditions) : undefined,
+          limit,
+          offset,
+          orderBy: sortOrder === 'asc' ? asc(schema.products.name) : desc(schema.products.name),
+        });
+      } else if (sortBy === 'price') {
+        productsQuery = db.query.products.findMany({
+          where: conditions.length > 0 ? and(...conditions) : undefined,
+          limit,
+          offset,
+          orderBy: sortOrder === 'asc' ? asc(schema.products.price) : desc(schema.products.price),
+        });
+      } else if (sortBy === 'createdAt') {
+        productsQuery = db.query.products.findMany({
+          where: conditions.length > 0 ? and(...conditions) : undefined,
+          limit,
+          offset,
+          orderBy: sortOrder === 'asc' ? asc(schema.products.createdAt) : desc(schema.products.createdAt),
+        });
+      } else if (sortBy === 'strength') {
+        productsQuery = db.query.products.findMany({
+          where: conditions.length > 0 ? and(...conditions) : undefined,
+          limit,
+          offset,
+          orderBy: sortOrder === 'asc' ? asc(schema.products.strength) : desc(schema.products.strength),
+        });
+      } else {
+        // Default to name if the specified column doesn't exist
+        productsQuery = db.query.products.findMany({
+          where: conditions.length > 0 ? and(...conditions) : undefined,
+          limit,
+          offset,
+          orderBy: sortOrder === 'asc' ? asc(schema.products.name) : desc(schema.products.name),
+        });
+      }
+
+      // For the total count query, we need to handle the where clause differently
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
       const totalQuery = db.select({ count: count() })
         .from(schema.products)
-        .where(conditions.length > 0 ? and(...conditions) : undefined);
+        .where(whereClause);
 
       const [products, totalResult] = await Promise.all([productsQuery, totalQuery]);
 
@@ -435,7 +468,7 @@ export class ProductService {
         where: eq(schema.productVariations.id, variationId),
       });
 
-      return variation;
+      return variation || null;
     } catch (error) {
       logger.error(`Error getting variation by ID: ${variationId}`, { error });
       return null;
@@ -511,14 +544,14 @@ export class ProductService {
       if (stockLevelId) {
         stockLevel = await executor.query.stockLevels.findFirst({
           where: eq(schema.stockLevels.id, stockLevelId),
-        });
+        }) || null;
       } else if (productVariationId && locationId) {
         stockLevel = await executor.query.stockLevels.findFirst({
           where: and(
             eq(schema.stockLevels.productVariationId, productVariationId),
             eq(schema.stockLevels.locationId, locationId)
           ),
-        });
+        }) || null;
       }
 
       if (!stockLevel) {
@@ -585,7 +618,7 @@ export class ProductService {
           referenceId,
           referenceType,
           notes,
-          userId,
+          createdBy: userId,
         });
 
       // Invalidate caches
