@@ -1,16 +1,10 @@
-import type { Metadata, Viewport } from 'next';
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Login - Hockey Pouches',
-  description: 'Log in to your Hockey Pouches account',
-  // ... existing code ...
+  title: 'Login | Hockey Pouches',
+  description: 'Sign in to your account to manage orders and access your profile.',
 };
 
-export const viewport: Viewport = {
-  themeColor: '#000',
-  colorScheme: 'light dark',
-  width: 'device-width',
-  initialScale: 1,
-};
-
-// ... existing code ...
+export default function LoginLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
