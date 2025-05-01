@@ -112,10 +112,6 @@ export class ProductService {
   // --- Methods (Add basic return types for placeholders) ---
   async getProductById(productId: string): Promise<ProductWithVariations | null> {
     // TODO: Implement getProductById
-    return {
-      // Default empty object for ProductWithVariations | null
-    };
-
     try {
       logger.info(`Getting product by ID: ${productId}`);
       const productIdNum = parseInt(productId, 10);
@@ -150,10 +146,6 @@ export class ProductService {
   }
   async getProducts(options: ProductListOptions): Promise<ProductListResult> {
     // TODO: Implement getProducts
-    return {
-      // Default empty object for ProductListResult
-    };
-
     try {
       const {
         page = 1,
@@ -346,10 +338,6 @@ export class ProductService {
   }
   async createProduct(productData: ProductInsert): Promise<ProductSelect> {
     // TODO: Implement createProduct
-    return {
-      // Default empty object for ProductSelect
-    };
-
     try {
       logger.info('Creating new product', { productData });
 
@@ -435,8 +423,6 @@ export class ProductService {
   }
   async deleteProduct(productId: string): Promise<boolean> {
     // TODO: Implement deleteProduct
-    return false;
-
     try {
       logger.info('Deleting product (soft delete)', { productId });
       const productIdNum = parseInt(productId, 10);
@@ -508,7 +494,7 @@ export class ProductService {
 
       // Only include active variations if specified
       if (!includeInactive) {
-        $1?.$2(eq(schema.productVariations.isActive, true));
+        conditions.push(eq(schema.productVariations.isActive, true));
       }
 
       // Get the variations
@@ -523,12 +509,8 @@ export class ProductService {
       return [];
     }
   }
-  async $1(...$2: any[]): Promise<ProductVariationSelect | null> {
-    // TODO: Implement getVariationById
-    return {
-      // Default empty object for ProductVariationSelect | null
-    };
-
+  async getVariationById(variationId: string): Promise<ProductVariationSelect | null> {
+    // Implement getVariationById
     try {
       logger.info(`Getting variation by ID: ${variationId}`);
       const variationIdNum = parseInt(variationId, 10);
@@ -670,10 +652,8 @@ export class ProductService {
       throw new Error('Failed to update product variation');
     }
   }
-  async $1(...$2: any[]): Promise<boolean> {
-    // TODO: Implement deleteVariation
-    return false;
-
+  async deleteVariation(variationId: string): Promise<boolean> {
+    // Implement deleteVariation
     try {
       logger.info('Deleting product variation (soft delete)', { variationId });
       const variationIdNum = parseInt(variationId, 10);
@@ -810,10 +790,8 @@ export class ProductService {
       return null;
     }
   }
-  async $1(...$2: any[]): Promise<number> {
-    // TODO: Implement getTotalAvailableStock
-    return 0;
-
+  async getTotalAvailableStock(productVariationId: string): Promise<number> {
+    // Implement getTotalAvailableStock
     try {
       logger.info('Getting total available stock', { productVariationId });
 
@@ -835,10 +813,8 @@ export class ProductService {
       return 0;
     }
   }
-  async $1(...$2: any[]): Promise<boolean> {
-    // TODO: Implement updateInventory
-    return false;
-
+  async updateInventory(params: InventoryUpdateParams): Promise<boolean> {
+    // Implement updateInventory
     // Use transaction if provided
     const executor = params.transaction || db;
 
@@ -1005,33 +981,6 @@ export class ProductService {
         .select({ count: count() })
         .from(schema.products);
       const totalProducts = totalProductsResult[0]?.count || 0;
-
-      // Get active products count
-      const activeProductsResult = await db
-        .select({ count: count() })
-        .from(schema.products)
-        .where(eq(schema.products.isActive, true));
-      const activeProducts = activeProductsResult[0]?.count || 0;
-
-      // Get total variations count
-      const totalVariationsResult = await db
-        .select({ count: count() })
-        .from(schema.productVariations);
-      const totalVariations = totalVariationsResult[0]?.count || 0;
-
-      return {
-        totalProducts,
-        activeProducts,
-        totalVariations,
-        lowStockProducts: 0, // This would require more complex logic
-        outOfStockProducts: 0 // This would require more complex logic
-      };
-    } catch (error) {
-      logger.error('Error getting product statistics', { error });
-      throw error;
-    }
-  }
-    const dummy =  0;
 
       // Get active products count
       const activeProductsResult = await db
