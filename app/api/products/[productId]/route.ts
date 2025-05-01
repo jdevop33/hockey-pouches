@@ -22,7 +22,8 @@ const getProductFromDb = unstable_cache(
         with: {
            productVariations: {
               where: eq(schema.productVariations.isActive, true),
-              columns: { // Select specific variation columns needed
+            columns: {
+              // Select specific variation columns needed
                   id: true,
                   name: true,
                   price: true,
