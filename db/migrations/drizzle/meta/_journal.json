@@ -15,6 +15,13 @@
       "when": 1746042187883,
       "tag": "0001_dazzling_celestials",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1746071007931,
+      "tag": "0002_crazy_shinobi_shaw",
+      "breakpoints": true
     }
   ]
 }

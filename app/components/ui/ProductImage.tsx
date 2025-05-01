@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Loader } from 'lucide-react';
@@ -59,13 +59,6 @@ const ProductImage: React.FC<ProductImageProps> = ({
 
   // Use fallback if src is null/undefined or if there was an error loading the image
   const imageSrc = normalizedSrc && !imageError ? normalizedSrc : fallbackImage;
-
-  // Debug info (remove in production)
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      
-    }
-  }, [src, normalizedSrc, imageSrc]);
 
   // Configure size dimensions
   const getSizeClasses = () => {

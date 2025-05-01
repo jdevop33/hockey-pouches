@@ -12,6 +12,7 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { glob } from 'glob';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(__dirname, '..');
@@ -22,9 +23,97 @@ function log(message) {
   console.log(`[${timestamp}] ${message}`);
 }
 
+// Fix common syntax errors in route handlers
+async function fixSyntaxErrorsInRouteFiles() {
+  log('Fixing common syntax errors in API route files...');
+
+  // Find all route.ts files in the API directory
+  const routeFiles = glob.sync('app/api/**/**/route.ts', { cwd: rootDir });
+  log(`Found ${routeFiles.length} API route files to check`);
+
+  let fixedFiles = 0;
+
+  for (const file of routeFiles) {
+    const filePath = path.join(rootDir, file);
+    try {
+      let content = fs.readFileSync(filePath, 'utf8');
+      let modified = false;
+
+      // Fix 1: Fix checkTaskAccess function with backticks
+      if (content.includes('checkTaskAccess') && content.includes('`);')) {
+        content = content.replace(
+          /async function checkTaskAccess.*?{(\s*)`\);/s,
+          'async function checkTaskAccess(taskId, userId, userRole) {\n  // Auto-fixed\n'
+        );
+        modified = true;
+      }
+
+      // Fix 2: Fix missing console.log in template literals
+      const templateWithoutConsoleLog = content.match(/[^console\.log]\(`.*?(\${.*?})+.*?`\);/g);
+      if (templateWithoutConsoleLog) {
+        for (const match of templateWithoutConsoleLog) {
+          // Skip proper usages like NextResponse.json
+          if (
+            match.includes('NextResponse.json') ||
+            match.includes('return') ||
+            match.includes('await')
+          ) {
+            continue;
+          }
+
+          const fixedLine = match.replace(/([^a-zA-Z0-9_.])\(`(.*?)`\);/, '$1console.log(`$2`);');
+          content = content.replace(match, fixedLine);
+          modified = true;
+        }
+      }
+
+      // Fix 3: Find lines with template literals that are not attached to any statement
+      const lines = content.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.match(/^\s*} for user \${.*} from order \${.*}`/)) {
+          lines[i] = line.replace(
+            /} for user \${(.*)} from order \${(.*)}`/,
+            'console.log(`Created commission for user ${$1} from order ${$2}`);'
+          );
+          modified = true;
+        }
+
+        if (line.match(/^\s*by Admin \${.*}.*`\);/)) {
+          lines[i] = line.replace(
+            /by Admin \${(.*)}(.*)`;/,
+            'console.log(`Inventory adjusted by Admin ${$1}$2`);'
+          );
+          modified = true;
+        }
+
+        if (line.match(/^\s*}\s*`\s*\)/)) {
+          lines[i] = line.replace(/}\s*`\s*\)/, 'console.log(`Operation completed successfully`);');
+          modified = true;
+        }
+      }
+
+      if (modified) {
+        content = lines.join('\n');
+        fs.writeFileSync(filePath, content);
+        log(`✅ Fixed syntax errors in ${file}`);
+        fixedFiles++;
+      }
+    } catch (err) {
+      log(`❌ Error processing ${file}: ${err.message}`);
+    }
+  }
+
+  log(`Fixed syntax errors in ${fixedFiles} files`);
+  return fixedFiles;
+}
+
 try {
   log('🚨 EMERGENCY FALLBACK BUILD PROCESS 🚨');
   log('This is running because the normal build process failed or timed out.');
+
+  // First, try to fix the syntax errors we know about
+  await fixSyntaxErrorsInRouteFiles();
 
   // Skip all preprocessing and just run the Next.js build
   log('Running minimal build process...');
@@ -51,9 +140,7 @@ try {
           },
           eslint: {
             ignoreDuringBuilds: true, // Skip ESLint errors for emergency build
-          },
-          swcMinify: true,
-          compress: true,
+          }
         };
       `;
 

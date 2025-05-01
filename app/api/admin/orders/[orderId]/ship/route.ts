@@ -30,7 +30,6 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
     }
 
     const adminUserId = authResult.userId;
-    
 
     // Tracking number might already be on the order from fulfillment step,
     // but allow overriding/adding it here via optional body.
@@ -57,7 +56,6 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
     }
 
     const newStatus = 'Shipped';
-    
 
     await sql`
         UPDATE orders
@@ -94,8 +92,6 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
 
     // Calculate referral commissions for this order
     try {
-      
-
       // Call the commission calculation endpoint
       const commissionResponse = await fetch(
         `${request.nextUrl.origin}/api/orders/${orderId}/calculate-commission`,
@@ -110,7 +106,6 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
 
       if (commissionResponse.ok) {
         const commissionResult = await commissionResponse.json();
-        
       } else {
         console.error(
           `Failed to calculate commissions for order ${orderId}:`,
@@ -123,7 +118,6 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
     }
 
     // Trigger Notifications: Send shipping confirmation email to customer
-    
 
     try {
       // Get customer details
@@ -143,7 +137,6 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
           trackingNumber: finalTrackingNumber || undefined,
           trackingUrl: body.trackingUrl || undefined,
         });
-        
       }
     } catch (emailError) {
       // Log the error but don't fail the request
@@ -151,7 +144,6 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
     }
 
     // Calculate & Record Commissions
-    
 
     // Get order details including referral code
     const orderDetails = await sql`
@@ -203,8 +195,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
             )
           `;
 
-          } for user ${referrerUserId} from order ${orderId}`
-          );
+          console.log(`Created commission record for user ${referrerUserId} from order ${orderId}`);
 
           // Create task for admin to review commission
           await sql`

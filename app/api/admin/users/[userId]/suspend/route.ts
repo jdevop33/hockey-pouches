@@ -33,7 +33,6 @@ export async function POST(request: NextRequest, { params }: { params: { userId:
 
     // Determine status to set (default to Suspended if not specified)
     const newStatus = body.setStatus || 'Suspended';
-    
 
     // First, check if user exists and get their current status and role
     const userResult = await sql`
@@ -99,7 +98,8 @@ export async function POST(request: NextRequest, { params }: { params: { userId:
     `;
 
     // TODO: Send email notification
-    }`
+    console.log(
+      `User notification created for user ${userId} regarding account status change to ${newStatus}`
     );
 
     return NextResponse.json({

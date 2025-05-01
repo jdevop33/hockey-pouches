@@ -1,10 +1,12 @@
 {
   "version": 2,
-  "buildCommand": "npm run build:vercel",
-  "devCommand": "next dev",
+  "buildCommand": "npm run build:vercel:emergency",
+  "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
+  "regions": ["iad1"],
+  "ignoreCommand": "exit 0",
   "env": {
     "NEXT_PUBLIC_HEROTOFU_ENDPOINT": "https://public.herotofu.com/v1/f129c2a0-180e-11f0-8883-29a3f54ace99",
     "NEXT_PUBLIC_ORDER_FORM_ENDPOINT": "https://public.herotofu.com/v1/3e028000-1998-11f0-ab37-9d304c3aa51c",

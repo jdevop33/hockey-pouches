@@ -3,17 +3,17 @@ import { NextResponse, type NextRequest } from 'next/server';
 // import { getTaskDetails, updateTask } from '@/lib/taskService';
 
 async function checkTaskAccess(taskId: string, userId: string, userRole: string): Promise<boolean> {
-  `);
+  // Basic access logic placeholder
   return true; // Placeholder
 }
 
 export async function GET(
-    request: NextRequest, 
-    context: unknown // Applying workaround universally
+  request: NextRequest,
+  context: unknown // Applying workaround universally
 ) {
   const taskId = context?.params?.taskId as string | undefined;
   if (!taskId) {
-      return NextResponse.json({ message: 'Task ID is missing.' }, { status: 400 });
+    return NextResponse.json({ message: 'Task ID is missing.' }, { status: 400 });
   }
 
   try {
@@ -23,7 +23,7 @@ export async function GET(
     if (!canAccess) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
-    
+
     const dummyTask = {
       taskId: taskId,
       title: 'Specific Task Title',
@@ -45,27 +45,27 @@ export async function GET(
 }
 
 export async function PUT(
-    request: NextRequest, 
-    context: unknown // Applying workaround universally
+  request: NextRequest,
+  context: unknown // Applying workaround universally
 ) {
   const taskId = context?.params?.taskId as string | undefined;
   if (!taskId) {
-      return NextResponse.json({ message: 'Task ID is missing.' }, { status: 400 });
+    return NextResponse.json({ message: 'Task ID is missing.' }, { status: 400 });
   }
 
   try {
-    const userId = 'placeholder-user'; 
-    const userRole = 'Admin'; 
+    const userId = 'placeholder-user';
+    const userRole = 'Admin';
     const canAccess = await checkTaskAccess(taskId, userId, userRole);
     if (!canAccess) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
     const body = await request.json();
-    
+
     return NextResponse.json({ message: `Task ${taskId} updated successfully` });
   } catch (error: unknown) {
-     if (error instanceof SyntaxError) {
-        return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
     }
     console.error(`Failed to update task ${taskId}:`, error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });

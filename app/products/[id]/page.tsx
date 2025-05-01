@@ -8,7 +8,6 @@ import SocialShare from '../../components/SocialShare';
 import ProductSchema from '../../components/ProductSchema';
 import ProductImage from '../../components/ui/ProductImage';
 import { cn, formatCurrency } from '@/lib/utils';
-import * as schema from '@/lib/schema';
 import {
   Star,
   ChevronRight,
@@ -97,7 +96,6 @@ const ProductSkeleton = () => (
 const ProductGallery = ({ product }: { product: Product }) => {
   const [activeImage, setActiveImage] = useState(product.image_url);
   const images = [product.image_url, ...(product.gallery_images || [])];
-
   return (
     <div className="space-y-4">
       {/* Main image */}
@@ -111,7 +109,6 @@ const ProductGallery = ({ product }: { product: Product }) => {
           enableZoom={true}
         />
       </div>
-
       {/* Thumbnail grid */}
       {images.length > 1 && (
         <div className="grid grid-cols-4 gap-4">
@@ -167,7 +164,6 @@ export default function ProductDetailPage() {
         setRelatedProducts(relatedData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-
         // FOR DEVELOPMENT: Use mock data when API fails
         if (process.env.NODE_ENV === 'development') {
           // Find matching product from our static data
@@ -475,7 +471,6 @@ export default function ProductDetailPage() {
     </Layout>
   );
 }
-
 // Helper function to get mock product data during development
 function getMockProduct(id: string): Product | null {
   const productMap: Record<string, Product> = {
@@ -570,10 +565,8 @@ function getMockProduct(id: string): Product | null {
       review_count: 76,
     },
   };
-
   return productMap[id] || null;
 }
-
 // Helper function to get mock related products
 function getMockRelatedProducts(currentId: string): RelatedProduct[] {
   const allProducts = Object.values(
@@ -587,7 +580,6 @@ function getMockRelatedProducts(currentId: string): RelatedProduct[] {
         }
       : {}
   ).filter(p => p && p.id !== currentId) as Product[];
-
   return allProducts.map(p => ({
     id: p.id,
     name: p.name,
