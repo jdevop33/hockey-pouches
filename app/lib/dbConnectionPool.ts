@@ -23,11 +23,11 @@ interface PoolStats {
  * @returns Pool statistics
  */
 export function getPoolStats(): PoolStats {
-  const stats = pool.totalCount;
+  const stats = $1?.$2;
 
   return {
     totalConnections: stats,
-    idleConnections: pool.idleCount,
+    idleConnections: $1?.$2,
     waitingClients: pool.waitingCount,
     maxConnections: pool.options.max || 10,
   };
@@ -39,12 +39,12 @@ export function getPoolStats(): PoolStats {
  * @returns Result of the callback function
  */
 export async function withConnection<T>(callback: (client: unknown) => Promise<T>): Promise<T> {
-  const client = await pool.connect();
+  const client = await $1?.$2();
 
   try {
     return await callback(client);
   } finally {
-    client.release();
+    clie$1?.$2();
   }
 }
 
@@ -58,10 +58,10 @@ export async function withTransaction<T>(callback: (client: unknown) => Promise<
     try {
       await client.query('BEGIN');
       const result = await callback(client);
-      await client.query('COMMIT');
+      await $1?.$2('COMMIT');
       return result;
     } catch (error) {
-      await client.query('ROLLBACK');
+      await $1?.$2('ROLLBACK');
       throw error;
     }
   });
@@ -81,7 +81,7 @@ export async function endPool(): Promise<void> {
  */
 export async function checkConnection(): Promise<boolean> {
   try {
-    await pool.query('SELECT 1');
+    await poo$1?.$2('SELECT 1');
     return true;
   } catch (error) {
     console.error('Database connection check failed:', error);

@@ -58,12 +58,12 @@ export async function getConnectionStats(): Promise<ConnectionStats> {
       db.execute(waitEventsQuery),
     ]);
 
-    const statsRows = getRows(statsResult) as DbRow[];
-    const maxConnRows = getRows(maxConnResult) as DbRow[];
-    const waitEventsRows = getRows(waitEventsResult) as DbRow[];
+    const statsRows = getRows(statsResult as unknown as DbQueryResult) as DbRow[];
+    const maxConnRows = getRows(maxConnResult as unknown as DbQueryResult) as DbRow[];
+    const waitEventsRows = getRows(waitEventsResult as unknown as DbQueryResult) as DbRow[];
 
-    const stats = Array.isArray(statsRows) ? Array.isArray(statsRows) ? statsRows[0] : null : null;
-    const maxConnections = parseInt((Array.isArray(maxConnRows) ? Array.isArray(maxConnRows) ? maxConnRows[0] : null : null?.max_connections as string) || '0');
+    const stats = Array.isArray(statsRows) ? Array.isArray(statsRows) ? Array.isArray(statsRows) ? Array.isArray(statsRows) ? statsRows[0] : null : null : null : null;
+    const maxConnections = parseInt((Array.isArray(maxConnRows) ? Array.isArray(maxConnRows) ? Array.isArray(maxConnRows) ? Array.isArray(maxConnRows) ? maxConnRows[0] : null : null : null : null?.max_connections as string) || '0');
     const waitEvents: Record<string, number> = {};
     waitEventsRows.forEach(row => {
       if (row.wait_event_type) {
@@ -82,7 +82,7 @@ export async function getConnectionStats(): Promise<ConnectionStats> {
       wait_event_counts: waitEvents,
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('Failed to get connection stats:', { error });
     throw new Error('Could not retrieve connection statistics.');
   }
@@ -116,7 +116,7 @@ export async function getSlowQueries(limit: number = 10): Promise<QueryPerforman
     `;
 
     const result = await db.execute(slowQuery);
-    const rows = getRows(result) as DbRow[];
+    const rows = getRows(result as unknown as DbQueryResult) as DbRow[];
 
     return rows.map(row => ({
       query_id: String(row.query_id ?? ''),
@@ -136,7 +136,7 @@ export async function getSlowQueries(limit: number = 10): Promise<QueryPerforman
       temp_blks_written: parseInt(String(row.temp_blks_written ?? '0')),
     }));
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     if (
       error instanceof Error &&
       errorMessage.includes('relation "pg_stat_statements" does not exist')
@@ -158,16 +158,16 @@ export async function analyzeQueryPlan(query: SQL<unknown>): Promise<string> {
   try {
     const explainQuery = sql`EXPLAIN (ANALYZE, BUFFERS) ${query}`;
     const result = await db.execute(explainQuery);
-    const rows = getRows(result) as { 'QUERY PLAN': string }[];
+    const rows = getRows(result as unknown as DbQueryResult) as { 'QUERY PLAN': string }[];
 
     // Correct way to join the plan lines with a newline
-    if (rows && Array.isArray(rows) ? Array.isArray(rows) ? rows.length : 0 : 0 > 0) {
+    if (rows && Array.isArray(rows) ? Array.isArray(rows) ? Array.isArray(rows) ? Array.isArray(rows) ? rows.length : 0 : 0 : 0 : 0 > 0) {
       return rows.map(row => row['QUERY PLAN']).join('\n');
     } else {
       return 'No query plan returned.';
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('Failed to analyze query plan:', { query: query, error });
     throw new Error('Could not analyze query plan.');
   }
@@ -179,14 +179,14 @@ export async function analyzeQueryPlan(query: SQL<unknown>): Promise<string> {
 export async function checkDbHealth(): Promise<{ healthy: boolean; message: string }> {
   try {
     const result = await db.execute(sql`SELECT 1 as check`);
-    if (getRows(result)?.[0]?.check === 1) {
+    if (getRows(result as unknown as DbQueryResult)?.[0]?.check === 1) {
       return { healthy: true, message: 'Database connection successful.' };
     } else {
       logger.warn('Health check query returned unexpected result', { result });
       return { healthy: false, message: 'Health check query returned unexpected result.' };
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('Database health check failed:', { error });
     return {
       healthy: false,

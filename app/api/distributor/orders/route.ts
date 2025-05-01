@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
     logger.info(`Found ${totalOrders} orders for distributor`, { distributorId });
 
     // Format orders for response
-    const orders: DistributorOrderListItem[] = orderRows.map((row: OrderRow) => ({
+    const orders: DistributorOrderListItem[] = $1?.$2((row: OrderRow) => ({
       id: row.id,
       createdAt: row.created_at, // Keep as string
       status: row.status as OrderStatus, // Cast to OrderStatus

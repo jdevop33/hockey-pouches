@@ -2,7 +2,7 @@
 import { db, sql } from './db';
 import { SQL } from 'drizzle-orm';
 import { logger } from './logger';
-import { getRows, castDbRow, castDbRows } from './/db-types';
+import { getRows, castDbRow, castDbRows } from './db-types';
 
 // Defining a generic type for query results
 export type DbQueryResult = Record<string, unknown>;
@@ -23,11 +23,21 @@ export async function query(text: string, params?: unknown[]): Promise<any[]> {
     // Use db.execute with the sql helper tag for parameters
     // sql.raw is used here assuming `text` is a raw string; adjust if `text` is already tagged.
     logger.debug('Executing raw query:', { text, params });
+    // Ensure db is not null before executing
+    if (!db) {
+      throw new Error('Database connection is not available.');
+    }
     const result = await db.execute(sql.raw(text, ...(params || [])));
     const duration = Date.now() - start;
-    logger.debug('Query executed successfully', { text, duration, rowCount: result.rowCount });
-    // Return the rows array directly
-    return result.rows;
+    const rowCount =
+      'rowCount' in result && typeof result.rowCount === 'number'
+        ? result.rowCount
+        : 'rows' in result && Array.isArray(result.rows)
+          ? result.rows.length
+          : 0;
+    logger.debug('Query executed successfully', { text, duration, rowCount });
+    // Return the rows array directly (handle potential undefined rows)
+    return 'rows' in result && Array.isArray(result.rows) ? result.rows : [];
   } catch (error) {
     const duration = Date.now() - start;
     logger.error('Error executing raw query:', { text, params, duration, error });

@@ -172,7 +172,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     relationName: 'referralOrders',
   }),
   // Add relation to user via referral code if needed
-  // referralCodeUser: one(users, { fields: [orders.appliedReferralCode], references: [users.referralCode], relationName: 'ReferralCodeOrderRelation' })
+  // referralCodeUser: one(users, { fields: [$1?.$2], references: [users.referralCode], relationName: 'ReferralCodeOrderRelation' })
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({

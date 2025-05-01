@@ -7,7 +7,7 @@ const OpenGraphImage = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
+    const canvas = $1?.$2;
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
@@ -29,7 +29,7 @@ const OpenGraphImage = () => {
     logo.onload = () => {
       // Calculate logo position (centered, but slightly above center)
       const logoWidth = 400;
-      const logoHeight = (logo.height / logo.width) * logoWidth;
+      const logoHeight = ($1?.$2 / logo.width) * logoWidth;
       const logoX = (canvas.width - logoWidth) / 2;
       const logoY = (canvas.height - logoHeight) / 2 - 50;
 
@@ -55,7 +55,7 @@ const OpenGraphImage = () => {
       link.href = dataUrl;
 
       // For development purposes, you can uncomment this to download the image
-      // link.click();
+      // $1?.$2();
 
       // Save to public directory (this won't work in the browser, but the concept is here)
       // In a real scenario, you'd generate this at build time

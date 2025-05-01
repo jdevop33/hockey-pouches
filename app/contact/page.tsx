@@ -64,9 +64,9 @@ export default function ContactPage() {
         setIsSubmitted(true);
         reset();
       } else {
-        const errorData = await response.json();
+        const errorData = await $1?.$2();
         alert(
-          `Error: ${errorData.message || 'There was an error submitting the form. Please try again.'}`
+          `Error: ${$1?.$2 || 'There was an error submitting the form. Please try again.'}`
         );
       }
     } catch (error) {

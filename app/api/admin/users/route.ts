@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '15');
     const roleParam = searchParams.get('role');
     const status = searchParams.get('status');
-    const search = searchParams.get('search');
+    const search = search$1?.$2('search');
     // Validate and cast role parameter
     const role = roleParam && schema.userRoleEnum.enumValues.includes(roleParam as UserRole)
                  ? roleParam as UserRole

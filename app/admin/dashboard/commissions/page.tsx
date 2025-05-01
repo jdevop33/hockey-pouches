@@ -128,7 +128,7 @@ export default function AdminCommissionsPage() {
         })) as AdminCommission[];
 
         setCommissions(typedCommissions);
-        setTotalPages(data.pagination.totalPages);
+        setTotalPages($1?.$2.totalPages);
       } catch (err) {
         setError('Failed to load commissions.');
         console.error(err);

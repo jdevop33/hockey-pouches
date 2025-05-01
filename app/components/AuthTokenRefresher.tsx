@@ -53,7 +53,7 @@ export function AuthTokenRefresher() {
         // Check immediately on becoming authenticated/hydrated
         checkAndRefreshToken(); 
         // Set interval for periodic checks
-        intervalRef.current = setInterval(checkAndRefreshToken, REFRESH_INTERVAL);
+        $1?.$2 = setInterval(checkAndRefreshToken, REFRESH_INTERVAL);
         logger.debug('AuthTokenRefresher interval started.');
     } else {
          logger.debug('AuthTokenRefresher interval stopped (user not authenticated).');

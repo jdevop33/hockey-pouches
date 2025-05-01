@@ -1,5 +1,5 @@
-import { sql } from '@/lib/db'; // Corrected import
-import { getRows, castDbRows, castDbRow } from '@/lib/db-types';
+import { db, sql } from '@/lib/db'; // Import db and sql
+import { getRows, castDbRows, castDbRow, DbQueryResult } from '@/lib/db-types'; // Ensure DbQueryResult is imported
 
 // Types for inventory management
 export type StockLocationType = 'Warehouse' | 'Store' | 'Distribution Center';
@@ -51,12 +51,12 @@ export class InventoryService {
    * Get inventory levels for a product across all locations
    */
   async getProductInventory(productId: number): Promise<StockLevel[]> {
-    // TODO: Implement getProductInventory
-    return {} as StockLevel[];
-
     try {
-      const result = await sql`
-        SELECT 
+      // Ensure db is not null
+      if (!db) throw new Error('Database connection not available.');
+
+      const result = await db.execute(sql`
+        SELECT
           sl.id,
           sl.product_id,
           sl.product_variation_id,
@@ -71,10 +71,12 @@ export class InventoryService {
         FROM stock_levels sl
         WHERE sl.product_id = ${productId}
         ORDER BY sl.location_id
-      `;
+      `);
 
+      // Use HEAD version for return (castDbRows)
       return castDbRows<StockLevel[]>(getRows(result));
     } catch (error) {
+      // Use HEAD version for catch (errorMsg, correct indentation)
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error(`Error fetching inventory for product ${productId}:`, error);
       throw new Error(`Failed to fetch inventory: ${errorMsg}`);
@@ -85,12 +87,12 @@ export class InventoryService {
    * Get inventory levels for a product variation across all locations
    */
   async getVariationInventory(variationId: number): Promise<StockLevel[]> {
-    // TODO: Implement getVariationInventory
-    return {} as StockLevel[];
-
     try {
-      const result = await sql`
-        SELECT 
+      // Ensure db is not null
+      if (!db) throw new Error('Database connection not available.');
+
+      const result = await db.execute(sql`
+        SELECT
           sl.id,
           sl.product_id,
           sl.product_variation_id,
@@ -105,10 +107,12 @@ export class InventoryService {
         FROM stock_levels sl
         WHERE sl.product_variation_id = ${variationId}
         ORDER BY sl.location_id
-      `;
+      `);
 
+      // Use HEAD version for return (castDbRows)
       return castDbRows<StockLevel[]>(getRows(result));
     } catch (error) {
+      // Use HEAD version for catch (errorMsg, correct indentation)
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error(`Error fetching inventory for variation ${variationId}:`, error);
       throw new Error(`Failed to fetch inventory: ${errorMsg}`);
@@ -118,13 +122,14 @@ export class InventoryService {
   /**
    * Get inventory levels for a specific location
    */
-  async getLocationInventory(locationId: string, includeVariations = false): Promise<StockLevel[]> {
-    // TODO: Implement getLocationInventory
-    return {} as StockLevel[];
-
+  async getLocationInventory(locationId: string): Promise<StockLevel[]> {
     try {
-      const result = await sql`
-        SELECT 
+      // Ensure db is not null
+      if (!db) throw new Error('Database connection not available.');
+
+      // Assuming includeVariations is not needed based on the simple query
+      const result = await db.execute(sql`
+        SELECT
           sl.id,
           sl.product_id,
           sl.product_variation_id,
@@ -139,10 +144,12 @@ export class InventoryService {
         FROM stock_levels sl
         WHERE sl.location_id = ${locationId}
         ORDER BY sl.product_id, sl.product_variation_id
-      `;
+      `);
 
+      // Use HEAD version for return (castDbRows)
       return castDbRows<StockLevel[]>(getRows(result));
     } catch (error) {
+      // Use HEAD version for catch (errorMsg, correct indentation)
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error(`Error fetching inventory for location ${locationId}:`, error);
       throw new Error(`Failed to fetch inventory: ${errorMsg}`);
@@ -153,135 +160,124 @@ export class InventoryService {
    * Adjust inventory levels for a product/variation at a location
    */
   async adjustInventory(
-    productId: string,
+    productId: number, // Changed to number to match schema likely
     locationId: string,
-    quantity: number,
+    quantityChange: number, // Renamed for clarity
     userId: string,
     notes?: string,
     variationId?: number,
     referenceId?: string,
-    referenceType?: string
+    referenceType?: string,
+    movementType: StockMovementType = 'Adjusted' // Added movement type
   ): Promise<StockLevel> {
-    try {
-      // Start a transaction
-      await sql`BEGIN`;
+    // Ensure db is not null
+    if (!db) throw new Error('Database connection not available.');
 
-      try {
-        // Check if stock level record exists
-        const existingResult = await sql`
-          SELECT id, quantity, reserved_quantity
-          FROM stock_levels
-          WHERE 
-            product_id = ${productId}
-            AND location_id = ${locationId}
-            ${variationId ? sql`AND product_variation_id = ${variationId}` : sql`AND product_variation_id IS NULL`}
-        `;
+    return db
+      .transaction(async tx => {
+        logger.info('Adjusting inventory', {
+          productId,
+          variationId,
+          locationId,
+          quantityChange,
+          userId,
+        });
 
-        const existingRows = getRows(existingResult);
-        let stockLevel: StockLevel;
+        // Fetch current stock level within transaction
+        const currentLevel = await tx.query.stockLevels.findFirst({
+          where: and(
+            eq(schema.stockLevels.productId, productId),
+            eq(schema.stockLevels.locationId, locationId),
+            variationId
+              ? eq(schema.stockLevels.productVariationId, variationId)
+              : isNull(schema.stockLevels.productVariationId)
+          ),
+        });
 
-        if (
-          Array.isArray(existingRows)
-            ? Array.isArray(existingRows)
-              ? existingRows.length
-              : 0
-            : 0 === 0
-        ) {
-          // Create new stock level record
-          const createResult = await sql`
-            INSERT INTO stock_levels (
-              product_id,
-              product_variation_id,
-              location_id,
-              quantity,
-              reserved_quantity,
-              created_at,
-              updated_at
-            ) VALUES (
-              ${productId},
-              ${variationId || null},
-              ${locationId},
-              ${quantity > 0 ? quantity : 0},
-              0,
-              NOW(),
-              NOW()
-            )
-            RETURNING 
-              id, product_id, product_variation_id, location_id, quantity,
-              reserved_quantity, reorder_point, reorder_quantity, last_recount_date,
-              created_at, updated_at
-          `;
+        let newQuantity: number;
+        let updatedLevel: StockLevel;
 
-          stockLevel = castDbRow<StockLevel>(getRows(createResult)[0]);
+        if (currentLevel) {
+          // Update existing stock level
+          newQuantity = currentLevel.quantity + quantityChange;
+          if (newQuantity < 0) {
+            throw new Error(
+              `Adjustment results in negative stock (${newQuantity}) for product ${productId} / variation ${variationId}`
+            );
+          }
+
+          const updateResult = await tx
+            .update(schema.stockLevels)
+            .set({ quantity: newQuantity, updatedAt: new Date() })
+            .where(eq(schema.stockLevels.id, currentLevel.id))
+            .returning();
+
+          if (updateResult.length === 0) {
+            throw new Error('Failed to update stock level during adjustment.');
+          }
+          updatedLevel = castDbRow<StockLevel>(updateResult[0])!;
         } else {
-          // Update existing stock level record
-          const existing = Array.isArray(existingRows)
-            ? Array.isArray(existingRows)
-              ? existingRows[0]
-              : null
-            : null;
-          const newQuantity = existing.quantity + quantity;
+          // Create new stock level if adjustment is positive
+          if (quantityChange <= 0) {
+            throw new Error(
+              `Cannot create stock level with non-positive adjustment (${quantityChange}) for new item.`
+            );
+          }
+          newQuantity = quantityChange;
 
-          const updateResult = await sql`
-            UPDATE stock_levels
-            SET 
-              quantity = ${newQuantity > 0 ? newQuantity : 0},
-              updated_at = NOW()
-            WHERE id = ${existing.id}
-            RETURNING 
-              id, product_id, product_variation_id, location_id, quantity,
-              reserved_quantity, reorder_point, reorder_quantity, last_recount_date,
-              created_at, updated_at
-          `;
+          const insertResult = await tx
+            .insert(schema.stockLevels)
+            .values({
+              id: uuidv4(), // Generate new UUID
+              productId: productId,
+              productVariationId: variationId,
+              locationId: locationId,
+              quantity: newQuantity,
+              reservedQuantity: 0, // Initialize reserved quantity
+              // Add other fields like reorder_point if necessary
+            })
+            .returning();
 
-          stockLevel = castDbRow<StockLevel>(getRows(updateResult)[0]);
+          if (insertResult.length === 0) {
+            throw new Error('Failed to insert new stock level during adjustment.');
+          }
+          updatedLevel = castDbRow<StockLevel>(insertResult[0])!;
         }
 
-        // Create stock movement record
-        await sql`
-          INSERT INTO stock_movements (
-            product_id,
-            product_variation_id,
-            location_id,
-            quantity,
-            type,
-            reference_id,
-            reference_type,
-            notes,
-            created_by,
-            created_at
-          ) VALUES (
-            ${productId},
-            ${variationId || null},
-            ${locationId},
-            ${quantity},
-            ${quantity > 0 ? 'Received' : 'Adjusted'},
-            ${referenceId || null},
-            ${referenceType || null},
-            ${notes || null},
-            ${userId},
-            NOW()
-          )
-        `;
+        // Log the stock movement
+        const movement: StockMovementInsert = {
+          id: uuidv4(), // Generate new UUID
+          productId: productId,
+          productVariationId: variationId,
+          locationId: locationId,
+          quantity: quantityChange, // Log the change amount
+          type: movementType,
+          referenceId: referenceId,
+          referenceType: referenceType,
+          notes: notes,
+          createdBy: userId,
+        };
+        await tx.insert(schema.stockMovements).values(movement);
 
-        // Commit transaction
-        await sql`COMMIT`;
-
-        return stockLevel;
-      } catch (error) {
+        logger.info('Inventory adjusted successfully', {
+          stockLevelId: updatedLevel.id,
+          newQuantity,
+        });
+        return updatedLevel;
+      })
+      .catch(error => {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        // Rollback on error
-        await sql`ROLLBACK`;
-        throw error;
-      }
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      console.error(
-        `Error adjusting inventory for product ${productId} at location ${locationId}:`,
-        error
-      );
-      throw new Error(`Failed to adjust inventory: ${errorMsg}`);
-    }
+        logger.error('Inventory adjustment failed', {
+          productId,
+          variationId,
+          locationId,
+          quantityChange,
+          userId,
+          error: errorMsg,
+        });
+        // Re-throw the error after logging
+        throw new Error(`Inventory adjustment failed: ${errorMsg}`);
+      });
   }
 
   /**
@@ -314,7 +310,7 @@ export class InventoryService {
               ${item.variationId ? sql`AND product_variation_id = ${item.variationId}` : sql`AND product_variation_id IS NULL`}
           `;
 
-          const stockRows = getRows(stockResult);
+          const stockRows = getRows(stockResult as unknown as DbQueryResult);
 
           if (
             Array.isArray(stockRows) ? (Array.isArray(stockRows) ? stockRows.length : 0) : 0 === 0
@@ -430,7 +426,7 @@ export class InventoryService {
               ${item.variationId ? sql`AND product_variation_id = ${item.variationId}` : sql`AND product_variation_id IS NULL`}
           `;
 
-          const stockRows = getRows(stockResult);
+          const stockRows = getRows(stockResult as unknown as DbQueryResult);
 
           if (Array.isArray(stockRows) ? stockRows.length === 0 : true) {
             errors.push({
@@ -542,7 +538,7 @@ export class InventoryService {
             ${variationId ? sql`AND product_variation_id = ${variationId}` : sql`AND product_variation_id IS NULL`}
         `;
 
-        const sourceRows = getRows(sourceResult);
+        const sourceRows = getRows(sourceResult as unknown as DbQueryResult);
 
         if (
           Array.isArray(sourceRows) ? (Array.isArray(sourceRows) ? sourceRows.length : 0) : 0 === 0
@@ -615,7 +611,7 @@ export class InventoryService {
             ${variationId ? sql`AND product_variation_id = ${variationId}` : sql`AND product_variation_id IS NULL`}
         `;
 
-        const targetRows = getRows(targetResult);
+        const targetRows = getRows(targetResult as unknown as DbQueryResult);
 
         if (
           Array.isArray(targetRows) ? (Array.isArray(targetRows) ? targetRows.length : 0) : 0 === 0
@@ -647,7 +643,7 @@ export class InventoryService {
             SET 
               quantity = quantity + ${quantity},
               updated_at = NOW()
-            WHERE id = ${Array.isArray(targetRows) ? (Array.isArray(targetRows) ? targetRows[0] : null) : null.id}
+            WHERE id = ${targetRows[0].id}
           `;
         }
 

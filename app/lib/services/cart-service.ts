@@ -52,12 +52,19 @@ export type CartValidationResult = { isValid: boolean; errors: string[]; message
 export class CartService {
   private RETAIL_MIN_UNITS = 5;
   private WHOLESALE_MIN_UNITS = 100;
-  async getCartItems(...args): Promise<CartSummary> {
-    // TODO: Implement getCartItems
-    return {} as CartSummary;
 
+  /**
+   * Fetches cart items for a user with product details and calculates summary.
+   * @param userId - The ID of the user.
+   * @returns Promise<CartSummary>
+   */
+  async getCartItems(userId: string): Promise<CartSummary> {
     try {
       logger.info(`Getting cart items for user: ${userId}`);
+
+      // Ensure db is not null
+      if (!db) throw new Error('Database connection not available.');
+
       const cartItemsResult: CartItemWithDetails[] = await db.query.cartItems.findMany({
         where: eq(schema.cartItems.userId, userId),
         with: {
@@ -75,12 +82,17 @@ export class CartService {
         },
         orderBy: [desc(schema.cartItems.createdAt)],
       });
+
+      // Filter out items whose variations are no longer active
       const validItems = cartItemsResult.filter(
         item => item.productVariation && item.productVariation.isActive
       );
+
       let subtotal = 0,
         totalQuantity = 0;
+
       const formattedItems = validItems.map(item => {
+        // Non-null assertion safe due to filter above
         const variation = item.productVariation!;
         const price = parseFloat(variation.price);
         const itemSubtotal = price * item.quantity;
@@ -100,8 +112,10 @@ export class CartService {
           isActive: variation.isActive,
         };
       });
+
       const isRetailValid = totalQuantity >= this.RETAIL_MIN_UNITS;
       const isWholesaleValid = totalQuantity >= this.WHOLESALE_MIN_UNITS;
+
       return {
         items: formattedItems,
         subtotal: parseFloat(subtotal.toFixed(2)),
@@ -122,13 +136,27 @@ export class CartService {
       throw new Error('Failed to get cart items.');
     }
   }
-  async addCartItem(...args): Promise<CartItemSelect> {
-    // TODO: Implement addCartItem
-    return {} as CartItemSelect;
 
+  /**
+   * Adds an item to the cart or updates quantity if it already exists.
+   * @param userId - The ID of the user.
+   * @param productVariationId - The ID of the product variation.
+   * @param quantity - The quantity to add.
+   * @returns Promise<CartItemSelect>
+   */
+  async addCartItem(
+    userId: string,
+    productVariationId: number,
+    quantity: number
+  ): Promise<CartItemSelect> {
     try {
       logger.info(`Adding item to cart`, { userId, productVariationId, quantity });
-      if (quantity <= 0) throw new Error('Quantity must be > 0');
+      if (quantity <= 0) throw new Error('Quantity must be positive');
+
+      // Ensure db is not null
+      if (!db) throw new Error('Database connection not available.');
+
+      // Check if variation exists and is active
       const variation = await db.query.productVariations.findFirst({
         where: and(
           eq(schema.productVariations.id, productVariationId),
@@ -136,7 +164,8 @@ export class CartService {
         ),
         columns: { id: true },
       });
-      if (!variation) throw new Error('Product variation not found or unavailable');
+      if (!variation) throw new Error('Product variation not found or is inactive');
+
       const result = await db.transaction(async tx => {
         const existingItem = await tx.query.cartItems.findFirst({
           where: and(
@@ -144,8 +173,14 @@ export class CartService {
             eq(schema.cartItems.productVariationId, productVariationId)
           ),
         });
+
         if (existingItem) {
+          // Update quantity
           const newQuantity = existingItem.quantity + quantity;
+          logger.info('Updating quantity for existing cart item', {
+            cartItemId: existingItem.id,
+            newQuantity,
+          });
           const updated = await tx
             .update(schema.cartItems)
             .set({ quantity: newQuantity, updatedAt: new Date() })
@@ -153,18 +188,25 @@ export class CartService {
             .returning();
           return updated[0];
         } else {
-          const newItem: CartItemInsert = { id: uuidv4(), userId, productVariationId, quantity };
+          // Insert new item
+          const newItemId = uuidv4();
+          const newItem: CartItemInsert = { id: newItemId, userId, productVariationId, quantity };
+          logger.info('Inserting new cart item', { newItemId, userId, productVariationId });
           const inserted = await tx.insert(schema.cartItems).values(newItem).returning();
           return inserted[0];
         }
       });
-      if (!result) throw new Error('Failed to add/update cart item');
+
+      if (!result) throw new Error('Transaction failed to add/update cart item');
       return result;
     } catch (error) {
       logger.error('Failed to add item to cart:', { userId, productVariationId, error });
-      throw error;
+      // Re-throw original error or a new specific one
+      if (error instanceof Error) throw error;
+      throw new Error('Failed to add item to cart.');
     }
   }
+
   async updateCartItem(
     userId: string,
     cartItemId: string,
@@ -254,7 +296,7 @@ export class CartService {
   }
   async transferCart(...args): Promise<boolean> {
     // TODO: Implement transferCart
-    return {} as boolean;
+    return false;
 
     try {
       logger.info(`Transferring cart from ${fromUserId} to ${toUserId}`);

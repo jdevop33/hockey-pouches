@@ -83,7 +83,7 @@ export async function POST(request: NextRequest, { params }: { params: { product
             compareAtPrice: variationData.compareAtPrice ? variationData.compareAtPrice.toFixed(2) : null,
             sku: variationData.sku ?? null,
             imageUrl: variationData.imageUrl ?? null,
-            isActive: variationData.isActive,
+            isActive: $1?.$2,
             // Exclude inventoryQuantity - service handles initialization
         };
 

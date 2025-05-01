@@ -15,18 +15,37 @@ type OrderItemSelect = typeof schema.orderItems.$inferSelect;
 
 // Define Address interface
 interface Address {
-    street: string;
-    city: string;
-    province: string;
-    postalCode: string;
-    country: string;
+  street: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  country: string;
 }
 
 // Define the structure for the response
-interface OrderDetailsResponse extends Omit<OrderSelect, 'userId' | 'distributorId' | 'commissionAmount' | 'shippingAddress' | 'billingAddress' | 'discountCode' | 'discountAmount' | 'appliedReferralCode' | 'updatedAt'> {
+interface OrderDetailsResponse
+  extends Omit<
+    OrderSelect,
+    | 'userId'
+    | 'distributorId'
+    | 'commissionAmount'
+    | 'shippingAddress'
+    | 'billingAddress'
+    | 'discountCode'
+    | 'discountAmount'
+    | 'appliedReferralCode'
+    | 'updatedAt'
+  > {
   shippingAddress: Address | null;
   billingAddress: Address | null;
-  items: Array<Omit<OrderItemSelect, 'orderId' | 'createdAt'> & { productName: string | null; variationName: string | null; imageUrl: string | null; subtotal: number }>;
+  items: Array<
+    Omit<OrderItemSelect, 'orderId' | 'createdAt'> & {
+      productName: string | null;
+      variationName: string | null;
+      imageUrl: string | null;
+      subtotal: number;
+    }
+  >;
   subtotal: number;
   shippingCost: number;
   taxes: number;
@@ -37,38 +56,37 @@ interface OrderDetailsResponse extends Omit<OrderSelect, 'userId' | 'distributor
 
 // Define expected query result row structures
 interface OrderQueryResultRow {
-    id: number;
-    status: string;
-    subtotal: number;
-    shipping_cost: number;
-    taxes: number;
-    total_amount: number;
-    shipping_address: string | object | null;
-    billing_address: string | object | null;
-    payment_method: string | null;
-    payment_status: string | null;
-    created_at: Date | null;
-    tracking_number: string | null;
-    notes: string | null;
+  id: number;
+  status: string;
+  subtotal: number;
+  shipping_cost: number;
+  taxes: number;
+  total_amount: number;
+  shipping_address: string | object | null;
+  billing_address: string | object | null;
+  payment_method: string | null;
+  payment_status: string | null;
+  created_at: Date | null;
+  tracking_number: string | null;
+  notes: string | null;
 }
 
 interface ItemQueryResultRow {
-    id: number;
-    productVariationId: number;
-    product_name: string | null;
-    variation_name: string | null;
-    quantity: number;
-    price_at_purchase: number;
-    variation_image_url: string | null;
-    product_image_url: string | null;
+  id: number;
+  productVariationId: number;
+  product_name: string | null;
+  variation_name: string | null;
+  quantity: number;
+  price_at_purchase: number;
+  variation_image_url: string | null;
+  product_image_url: string | null;
 }
-
 
 export async function GET(request: NextRequest, { params }: { params: { orderId: string } }) {
   const { orderId } = params;
   if (!orderId || isNaN(parseInt(orderId))) {
-      logger.warn('Invalid Order ID format received for /me/orders/[orderId]', { orderId });
-      return NextResponse.json({ message: 'Valid Order ID is required' }, { status: 400 });
+    logger.warn('Invalid Order ID format received for /me/orders/[orderId]', { orderId });
+    return NextResponse.json({ message: 'Valid Order ID is required' }, { status: 400 });
   }
   const orderIdNum = parseInt(orderId);
 
@@ -80,8 +98,8 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
 
     const userId = authResult.userId;
     if (!userId) {
-        logger.warn('User ID not found in token for /me/orders/[orderId]', { orderId: orderIdNum });
-        return NextResponse.json({ message: 'User ID not found in token' }, { status: 401 });
+      logger.warn('User ID not found in token for /me/orders/[orderId]', { orderId: orderIdNum });
+      return NextResponse.json({ message: 'User ID not found in token' }, { status: 401 });
     }
     logger.info('Fetching user order details', { userId, orderId: orderIdNum });
 
@@ -122,7 +140,7 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
     ]);
 
     if (orderResult.rows.length === 0) {
-        logger.warn('Order not found or user not authorized', { userId, orderId: orderIdNum });
+      logger.warn('Order not found or user not authorized', { userId, orderId: orderIdNum });
       return NextResponse.json(
         { message: 'Order not found or not authorized to view' },
         { status: 404 }
@@ -132,7 +150,7 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
     const orderData = orderResult.rows[0] as OrderQueryResultRow;
     const itemRows = itemsResult.rows as ItemQueryResultRow[];
 
-    const items = itemRows.map((item) => ({
+    const items = itemRows.map(item => ({
       id: item.id,
       productVariationId: String(item.productVariationId),
       productName: item.product_name,
@@ -146,28 +164,36 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
     let shippingAddress: Address | null = null;
     let billingAddress: Address | null = null;
     try {
-        if(orderData.shipping_address && typeof orderData.shipping_address === 'string') {
-            shippingAddress = JSON.parse(orderData.shipping_address);
-        } else if (orderData.shipping_address && typeof orderData.shipping_address === 'object') {
-            shippingAddress = orderData.shipping_address as Address;
-        }
+      if (orderData.shipping_address && typeof orderData.shipping_address === 'string') {
+        shippingAddress = JSON.parse(orderData.shipping_address);
+      } else if (orderData.shipping_address && typeof orderData.shipping_address === 'object') {
+        shippingAddress = orderData.shipping_address as Address;
+      }
     } catch (e) {
-        logger.error('Failed to parse shipping address JSON', { orderId: orderIdNum, address: orderData.shipping_address, error: e });
-        shippingAddress = null;
+      logger.error('Failed to parse shipping address JSON', {
+        orderId: orderIdNum,
+        address: orderData.shipping_address,
+        error: e,
+      });
+      shippingAddress = null;
     }
-     try {
-        if(orderData.billing_address && typeof orderData.billing_address === 'string') {
-            billingAddress = JSON.parse(orderData.billing_address);
-        } else if (orderData.billing_address && typeof orderData.billing_address === 'object') {
-            billingAddress = orderData.billing_address as Address;
-        }
+    try {
+      if (orderData.billing_address && typeof orderData.billing_address === 'string') {
+        billingAddress = JSON.parse(orderData.billing_address);
+      } else if (orderData.billing_address && typeof orderData.billing_address === 'object') {
+        billingAddress = orderData.billing_address as Address;
+      }
     } catch (e) {
-        logger.error('Failed to parse billing address JSON', { orderId: orderIdNum, address: orderData.billing_address, error: e });
-        billingAddress = null;
+      logger.error('Failed to parse billing address JSON', {
+        orderId: orderIdNum,
+        address: orderData.billing_address,
+        error: e,
+      });
+      billingAddress = null;
     }
 
     const orderResponse: OrderDetailsResponse = {
-      id: orderData.id,
+      id: $1?.$2,
       status: orderData.status as any, // TODO: Validate against schema.orderStatusEnum
       totalAmount: orderData.total_amount,
       paymentMethod: orderData.payment_method as any, // TODO: Validate against schema.paymentMethodEnum

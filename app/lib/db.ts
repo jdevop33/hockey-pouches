@@ -20,7 +20,9 @@ if (!connectionString) {
   // In production, we'll log the error but not crash the app
   // This allows the app to still function for non-database operations
   if (process.env.NODE_ENV === 'production') {
-    logger.error('Running in production with missing database connection string. Some features will be unavailable.');
+    logger.error(
+      'Running in production with missing database connection string. Some features will be unavailable.'
+    );
   } else {
     throw new Error(errorMessage);
   }
@@ -46,9 +48,9 @@ function getNeonSql() {
       logger.info('Initializing new Neon SQL connection');
       cachedNeonSql = neon(validConnectionString);
     } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Failed to initialize Neon SQL connection', {
-        error: error instanceof Error ? errorMessage : String(error),
+        error: errorMessage,
       });
       return null;
     }
@@ -69,9 +71,9 @@ export function getDb(): NeonHttpDatabase<typeof schema> | null {
       logger.info('Initializing new Drizzle ORM instance');
       cachedDb = drizzle(sql, { schema });
     } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Failed to initialize Drizzle ORM instance', {
-        error: error instanceof Error ? errorMessage : String(error),
+        error: errorMessage,
       });
       return null;
     }
@@ -92,10 +94,18 @@ function createFallbackDb(): NeonHttpDatabase<typeof schema> {
   return new Proxy({} as NeonHttpDatabase<typeof schema>, {
     get: (target, prop) => {
       // Return a function that logs the error and returns a rejected promise
-      if (prop === 'execute' || prop === 'query' || prop === 'insert' ||
-          prop === 'select' || prop === 'update' || prop === 'delete') {
+      if (
+        prop === 'execute' ||
+        prop === 'query' ||
+        prop === 'insert' ||
+        prop === 'select' ||
+        prop === 'update' ||
+        prop === 'delete'
+      ) {
         return (...args: any[]) => {
-          logger.error(`Database operation '${String(prop)}' failed: No database connection`, { args });
+          logger.error(`Database operation '${String(prop)}' failed: No database connection`, {
+            args,
+          });
           return Promise.reject(new Error('Database connection not available'));
         };
       }
@@ -105,7 +115,7 @@ function createFallbackDb(): NeonHttpDatabase<typeof schema> {
         logger.error(`Database operation '${String(prop)}' failed: No database connection`);
         return Promise.reject(new Error('Database connection not available'));
       };
-    }
+    },
   });
 }
 
@@ -140,7 +150,7 @@ export async function isDatabaseHealthy(): Promise<boolean> {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('Database health check failed', {
-      error: error instanceof Error ? errorMessage : String(error),
+      error: errorMessage,
       stack: error instanceof Error ? error.stack : undefined,
     });
 

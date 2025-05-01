@@ -189,7 +189,7 @@ export function isValidPhone(phone: string): boolean {
 export function isValidPostalCode(postalCode: string): boolean {
   // Canadian postal code format: A1A 1A1
   const postalCodeRegex = /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/;
-  return postalCodeRegex.test(postalCode);
+  return $1?.$2(postalCode);
 }
 
 /**

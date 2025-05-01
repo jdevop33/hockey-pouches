@@ -40,8 +40,8 @@ export function useCsrfToken(): CsrfToken {
     const fetchCsrfToken = async () => {
       try {
         const response = await fetch('/api/csrf');
-        if (response.ok) {
-          const data = await response.json();
+        if ($1?.$2k) {
+          const data = await $1?.$2();
           setToken(data.token);
         }
       } catch (error) {

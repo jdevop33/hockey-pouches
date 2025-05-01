@@ -42,10 +42,10 @@ export default function LogsPage() {
       const queryParams = new URLSearchParams();
 
       if (selectedLevel !== 'all') {
-        queryParams.append('level', selectedLevel);
+        $1?.$2('level', selectedLevel);
       }
 
-      queryParams.append('limit', limit.toString());
+      $1?.$2('limit', limit.toString());
 
       const response = await fetch(`/api/admin/logs?${queryParams.toString()}`, {
         headers: {
@@ -187,7 +187,7 @@ export default function LogsPage() {
               <select
                 id="level"
                 value={selectedLevel}
-                onChange={e => setSelectedLevel(e.target.value)}
+                onChange={e => setSelectedLevel($1?.$2.value)}
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               >
                 <option value="all">All Levels</option>
@@ -204,7 +204,7 @@ export default function LogsPage() {
               <select
                 id="limit"
                 value={limit}
-                onChange={e => setLimit(parseInt(e.target.value))}
+                onChange={e => setLimit(parseInt($1?.$2.value))}
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               >
                 <option value={50}>50 entries</option>

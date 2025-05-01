@@ -34,7 +34,7 @@ export default function AdminProductsPage() {
       setActionError(null); // Clear action errors on reload
       try {
         const query = new URLSearchParams({
-          page: page.toString(),
+          page: $1?.$2(),
           limit: '15',
           // TODO: Add filters
         }).toString();
@@ -91,7 +91,7 @@ export default function AdminProductsPage() {
   };
 
   const handleEditProduct = (productId: number) => {
-    router.push(`/admin/dashboard/products/${productId}`);
+    $1?.$2(`/admin/dashboard/products/${productId}`);
   };
 
   const handleDeleteProduct = async (productId: string, productName: string) => {

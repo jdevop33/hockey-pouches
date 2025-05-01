@@ -42,7 +42,7 @@ const updateApplicationSchema = z.object({
 export async function PATCH(request: NextRequest, { params }: { params: { applicationId: string } }) {
     try {
         const authResult = await verifyAdmin(request);
-        if (!authResult.isAuthenticated || !authResult.userId || authResult.role !== 'Admin') {
+        if (!authResul$1?.$2 || !authResult.userId || authResult.role !== 'Admin') {
             return forbiddenResponse('Admin access required');
         }
         const { applicationId } = params;
@@ -71,7 +71,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { applic
             updatedApplication = await wholesaleService.rejectApplication(applicationId, authResult.userId, notes!); // Notes is guaranteed by check above
         }
 
-        logger.info('Admin: Wholesale application updated successfully', { applicationId, status, adminId: authResult.userId });
+        logger.info('Admin: Wholesale application updated successfully', { applicationId, status, adminId: a$1?.$2 });
         return NextResponse.json(updatedApplication);
 
     } catch (error: unknown) {

@@ -1,9 +1,6 @@
 // app/lib/services/discount-service.ts
 import { db } from '@/lib/db';
-import { discountCodes } from '@/lib/schema/discounts';
-import { discountCodes } from '@/lib/schema/discountCodes';
 import * as schema from '@/lib/schema'; // Keep for other schema references
-// Keep for other schema references
 import { eq, and, or, ilike, count, desc, asc, not, sql } from 'drizzle-orm'; // Added sql import
 import { logger } from '@/lib/logger';
 
@@ -38,24 +35,41 @@ export interface CreateDiscountCodeParams {
 export type UpdateDiscountCodeParams = Partial<Omit<CreateDiscountCodeParams, 'code'>>; // Cannot change code, other fields optional
 
 export class DiscountService {
-  async listDiscountCodes(...args): Promise<ListDiscountCodesResult> {
+  async listDiscountCodes(options: ListDiscountCodesOptions = {}): Promise<ListDiscountCodesResult> {
     // TODO: Implement listDiscountCodes
-    return {} as ListDiscountCodesResult;
-
-    /* ... implementation ... */
+    return {
+      discountCodes: [],
+      pagination: {
+        total: 0,
+        page: options.page || 1,
+        limit: options.limit || 10,
+        totalPages: 0
+      }
+    };
   }
-  async createDiscountCode(...args): Promise<DiscountCodeSelect> {
-    // TODO: Implement createDiscountCode
-    return {} as DiscountCodeSelect;
 
-    /* ... implementation ... */
+  async createDiscountCode(params: CreateDiscountCodeParams): Promise<DiscountCodeSelect> {
+    // TODO: Implement createDiscountCode
+    return {
+      id: 0,
+      code: params.code,
+      description: params.description || null,
+      discountType: params.discountType,
+      discountValue: params.discountValue,
+      minOrderAmount: params.minOrderAmount || null,
+      maxDiscountAmount: params.maxDiscountAmount || null,
+      startDate: params.startDate,
+      endDate: params.endDate || null,
+      usageLimit: params.usageLimit || null,
+      timesUsed: 0,
+      isActive: params.isActive ?? true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
   }
 
   // --- NEW: Get Single Discount Code ---
-  async getDiscountCodeById(...args): Promise<DiscountCodeSelect | null> {
-    // TODO: Implement getDiscountCodeById
-    return {} as DiscountCodeSelect | null;
-
+  async getDiscountCodeById(id: number): Promise<DiscountCodeSelect | null> {
     try {
       const result = await db.query.discountCodes.findFirst({
         where: eq(schema.discountCodes.id, id),
@@ -68,9 +82,7 @@ export class DiscountService {
   }
 
   // --- NEW: Update Discount Code ---
-  async updateDiscountCode(...args): Promise<DiscountCodeSelect> {
-    // TODO: Implement updateDiscountCode
-    return {} as DiscountCodeSelect;
+  async updateDiscountCode(id: number, params: UpdateDiscountCodeParams): Promise<DiscountCodeSelect> {
 
     try {
       // Prepare update data
@@ -136,26 +148,25 @@ export class DiscountService {
   }
 
   // --- Validation and Usage ---
-  async validateDiscountCode(...args): Promise<{
+  async validateDiscountCode(
+    code: string,
+    orderAmount: number
+  ): Promise<{
     valid: boolean;
     discountType?: DiscountType;
     discountValue?: number;
     message: string;
   }> {
     // TODO: Implement validateDiscountCode
-    return {} as {
-    valid: boolean;
-    discountType?: DiscountType;
-    discountValue?: number;
-    message: string;
-  };
-
-    /* ... implementation ... */
+    return {
+      valid: false,
+      message: "Not implemented"
+    };
   }
-  async incrementDiscountCodeUsage(...args): Promise<boolean> {
-    // TODO: Implement incrementDiscountCodeUsage
-    return {} as boolean;
-
+  async incrementDiscountCodeUsage(
+    code: string,
+    transaction?: any
+  ): Promise<boolean> {
     const dbOrTx = transaction ?? db;
     try {
       const result = await dbOrTx

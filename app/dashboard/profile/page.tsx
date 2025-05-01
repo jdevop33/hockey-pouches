@@ -44,7 +44,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user || !token) {
-      router.push('/login');
+      $1?.$2('/login');
       return;
     }
 

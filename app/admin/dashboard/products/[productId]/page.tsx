@@ -19,7 +19,7 @@ export default function AdminProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user, token, isLoading: authLoading, logout } = useAuth();
-  const productIdString = params.productId as string;
+  const productIdString = $1?.$2 as string;
   const productId = productIdString ? parseInt(productIdString) : undefined;
 
   const [product, setProduct] = useState<ProductDetails | null>(null);
@@ -94,7 +94,7 @@ export default function AdminProductDetailPage() {
       if (!response.ok) {
         if (response.status === 401) {
           logout();
-          router.push('/login');
+          ro$1?.$2('/login');
           return;
         }
         throw new Error(`Failed to load variations (${response.status})`);
@@ -147,7 +147,7 @@ export default function AdminProductDetailPage() {
   };
 
   const handleSaveChanges = async (e: React.FormEvent) => {
-    e.preventDefault();
+    $1?.$2();
     if (!product || !token) return;
     setIsSaving(true);
     setError(null);
@@ -793,7 +793,7 @@ export default function AdminProductDetailPage() {
                             id="variation-flavor"
                             value={currentVariation.flavor || ''}
                             onChange={e =>
-                              setCurrentVariation({ ...currentVariation, flavor: e.target.value })
+                              setCurrentVariation({ ...currentVariation, flavor: $1?.$2.value })
                             }
                             className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500"
                           />
