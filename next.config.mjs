@@ -21,14 +21,13 @@ const nextConfig = {
   reactStrictMode: true,
   // Enable ESLint during build
   eslint: {
-    // Warning: This disables ESLint during build in production temporarily to get deployment working
-    // TODO: Remove this once all ESLint issues are fixed
-    ignoreDuringBuilds: true,
+    // Only ignore ESLint during emergency builds
+    ignoreDuringBuilds: process.env.EMERGENCY_BUILD === 'true',
   },
   // Enable TypeScript error checking during production builds
   typescript: {
-    // TODO: Re-enable once ESLint issues are fixed
-    ignoreBuildErrors: true,
+    // Only ignore TypeScript errors during emergency builds
+    ignoreBuildErrors: process.env.EMERGENCY_BUILD === 'true',
   },
   // Image optimization settings
   images: {

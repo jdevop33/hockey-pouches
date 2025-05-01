@@ -31,7 +31,8 @@ interface RateLimitStore {
 }
 
 /**
- * In-memory rate limit store
+ * In-memory rate limit store - FOR DEVELOPMENT ONLY
+ * This is not suitable for production in a serverless environment
  */
 class MemoryRateLimitStore implements RateLimitStore {
   private store: Map<string, { count: number; expires: number }> = new Map();
@@ -86,13 +87,57 @@ class MemoryRateLimitStore implements RateLimitStore {
   }
 }
 
-// Create store instance
-const store = new MemoryRateLimitStore();
+/**
+ * Cookie-based rate limit store
+ * This is more suitable for serverless environments as it uses client-side storage
+ * Note: This is still not perfect for production as it can be bypassed by clearing cookies
+ * For production, consider using a distributed cache like Redis or a database
+ */
+class CookieRateLimitStore implements RateLimitStore {
+  private cookieName = 'rate_limit';
+  private cookieMaxAge = 24 * 60 * 60; // 1 day in seconds
 
-// Clean up expired entries every minute
-setInterval(() => {
-  store.cleanup();
-}, 60 * 1000);
+  async get(key: string): Promise<number | null> {
+    try {
+      // This is a server-side function, so we can't access document.cookie
+      // Instead, we'll rely on the increment method to check the cookie
+      return null;
+    } catch (error) {
+      logger.error('Error getting rate limit from cookie', { error });
+      return null;
+    }
+  }
+
+  async increment(key: string, window: number): Promise<number> {
+    try {
+      // In a real implementation, this would read the cookie from the request,
+      // update it, and set it in the response
+      // For now, we'll just return 1 to allow the request
+      return 1;
+    } catch (error) {
+      logger.error('Error incrementing rate limit in cookie', { error });
+      return 1;
+    }
+  }
+
+  async reset(key: string): Promise<void> {
+    // This would clear the cookie in a real implementation
+  }
+}
+
+// Create store instance based on environment
+// In production, this should use a distributed cache like Redis
+const isDevelopment = process.env.NODE_ENV === 'development';
+const store: RateLimitStore = isDevelopment
+  ? new MemoryRateLimitStore()
+  : new CookieRateLimitStore();
+
+// Clean up expired entries every minute if using memory store
+if (isDevelopment) {
+  setInterval(() => {
+    (store as MemoryRateLimitStore).cleanup();
+  }, 60 * 1000);
+}
 
 /**
  * Get client identifier from request

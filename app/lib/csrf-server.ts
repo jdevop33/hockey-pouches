@@ -204,9 +204,9 @@ export function withCsrfProtection(handler: (req: NextRequest) => Promise<NextRe
  * Generate a new CSRF token and set it in the cookie
  * @returns CSRF token
  */
-export function generateAndSetCsrfToken(): string {
+export async function generateAndSetCsrfToken(): Promise<string> {
   const token = generateCsrfToken();
-  setCsrfTokenCookie(token);
+  await setCsrfTokenCookie(token);
   return token;
 }
 
@@ -215,6 +215,6 @@ export function generateAndSetCsrfToken(): string {
  * @returns Next.js response with CSRF token
  */
 export async function getCsrfTokenHandler(): Promise<NextResponse> {
-  const token = generateAndSetCsrfToken();
+  const token = await generateAndSetCsrfToken();
   return NextResponse.json({ token });
 }

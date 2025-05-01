@@ -136,10 +136,14 @@ try {
             formats: ['image/webp'],
           },
           typescript: {
-            ignoreBuildErrors: true, // Skip TS errors for emergency build
+            // Skip TS errors for emergency build
+            // This will be controlled by the EMERGENCY_BUILD env var
+            ignoreBuildErrors: process.env.EMERGENCY_BUILD === 'true',
           },
           eslint: {
-            ignoreDuringBuilds: true, // Skip ESLint errors for emergency build
+            // Skip ESLint errors for emergency build
+            // This will be controlled by the EMERGENCY_BUILD env var
+            ignoreDuringBuilds: process.env.EMERGENCY_BUILD === 'true',
           }
         };
       `;
@@ -156,6 +160,7 @@ try {
         ...process.env,
         NEXT_SKIP_LINT: '1',
         NEXT_TELEMETRY_DISABLED: '1',
+        EMERGENCY_BUILD: 'true',
       },
     });
 

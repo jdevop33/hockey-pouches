@@ -7,7 +7,7 @@ import { generateAndSetCsrfToken } from '@/lib/csrf-server';
  */
 export async function GET(request: NextRequest) {
   try {
-    const token = generateAndSetCsrfToken();
+    const token = await generateAndSetCsrfToken();
     return NextResponse.json({ token });
   } catch (error) {
     console.error('CSRF generation error:', error);
