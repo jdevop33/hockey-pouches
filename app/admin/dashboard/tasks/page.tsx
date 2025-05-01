@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Layout from '@/components/layout/NewLayout'; 
-import { useAuth } from '@/context/AuthContext'; 
+import Layout from '@/components/layout/NewLayout';
+import { useAuth } from '@/context/AuthContext';
 
 // Type matches API response
 interface AdminTaskList {
@@ -14,10 +14,10 @@ interface AdminTaskList {
     status: string;
     priority?: string | null;
     assignedUserId?: string | null;
-    assignedUserName?: string | null; 
+    assignedUserName?: string | null;
     dueDate?: string | null;
     relatedTo?: { type: string | null; id: string | null };
-    createdAt: string; 
+    createdAt: string;
 }
 interface PaginationState { page: number; limit: number; total: number; totalPages: number; }
 interface AssignableUser { id: string; name: string; } // For filter dropdown
@@ -32,11 +32,11 @@ export default function AdminTasksPage() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
-  
+
   // Filters State
   const [filterStatus, setFilterStatus] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
-  const [filterAssignedUser, setFilterAssignedUser] = useState(''); 
+  const [filterAssignedUser, setFilterAssignedUser] = useState('');
 
   // Auth Check
   useEffect(() => {
@@ -55,8 +55,8 @@ export default function AdminTasksPage() {
                    });
                    if (!response.ok) throw new Error('Failed to fetch users');
                    const data = await response.json();
-                   setAssignableUsers(data.users?.map((u: unknown) => ({ id: u.id, name: u.name })) || []);
-              } catch (err) {
+                   setAssignableUsers(data.users?.map((u: any) => ({ id: u.id, name: u.name })) || []);
+              } catch (err: unknown) {
                    console.error("Failed to fetch assignable users:", err);
               }
           };
@@ -90,7 +90,7 @@ export default function AdminTasksPage() {
                 setTasks(data.tasks || []);
                 setPagination(data.pagination || { page: 1, limit: 15, total: 0, totalPages: 1 });
             } catch (err: unknown) {
-                setError(err.message || 'Failed to load tasks.');
+                setError(err instanceof Error ? err.message : 'Failed to load tasks.');
                 console.error(err);
             } finally {
                 setIsLoadingData(false);
@@ -98,7 +98,7 @@ export default function AdminTasksPage() {
         };
         loadTasks();
     }
-  }, [user, token, pagination.page, pagination.limit, filterStatus, filterCategory, filterAssignedUser, logout, router]); 
+  }, [user, token, pagination.page, pagination.limit, filterStatus, filterCategory, filterAssignedUser, logout, router]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
@@ -121,9 +121,9 @@ export default function AdminTasksPage() {
             <button onClick={handleAddTask} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">Add New Task</button>
         </div>
 
-        {/* Filters */} 
+        {/* Filters */}
         <div className="mb-6 p-4 bg-white rounded-md shadow flex flex-wrap gap-4">
-            {/* Status Filter */} 
+            {/* Status Filter */}
             <div>
                 <label htmlFor="statusFilter" className="mr-2 text-sm font-medium text-gray-700">Status:</label>
                 <select id="statusFilter" value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPagination(p => ({...p, page: 1})); }} className="rounded-md border-gray-300 shadow-sm sm:text-sm">
@@ -134,12 +134,12 @@ export default function AdminTasksPage() {
                     <option value="Deferred">Deferred</option>
                 </select>
             </div>
-            {/* Category Filter (Simple Input for now) */} 
+            {/* Category Filter (Simple Input for now) */}
             <div>
                  <label htmlFor="categoryFilter" className="mr-2 text-sm font-medium text-gray-700">Category:</label>
                  <input type="text" id="categoryFilter" value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPagination(p => ({...p, page: 1})); }} placeholder="Enter category..." className="rounded-md border-gray-300 shadow-sm sm:text-sm"/>
             </div>
-             {/* Assigned User Filter */} 
+             {/* Assigned User Filter */}
             <div>
                 <label htmlFor="assigneeFilter" className="mr-2 text-sm font-medium text-gray-700">Assignee:</label>
                 <select id="assigneeFilter" value={filterAssignedUser} onChange={(e) => { setFilterAssignedUser(e.target.value); setPagination(p => ({...p, page: 1})); }} className="rounded-md border-gray-300 shadow-sm sm:text-sm">
@@ -148,27 +148,27 @@ export default function AdminTasksPage() {
                     {assignableUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                 </select>
             </div>
-             {/* TODO: Add Due Date Filter, Priority Filter, Search */} 
+             {/* TODO: Add Due Date Filter, Priority Filter, Search */}
         </div>
 
         {error && <p className="text-red-500 mb-4 bg-red-100 p-3 rounded">Error: {error}</p>}
 
         <div className="bg-white shadow-md rounded-lg overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            {/* Table Head */} 
+            {/* Table Head */}
             <thead className="bg-gray-50"><tr>{/* ... th ... */}</tr></thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {tasks.length > 0 ? (
                 tasks.map((task) => (
                   <tr key={task.id}>
-                    {/* Table Cells */} 
+                    {/* Table Cells */}
                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                          <Link href={`/admin/dashboard/tasks/${task.id}`} className="hover:text-primary-600">{task.title}</Link>
                      </td>
-                     {/* ... Other cells for category, status, priority, assignee, due date, relatedTo ... */} 
+                     {/* ... Other cells for category, status, priority, assignee, due date, relatedTo ... */}
                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                        <Link href={`/admin/dashboard/tasks/${task.id}`} className="text-indigo-600 hover:text-indigo-900">View/Edit</Link>
-                       {/* Quick actions? */} 
+                       {/* Quick actions? */}
                      </td>
                   </tr>
                 ))
@@ -177,7 +177,7 @@ export default function AdminTasksPage() {
               )}
             </tbody>
           </table>
-           {/* Pagination */} 
+           {/* Pagination */}
             {pagination.totalPages > 1 && (
                <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6"> {/* ... Pagination Controls ... */} </div>
            )}

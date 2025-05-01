@@ -132,9 +132,9 @@ export async function GET(
 
     } catch (error: unknown) {
         console.error(`Distributor: Failed to get order ${orderId}:`, error);
-        if (error.message?.includes('Server configuration error')) {
-             return NextResponse.json({ message: error.message }, { status: 500 });
+        if (errorMessage) {
+             return NextResponse.json({ message: errorMessage }, { status: 500 });
         }
-        return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ message: errorMessage || 'Internal Server Error' }, { status: 500 });
     }
 }

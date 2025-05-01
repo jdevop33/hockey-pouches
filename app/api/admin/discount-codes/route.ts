@@ -76,8 +76,8 @@ export async function POST(request: NextRequest) {
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
         }
-        if (error.message === 'Discount code already exists.') {
-            return NextResponse.json({ message: error.message }, { status: 409 }); // Conflict
+        if (errorMessage === 'Discount code already exists.') {
+            return NextResponse.json({ message: errorMessage }, { status: 409 }); // Conflict
         }
         return NextResponse.json({ message: 'Internal Server Error creating discount code.' }, { status: 500 });
     }

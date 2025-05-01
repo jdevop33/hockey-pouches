@@ -67,12 +67,12 @@ export async function POST(request: NextRequest) {
       }
       // 3. Create a Payment Record
       await tx.insert(payments).values({
-          orderId: orderId,
+          orderId: String(orderId),
           amount: amount.toFixed(2),
           method: paymentMethod,
           status: schema.paymentStatusEnum.PendingConfirmation, // Use enum
-          transactionId: transactionDetails,
-          userId: userId,
+          transactionId: String(transactionDetails),
+          userId: String(userId),
       });
       logger.info('Manual payment record created', { orderId, userId, paymentMethod });
       // 5. Create Task for Admin to Confirm Payment
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         status: schema.taskStatusEnum.Pending, // Use enum
         priority: schema.taskPriorityEnum.High, // Use enum
         relatedTo: schema.taskRelatedEntityEnum.Order, // Use enum
-        relatedId: orderId,
+        relatedId: String(orderId),
         assignedTo: adminUser?.id
       };
       await tx.insert(tasks).values(task);
@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
     }
     // Return specific errors caught within transaction
-    if (error.message === 'Order not found or access denied.' || error.message.startsWith('Order is already')) {
-        return NextResponse.json({ message: error.message }, { status: 400 });
+    if (errorMessage === 'Order not found or access denied.' || errorMessage.startsWith('Order is already')) {
+        return NextResponse.json({ message: errorMessage }, { status: 400 });
     }
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }

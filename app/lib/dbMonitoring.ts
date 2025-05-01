@@ -62,8 +62,8 @@ export async function getConnectionStats(): Promise<ConnectionStats> {
     const maxConnRows = getRows(maxConnResult) as DbRow[];
     const waitEventsRows = getRows(waitEventsResult) as DbRow[];
 
-    const stats = statsRows[0];
-    const maxConnections = parseInt((maxConnRows[0]?.max_connections as string) || '0');
+    const stats = Array.isArray(statsRows) ? statsRows[0] : null;
+    const maxConnections = parseInt((Array.isArray(maxConnRows) ? maxConnRows[0] : null?.max_connections as string) || '0');
     const waitEvents: Record<string, number> = {};
     waitEventsRows.forEach(row => {
       if (row.wait_event_type) {
@@ -82,6 +82,7 @@ export async function getConnectionStats(): Promise<ConnectionStats> {
       wait_event_counts: waitEvents,
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error('Failed to get connection stats:', { error });
     throw new Error('Could not retrieve connection statistics.');
   }
@@ -135,9 +136,10 @@ export async function getSlowQueries(limit: number = 10): Promise<QueryPerforman
       temp_blks_written: parseInt(String(row.temp_blks_written ?? '0')),
     }));
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     if (
       error instanceof Error &&
-      error.message.includes('relation "pg_stat_statements" does not exist')
+      errorMessage.includes('relation "pg_stat_statements" does not exist')
     ) {
       logger.warn('pg_stat_statements extension not found or enabled. Cannot fetch slow queries.');
       return [];
@@ -159,12 +161,13 @@ export async function analyzeQueryPlan(query: SQL<unknown>): Promise<string> {
     const rows = getRows(result) as { 'QUERY PLAN': string }[];
 
     // Correct way to join the plan lines with a newline
-    if (rows && rows.length > 0) {
+    if (rows && Array.isArray(rows) ? rows.length : 0 > 0) {
       return rows.map(row => row['QUERY PLAN']).join('\n');
     } else {
       return 'No query plan returned.';
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error('Failed to analyze query plan:', { query: query, error });
     throw new Error('Could not analyze query plan.');
   }
@@ -183,10 +186,11 @@ export async function checkDbHealth(): Promise<{ healthy: boolean; message: stri
       return { healthy: false, message: 'Health check query returned unexpected result.' };
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error('Database health check failed:', { error });
     return {
       healthy: false,
-      message: error instanceof Error ? error.message : 'Unknown database connection error.',
+      message: error instanceof Error ? errorMessage : 'Unknown database connection error.',
     };
   }
 }

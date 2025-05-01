@@ -57,7 +57,7 @@ export async function calculateOrderReferralCommission(
     `);
 
     const referrerRows = getRows(referrerResult) as UserRow[];
-    if (referrerRows.length === 0) {
+    if (Array.isArray(referrerRows) ? referrerRows.length : 0 === 0) {
       logger.warn('Referrer user not found by code', { orderId, referralCode });
       return {
         success: false,
@@ -65,7 +65,7 @@ export async function calculateOrderReferralCommission(
       };
     }
 
-    const referrer = referrerRows[0];
+    const referrer = Array.isArray(referrerRows) ? referrerRows[0] : null;
 
     // TODO: Get commission rate from referrer user record or config
     const commissionRate = 0.05; // Placeholder 5%
@@ -73,7 +73,7 @@ export async function calculateOrderReferralCommission(
 
     const roundedAmount = Math.round(commissionAmount * 100) / 100;
     if (roundedAmount <= 0) {
-         logger.info('Calculated referral commission is zero or less, skipping creation', { orderId, referrerId: referrer.id, amount: roundedAmount });
+         logger.info('Calculated referral commission is zero or less, skipping creation', { orderId, referrerId: String(referrer.id), amount: roundedAmount });
          return { success: true, message: 'Calculated commission is zero or less.' }; // Success, but no commission created
     }
 
@@ -100,7 +100,7 @@ export async function calculateOrderReferralCommission(
 
     const commissionRows = getRows(commissionResult) as CommissionInsertRow[];
     // Ensure commissionId is treated as string (UUID)
-    const commissionId = commissionRows[0]?.id;
+    const commissionId = Array.isArray(commissionRows) ? commissionRows[0] : null?.id;
 
     if (!commissionId) {
       logger.error('Failed to create commission record after insert', { orderId, referrerId: referrer.id });
@@ -109,19 +109,20 @@ export async function calculateOrderReferralCommission(
 
     // TODO: Create task using TaskService or insert directly using schema enums
     // await taskService.createTask({ ...task details... });
-    logger.info('Order referral commission created', { orderId, commissionId, referrerId: referrer.id, amount: roundedAmount });
+    logger.info('Order referral commission created', { orderId, commissionId, referrerId: String(referrer.id), amount: roundedAmount });
 
     return {
       success: true,
-      commissionId: commissionId, // Return the string ID
+      commissionId: String(commissionId), // Return the string ID
       amount: roundedAmount,
       message: `Created referral commission of $${roundedAmount} for user ${referrer.name} (${referrer.email})`,
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error(`Failed to calculate referral commission for order ${orderId}:`, { error });
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error calculating commission',
+      message: error instanceof Error ? errorMessage : 'Unknown error calculating commission',
       error,
     };
   }
@@ -147,7 +148,7 @@ export async function calculateDistributorFulfillmentCommission(
     `);
 
     const distributorRows = getRows(distributorResult) as (UserRow & { role: string })[];
-    if (distributorRows.length === 0) {
+    if (Array.isArray(distributorRows) ? distributorRows.length : 0 === 0) {
       logger.warn('Distributor user not found', { orderId, distributorId });
       return {
         success: false,
@@ -155,7 +156,7 @@ export async function calculateDistributorFulfillmentCommission(
       };
     }
 
-    const distributor = distributorRows[0];
+    const distributor = Array.isArray(distributorRows) ? distributorRows[0] : null;
 
     // Verify the user is a distributor
     if (distributor.role !== 'Distributor') {
@@ -198,7 +199,7 @@ export async function calculateDistributorFulfillmentCommission(
     `);
 
     const commissionRows = getRows(commissionResult) as CommissionInsertRow[];
-    const commissionId = commissionRows[0]?.id;
+    const commissionId = Array.isArray(commissionRows) ? commissionRows[0] : null?.id;
 
     if (!commissionId) {
       logger.error('Failed to create fulfillment commission record after insert', { orderId, distributorId });
@@ -210,15 +211,16 @@ export async function calculateDistributorFulfillmentCommission(
 
     return {
       success: true,
-      commissionId: commissionId, // Return string ID
+      commissionId: String(commissionId), // Return string ID
       amount: roundedAmount,
       message: `Created fulfillment commission of $${roundedAmount} for distributor ${distributor.name}`,
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error(`Failed to calculate fulfillment commission for order ${orderId}:`, { error });
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error calculating commission',
+      message: error instanceof Error ? errorMessage : 'Unknown error calculating commission',
       error,
     };
   }
@@ -255,10 +257,11 @@ export async function cancelCommissionsForOrder(orderId: string): Promise<Commis
       message: `Cancelled ${cancelledCount} pending commissions for order #${orderId}`,
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error(`Failed to cancel commissions for order ${orderId}:`, { error });
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error cancelling commissions',
+      message: error instanceof Error ? errorMessage : 'Unknown error cancelling commissions',
       error,
     };
   }

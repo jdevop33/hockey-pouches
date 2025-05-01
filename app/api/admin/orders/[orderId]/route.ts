@@ -58,7 +58,7 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
 // --- PATCH Handler (Update Order - e.g., Status, Distributor) ---
 const updateOrderSchema = z.object({
     status: z.enum(schema.orderStatusEnum.enumValues).optional(),
-    distributorId: z.string().uuid("Invalid Distributor ID format").nullable().optional(),
+    distributorId: String(z.string().uuid("Invalid Distributor ID format").nullable().optional()),
 }).strict();
 export async function PATCH(request: NextRequest, { params }: { params: { orderId: string } }) {
      try {
@@ -79,7 +79,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { orderI
         if (Object.keys(updateData).length === 0) {
             return NextResponse.json({ message: 'No update data provided.' }, { status: 400 });
         }
-        logger.info(`Admin PATCH /api/admin/orders/${orderId} request`, { adminId: authResult.userId, updateData });
+        logger.info(`Admin PATCH /api/admin/orders/${orderId} request`, { adminId: String(authResult.userId), updateData });
         // Use the Drizzle inferred type
         let updatedOrder: typeof schema.orders.$inferSelect | null = null;
         if (updateData.status) {
@@ -88,7 +88,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { orderI
         if (updateData.distributorId !== undefined) {
             if (updateData.distributorId === null) {
                  logger.warn('Unassigning distributor logic not implemented yet in OrderService', { orderId });
-                 const result = await db.update(schema.orders).set({ distributorId: null, updatedAt: new Date() }).where(eq(schema.orders.id, orderId)).returning();
+                 const result = await db.update(schema.orders).set({ distributorId: String(null), updatedAt: new Date() }).where(eq(schema.orders.id, orderId)).returning();
                  updatedOrder = result[0];
             } else {
                  updatedOrder = await orderService.assignDistributor(orderId, updateData.distributorId);
@@ -108,8 +108,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { orderI
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
         }
-         if (error.message?.includes('not found') || error.message?.includes('Invalid status transition')) {
-            return NextResponse.json({ message: error.message }, { status: 400 });
+         if (errorMessage || errorMessage) {
+            return NextResponse.json({ message: errorMessage }, { status: 400 });
         }
         return NextResponse.json({ message: 'Internal Server Error updating order.' }, { status: 500 });
     }

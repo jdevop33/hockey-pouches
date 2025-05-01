@@ -79,8 +79,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { applic
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
         }
-        if (error.message?.includes('not found')) {
-            return NextResponse.json({ message: error.message }, { status: 404 });
+        if (errorMessage) {
+            return NextResponse.json({ message: errorMessage }, { status: 404 });
         }
         return NextResponse.json({ message: 'Internal Server Error updating application.' }, { status: 500 });
     }

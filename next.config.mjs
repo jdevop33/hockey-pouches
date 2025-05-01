@@ -11,9 +11,9 @@ const withBundleAnalyzer =
 if (process.env.NODE_ENV === 'production') {
   try {
     console.log('Running prepare-vercel-build script before production build...');
-    // Set EMERGENCY_BUILD to true for this deployment
-    process.env.EMERGENCY_BUILD = 'true';
-    console.log('⚠️ EMERGENCY_BUILD mode enabled for this deployment');
+    // Set EMERGENCY_BUILD to false to ensure linting and type checking
+    process.env.EMERGENCY_BUILD = 'false';
+    console.log('✅ EMERGENCY_BUILD mode disabled - enabling full validation');
     execSync('node scripts/prepare-vercel-build.mjs', { stdio: 'inherit' });
   } catch (error) {
     console.error('Warning: prepare-vercel-build script failed, continuing with build', error);
@@ -41,7 +41,7 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
-    unoptimized: process.env.NODE_ENV !== 'production', // Only optimize in production
+    unoptimized: false, // Always optimize images for better performance
     // Enable image domains
     remotePatterns: [
       {

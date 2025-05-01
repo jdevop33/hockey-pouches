@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
     const totalRows = getRows(countQuery);
 
     // Parse the count (ensuring we have a string count property)
-    const totalPending = parseInt(String(totalRows[0]?.count || '0'), 10);
+    const totalPending = parseInt(String(Array.isArray(totalRows) ? totalRows[0] : null?.count || '0'), 10);
     const totalPages = Math.ceil(totalPending / limit);
 
     return NextResponse.json({
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     console.error('Admin: Failed to get pending commissions:', error);
     return NextResponse.json(
-      { message: error.message || 'Internal Server Error' },
+      { message: errorMessage || 'Internal Server Error' },
       { status: 500 }
     );
   }

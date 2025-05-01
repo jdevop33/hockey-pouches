@@ -42,7 +42,7 @@ export async function POST(
 
     // Only allow admin users to calculate commissions
     if (authResult.role !== 'Admin') {
-      logger.warn('Non-admin attempted commission calculation', { userId: authResult.userId, role: authResult.role });
+      logger.warn('Non-admin attempted commission calculation', { userId: String(authResult.userId), role: authResult.role });
       return NextResponse.json(
         { message: 'Unauthorized: Only admins can trigger commission calculation' },
         { status: 403 }
@@ -201,12 +201,12 @@ export async function POST(
     return NextResponse.json({
       message: 'Commission calculated successfully',
       commissionId,
-      referrerId: referrerUserId,
+      referrerId: String(referrerUserId),
       amount: roundedCommissionAmount,
       status: schema.commissionStatusEnum.Pending // Return enum value
     });
   } catch (error) {
-    logger.error('Error calculating commission', { orderId: params.orderId, error });
+    logger.error('Error calculating commission', { orderId: String(params.orderId), error });
     return NextResponse.json(
       { message: 'Failed to calculate commission' },
       { status: 500 }

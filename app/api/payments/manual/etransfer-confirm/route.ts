@@ -7,9 +7,9 @@ import { logger } from '@/lib/logger';
 
 // Zod schema for validation
 const etransferConfirmSchema = z.object({
-    orderId: z.number().int().positive('Order ID must be a positive integer'),
+    orderId: String(z.number().int().positive('Order ID must be a positive integer')),
     // Transaction ID might be optional or different for e-transfer
-    transactionId: z.string().min(1, 'Reference or Transaction ID is required'),
+    transactionId: String(z.string().min(1), 'Reference or Transaction ID is required'),
 });
 
 export const dynamic = 'force-dynamic';
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
         // TODO: Add role check - Ensure only Admins can call this endpoint
         if (authResult.role !== 'Admin') {
-             logger.warn('Non-admin attempted manual e-transfer confirmation', { userId: adminUserId, role: authResult.role });
+             logger.warn('Non-admin attempted manual e-transfer confirmation', { userId: String(adminUserId), role: authResult.role });
             return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
         }
 

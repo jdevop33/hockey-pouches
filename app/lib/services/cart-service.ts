@@ -30,7 +30,10 @@ export type CartValidationResult = { isValid: boolean; errors: string[]; message
 export class CartService {
     private RETAIL_MIN_UNITS = 5;
     private WHOLESALE_MIN_UNITS = 100;
-    async getCartItems(userId: string): Promise<CartSummary> {
+    async getCartItems(...args): Promise<CartSummary> {
+    // TODO: Implement getCartItems
+    return {} as CartSummary;
+
         try {
             logger.info(`Getting cart items for user: ${userId}`);
             const cartItemsResult: CartItemWithDetails[] = await db.query.cartItems.findMany({
@@ -58,7 +61,10 @@ export class CartService {
             logger.error('Failed to get cart items:', { userId, error }); throw new Error('Failed to get cart items.');
         }
     }
-    async addCartItem(userId: string, productVariationId: number, quantity: number): Promise<CartItemSelect> {
+    async addCartItem(...args): Promise<CartItemSelect> {
+    // TODO: Implement addCartItem
+    return {} as CartItemSelect;
+
         try {
             logger.info(`Adding item to cart`, { userId, productVariationId, quantity });
             if (quantity <= 0) throw new Error('Quantity must be > 0');
@@ -82,7 +88,10 @@ export class CartService {
             logger.error('Failed to add item to cart:', { userId, productVariationId, error }); throw error;
         }
     }
-    async updateCartItem(userId: string, cartItemId: string, quantity: number): Promise<CartItemSelect | { message: string }> {
+    async updateCartItem(...args): Promise<CartItemSelect | { message: string }> {
+    // TODO: Implement updateCartItem
+    return {} as CartItemSelect | { message: string };
+
         try {
             logger.info(`Updating cart item`, { userId, cartItemId, quantity });
             if (quantity <= 0) {
@@ -96,7 +105,10 @@ export class CartService {
             logger.error(`Failed to update cart item:`, { cartItemId, error }); throw error;
         }
     }
-    async removeCartItem(userId: string, cartItemId: string): Promise<boolean> {
+    async removeCartItem(...args): Promise<boolean> {
+    // TODO: Implement removeCartItem
+    return {} as boolean;
+
         try {
             logger.info(`Removing cart item`, { userId, cartItemId });
             const result = await db.delete(schema.cartItems).where(and(eq(schema.cartItems.id, cartItemId), eq(schema.cartItems.userId, userId))).returning({ id: schema.cartItems.id });
@@ -106,7 +118,10 @@ export class CartService {
             logger.error(`Failed to remove cart item:`, { cartItemId, error }); throw new Error('Failed to remove cart item.');
         }
     }
-    async clearCart(userId: string): Promise<boolean> {
+    async clearCart(...args): Promise<boolean> {
+    // TODO: Implement clearCart
+    return {} as boolean;
+
         try {
             logger.info(`Clearing cart for user: ${userId}`);
             await db.delete(schema.cartItems).where(eq(schema.cartItems.userId, userId)); return true;
@@ -114,7 +129,10 @@ export class CartService {
             logger.error(`Failed to clear cart:`, { userId, error }); throw new Error('Failed to clear cart.');
         }
     }
-    async validateCart(userId: string, isWholesale: boolean = false): Promise<CartValidationResult> {
+    async validateCart(...args): Promise<CartValidationResult> {
+    // TODO: Implement validateCart
+    return {} as CartValidationResult;
+
         try {
             const { totalQuantity, minimumOrderRequirements } = await this.getCartItems(userId);
             const reqs = isWholesale ? minimumOrderRequirements.wholesale : minimumOrderRequirements.retail;
@@ -124,7 +142,10 @@ export class CartService {
             logger.error(`Failed to validate cart reqs:`, { userId, error }); throw new Error('Failed to validate cart reqs.');
         }
     }
-    async validateInventory(userId: string): Promise<CartValidationResult> {
+    async validateInventory(...args): Promise<CartValidationResult> {
+    // TODO: Implement validateInventory
+    return {} as CartValidationResult;
+
         try {
             const { items } = await this.getCartItems(userId);
             const errors: string[] = [];
@@ -138,7 +159,10 @@ export class CartService {
             logger.error(`Failed to validate cart inventory:`, { userId, error }); throw new Error('Failed to validate inventory.');
         }
     }
-    async transferCart(fromUserId: string, toUserId: string): Promise<boolean> {
+    async transferCart(...args): Promise<boolean> {
+    // TODO: Implement transferCart
+    return {} as boolean;
+
         try {
             logger.info(`Transferring cart from ${fromUserId} to ${toUserId}`);
             const sourceItems = await db.query.cartItems.findMany({ where: eq(schema.cartItems.userId, fromUserId) });

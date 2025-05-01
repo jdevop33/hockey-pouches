@@ -57,7 +57,7 @@ export async function confirmManualPayment(
                 .set({
                     status: schema.paymentStatusEnum.Completed,
                     updatedAt: new Date(),
-                    transactionId: transactionIdOrRef,
+                    transactionId: String(transactionIdOrRef),
                     notes: sql`COALESCE(${payments.notes}, '') || ${` Confirmed by admin ${adminUserId} on `} || NOW()`
                 })
                 .where(eq(payments.id, payment.id))
@@ -85,18 +85,19 @@ export async function confirmManualPayment(
             logger.info('Closed payment verification task(s)', { orderId, count: verificationTaskUpdate.rowCount });
             return {
                 success: true,
-                transactionId: transactionIdOrRef,
+                transactionId: String(transactionIdOrRef),
                 status: schema.paymentStatusEnum.Completed,
                 message: `${payment.paymentMethod} payment confirmed successfully`
             };
         });
         return result;
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
         logger.error('Manual payment confirmation failed:', { orderId, transactionIdOrRef, error });
         return {
             success: false,
             status: schema.paymentStatusEnum.Failed,
-            message: error instanceof Error ? error.message : 'Failed to confirm payment due to internal error',
+            message: error instanceof Error ? errorMessage : 'Failed to confirm payment due to internal error',
             error
         };
     }
@@ -106,7 +107,7 @@ async function processETransferPayment(orderId: string, amount: number, userId: 
     logger.info('Processing E-Transfer Payment (Dummy)', { orderId, amount, userId });
     return {
         success: true,
-        transactionId: `et-${uuidv4()}`,
+        transactionId: String(`et-${uuidv4()}`),
         status: schema.paymentStatusEnum.Pending,
         message: 'E-transfer instructions pending.'
     };
@@ -115,7 +116,7 @@ async function processBitcoinPayment(orderId: string, amount: number, userId: st
     logger.info('Processing Bitcoin Payment (Dummy)', { orderId, amount, userId });
     return {
         success: true,
-        transactionId: `btc-${uuidv4()}`,
+        transactionId: String(`btc-${uuidv4()}`),
         status: schema.paymentStatusEnum.Pending,
         message: 'Bitcoin payment instructions pending.'
     };

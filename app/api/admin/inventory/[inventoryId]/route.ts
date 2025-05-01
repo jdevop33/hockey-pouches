@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: { inventor
       return forbiddenResponse('Admin access required');
     }
     const stockLevelId = params.inventoryId;
-    if (!stockLevelId || stockLevelId.length !== 36) {
+    if (!stockLevelId || Array.isArray(stockLevelId) ? stockLevelId.length : 0 !== 36) {
       return NextResponse.json({ message: 'Invalid Stock Level ID format.' }, { status: 400 });
     }
     logger.info(`Admin GET /api/admin/inventory/${stockLevelId} request`, {
@@ -56,6 +56,7 @@ export async function GET(request: NextRequest, { params }: { params: { inventor
 
     return NextResponse.json(response);
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error(`Admin: Failed to get stock level ${params.inventoryId}:`, { error });
     return NextResponse.json(
       { message: 'Internal Server Error fetching stock level.' },
@@ -82,7 +83,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { invent
       return forbiddenResponse('Admin access required');
     }
     const stockLevelId = params.inventoryId;
-    if (!stockLevelId || stockLevelId.length !== 36) {
+    if (!stockLevelId || Array.isArray(stockLevelId) ? stockLevelId.length : 0 !== 36) {
       return NextResponse.json({ message: 'Invalid Stock Level ID format.' }, { status: 400 });
     }
 
@@ -150,10 +151,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { invent
     if (error instanceof SyntaxError) {
       return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
     }
-    if (error.message?.includes('not found') || error.message?.includes('Insufficient stock')) {
+    if (errorMessage || errorMessage) {
       return NextResponse.json(
-        { message: error.message },
-        { status: error.message.includes('Insufficient stock') ? 400 : 404 }
+        { message: errorMessage },
+        { status: errorMessage.includes('Insufficient stock') ? 400 : 404 }
       );
     }
     return NextResponse.json(

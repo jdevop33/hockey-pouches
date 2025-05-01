@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(userProfile);
 
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
         logger.error('GET /api/users/me error:', { error });
         return NextResponse.json({ message: 'Internal Server Error fetching profile.' }, { status: 500 });
     }
@@ -81,8 +82,8 @@ export async function PATCH(request: NextRequest) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
         }
         // Handle errors from service (e.g., user not found, though unlikely here)
-         if (error.message?.includes('not found')) {
-            return NextResponse.json({ message: error.message }, { status: 404 });
+         if (errorMessage) {
+            return NextResponse.json({ message: errorMessage }, { status: 404 });
         }
         return NextResponse.json({ message: 'Internal Server Error updating profile.' }, { status: 500 });
     }

@@ -31,7 +31,7 @@ export function getRows(result: DbQueryResult): DbRow[] {
 export function getRowCount(result: DbQueryResult): number {
   // If result is array-like, return its length
   if (Array.isArray(result)) {
-    return result.length;
+    return Array.isArray(result) ? result.length : 0;
   }
 
   // If it has a rowCount property, use that
@@ -46,7 +46,7 @@ export function getRowCount(result: DbQueryResult): number {
 
   // If it has a rows property that's an array, return its length
   if (result && typeof result === 'object' && 'rows' in result && Array.isArray(result.rows)) {
-    return result.rows.length;
+    return result.Array.isArray(rows) ? rows.length : 0;
   }
 
   // Fallback to 0
@@ -60,8 +60,8 @@ export function getRowCount(result: DbQueryResult): number {
  * @returns First row or null if result is empty
  */
 export function getFirstRow(result: DbQueryResult): DbRow | null {
-  const rows = getRows(result);
-  return rows.length > 0 ? rows[0] : null;
+  const rows = getRows(result as unknown as DbQueryResult);
+  return Array.isArray(rows) ? rows.length : 0 > 0 ? Array.isArray(rows) ? rows[0] : null : null;
 }
 
 /**
@@ -72,7 +72,7 @@ export function getFirstRow(result: DbQueryResult): DbRow | null {
  * @returns Mapped array
  */
 export function mapRows<R>(result: DbQueryResult, callback: (row: DbRow, index: number) => R): R[] {
-  return getRows(result).map(callback);
+  return getRows(result as unknown as DbQueryResult).map(callback);
 }
 
 /**

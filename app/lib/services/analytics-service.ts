@@ -66,11 +66,10 @@ export class AnalyticsService {
   /**
    * Get sales data by period (day, week, month, year)
    */
-  async getSalesByPeriod(
-    period: 'day' | 'week' | 'month' | 'year',
-    startDate: Date,
-    endDate: Date
-  ): Promise<SalesData[]> {
+  async getSalesByPeriod(...args): Promise<SalesData[]> {
+    // TODO: Implement getSalesByPeriod
+    return {} as SalesData[];
+
     try {
       let dateFormat: string;
 
@@ -105,9 +104,10 @@ export class AnalyticsService {
 
       return getRows(result) as SalesData[];
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
       console.error('Error fetching sales data by period:', error);
       throw new Error(
-        `Failed to fetch sales data: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to fetch sales data: ${error instanceof Error ? errorMessage : 'Unknown error'}`
       );
     }
   }
@@ -115,13 +115,10 @@ export class AnalyticsService {
   /**
    * Get top performing products by sales volume or revenue
    */
-  async getTopProducts(
-    limit: number = 10,
-    sortBy: 'quantity' | 'revenue' = 'revenue',
-    startDate?: Date,
-    endDate?: Date,
-    categoryFilter?: string
-  ): Promise<ProductPerformance[]> {
+  async getTopProducts(...args): Promise<ProductPerformance[]> {
+    // TODO: Implement getTopProducts
+    return {} as ProductPerformance[];
+
     try {
       // Build date filter
       let dateFilter = sql``;
@@ -162,9 +159,10 @@ export class AnalyticsService {
 
       return getRows(result) as ProductPerformance[];
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
       console.error('Error fetching top products:', error);
       throw new Error(
-        `Failed to fetch top products: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to fetch top products: ${error instanceof Error ? errorMessage : 'Unknown error'}`
       );
     }
   }
@@ -172,7 +170,10 @@ export class AnalyticsService {
   /**
    * Get sales performance by product category
    */
-  async getSalesByCategory(startDate?: Date, endDate?: Date): Promise<CategoryPerformance[]> {
+  async getSalesByCategory(...args): Promise<CategoryPerformance[]> {
+    // TODO: Implement getSalesByCategory
+    return {} as CategoryPerformance[];
+
     try {
       // Build date filter
       let dateFilter = sql``;
@@ -198,9 +199,10 @@ export class AnalyticsService {
 
       return getRows(result) as CategoryPerformance[];
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
       console.error('Error fetching sales by category:', error);
       throw new Error(
-        `Failed to fetch category sales: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to fetch category sales: ${error instanceof Error ? errorMessage : 'Unknown error'}`
       );
     }
   }
@@ -208,11 +210,10 @@ export class AnalyticsService {
   /**
    * Get distributor performance metrics
    */
-  async getDistributorPerformance(
-    startDate?: Date,
-    endDate?: Date,
-    limit: number = 10
-  ): Promise<DistributorPerformance[]> {
+  async getDistributorPerformance(...args): Promise<DistributorPerformance[]> {
+    // TODO: Implement getDistributorPerformance
+    return {} as DistributorPerformance[];
+
     try {
       // Build date filter
       let dateFilter = sql``;
@@ -242,9 +243,10 @@ export class AnalyticsService {
 
       return getRows(result) as DistributorPerformance[];
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
       console.error('Error fetching distributor performance:', error);
       throw new Error(
-        `Failed to fetch distributor metrics: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to fetch distributor metrics: ${error instanceof Error ? errorMessage : 'Unknown error'}`
       );
     }
   }
@@ -252,11 +254,10 @@ export class AnalyticsService {
   /**
    * Get referral program performance
    */
-  async getReferralPerformance(
-    startDate?: Date,
-    endDate?: Date,
-    limit: number = 10
-  ): Promise<ReferralPerformance[]> {
+  async getReferralPerformance(...args): Promise<ReferralPerformance[]> {
+    // TODO: Implement getReferralPerformance
+    return {} as ReferralPerformance[];
+
     try {
       // Build date filter
       let dateFilter = sql``;
@@ -283,9 +284,10 @@ export class AnalyticsService {
 
       return getRows(result) as ReferralPerformance[];
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
       console.error('Error fetching referral performance:', error);
       throw new Error(
-        `Failed to fetch referral metrics: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to fetch referral metrics: ${error instanceof Error ? errorMessage : 'Unknown error'}`
       );
     }
   }
@@ -293,10 +295,10 @@ export class AnalyticsService {
   /**
    * Get geographic distribution of sales
    */
-  async getGeographicDistribution(
-    startDate?: Date,
-    endDate?: Date
-  ): Promise<GeographicDistribution[]> {
+  async getGeographicDistribution(...args): Promise<GeographicDistribution[]> {
+    // TODO: Implement getGeographicDistribution
+    return {} as GeographicDistribution[];
+
     try {
       // Build date filter
       let dateFilter = sql``;
@@ -320,9 +322,10 @@ export class AnalyticsService {
 
       return getRows(result) as GeographicDistribution[];
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
       console.error('Error fetching geographic distribution:', error);
       throw new Error(
-        `Failed to fetch geographic data: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to fetch geographic data: ${error instanceof Error ? errorMessage : 'Unknown error'}`
       );
     }
   }
@@ -330,12 +333,10 @@ export class AnalyticsService {
   /**
    * Get business overview with key metrics
    */
-  async getBusinessOverview(
-    startDate: Date,
-    endDate: Date,
-    comparisonStartDate?: Date,
-    comparisonEndDate?: Date
-  ): Promise<BusinessOverview> {
+  async getBusinessOverview(...args): Promise<BusinessOverview> {
+    // TODO: Implement getBusinessOverview
+    return {} as BusinessOverview;
+
     try {
       // Get sales data for the current period
       const salesResult = await sql`
@@ -416,9 +417,10 @@ export class AnalyticsService {
         sales_by_category: salesByCategory,
       };
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
       console.error('Error fetching business overview:', error);
       throw new Error(
-        `Failed to fetch business overview: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to fetch business overview: ${error instanceof Error ? errorMessage : 'Unknown error'}`
       );
     }
   }
@@ -578,9 +580,10 @@ export class AnalyticsService {
         inventory_turnover: inventoryTurnover,
       };
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
       console.error('Error fetching inventory analytics:', error);
       throw new Error(
-        `Failed to fetch inventory analytics: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to fetch inventory analytics: ${error instanceof Error ? errorMessage : 'Unknown error'}`
       );
     }
   }
@@ -638,13 +641,13 @@ export class AnalyticsService {
         sum += data.total_sales;
       });
 
-      const average = sum / historicalData.length;
+      const average = sum / Array.isArray(historicalData) ? historicalData.length : 0;
 
       historicalData.forEach(data => {
         sumSquaredDiff += Math.pow(data.total_sales - average, 2);
       });
 
-      const stdDev = Math.sqrt(sumSquaredDiff / historicalData.length);
+      const stdDev = Math.sqrt(sumSquaredDiff / Array.isArray(historicalData) ? historicalData.length : 0);
 
       // Calculate forecast with linear trend
       const forecast: Array<{ period: string; forecasted_sales: number; confidence: number }> = [];
@@ -662,12 +665,12 @@ export class AnalyticsService {
         sumXX += index * index;
       });
 
-      const n = historicalData.length;
+      const n = Array.isArray(historicalData) ? historicalData.length : 0;
       const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
       const intercept = (sumY - slope * sumX) / n;
 
       // Generate forecast periods
-      const lastPeriod = historicalData[historicalData.length - 1].period;
+      const lastPeriod = historicalData[Array.isArray(historicalData) ? historicalData.length : 0 - 1].period;
 
       for (let i = 1; i <= forecastPeriods; i++) {
         // Calculate next period (simplified)
@@ -712,9 +715,10 @@ export class AnalyticsService {
 
       return forecast;
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
       console.error('Error generating sales forecast:', error);
       throw new Error(
-        `Failed to generate sales forecast: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to generate sales forecast: ${error instanceof Error ? errorMessage : 'Unknown error'}`
       );
     }
   }

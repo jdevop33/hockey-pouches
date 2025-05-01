@@ -70,8 +70,9 @@ const createAuthSlice: StoreCreator<AuthState> = (set, get) => ({
         isLoading: false,
       });
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
       set({
-        error: error instanceof Error ? error.message : 'An error occurred during login',
+        error: error instanceof Error ? errorMessage : 'An error occurred during login',
         isLoading: false,
       });
     }
@@ -100,6 +101,7 @@ const createAuthSlice: StoreCreator<AuthState> = (set, get) => ({
         isLoading: false,
       });
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
       // Still clear auth state even if API fails
       set({
         user: null,
@@ -107,7 +109,7 @@ const createAuthSlice: StoreCreator<AuthState> = (set, get) => ({
         refreshToken: null,
         isAuthenticated: false,
         tokenExpiryTime: null,
-        error: error instanceof Error ? error.message : 'An error occurred during logout',
+        error: error instanceof Error ? errorMessage : 'An error occurred during logout',
         isLoading: false,
       });
     }
@@ -147,6 +149,7 @@ const createAuthSlice: StoreCreator<AuthState> = (set, get) => ({
 
       return true;
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
       console.error('Token refresh failed:', error);
 
       // If token refresh fails, user needs to re-authenticate

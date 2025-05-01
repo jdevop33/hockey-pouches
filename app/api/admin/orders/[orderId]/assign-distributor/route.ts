@@ -12,7 +12,7 @@ import { eq, and, sql } from 'drizzle-orm';
 export const dynamic = 'force-dynamic';
 
 const assignDistributorSchema = z.object({
-    distributorId: z.string().uuid("Invalid Distributor ID format"),
+    distributorId: String(z.string().uuid("Invalid Distributor ID format")),
 });
 
 export async function POST(request: NextRequest, { params }: { params: { orderId: string } }) {
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
         const { distributorId } = validation.data;
         const adminUserId = authResult.userId;
 
-        logger.info(`Admin POST /api/admin/orders/${orderId}/assign-distributor request`, { adminId: adminUserId, distributorId });
+        logger.info(`Admin POST /api/admin/orders/${orderId}/assign-distributor request`, { adminId: String(adminUserId), distributorId });
 
         // --- Call Service to Assign Distributor --- 
         // OrderService.assignDistributor handles checking order status, distributor validity, updating order, adding history
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
                 priority: 'High',
                 category: 'Fulfillment', // Or 'Order'?
                 relatedTo: 'Order',
-                relatedId: orderId,
+                relatedId: String(orderId),
                 assignedTo: distributorId,
             });
              logger.info('Created fulfill order task for distributor', { orderId, distributorId });
@@ -88,8 +88,8 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
         }
         // Handle specific errors from service (e.g., not found, invalid status, invalid distributor)
-        if (error.message?.includes('not found') || error.message?.includes('Invalid status') || error.message?.includes('not a distributor')) {
-            return NextResponse.json({ message: error.message }, { status: 400 }); // Or 404
+        if (errorMessage || errorMessage || errorMessage) {
+            return NextResponse.json({ message: errorMessage }, { status: 400 }); // Or 404
         }
         return NextResponse.json({ message: 'Internal Server Error assigning distributor.' }, { status: 500 });
     }

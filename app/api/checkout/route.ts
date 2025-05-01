@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
         paymentResult = {
           success: true,
           message: 'Payment processed successfully',
-          transactionId: `cc-${uuidv4()}`,
+          transactionId: String(`cc-${uuidv4()}`),
         };
         break;
       case 'ETransfer': // Match enum value
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
         paymentResult = {
           success: true,
           message: 'E-transfer instructions sent',
-          transactionId: `et-${uuidv4()}`,
+          transactionId: String(`et-${uuidv4()}`),
         };
         // Create task for admin to confirm e-transfer
         await sql`
@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
         paymentResult = {
           success: true,
           message: 'Bitcoin payment instructions sent',
-          transactionId: `btc-${uuidv4()}`,
+          transactionId: String(`btc-${uuidv4()}`),
         };
         // Create task for admin to confirm bitcoin payment
         await sql`

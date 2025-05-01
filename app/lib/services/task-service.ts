@@ -27,7 +27,10 @@ export interface ListTasksResult {
     pagination: { total: number; page: number; limit: number; totalPages: number; };
 }
 export class TaskService {
-    async listTasks(options: ListTasksOptions): Promise<ListTasksResult> {
+    async listTasks(...args): Promise<ListTasksResult> {
+    // TODO: Implement listTasks
+    return {} as ListTasksResult;
+
         const { page = 1, limit = 20, status, category, priority, assignedTo } = options;
         try {
             const offset = (page - 1) * limit;
@@ -80,7 +83,10 @@ export class TaskService {
         return this.listTasks({ ...options, assignedTo: userId });
     }
     // TODO: Add methods for createTask, updateTask, getTaskById, etc.
-    async updateTaskStatus(taskId: number, status: TaskStatus, userId: string): Promise<TaskSelect> {
+    async updateTaskStatus(...args): Promise<TaskSelect> {
+    // TODO: Implement updateTaskStatus
+    return {} as TaskSelect;
+
         try {
             const result = await db.update(schema.tasks)
                 .set({ status: status, updatedAt: new Date() })

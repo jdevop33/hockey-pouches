@@ -23,7 +23,10 @@ export interface ListWholesaleAppsResult {
 }
 export class WholesaleService {
     // List applications (e.g., for admin view)
-    async listApplications(options: ListWholesaleAppsOptions): Promise<ListWholesaleAppsResult> {
+    async listApplications(...args): Promise<ListWholesaleAppsResult> {
+    // TODO: Implement listApplications
+    return {} as ListWholesaleAppsResult;
+
         const { page = 1, limit = 20, status } = options;
         try {
             const offset = (page - 1) * limit;
@@ -58,7 +61,10 @@ export class WholesaleService {
         }
     }
     // Get a single application
-    async getApplicationById(applicationId: string): Promise<WholesaleApplicationSelect | null> {
+    async getApplicationById(...args): Promise<WholesaleApplicationSelect | null> {
+    // TODO: Implement getApplicationById
+    return {} as WholesaleApplicationSelect | null;
+
         try {
             const result = await db.query.wholesaleApplications.findFirst({
                  where: eq(schema.wholesaleApplications.id, applicationId),
@@ -102,7 +108,10 @@ export class WholesaleService {
         }
     }
     // Reject an application
-    async rejectApplication(applicationId: string, adminUserId: string, reason: string): Promise<WholesaleApplicationSelect> {
+    async rejectApplication(...args): Promise<WholesaleApplicationSelect> {
+    // TODO: Implement rejectApplication
+    return {} as WholesaleApplicationSelect;
+
          try {
              const updateResult = await db.update(schema.wholesaleApplications).set({
                 status: 'Rejected',

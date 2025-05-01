@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       includeInactive: true, // Admins should see inactive products
     };
 
-    logger.info(`Admin GET /api/admin/products request`, { adminId: authResult.userId, options });
+    logger.info(`Admin GET /api/admin/products request`, { adminId: String(authResult.userId), options });
 
     // Call the service method
     const result = await productService.getProducts(options);
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    logger.info(`Admin POST /api/admin/products request`, { adminId: authResult.userId, body });
+    logger.info(`Admin POST /api/admin/products request`, { adminId: String(authResult.userId), body });
 
     // Basic validation (can be expanded with Zod or similar)
     const { name, price, strength, flavor, ...restOfBody } = body;
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     // Call the service method (which handles DB insert and inventory init)
     const newProduct = await productService.createProduct(productData);
 
-    logger.info('Admin: Product created successfully', { productId: newProduct.id, adminId: authResult.userId });
+    logger.info('Admin: Product created successfully', { productId: String(newProduct.id), adminId: authResult.userId });
 
     // Return the newly created product data
     return NextResponse.json(newProduct, { status: 201 });

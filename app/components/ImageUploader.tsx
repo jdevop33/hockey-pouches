@@ -86,7 +86,7 @@ export default function ImageUploader({
     } catch (error: unknown) {
       console.error('Error uploading image:', error);
       setUploadError(
-        error instanceof Error ? error.message : 'Failed to upload image. Please try again.'
+        error instanceof Error ? errorMessage : 'Failed to upload image. Please try again.'
       );
       // Revert to the previous image if there was an error
       setPreviewUrl(currentImageUrl || null);

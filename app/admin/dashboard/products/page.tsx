@@ -94,7 +94,7 @@ export default function AdminProductsPage() {
     router.push(`/admin/dashboard/products/${productId}`);
   };
 
-  const handleDeleteProduct = async (productId: number, productName: string) => {
+  const handleDeleteProduct = async (productId: string, productName: string) => {
     setActionError(null); // Clear previous errors
     if (!confirm(`Are you sure you want to deactivate product #${productId} (${productName})?`))
       return;
@@ -122,7 +122,7 @@ export default function AdminProductsPage() {
     } catch (err: unknown) {
       const error = err as Error;
       console.error('Delete product error:', error);
-      setActionError(error.message || 'Could not deactivate product.');
+      setActionError(errorMessage || 'Could not deactivate product.');
     }
   };
 

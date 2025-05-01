@@ -212,7 +212,7 @@ export async function PUT(request: NextRequest, { params }: { params: { orderId:
       return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
     console.error(`Admin: Failed to manually update status for order ${orderId}:`, error);
     return NextResponse.json(
-      { message: error.message || 'Internal Server Error' },
+      { message: errorMessage || 'Internal Server Error' },
       { status: 500 }
     );
   }

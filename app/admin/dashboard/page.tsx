@@ -102,7 +102,7 @@ export default function AdminDashboardPage() {
         } catch (err: unknown) {
           const error = err as Error;
           // Handle potential 401 from API calls if token expires mid-session
-          if (error.message?.includes('401')) {
+          if (errorMessage) {
             // Basic check, improve if needed
             logout();
             // Only redirect if we're still on the admin dashboard

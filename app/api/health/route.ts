@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json(healthStatus, { status: statusCode });
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error('Error during health check', {}, error);
     
     return NextResponse.json(
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
         status: 'error',
         timestamp: new Date().toISOString(),
         message: 'Error performing health check',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? errorMessage : 'Unknown error'
       },
       { status: 500 }
     );

@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
     } catch (error: unknown) {
         // Catch potential errors if taskService isn't implemented
-        if (error.message?.includes('not implemented') || error.message?.includes('taskService.listUserTasks is not a function')){
+        if (errorMessage || errorMessage){
              logger.error('TaskService.listUserTasks not implemented', { userId });
              return NextResponse.json({ message: 'Task fetching is not available.' }, { status: 501 });
         }

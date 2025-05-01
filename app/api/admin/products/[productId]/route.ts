@@ -45,6 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: { productI
         return NextResponse.json(product);
 
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
         logger.error(`Admin: Failed to retrieve product ${params.productId}:`, { error });
         return NextResponse.json({ message: 'Internal Server Error retrieving product.' }, { status: 500 });
     }
@@ -78,7 +79,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { produc
              return NextResponse.json({ message: 'No update data provided.' }, { status: 400 });
         }
 
-        logger.info(`Admin PATCH /api/admin/products/${productId} request`, { adminId: authResult.userId, updateData });
+        logger.info(`Admin PATCH /api/admin/products/${productId} request`, { adminId: String(authResult.userId), updateData });
 
         // Prepare data for service (handle price formatting)
         const serviceUpdateData: Partial<Omit<ProductSelect, 'id' | 'createdAt'>> = {
@@ -98,8 +99,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { produc
         if (error instanceof SyntaxError) {
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
         }
-         if (error.message?.includes('not found')) { // Check if service threw not found error
-            return NextResponse.json({ message: error.message }, { status: 404 });
+         if (errorMessage) { // Check if service threw not found error
+            return NextResponse.json({ message: errorMessage }, { status: 404 });
         }
         return NextResponse.json({ message: 'Internal Server Error updating product.' }, { status: 500 });
     }
@@ -132,8 +133,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { produ
 
     } catch (error: unknown) {
         logger.error(`Admin: Failed to deactivate product ${params.productId}:`, { error });
-        if (error.message?.includes('not found')) {
-             return NextResponse.json({ message: error.message }, { status: 404 });
+        if (errorMessage) {
+             return NextResponse.json({ message: errorMessage }, { status: 404 });
         }
         return NextResponse.json({ message: 'Internal Server Error deactivating product.' }, { status: 500 });
     }

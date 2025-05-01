@@ -83,7 +83,7 @@ export default function AdminOrdersPage() {
           setPagination(data.pagination || { page: 1, limit: 15, total: 0, totalPages: 1 });
         } catch (err: unknown) {
           const error = err as Error;
-          setError(error.message || 'Failed to load orders.');
+          setError(errorMessage || 'Failed to load orders.');
           console.error(error);
         } finally {
           setIsLoadingData(false);

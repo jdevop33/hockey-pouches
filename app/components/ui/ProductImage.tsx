@@ -218,7 +218,7 @@ const ProductImage: React.FC<ProductImageProps> = ({
         onLoad={handleImageLoad}
         sizes={getSizes()}
         loading={priority ? 'eager' : 'lazy'}
-        unoptimized={true} // Temporarily use unoptimized images to ensure they load
+        unoptimized={false} // Enable image optimization for better performance
       />
 
       {/* Zoomed view modal */}
@@ -259,7 +259,7 @@ const ProductImage: React.FC<ProductImageProps> = ({
                 quality={100}
                 className="object-contain p-4"
                 sizes="90vw"
-                unoptimized={true}
+                unoptimized={false}
               />
             </div>
           </div>

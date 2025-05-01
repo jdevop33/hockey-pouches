@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
         });
 
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
         logger.error('GET /api/users/me/referral-link error:', { error });
         return NextResponse.json({ message: 'Internal Server Error fetching referral link.' }, { status: 500 });
     }
@@ -72,12 +73,12 @@ export async function POST(request: NextRequest) {
 
     } catch (error: unknown) {
         logger.error('POST /api/users/me/referral-link error:', { error });
-        if (error.message?.includes('not found')) {
-            return NextResponse.json({ message: error.message }, { status: 404 });
+        if (errorMessage) {
+            return NextResponse.json({ message: errorMessage }, { status: 404 });
         }
-         if (error.message?.includes('Failed to generate a unique referral code')) {
+         if (errorMessage) {
             // Specific error for collision failure after retries
-             return NextResponse.json({ message: error.message }, { status: 500 });
+             return NextResponse.json({ message: errorMessage }, { status: 500 });
         }
         return NextResponse.json({ message: 'Internal Server Error regenerating referral code.' }, { status: 500 });
     }

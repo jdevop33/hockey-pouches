@@ -43,8 +43,8 @@ export async function GET(request: NextRequest, { params }: { params: { productI
 
     } catch (error: unknown) {
         logger.error(`Admin: Failed to fetch variations for product ${params.productId}:`, { error });
-         if (error.message?.includes('not found')) { // Check if service threw product not found
-             return NextResponse.json({ message: error.message }, { status: 404 });
+         if (errorMessage) { // Check if service threw product not found
+             return NextResponse.json({ message: errorMessage }, { status: 404 });
          }
         return NextResponse.json({ message: 'Internal Server Error fetching variations.' }, { status: 500 });
     }
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest, { params }: { params: { product
         }
 
         const variationData = validationResult.data;
-        logger.info(`Admin POST /api/admin/products/${productIdNum}/variations request`, { adminId: authResult.userId, variationData });
+        logger.info(`Admin POST /api/admin/products/${productIdNum}/variations request`, { adminId: String(authResult.userId), variationData });
 
         // Prepare data for service
         const serviceData: Omit<ProductVariationSelect, 'id' | 'productId' | 'createdAt' | 'updatedAt' | 'inventoryQuantity'> = {
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest, { params }: { params: { product
         // Call the service method (handles product existence check & inventory init)
         const createdVariation = await productService.createVariation(productIdNum, serviceData);
 
-        logger.info('Admin: Variation created successfully', { variationId: createdVariation.id, productId: productIdNum, adminId: authResult.userId });
+        logger.info('Admin: Variation created successfully', { variationId: String(createdVariation.id), productId: String(productIdNum), adminId: authResult.userId });
         return NextResponse.json(createdVariation, { status: 201 });
 
     } catch (error: unknown) {
@@ -99,11 +99,11 @@ export async function POST(request: NextRequest, { params }: { params: { product
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
         }
         // Handle unique constraint error (e.g., duplicate flavor/strength for product)
-        if (error.message?.includes('duplicate key value violates unique constraint') || error.code === '23505') {
+        if (errorMessage || error.code === '23505') {
              return NextResponse.json({ message: 'A variation with this flavor and strength likely already exists for this product.' }, { status: 409 }); // Conflict
         }
-         if (error.message?.includes('Product with ID') && error.message?.includes('not found')) {
-            return NextResponse.json({ message: error.message }, { status: 404 }); // Product not found
+         if (errorMessage && errorMessage) {
+            return NextResponse.json({ message: errorMessage }, { status: 404 }); // Product not found
         }
         return NextResponse.json({ message: 'Internal Server Error creating variation.' }, { status: 500 });
     }

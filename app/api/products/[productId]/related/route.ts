@@ -37,6 +37,22 @@ import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
 // Keep for schema type references
 import { eq, and, not, desc } from 'drizzle-orm';
 import { unstable_cache } from 'next/cache';
@@ -56,7 +72,7 @@ type ProductListItem = Pick<
 const getRelatedProductsFromDb = unstable_cache(
   // Make return type more specific based on selected columns
   async (
-    productId: number,
+    productId: string,
     categoryName: string | null,
     limit: number
   ): Promise<ProductListItem[]> => {

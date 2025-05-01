@@ -84,7 +84,7 @@ export default function DiscountCodesPage() {
         )
       );
     } catch (err: unknown) {
-      setActionError(err.message || 'An error occurred while updating the discount code');
+      setActionError(err instanceof Error ? err.message : 'An error occurred while updating the discount code');
       console.error('Error toggling discount code status:', err);
     }
   };
@@ -114,7 +114,7 @@ export default function DiscountCodesPage() {
       // Remove the deleted code from the local state
       setDiscountCodes(prevCodes => prevCodes.filter(code => code.id !== id));
     } catch (err: unknown) {
-      setActionError(err.message || 'An error occurred while deleting the discount code');
+      setActionError(err instanceof Error ? err.message : 'An error occurred while deleting the discount code');
       console.error('Error deleting discount code:', err);
     }
   };
@@ -137,11 +137,11 @@ export default function DiscountCodesPage() {
         const queryParams = new URLSearchParams();
         queryParams.append('page', pagination.page.toString());
         queryParams.append('limit', pagination.limit.toString());
-        
+
         if (filterActive !== null) {
           queryParams.append('isActive', filterActive.toString());
         }
-        
+
         if (searchQuery) {
           queryParams.append('search', searchQuery);
         }
@@ -158,7 +158,7 @@ export default function DiscountCodesPage() {
 
         const data = await response.json();
         setDiscountCodes(data.discountCodes || []);
-        
+
         // Update pagination if provided
         if (data.pagination) {
           setPagination({
@@ -169,7 +169,7 @@ export default function DiscountCodesPage() {
           });
         }
       } catch (err: unknown) {
-        setError(err.message || 'An error occurred while loading discount codes');
+        setError(err instanceof Error ? err.message : 'An error occurred while loading discount codes');
         console.error('Error loading discount codes:', err);
       } finally {
         setIsLoading(false);

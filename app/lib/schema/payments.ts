@@ -42,7 +42,7 @@ export const payments = pgTable(
     amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
     paymentMethod: paymentMethodEnum('payment_method').notNull(), // Use local enum
     status: paymentStatusEnum('status').notNull().default('Pending'), // Use local enum
-    transactionId: varchar('transaction_id', { length: 255 }), // e.g., Stripe charge ID
+    transactionId: String(varchar('transaction_id'), { length: 255 }), // e.g., Stripe charge ID
     referenceNumber: varchar('reference_number', { length: 255 }), // e.g., E-transfer confirmation
     // Store raw details/metadata from payment provider
     paymentDetails: jsonb('payment_details'),

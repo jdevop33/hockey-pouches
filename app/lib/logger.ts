@@ -40,7 +40,7 @@ function formatError(error: Error | unknown): Record<string, any> {
   if (error instanceof Error) {
     return {
       name: error.name,
-      message: error.message,
+      message: errorMessage,
       stack: error.stack,
       cause: error.cause,
     };
@@ -242,6 +242,7 @@ export function withLogging(handler: (req: NextRequest) => Promise<NextResponse>
       
       return response;
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
       // Calculate response time
       const responseTime = Date.now() - startTime;
       

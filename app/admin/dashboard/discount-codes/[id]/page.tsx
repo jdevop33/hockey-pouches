@@ -76,7 +76,7 @@ export default function DiscountCodeFormPage() {
         }
 
         const data: DiscountCode = await response.json();
-        
+
         // Format dates for input fields (YYYY-MM-DD)
         const formatDate = (dateString: string | null) => {
           if (!dateString) return '';
@@ -96,7 +96,7 @@ export default function DiscountCodeFormPage() {
           isActive: data.is_active,
         });
       } catch (err: unknown) {
-        setError(err.message || 'An error occurred while loading the discount code');
+        setError(err instanceof Error ? err.message : 'An error occurred while loading the discount code');
         console.error('Error loading discount code:', err);
       } finally {
         setIsLoading(false);
@@ -109,16 +109,16 @@ export default function DiscountCodeFormPage() {
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    
+
     // Handle checkbox inputs
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
       return;
     }
-    
+
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // Clear validation error when field is edited
     if (formErrors[name]) {
       setFormErrors(prev => {
@@ -132,51 +132,51 @@ export default function DiscountCodeFormPage() {
   // Validate form
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!formData.code.trim()) {
       errors.code = 'Discount code is required';
     } else if (!/^[A-Z0-9_-]+$/i.test(formData.code.trim())) {
       errors.code = 'Code can only contain letters, numbers, underscores, and hyphens';
     }
-    
+
     if (!formData.discountType) {
       errors.discountType = 'Discount type is required';
     }
-    
+
     const discountValue = parseFloat(formData.discountValue);
     if (isNaN(discountValue) || discountValue <= 0) {
       errors.discountValue = 'Discount value must be a positive number';
     } else if (formData.discountType === 'percentage' && discountValue > 100) {
       errors.discountValue = 'Percentage discount cannot exceed 100%';
     }
-    
+
     if (!formData.startDate) {
       errors.startDate = 'Start date is required';
     }
-    
+
     const minOrderAmount = parseFloat(formData.minOrderAmount);
     if (isNaN(minOrderAmount) || minOrderAmount < 0) {
       errors.minOrderAmount = 'Minimum order amount must be a non-negative number';
     }
-    
+
     if (formData.maxDiscountAmount) {
       const maxDiscountAmount = parseFloat(formData.maxDiscountAmount);
       if (isNaN(maxDiscountAmount) || maxDiscountAmount <= 0) {
         errors.maxDiscountAmount = 'Maximum discount amount must be a positive number';
       }
     }
-    
+
     if (formData.usageLimit) {
       const usageLimit = parseInt(formData.usageLimit);
       if (isNaN(usageLimit) || usageLimit <= 0 || !Number.isInteger(usageLimit)) {
         errors.usageLimit = 'Usage limit must be a positive integer';
       }
     }
-    
+
     if (formData.endDate && formData.startDate && new Date(formData.endDate) <= new Date(formData.startDate)) {
       errors.endDate = 'End date must be after start date';
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -184,26 +184,26 @@ export default function DiscountCodeFormPage() {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     if (!token) {
       setError('You must be logged in to perform this action');
       return;
     }
-    
+
     try {
       setIsSaving(true);
       setError(null);
-      
-      const url = isNewCode 
-        ? '/api/admin/discount-codes' 
+
+      const url = isNewCode
+        ? '/api/admin/discount-codes'
         : `/api/admin/discount-codes/${discountCodeId}`;
-      
+
       const method = isNewCode ? 'POST' : 'PUT';
-      
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -223,16 +223,16 @@ export default function DiscountCodeFormPage() {
           isActive: formData.isActive,
         }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || `Failed to ${isNewCode ? 'create' : 'update'} discount code`);
       }
-      
+
       // Redirect back to discount codes list
       router.push('/admin/dashboard/discount-codes');
     } catch (err: unknown) {
-      setError(err.message || 'An error occurred while saving the discount code');
+      setError(err instanceof Error ? err.message : 'An error occurred while saving the discount code');
       console.error('Error saving discount code:', err);
     } finally {
       setIsSaving(false);

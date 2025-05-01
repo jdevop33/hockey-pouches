@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     console.error('Error validating discount code:', error);
     return NextResponse.json(
-      { message: error.message || 'Internal Server Error' },
+      { message: errorMessage || 'Internal Server Error' },
       { status: 500 }
     );
   }

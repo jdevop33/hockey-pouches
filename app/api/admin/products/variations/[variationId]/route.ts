@@ -45,6 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: { variatio
         return NextResponse.json(variation);
 
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
         logger.error(`Admin: Failed to fetch variation ${params.variationId}:`, { error });
         return NextResponse.json({ message: 'Internal Server Error fetching variation.' }, { status: 500 });
     }
@@ -76,7 +77,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { variat
             return NextResponse.json({ message: 'No update data provided.' }, { status: 400 });
         }
 
-        logger.info(`Admin PATCH /api/admin/products/variations/${variationIdNum} request`, { adminId: authResult.userId, updateData });
+        logger.info(`Admin PATCH /api/admin/products/variations/${variationIdNum} request`, { adminId: String(authResult.userId), updateData });
 
         // Prepare data for service
         const serviceUpdateData: Partial<Omit<ProductVariationSelect, 'id' | 'productId' | 'createdAt'>> = {
@@ -90,7 +91,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { variat
         // Call service method
         const updatedVariation = await productService.updateVariation(variationIdNum, serviceUpdateData);
 
-        logger.info('Admin: Variation updated successfully', { variationId: variationIdNum, adminId: authResult.userId });
+        logger.info('Admin: Variation updated successfully', { variationId: String(variationIdNum), adminId: authResult.userId });
         return NextResponse.json(updatedVariation);
 
     } catch (error: unknown) {
@@ -99,11 +100,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { variat
             return NextResponse.json({ message: 'Invalid request body format.' }, { status: 400 });
         }
         // Handle potential unique constraint violation (flavor/strength)
-         if (error.message?.includes('duplicate key value violates unique constraint') || error.code === '23505') {
+         if (errorMessage || error.code === '23505') {
              return NextResponse.json({ message: 'A variation with this flavor and strength likely already exists for this product.' }, { status: 409 }); // Conflict
         }
-        if (error.message?.includes('not found')) {
-            return NextResponse.json({ message: error.message }, { status: 404 });
+        if (errorMessage) {
+            return NextResponse.json({ message: errorMessage }, { status: 404 });
         }
         return NextResponse.json({ message: 'Internal Server Error updating variation.' }, { status: 500 });
     }
@@ -131,14 +132,14 @@ export async function DELETE(request: NextRequest, { params }: { params: { varia
              return NextResponse.json({ message: 'Variation not found.' }, { status: 404 });
         }
 
-        logger.info('Admin: Variation deleted successfully', { variationId: variationIdNum, adminId: authResult.userId });
+        logger.info('Admin: Variation deleted successfully', { variationId: String(variationIdNum), adminId: authResult.userId });
         // Return 204 No Content for successful deletions
         return new NextResponse(null, { status: 204 });
 
     } catch (error: unknown) {
         logger.error(`Admin: Failed to delete variation ${params.variationId}:`, { error });
-         if (error.message?.includes('not found')) {
-             return NextResponse.json({ message: error.message }, { status: 404 });
+         if (errorMessage) {
+             return NextResponse.json({ message: errorMessage }, { status: 404 });
         }
         return NextResponse.json({ message: 'Internal Server Error deleting variation.' }, { status: 500 });
     }

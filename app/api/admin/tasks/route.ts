@@ -132,8 +132,9 @@ export async function GET(request: NextRequest) {
       pagination: { page, limit, total: totalTasks, totalPages },
     });
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     console.error('Admin: Failed to get tasks:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
+    const errorMessage = error instanceof Error ? errorMessage : 'Internal Server Error';
     return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }
@@ -197,7 +198,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Invalid request body.' }, { status: 400 });
     console.error('Admin: Failed to create task:', error);
     return NextResponse.json(
-      { message: error.message || 'Internal Server Error' },
+      { message: errorMessage || 'Internal Server Error' },
       { status: 500 }
     );
   }

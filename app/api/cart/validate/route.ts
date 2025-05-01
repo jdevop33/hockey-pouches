@@ -67,11 +67,12 @@ export async function POST(request: NextRequest) {
         : 'Order meets retail minimum requirements and inventory is available.',
     });
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error('Failed to validate cart:', {
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error ? errorMessage : String(error),
     });
     return NextResponse.json(
-      { message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { message: `Error: ${error instanceof Error ? errorMessage : 'Unknown error'}` },
       { status: 500 }
     );
   }

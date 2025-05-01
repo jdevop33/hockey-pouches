@@ -45,6 +45,22 @@ import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
 // Use central schema index
 import { eq, and } from 'drizzle-orm';
 import { cartService } from '@/lib/services/cart-service'; // Use refactored cart service
@@ -130,7 +146,7 @@ export async function POST(request: NextRequest) {
             currency: 'cad',
             automatic_payment_methods: { enabled: true },
             metadata: {
-                userId: userId,
+                userId: String(userId),
                 ...(orderMetadataId && { orderId: orderMetadataId }) // Add orderId if available
             },
             // Add customer ID if available to link payments

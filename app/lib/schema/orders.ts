@@ -68,7 +68,7 @@ export const orders = pgTable(
       .references(() => users.id), // Assuming users.id is text/uuid
     status: orderStatusEnum('status').notNull().default('PendingPayment'),
     totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).notNull(),
-    distributorId: text('distributor_id').references(() => users.id, { onDelete: 'set null' }),
+    distributorId: String(text('distributor_id').references(() => users.id), { onDelete: 'set null' }),
     commissionAmount: decimal('commission_amount', { precision: 10, scale: 2 }),
     paymentMethod: paymentMethodEnum('payment_method').notNull(),
     paymentStatus: paymentStatusEnum('payment_status').notNull().default('Pending'),
@@ -126,7 +126,7 @@ export const orderStatusHistory = pgTable(
     status: orderStatusEnum('status').notNull(),
     paymentStatus: paymentStatusEnum('payment_status'), // Added payment status
     notes: text('notes'),
-    changedByUserId: text('changed_by_user_id').references(() => users.id), // Added user making change
+    changedByUserId: String(text('changed_by_user_id').references(() => users.id)), // Added user making change
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
   table => ({

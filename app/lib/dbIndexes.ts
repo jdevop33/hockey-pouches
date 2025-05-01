@@ -68,8 +68,8 @@ export async function indexExists(indexName: string): Promise<boolean> {
       FROM pg_indexes
       WHERE indexname = ${indexName}
     `);
-    const rows = getRows(result);
-    return rows.length > 0;
+    const rows = getRows(result as unknown as DbQueryResult);
+    return Array.isArray(rows) ? rows.length : 0 > 0;
   } catch (error) {
     console.error(`Error checking if index ${indexName} exists:`, error);
     throw error;
@@ -104,7 +104,7 @@ export async function getTableIndexes(tableName: string): Promise<unknown[]> {
       ORDER BY
         i.relname
     `);
-    const rows = getRows(result);
+    const rows = getRows(result as unknown as DbQueryResult);
     return rows;
   } catch (error) {
     console.error(`Error getting indexes for table ${tableName}:`, error);

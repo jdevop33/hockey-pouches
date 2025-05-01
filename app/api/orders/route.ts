@@ -76,12 +76,13 @@ async function getUserFromToken(
   try {
     const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
     if (schema.userRoleEnum.enumValues.includes(decoded.role)) {
-        return { userId: decoded.userId, role: decoded.role };
+        return { userId: String(decoded.userId), role: decoded.role };
     } else {
-        logger.warn('Invalid role found in token', { userId: decoded.userId, role: decoded.role });
+        logger.warn('Invalid role found in token', { userId: String(decoded.userId), role: decoded.role });
         return null;
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.warn('Token verification failed:', { error });
     return null;
   }
@@ -154,7 +155,7 @@ export async function POST(request: NextRequest) {
                     columns: { name: true, isActive: true }
                 }
             },
-            columns: { id: true, productId: true, name: true, price: true, isActive: true }
+            columns: { id: true, productId: String(true), name: true, price: true, isActive: true }
         });
 
         const variationMap = new Map(variationDetails.map(v => [v.id, v]));
@@ -190,8 +191,8 @@ export async function POST(request: NextRequest) {
             const itemSubtotal = pricePerItem * item.quantity;
             subtotal += itemSubtotal;
             orderItemsData.push({
-                orderId: '', // Will be set after order creation
-                productVariationId: item.productVariationId,
+                orderId: String(''), // Will be set after order creation
+                productVariationId: String(item.productVariationId),
                 quantity: item.quantity,
                 priceAtPurchase: pricePerItem.toFixed(2),
                 subtotal: itemSubtotal.toFixed(2),
@@ -214,7 +215,7 @@ export async function POST(request: NextRequest) {
 
         const insertedOrder = await tx.insert(schema.orders).values({
             id: orderId,
-            userId: userId,
+            userId: String(userId),
             status: initialStatus,
             totalAmount: totalAmount.toFixed(2),
             paymentMethod: paymentMethod,
@@ -232,7 +233,7 @@ export async function POST(request: NextRequest) {
         if (!newOrderId) {
             throw new Error('Failed to create order record.');
         }
-        logger.info('Order record created', { orderId: newOrderId, userId });
+        logger.info('Order record created', { orderId: String(newOrderId), userId });
 
         // --- Create Order Items ---
         for (const itemData of orderItemsData) {
@@ -263,7 +264,7 @@ export async function POST(request: NextRequest) {
 
         // --- Add Order History ---
         await tx.insert(schema.orderStatusHistory).values({
-            orderId: newOrderId,
+            orderId: String(newOrderId),
             status: initialStatus,
             notes: 'Order created',
         });
@@ -285,11 +286,11 @@ export async function POST(request: NextRequest) {
                 status: schema.taskStatusEnum.Pending, // Use enum
                 priority: schema.taskPriorityEnum.Medium, // Use enum
                 relatedTo: schema.taskRelatedEntityEnum.Order, // Use enum
-                relatedId: newOrderId,
+                relatedId: String(newOrderId),
                 assignedTo: adminUser?.id
              };
              await tx.insert(schema.tasks).values(task);
-             logger.info(`Created task to confirm ${paymentMethod} payment`, { orderId: newOrderId, assignedTo: adminUser?.id });
+             logger.info(`Created task to confirm ${paymentMethod} payment`, { orderId: String(newOrderId), assignedTo: adminUser?.id });
         }
         const adminUserForReview = await tx.query.users.findFirst({
             where: eq(schema.users.role, 'Admin'),
@@ -301,14 +302,14 @@ export async function POST(request: NextRequest) {
             status: schema.taskStatusEnum.Pending, // Use enum
             priority: schema.taskPriorityEnum.High, // Use enum
             relatedTo: schema.taskRelatedEntityEnum.Order, // Use enum
-            relatedId: newOrderId,
+            relatedId: String(newOrderId),
             assignedTo: adminUserForReview?.id
         };
         await tx.insert(schema.tasks).values(reviewTask);
-        logger.info('Created task to process order', { orderId: newOrderId, assignedTo: adminUserForReview?.id });
+        logger.info('Created task to process order', { orderId: String(newOrderId), assignedTo: adminUserForReview?.id });
 
         orderCreated = true;
-        return { orderId: newOrderId, initialStatus, initialPaymentStatus, totalAmount };
+        return { orderId: String(newOrderId), initialStatus, initialPaymentStatus, totalAmount };
     }); // End Drizzle Transaction
 
     // --- Post-Transaction Actions ---
@@ -342,24 +343,24 @@ export async function POST(request: NextRequest) {
                 await sendOrderConfirmationEmail({
                     customerEmail: user.email,
                     customerName: user.name ?? 'Customer',
-                    orderId: result.orderId,
+                    orderId: String(result.orderId),
                     orderTotal: result.totalAmount,
                     orderItems: emailItems,
                     shippingAddress: shippingAddress as any,
                     paymentMethod: mappedPaymentMethod,
                 });
-                 logger.info('Order confirmation email sent', { orderId: result.orderId, email: user.email });
+                 logger.info('Order confirmation email sent', { orderId: String(result.orderId), email: user.email });
             } else {
                  logger.warn('Could not find user email to send confirmation', { userId, orderId: result.orderId });
             }
         } catch (emailError) {
-            logger.error('Failed to send order confirmation email (order created successfully)', { orderId: result.orderId, error: emailError });
+            logger.error('Failed to send order confirmation email (order created successfully)', { orderId: String(result.orderId), error: emailError });
         }
 
         return NextResponse.json(
             {
                 message: 'Order placed successfully!',
-                orderId: result.orderId,
+                orderId: String(result.orderId),
                 status: result.initialStatus,
                 paymentStatus: result.initialPaymentStatus,
             },
@@ -374,8 +375,8 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     logger.error(`POST /api/orders - Failed for user ${userInfo?.userId || '(unknown)'}`, { error });
     return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Internal Server Error' },
-      { status: error instanceof Error && error.message.includes('Insufficient stock') ? 400 : 500 }
+      { message: error instanceof Error ? errorMessage : 'Internal Server Error' },
+      { status: error instanceof Error && errorMessage.includes('Insufficient stock') ? 400 : 500 }
     );
   }
 }

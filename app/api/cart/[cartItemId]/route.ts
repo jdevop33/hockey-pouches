@@ -50,17 +50,19 @@ export async function PUT(request: NextRequest, { params }: { params: { cartItem
         quantity: result.quantity,
       });
     } catch (error) {
-      if (error instanceof Error && error.message.includes('not found')) {
-        return NextResponse.json({ message: error.message }, { status: 404 });
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
+      if (error instanceof Error && errorMessage.includes('not found')) {
+        return NextResponse.json({ message: errorMessage }, { status: 404 });
       }
       throw error; // Re-throw for the outer catch block
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error(`Failed to update cart item ${cartItemId}:`, {
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error ? errorMessage : String(error),
     });
     return NextResponse.json(
-      { message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { message: `Error: ${error instanceof Error ? errorMessage : 'Unknown error'}` },
       { status: 500 }
     );
   }
@@ -89,17 +91,19 @@ export async function DELETE(request: NextRequest, { params }: { params: { cartI
       await cartService.removeCartItem(userId, cartItemId);
       return NextResponse.json({ message: 'Item removed from cart' });
     } catch (error) {
-      if (error instanceof Error && error.message.includes('not found')) {
-        return NextResponse.json({ message: error.message }, { status: 404 });
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
+      if (error instanceof Error && errorMessage.includes('not found')) {
+        return NextResponse.json({ message: errorMessage }, { status: 404 });
       }
       throw error; // Re-throw for the outer catch block
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error(`Failed to remove cart item ${cartItemId}:`, {
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error ? errorMessage : String(error),
     });
     return NextResponse.json(
-      { message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { message: `Error: ${error instanceof Error ? errorMessage : 'Unknown error'}` },
       { status: 500 }
     );
   }

@@ -27,9 +27,9 @@ export const stockLocationsRelations = relations(stockLocations, ({ many }) => (
 // --- Stock Levels ---
 export const stockLevels = pgTable('stock_levels', {
     id: uuid('id').primaryKey().defaultRandom(),
-    productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
-    productVariationId: integer('product_variation_id').references(() => productVariations.id, { onDelete: 'cascade' }),
-    locationId: uuid('location_id').notNull().references(() => stockLocations.id, { onDelete: 'cascade' }),
+    productId: String(integer('product_id').notNull().references(() => products.id), { onDelete: 'cascade' }),
+    productVariationId: String(integer('product_variation_id').references(() => productVariations.id), { onDelete: 'cascade' }),
+    locationId: String(uuid('location_id').notNull().references(() => stockLocations.id), { onDelete: 'cascade' }),
     quantity: integer('quantity').notNull().default(0),
     reservedQuantity: integer('reserved_quantity').notNull().default(0),
     reorderPoint: integer('reorder_point'),
@@ -51,12 +51,12 @@ export const stockLevelsRelations = relations(stockLevels, ({ one }) => ({
 // --- Stock Movements (Ledger) ---
 export const stockMovements = pgTable('stock_movements', {
     id: uuid('id').primaryKey().defaultRandom(),
-    productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
-    productVariationId: integer('product_variation_id').references(() => productVariations.id, { onDelete: 'cascade' }),
-    locationId: uuid('location_id').notNull().references(() => stockLocations.id, { onDelete: 'cascade' }),
+    productId: String(integer('product_id').notNull().references(() => products.id), { onDelete: 'cascade' }),
+    productVariationId: String(integer('product_variation_id').references(() => productVariations.id), { onDelete: 'cascade' }),
+    locationId: String(uuid('location_id').notNull().references(() => stockLocations.id), { onDelete: 'cascade' }),
     quantity: integer('quantity').notNull(), // Represents the CHANGE in quantity (+ve or -ve)
     type: stockMovementTypeEnum('type').notNull(), // Use Enum
-    referenceId: varchar('reference_id', { length: 255 }), 
+    referenceId: String(varchar('reference_id'), { length: 255 }), 
     referenceType: varchar('reference_type', { length: 50 }),
     notes: text('notes'),
     createdBy: varchar('created_by', { length: 255 }).notNull(), // Assuming this is User ID (text/uuid)

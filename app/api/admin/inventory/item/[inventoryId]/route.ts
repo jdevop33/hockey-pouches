@@ -56,10 +56,10 @@ export async function PUT(request: NextRequest, { params }: { params: { inventor
     // Optional, but good for audit trail
     const currentInventory =
       await sql`SELECT product_id, location, quantity FROM inventory WHERE id = ${inventoryId}`;
-    if (getRowCount(currentInventory) === 0) {
+    if (getRowCount(currentInventory as unknown as DbQueryResult) === 0) {
       return NextResponse.json({ message: 'Inventory item not found.' }, { status: 404 });
     }
-    const inventoryData = getFirstRow(currentInventory);
+    const inventoryData = getFirstRow(currentInventory as unknown as DbQueryResult);
     const oldQuantity = inventoryData?.quantity ?? 0;
 
     // --- Update Inventory in DB ---
@@ -89,7 +89,7 @@ export async function PUT(request: NextRequest, { params }: { params: { inventor
     }
     console.error(`Admin: Failed to update inventory ${inventoryId}:`, error);
     return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Internal Server Error' },
+      { message: error instanceof Error ? errorMessage : 'Internal Server Error' },
       { status: 500 }
     );
   }

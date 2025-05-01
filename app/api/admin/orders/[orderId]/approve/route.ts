@@ -42,8 +42,8 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
     } catch (error: unknown) {
         logger.error(`Admin: Failed to approve order ${params.orderId}:`, { error });
         // Handle specific errors from service (e.g., not found, invalid transition)
-        if (error.message?.includes('not found') || error.message?.includes('Invalid status transition')) {
-            return NextResponse.json({ message: error.message }, { status: 400 }); // Or 404
+        if (errorMessage || errorMessage) {
+            return NextResponse.json({ message: errorMessage }, { status: 400 }); // Or 404
         }
         return NextResponse.json({ message: 'Internal Server Error approving order.' }, { status: 500 });
     }

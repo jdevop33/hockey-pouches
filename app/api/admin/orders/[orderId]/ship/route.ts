@@ -133,7 +133,7 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
         await sendShippingConfirmationEmail({
           customerEmail: customerData.email,
           customerName: `${customerData.firstName} ${customerData.lastName}`,
-          orderId: orderIdString,
+          orderId: String(orderIdString),
           trackingNumber: finalTrackingNumber || undefined,
           trackingUrl: body.trackingUrl || undefined,
         });

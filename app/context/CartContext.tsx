@@ -290,7 +290,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         // Force save to localStorage
         try {
           const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
-          const existingItemIndex = currentCart.findIndex((item: any) => item.product.id === validProduct.id);
+          const existingItemIndex = currentCart.findIndex((item: unknown) => item.product.id === validProduct.id);
 
           if (existingItemIndex >= 0) {
             currentCart[existingItemIndex].quantity += quantity;

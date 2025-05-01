@@ -45,6 +45,22 @@ import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
 // Import schema
  // Import db for updates
 import { eq, and } from 'drizzle-orm'; // Import operators
@@ -162,9 +178,9 @@ export async function POST(request: NextRequest) {
       message: `Discount applied: ${discountCode.description || code}`
     });
   } catch (error: unknown) {
-    logger.error('Error applying discount code:', { error: error.message, stack: error.stack });
+    logger.error('Error applying discount code:', { error: errorMessage, stack: error.stack });
     return NextResponse.json(
-      { message: error.message || 'Internal Server Error' },
+      { message: errorMessage || 'Internal Server Error' },
       { status: 500 }
     );
   }

@@ -134,7 +134,7 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
 
     const items = itemRows.map((item) => ({
       id: item.id,
-      productVariationId: item.productVariationId,
+      productVariationId: String(item.productVariationId),
       productName: item.product_name,
       variationName: item.variation_name,
       quantity: item.quantity,
@@ -152,7 +152,7 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
             shippingAddress = orderData.shipping_address as Address;
         }
     } catch (e) {
-        logger.error('Failed to parse shipping address JSON', { orderId: orderIdNum, address: orderData.shipping_address, error: e });
+        logger.error('Failed to parse shipping address JSON', { orderId: String(orderIdNum), address: orderData.shipping_address, error: e });
         shippingAddress = null;
     }
      try {
@@ -162,7 +162,7 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
             billingAddress = orderData.billing_address as Address;
         }
     } catch (e) {
-        logger.error('Failed to parse billing address JSON', { orderId: orderIdNum, address: orderData.billing_address, error: e });
+        logger.error('Failed to parse billing address JSON', { orderId: String(orderIdNum), address: orderData.billing_address, error: e });
         billingAddress = null;
     }
 

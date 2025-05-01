@@ -10,7 +10,7 @@ if (!process.env.POSTGRES_URL) {
 }
 
 export default {
-  dialect: 'postgresql', // Updated from "pg" to "postgresql"
+  dialect: "pg", // Updated from "pg" to "postgresql"
   schema: './app/lib/schema/*',
   out: './db/migrations/drizzle',
   // Use the single POSTGRES_URL environment variable

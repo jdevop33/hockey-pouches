@@ -57,7 +57,7 @@ export default function AdminInventoryPage() {
   // Add transfer state
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferData, setTransferData] = useState<TransferData>({
-    sourceInventoryId: 0,
+    sourceInventoryId: String(0),
     targetLocation: '',
     quantity: 0,
     reason: '',
@@ -118,7 +118,7 @@ export default function AdminInventoryPage() {
         }
       } catch (err: unknown) {
         const error = err as Error;
-        setError(error.message || 'Failed to load inventory.');
+        setError(errorMessage || 'Failed to load inventory.');
         console.error(err);
       } finally {
         setIsLoadingData(false);
@@ -204,7 +204,7 @@ export default function AdminInventoryPage() {
     } catch (err: unknown) {
       const error = err as Error;
       console.error('Adjust quantity error:', err);
-      const errorMsg = `Item ${item.inventoryId}: ${error.message}` || 'Could not update quantity.';
+      const errorMsg = `Item ${item.inventoryId}: ${errorMessage}` || 'Could not update quantity.';
       setActionError(errorMsg);
       alert(`Error: ${errorMsg}`);
     } finally {
@@ -215,14 +215,14 @@ export default function AdminInventoryPage() {
   const handleInitiateTransfer = (item?: InventoryItemAdmin) => {
     if (item) {
       setTransferData({
-        sourceInventoryId: item.inventoryId,
+        sourceInventoryId: String(item.inventoryId),
         targetLocation: '',
         quantity: Math.min(10, item.quantity), // Default to 10 or max available
         reason: '',
       });
     } else {
       setTransferData({
-        sourceInventoryId: 0,
+        sourceInventoryId: String(0),
         targetLocation: '',
         quantity: 0,
         reason: '',
@@ -234,7 +234,7 @@ export default function AdminInventoryPage() {
   const handleCloseTransferModal = () => {
     setIsTransferModalOpen(false);
     setTransferData({
-      sourceInventoryId: 0,
+      sourceInventoryId: String(0),
       targetLocation: '',
       quantity: 0,
       reason: '',
@@ -293,7 +293,7 @@ export default function AdminInventoryPage() {
     } catch (err: unknown) {
       const error = err as Error;
       console.error('Transfer error:', err);
-      setActionError(error.message || 'Failed to transfer inventory');
+      setActionError(errorMessage || 'Failed to transfer inventory');
     } finally {
       setIsTransferring(false);
     }
@@ -619,7 +619,7 @@ export default function AdminInventoryPage() {
                                 onChange={e =>
                                   setTransferData({
                                     ...transferData,
-                                    sourceInventoryId: parseInt(e.target.value),
+                                    sourceInventoryId: String(parseInt(e.target.value)),
                                   })
                                 }
                                 required

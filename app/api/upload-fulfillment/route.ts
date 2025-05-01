@@ -17,6 +17,7 @@ async function verifyDistributor(request: NextRequest): Promise<boolean> { /* ..
         const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
         return decoded.role === 'Distributor';
     } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
         return false;
     }
 }
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (error: unknown) {
     console.error('Blob upload failed:', error);
     return NextResponse.json(
-      { message: `Blob upload failed: ${error.message}` },
+      { message: `Blob upload failed: ${errorMessage}` },
       { status: 500 },
     );
   }

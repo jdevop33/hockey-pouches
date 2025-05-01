@@ -35,7 +35,7 @@ const shouldLoadGA = () => {
 };
 
 // Debounce function to limit GA events
-const debounce = (func: Function, wait: number) => {
+const debounce = (func: (...args: unknown[]) => void, wait: number) => {
   let timeout: NodeJS.Timeout;
   return function executedFunction(...args: unknown[]) {
     const later = () => {
@@ -51,14 +51,10 @@ const GoogleAnalyticsContent = memo(function GoogleAnalyticsContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Skip in development or if using placeholder ID
-  if (!shouldLoadGA()) {
-    return null;
-  }
-
   // Debounced page view tracking
   useEffect(() => {
-    if (!pathname || !window.gtag) return;
+    // Skip in development or if using placeholder ID
+    if (!shouldLoadGA() || !pathname || !window.gtag) return;
 
     const debouncedPageView = debounce(() => {
       window.gtag('config', GA_MEASUREMENT_ID, {
@@ -69,6 +65,11 @@ const GoogleAnalyticsContent = memo(function GoogleAnalyticsContent() {
 
     debouncedPageView();
   }, [pathname, searchParams]);
+
+  // Skip in development or if using placeholder ID
+  if (!shouldLoadGA()) {
+    return null;
+  }
 
   return (
     <>

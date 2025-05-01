@@ -29,11 +29,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(cartSummary);
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error('Failed to get cart items:', {
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error ? errorMessage : String(error),
     });
     return NextResponse.json(
-      { message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { message: `Error: ${error instanceof Error ? errorMessage : 'Unknown error'}` },
       { status: 500 }
     );
   }
@@ -73,23 +74,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           message: 'Item added to cart',
-          cartItemId: result.id, // Changed from result.cartItemId
+          cartItemId: String(result.id), // Changed from result.cartItemId
           quantity: result.quantity,
         },
         { status: 201 }
       );
     } catch (error) {
-      if (error instanceof Error && error.message.includes('not found')) {
-        return NextResponse.json({ message: error.message }, { status: 404 });
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
+      if (error instanceof Error && errorMessage.includes('not found')) {
+        return NextResponse.json({ message: errorMessage }, { status: 404 });
       }
       throw error; // Re-throw for the outer catch block
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error('Failed to add item to cart:', {
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error ? errorMessage : String(error),
     });
     return NextResponse.json(
-      { message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { message: `Error: ${error instanceof Error ? errorMessage : 'Unknown error'}` },
       { status: 500 }
     );
   }
@@ -116,11 +119,12 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ message: 'Cart cleared successfully' });
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error('Failed to clear cart:', {
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error ? errorMessage : String(error),
     });
     return NextResponse.json(
-      { message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { message: `Error: ${error instanceof Error ? errorMessage : 'Unknown error'}` },
       { status: 500 }
     );
   }

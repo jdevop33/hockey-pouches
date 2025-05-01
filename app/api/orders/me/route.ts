@@ -35,9 +35,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result);
 
   } catch (error) {
+    const errorMessage = error instanceof Error ? errorMessage : String(error);
     logger.error('Failed to get customer orders API route:', { error });
     // Avoid exposing internal error messages directly
-    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    const message = error instanceof Error ? errorMessage : 'Internal Server Error';
      // Return a generic error response
      // Consider more specific error codes if applicable (e.g., 400 for bad request)
      return NextResponse.json({ message: "Failed to retrieve orders." }, { status: 500 });

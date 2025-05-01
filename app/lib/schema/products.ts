@@ -38,7 +38,7 @@ export const productsRelations = relations(products, ({ many }) => ({
 // --- Product Variations ---
 export const productVariations = pgTable('product_variations', {
   id: serial('id').primaryKey(),
-  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  productId: String(integer('product_id').notNull().references(() => products.id), { onDelete: 'cascade' }),
   name: varchar('name', { length: 255 }).notNull(), // e.g., "Cool mint (6mg)"
   flavor: varchar('flavor', { length: 100 }), // e.g., "Cool mint"
   strength: integer('strength'), // e.g., 6

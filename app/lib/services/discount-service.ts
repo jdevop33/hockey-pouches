@@ -38,15 +38,24 @@ export interface CreateDiscountCodeParams {
 export type UpdateDiscountCodeParams = Partial<Omit<CreateDiscountCodeParams, 'code'>>; // Cannot change code, other fields optional
 
 export class DiscountService {
-  async listDiscountCodes(options: ListDiscountCodesOptions): Promise<ListDiscountCodesResult> {
+  async listDiscountCodes(...args): Promise<ListDiscountCodesResult> {
+    // TODO: Implement listDiscountCodes
+    return {} as ListDiscountCodesResult;
+
     /* ... implementation ... */
   }
-  async createDiscountCode(params: CreateDiscountCodeParams): Promise<DiscountCodeSelect> {
+  async createDiscountCode(...args): Promise<DiscountCodeSelect> {
+    // TODO: Implement createDiscountCode
+    return {} as DiscountCodeSelect;
+
     /* ... implementation ... */
   }
 
   // --- NEW: Get Single Discount Code ---
-  async getDiscountCodeById(id: number): Promise<DiscountCodeSelect | null> {
+  async getDiscountCodeById(...args): Promise<DiscountCodeSelect | null> {
+    // TODO: Implement getDiscountCodeById
+    return {} as DiscountCodeSelect | null;
+
     try {
       const result = await db.query.discountCodes.findFirst({
         where: eq(schema.discountCodes.id, id),
@@ -59,10 +68,10 @@ export class DiscountService {
   }
 
   // --- NEW: Update Discount Code ---
-  async updateDiscountCode(
-    id: number,
-    params: UpdateDiscountCodeParams
-  ): Promise<DiscountCodeSelect> {
+  async updateDiscountCode(...args): Promise<DiscountCodeSelect> {
+    // TODO: Implement updateDiscountCode
+    return {} as DiscountCodeSelect;
+
     try {
       // Prepare update data
       const updateData: Partial<DiscountCodeInsert> = {
@@ -127,18 +136,26 @@ export class DiscountService {
   }
 
   // --- Validation and Usage ---
-  async validateDiscountCode(
-    code: string,
-    orderAmount: number
-  ): Promise<{
+  async validateDiscountCode(...args): Promise<{
     valid: boolean;
     discountType?: DiscountType;
     discountValue?: number;
     message: string;
   }> {
+    // TODO: Implement validateDiscountCode
+    return {} as {
+    valid: boolean;
+    discountType?: DiscountType;
+    discountValue?: number;
+    message: string;
+  };
+
     /* ... implementation ... */
   }
-  async incrementDiscountCodeUsage(code: string, transaction?: unknown): Promise<boolean> {
+  async incrementDiscountCodeUsage(...args): Promise<boolean> {
+    // TODO: Implement incrementDiscountCodeUsage
+    return {} as boolean;
+
     const dbOrTx = transaction ?? db;
     try {
       const result = await dbOrTx

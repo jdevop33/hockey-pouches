@@ -244,7 +244,7 @@ export default function CheckoutPage() {
         message: data.message,
       });
     } catch (error: unknown) {
-      setDiscountError(error instanceof Error ? error.message : 'Failed to apply discount code');
+      setDiscountError(error instanceof Error ? errorMessage : 'Failed to apply discount code');
     } finally {
       setIsApplyingDiscount(false);
     }
@@ -273,7 +273,7 @@ export default function CheckoutPage() {
 
     const orderData = {
       items: items.map(item => ({
-        productId: item.product.id,
+        productId: String(item.product.id),
         quantity: item.quantity,
         price: item.product.price,
       })),

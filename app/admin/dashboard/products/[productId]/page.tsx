@@ -69,7 +69,7 @@ export default function AdminProductDetailPage() {
           setEditData(data);
         } catch (err: unknown) {
           const error = err as Error;
-          setError(error.message || 'Failed to load product details.');
+          setError(errorMessage || 'Failed to load product details.');
           console.error(err);
         } finally {
           setIsLoadingData(false);
@@ -104,7 +104,7 @@ export default function AdminProductDetailPage() {
       setVariations(data as ProductVariation[]);
     } catch (err: unknown) {
       const error = err as Error;
-      setVariationError(error.message || 'Failed to load variations.');
+      setVariationError(errorMessage || 'Failed to load variations.');
       console.error(err);
     } finally {
       setIsLoadingVariations(false);
@@ -254,7 +254,7 @@ export default function AdminProductDetailPage() {
       alert('Changes saved!');
     } catch (err: unknown) {
       const error = err as Error;
-      setError(error.message || 'Failed to save changes.');
+      setError(errorMessage || 'Failed to save changes.');
       console.error(err);
     } finally {
       setIsSaving(false);
@@ -332,7 +332,7 @@ export default function AdminProductDetailPage() {
       setCurrentVariation(null);
     } catch (err: unknown) {
       const error = err as Error;
-      setVariationError(error.message || 'Failed to save variation.');
+      setVariationError(errorMessage || 'Failed to save variation.');
       console.error(err);
     } finally {
       setIsSavingVariation(false);
@@ -364,7 +364,7 @@ export default function AdminProductDetailPage() {
       await loadVariations();
     } catch (err: unknown) {
       const error = err as Error;
-      setVariationError(error.message || 'Failed to delete variation.');
+      setVariationError(errorMessage || 'Failed to delete variation.');
       console.error(err);
     }
   };

@@ -14,7 +14,7 @@ type AdminTaskDetails = {
   category: string;
   status: 'Pending' | 'In Progress' | 'Completed' | 'Deferred';
   assignedUserId?: string | null;
-  assignedUserName?: string | null; 
+  assignedUserName?: string | null;
   dueDate?: string | null;
   relatedTo?: { type: string; id: string; };
   priority?: 'Low' | 'Medium' | 'High';
@@ -37,7 +37,7 @@ export default function AdminTaskDetailPage() {
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false); 
+  const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<AdminTaskDetails>>({});
 
   // TODO: Implement proper authentication check and ensure user role is 'Admin'
@@ -54,11 +54,11 @@ export default function AdminTaskDetailPage() {
         // TODO: Replace placeholder with actual API calls
         // - Fetch task details from /api/tasks/[taskId] (ensure admin access allowed)
         // - Fetch list of assignable users (e.g., /api/admin/users?role=Admin&role=Distributor)
-        
+
         await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
         const data: AdminTaskDetails = {
             id: taskId,
-            title: `Task ${taskId.substring(0,5)} Title`, 
+            title: `Task ${taskId.substring(0,5)} Title`,
             description: 'This is a detailed task description that the admin can edit.',
             category: 'Order Approval',
             status: 'Pending',
@@ -74,10 +74,10 @@ export default function AdminTaskDetailPage() {
          // Assert types for status and priority
         data.status = data.status as AdminTaskDetails['status'];
         data.priority = data.priority as AdminTaskDetails['priority'];
-        
+
         setTask(data);
-        setEditData(data); 
-        
+        setEditData(data);
+
         // Simulate assignable users
         setAssignableUsers([
             { id: 'admin-1', name: 'Admin User' },
@@ -85,7 +85,7 @@ export default function AdminTaskDetailPage() {
             { id: 'dist-1', name: 'Vancouver Distributor' },
         ]);
 
-      } catch (err) {
+      } catch (err: unknown) {
         setError('Failed to load task details.');
         console.error(err);
       } finally {
@@ -100,35 +100,35 @@ export default function AdminTaskDetailPage() {
       // Handle empty string for optional fields like dueDate or assignedUserId
       if (e.target.name === 'dueDate' && value === '') value = null;
       if (e.target.name === 'assignedUserId' && value === '') value = null;
-      
+
       setEditData(prev => ({ ...prev, [e.target.name]: value }));
   };
 
    const handleSaveChanges = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!task) return;
-      
+
       // TODO: Call PUT /api/tasks/[taskId] with relevant fields from editData
       try {
           await new Promise(resolve => setTimeout(resolve, 500)); // Simulate save
           setTask(editData as AdminTaskDetails); // Update displayed data
           setIsEditing(false);
           alert('Task updated!');
-      } catch (err) { 
+      } catch (err: unknown) {
           alert('Failed to update task.');
           console.error(err);
       }
   };
-  
+
    const handleCompleteTask = async () => {
       if (!task || task.status === 'Completed') return;
       const confirmAction = confirm(`Mark this task as complete?`);
       if (!confirmAction) return;
-      
+
       setIsActionLoading(true);
       setActionError(null);
       const endpoint = `/api/tasks/${taskId}/complete`;
-      
+
       try {
           // TODO: Call POST endpoint
           await new Promise(resolve => setTimeout(resolve, 500)); // Simulate action
@@ -139,11 +139,11 @@ export default function AdminTaskDetailPage() {
           setEditData(prev => ({ ...prev, status: newStatus, completedAt: completionTime }));
           alert('Task marked as complete!');
       } catch (err: unknown) {
-           setActionError(err.message || `Failed to complete task.`);
+           setActionError(err instanceof Error ? err.message : `Failed to complete task.`);
       } finally {
            setIsActionLoading(false);
       }
-  }; 
+  };
 
   if (isLoading) return <Layout><div className="p-8">Loading task details...</div></Layout>;
   if (!isAuthenticated || !isAdmin) return <Layout><div className="p-8">Access Denied.</div></Layout>;
@@ -163,7 +163,7 @@ export default function AdminTaskDetailPage() {
                    {isEditing ? 'Edit Task' : 'Task Details'}
                  </h1>
                  <div>
-                     {/* Action Buttons */} 
+                     {/* Action Buttons */}
                      {!isEditing && task.status !== 'Completed' && (
                           <button type="button" onClick={handleCompleteTask} disabled={isActionLoading} className="mr-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded disabled:opacity-50">
                               {isActionLoading ? 'Processing...' : 'Mark Complete'}
@@ -187,9 +187,9 @@ export default function AdminTaskDetailPage() {
             </div>
              {actionError && <p className="text-red-500 text-sm mb-3">Error: {actionError}</p>}
 
-            {/* Task Details Form/Display */} 
+            {/* Task Details Form/Display */}
             <div className="bg-white shadow-lg rounded-lg p-6 space-y-6">
-                 {/* Core Task Info */} 
+                 {/* Core Task Info */}
                  <div>
                      <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
                      <input type="text" id="title" name="title" value={editData.title || ''} onChange={handleInputChange} readOnly={!isEditing} required className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm ${!isEditing ? 'bg-gray-100' : ''}`} />
@@ -198,8 +198,8 @@ export default function AdminTaskDetailPage() {
                      <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
                      <textarea id="description" name="description" rows={3} value={editData.description || ''} onChange={handleInputChange} readOnly={!isEditing} className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm ${!isEditing ? 'bg-gray-100' : ''}`} />
                  </div>
-                 
-                 {/* Status, Priority, Category, Assignee, Due Date */} 
+
+                 {/* Status, Priority, Category, Assignee, Due Date */}
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                      <div>
                          <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
@@ -221,7 +221,7 @@ export default function AdminTaskDetailPage() {
                      </div>
                        <div>
                          <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
-                         {/* TODO: Make category a dropdown or predefined list? */} 
+                         {/* TODO: Make category a dropdown or predefined list? */}
                          <input type="text" id="category" name="category" value={editData.category || ''} onChange={handleInputChange} readOnly={!isEditing} required className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm ${!isEditing ? 'bg-gray-100' : ''}`} />
                      </div>
                      <div>
@@ -236,8 +236,8 @@ export default function AdminTaskDetailPage() {
                          <input type="date" id="dueDate" name="dueDate" value={editData.dueDate || ''} onChange={handleInputChange} readOnly={!isEditing} className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm ${!isEditing ? 'bg-gray-100' : ''}`} />
                      </div>
                  </div>
-                 
-                  {/* Related Item & Meta Info */} 
+
+                  {/* Related Item & Meta Info */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t pt-6 mt-6">
                       <div>
                           <label className="block text-sm font-medium text-gray-500">Related To</label>
