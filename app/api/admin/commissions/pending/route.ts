@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
     const totalRows = getRows(countQuery);
 
     // Parse the count (ensuring we have a string count property)
-    const totalPending = parseInt(String(Array.isArray(totalRows) ? totalRows[0] : null?.count || '0'), 10);
+    const totalPending = parseInt(String(Array.isArray(totalRows) ? Array.isArray(totalRows) ? totalRows[0] : null : null?.count || '0'), 10);
     const totalPages = Math.ceil(totalPending / limit);
 
     return NextResponse.json({

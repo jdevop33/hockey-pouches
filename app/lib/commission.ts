@@ -57,7 +57,7 @@ export async function calculateOrderReferralCommission(
     `);
 
     const referrerRows = getRows(referrerResult) as UserRow[];
-    if (Array.isArray(referrerRows) ? referrerRows.length : 0 === 0) {
+    if (Array.isArray(referrerRows) ? Array.isArray(referrerRows) ? referrerRows.length : 0 : 0 === 0) {
       logger.warn('Referrer user not found by code', { orderId, referralCode });
       return {
         success: false,
@@ -65,7 +65,7 @@ export async function calculateOrderReferralCommission(
       };
     }
 
-    const referrer = Array.isArray(referrerRows) ? referrerRows[0] : null;
+    const referrer = Array.isArray(referrerRows) ? Array.isArray(referrerRows) ? referrerRows[0] : null : null;
 
     // TODO: Get commission rate from referrer user record or config
     const commissionRate = 0.05; // Placeholder 5%
@@ -100,7 +100,7 @@ export async function calculateOrderReferralCommission(
 
     const commissionRows = getRows(commissionResult) as CommissionInsertRow[];
     // Ensure commissionId is treated as string (UUID)
-    const commissionId = Array.isArray(commissionRows) ? commissionRows[0] : null?.id;
+    const commissionId = Array.isArray(commissionRows) ? Array.isArray(commissionRows) ? commissionRows[0] : null : null?.id;
 
     if (!commissionId) {
       logger.error('Failed to create commission record after insert', { orderId, referrerId: referrer.id });
@@ -148,7 +148,7 @@ export async function calculateDistributorFulfillmentCommission(
     `);
 
     const distributorRows = getRows(distributorResult) as (UserRow & { role: string })[];
-    if (Array.isArray(distributorRows) ? distributorRows.length : 0 === 0) {
+    if (Array.isArray(distributorRows) ? Array.isArray(distributorRows) ? distributorRows.length : 0 : 0 === 0) {
       logger.warn('Distributor user not found', { orderId, distributorId });
       return {
         success: false,
@@ -156,7 +156,7 @@ export async function calculateDistributorFulfillmentCommission(
       };
     }
 
-    const distributor = Array.isArray(distributorRows) ? distributorRows[0] : null;
+    const distributor = Array.isArray(distributorRows) ? Array.isArray(distributorRows) ? distributorRows[0] : null : null;
 
     // Verify the user is a distributor
     if (distributor.role !== 'Distributor') {
@@ -199,7 +199,7 @@ export async function calculateDistributorFulfillmentCommission(
     `);
 
     const commissionRows = getRows(commissionResult) as CommissionInsertRow[];
-    const commissionId = Array.isArray(commissionRows) ? commissionRows[0] : null?.id;
+    const commissionId = Array.isArray(commissionRows) ? Array.isArray(commissionRows) ? commissionRows[0] : null : null?.id;
 
     if (!commissionId) {
       logger.error('Failed to create fulfillment commission record after insert', { orderId, distributorId });

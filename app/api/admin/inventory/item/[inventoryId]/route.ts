@@ -56,10 +56,10 @@ export async function PUT(request: NextRequest, { params }: { params: { inventor
     // Optional, but good for audit trail
     const currentInventory =
       await sql`SELECT product_id, location, quantity FROM inventory WHERE id = ${inventoryId}`;
-    if (getRowCount(currentInventory as unknown as DbQueryResult) === 0) {
+    if (getRowCount(currentInventory as unknown as DbQueryResult as unknown as DbQueryResult) === 0) {
       return NextResponse.json({ message: 'Inventory item not found.' }, { status: 404 });
     }
-    const inventoryData = getFirstRow(currentInventory as unknown as DbQueryResult);
+    const inventoryData = getFirstRow(currentInventory as unknown as DbQueryResult as unknown as DbQueryResult);
     const oldQuantity = inventoryData?.quantity ?? 0;
 
     // --- Update Inventory in DB ---

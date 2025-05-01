@@ -116,7 +116,7 @@ export function buildPaginationQuery({
   const offset = (validPage - 1) * validLimit;
 
   // Build where clause if any conditions are provided
-  const whereClause = Array.isArray(whereConditions) ? whereConditions.length : 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+  const whereClause = Array.isArray(whereConditions) ? Array.isArray(whereConditions) ? whereConditions.length : 0 : 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
   // Build query string
   const query = `
@@ -191,7 +191,7 @@ export async function getById(
     SELECT ${sql.raw(fields)} FROM ${sql.raw(table)} WHERE id = ${id} LIMIT 1
   `);
 
-  return getFirstRow(result as unknown as DbQueryResult);
+  return getFirstRow(result as unknown as DbQueryResult as unknown as DbQueryResult);
 }
 
 /**
@@ -206,7 +206,7 @@ export async function getByIds(
   ids: (number | string)[],
   fields: string = '*'
 ): Promise<unknown[]> {
-  if (Array.isArray(ids) ? ids.length : 0 === 0) return [];
+  if (Array.isArray(ids) ? Array.isArray(ids) ? ids.length : 0 : 0 === 0) return [];
 
   // This is a simplified implementation using IN clause
   // For larger sets of IDs, you might want to use a different approach
@@ -214,7 +214,7 @@ export async function getByIds(
     SELECT ${sql.raw(fields)} FROM ${sql.raw(table)} WHERE id IN (${ids})
   `);
 
-  return getRows(result as unknown as DbQueryResult);
+  return getRows(result as unknown as DbQueryResult as unknown as DbQueryResult);
 }
 
 /**
@@ -240,7 +240,7 @@ export async function insert(table: string, data: Record<string, unknown>): Prom
   `;
 
   const result = await db.execute(query);
-  return getFirstRow(result as unknown as DbQueryResult);
+  return getFirstRow(result as unknown as DbQueryResult as unknown as DbQueryResult);
 }
 
 /**
@@ -269,7 +269,7 @@ export async function update(
     RETURNING *
   `);
 
-  return getFirstRow(result as unknown as DbQueryResult);
+  return getFirstRow(result as unknown as DbQueryResult as unknown as DbQueryResult);
 }
 
 /**
@@ -283,7 +283,7 @@ export async function remove(table: string, id: number | string): Promise<boolea
     DELETE FROM ${sql.raw(table)} WHERE id = ${id}
   `);
 
-  return getRowCount(result as unknown as DbQueryResult) > 0;
+  return getRowCount(result as unknown as DbQueryResult as unknown as DbQueryResult) > 0;
 }
 
 /**

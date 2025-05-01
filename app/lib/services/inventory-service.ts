@@ -186,7 +186,7 @@ export class InventoryService {
         const existingRows = getRows(existingResult);
         let stockLevel: StockLevel;
 
-        if (Array.isArray(existingRows) ? existingRows.length : 0 === 0) {
+        if (Array.isArray(existingRows) ? Array.isArray(existingRows) ? existingRows.length : 0 : 0 === 0) {
           // Create new stock level record
           const createResult = await sql`
             INSERT INTO stock_levels (
@@ -215,7 +215,7 @@ export class InventoryService {
           stockLevel = getRows(createResult)[0] as StockLevel;
         } else {
           // Update existing stock level record
-          const existing = Array.isArray(existingRows) ? existingRows[0] : null;
+          const existing = Array.isArray(existingRows) ? Array.isArray(existingRows) ? existingRows[0] : null : null;
           const newQuantity = existing.quantity + quantity;
 
           const updateResult = await sql`
@@ -314,7 +314,7 @@ export class InventoryService {
 
           const stockRows = getRows(stockResult);
 
-          if (Array.isArray(stockRows) ? stockRows.length : 0 === 0) {
+          if (Array.isArray(stockRows) ? Array.isArray(stockRows) ? stockRows.length : 0 : 0 === 0) {
             errors.push({
               productId: String(item.productId),
               variationId: String(item.variationId),
@@ -323,7 +323,7 @@ export class InventoryService {
             continue;
           }
 
-          const stockLevel = Array.isArray(stockRows) ? stockRows[0] : null;
+          const stockLevel = Array.isArray(stockRows) ? Array.isArray(stockRows) ? stockRows[0] : null : null;
           const availableQuantity = stockLevel.quantity - stockLevel.reserved_quantity;
 
           if (availableQuantity < item.quantity) {
@@ -376,7 +376,7 @@ export class InventoryService {
         await sql`COMMIT`;
 
         return {
-          success: Array.isArray(errors) ? errors.length : 0 === 0,
+          success: Array.isArray(errors) ? Array.isArray(errors) ? errors.length : 0 : 0 === 0,
           errors,
         };
       } catch (error) {
@@ -426,7 +426,7 @@ export class InventoryService {
 
           const stockRows = getRows(stockResult);
 
-          if (Array.isArray(stockRows) ? stockRows.length : 0 === 0) {
+          if (Array.isArray(stockRows) ? Array.isArray(stockRows) ? stockRows.length : 0 : 0 === 0) {
             errors.push({
               productId: String(item.productId),
               variationId: String(item.variationId),
@@ -435,7 +435,7 @@ export class InventoryService {
             continue;
           }
 
-          const stockLevel = Array.isArray(stockRows) ? stockRows[0] : null;
+          const stockLevel = Array.isArray(stockRows) ? Array.isArray(stockRows) ? stockRows[0] : null : null;
 
           if (stockLevel.reserved_quantity < item.quantity) {
             errors.push({
@@ -488,7 +488,7 @@ export class InventoryService {
         await sql`COMMIT`;
 
         return {
-          success: Array.isArray(errors) ? errors.length : 0 === 0,
+          success: Array.isArray(errors) ? Array.isArray(errors) ? errors.length : 0 : 0 === 0,
           errors,
         };
       } catch (error) {
@@ -536,7 +536,7 @@ export class InventoryService {
 
         const sourceRows = getRows(sourceResult);
 
-        if (Array.isArray(sourceRows) ? sourceRows.length : 0 === 0) {
+        if (Array.isArray(sourceRows) ? Array.isArray(sourceRows) ? sourceRows.length : 0 : 0 === 0) {
           await sql`ROLLBACK`;
           return {
             success: false,
@@ -544,7 +544,7 @@ export class InventoryService {
           };
         }
 
-        const sourceStock = Array.isArray(sourceRows) ? sourceRows[0] : null;
+        const sourceStock = Array.isArray(sourceRows) ? Array.isArray(sourceRows) ? sourceRows[0] : null : null;
         const availableQuantity = sourceStock.quantity - sourceStock.reserved_quantity;
 
         if (availableQuantity < quantity) {
@@ -603,7 +603,7 @@ export class InventoryService {
 
         const targetRows = getRows(targetResult);
 
-        if (Array.isArray(targetRows) ? targetRows.length : 0 === 0) {
+        if (Array.isArray(targetRows) ? Array.isArray(targetRows) ? targetRows.length : 0 : 0 === 0) {
           // Create new stock record at target
           await sql`
             INSERT INTO stock_levels (
@@ -631,7 +631,7 @@ export class InventoryService {
             SET 
               quantity = quantity + ${quantity},
               updated_at = NOW()
-            WHERE id = ${Array.isArray(targetRows) ? targetRows[0] : null.id}
+            WHERE id = ${Array.isArray(targetRows) ? Array.isArray(targetRows) ? targetRows[0] : null : null.id}
           `;
         }
 

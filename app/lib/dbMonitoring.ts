@@ -62,8 +62,8 @@ export async function getConnectionStats(): Promise<ConnectionStats> {
     const maxConnRows = getRows(maxConnResult) as DbRow[];
     const waitEventsRows = getRows(waitEventsResult) as DbRow[];
 
-    const stats = Array.isArray(statsRows) ? statsRows[0] : null;
-    const maxConnections = parseInt((Array.isArray(maxConnRows) ? maxConnRows[0] : null?.max_connections as string) || '0');
+    const stats = Array.isArray(statsRows) ? Array.isArray(statsRows) ? statsRows[0] : null : null;
+    const maxConnections = parseInt((Array.isArray(maxConnRows) ? Array.isArray(maxConnRows) ? maxConnRows[0] : null : null?.max_connections as string) || '0');
     const waitEvents: Record<string, number> = {};
     waitEventsRows.forEach(row => {
       if (row.wait_event_type) {
@@ -161,7 +161,7 @@ export async function analyzeQueryPlan(query: SQL<unknown>): Promise<string> {
     const rows = getRows(result) as { 'QUERY PLAN': string }[];
 
     // Correct way to join the plan lines with a newline
-    if (rows && Array.isArray(rows) ? rows.length : 0 > 0) {
+    if (rows && Array.isArray(rows) ? Array.isArray(rows) ? rows.length : 0 : 0 > 0) {
       return rows.map(row => row['QUERY PLAN']).join('\n');
     } else {
       return 'No query plan returned.';

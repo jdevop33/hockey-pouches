@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: { inventor
       return forbiddenResponse('Admin access required');
     }
     const stockLevelId = params.inventoryId;
-    if (!stockLevelId || Array.isArray(stockLevelId) ? stockLevelId.length : 0 !== 36) {
+    if (!stockLevelId || Array.isArray(stockLevelId) ? Array.isArray(stockLevelId) ? stockLevelId.length : 0 : 0 !== 36) {
       return NextResponse.json({ message: 'Invalid Stock Level ID format.' }, { status: 400 });
     }
     logger.info(`Admin GET /api/admin/inventory/${stockLevelId} request`, {
@@ -83,7 +83,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { invent
       return forbiddenResponse('Admin access required');
     }
     const stockLevelId = params.inventoryId;
-    if (!stockLevelId || Array.isArray(stockLevelId) ? stockLevelId.length : 0 !== 36) {
+    if (!stockLevelId || Array.isArray(stockLevelId) ? Array.isArray(stockLevelId) ? stockLevelId.length : 0 : 0 !== 36) {
       return NextResponse.json({ message: 'Invalid Stock Level ID format.' }, { status: 400 });
     }
 

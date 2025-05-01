@@ -61,6 +61,9 @@ import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
 // Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
 // Use central schema index
 import { eq, and } from 'drizzle-orm';
 import { cartService } from '@/lib/services/cart-service'; // Use refactored cart service

@@ -641,13 +641,13 @@ export class AnalyticsService {
         sum += data.total_sales;
       });
 
-      const average = sum / Array.isArray(historicalData) ? historicalData.length : 0;
+      const average = sum / Array.isArray(historicalData) ? Array.isArray(historicalData) ? historicalData.length : 0 : 0;
 
       historicalData.forEach(data => {
         sumSquaredDiff += Math.pow(data.total_sales - average, 2);
       });
 
-      const stdDev = Math.sqrt(sumSquaredDiff / Array.isArray(historicalData) ? historicalData.length : 0);
+      const stdDev = Math.sqrt(sumSquaredDiff / Array.isArray(historicalData) ? Array.isArray(historicalData) ? historicalData.length : 0 : 0);
 
       // Calculate forecast with linear trend
       const forecast: Array<{ period: string; forecasted_sales: number; confidence: number }> = [];
@@ -665,12 +665,12 @@ export class AnalyticsService {
         sumXX += index * index;
       });
 
-      const n = Array.isArray(historicalData) ? historicalData.length : 0;
+      const n = Array.isArray(historicalData) ? Array.isArray(historicalData) ? historicalData.length : 0 : 0;
       const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
       const intercept = (sumY - slope * sumX) / n;
 
       // Generate forecast periods
-      const lastPeriod = historicalData[Array.isArray(historicalData) ? historicalData.length : 0 - 1].period;
+      const lastPeriod = historicalData[Array.isArray(historicalData) ? Array.isArray(historicalData) ? historicalData.length : 0 : 0 - 1].period;
 
       for (let i = 1; i <= forecastPeriods; i++) {
         // Calculate next period (simplified)
