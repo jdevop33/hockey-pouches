@@ -313,3 +313,49 @@ To bypass hooks in emergency situations:
 ```bash
 git commit --no-verify -m "Your commit message"
 ```
+
+## Production Build Process
+
+To ensure a clean build for production deployment, we've created a streamlined process that addresses several issues:
+
+### Build Scripts
+
+The project includes specialized scripts to fix common issues before building:
+
+1. **Schema Import Fixes**: Ensures Drizzle schema imports are correctly structured
+
+   ```
+   npm run fix:schema
+   ```
+
+2. **Viewport Metadata Migration**: Updates the metadata format to match Next.js 15 requirements
+
+   ```
+   npm run fix:viewport
+   ```
+
+3. **Cache Tag Fixes**: Addresses issues with the unstable_cache API
+
+   ```
+   npm run fix:cache
+   npm run fix:cache:specific
+   ```
+
+4. **Fix All Issues**: Run all fixes at once
+
+   ```
+   npm run fix:all
+   ```
+
+5. **Build with Fixes**: Production build that automatically applies all fixes
+   ```
+   npm run build:fixed
+   ```
+
+### Common Issues Fixed
+
+- **Viewport Metadata**: Next.js 15 requires viewport-related properties (`themeColor`, `colorScheme`, `viewport`) to be in a separate `viewport` export instead of in the `metadata` object.
+- **Schema Imports**: Ensures schema tables are imported correctly to prevent runtime errors.
+- **Cache Tags**: Fixes invalid cache tags in `unstable_cache` calls.
+
+For more details, see the scripts in the `scripts/` directory.
