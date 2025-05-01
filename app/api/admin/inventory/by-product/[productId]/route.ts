@@ -3,6 +3,7 @@ import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth
 import { db, sql } from '@/lib/db';
 import { getRows } from '@/lib/db-types';
 import { logger } from '@/lib/logger';
+import { castDbRows } from '@/lib/db-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest, { params }: { params: { productI
       ORDER BY l.name
     `);
 
-    const inventoryItems = getRows(result as unknown as DbQueryResult as unknown as DbQueryResult as unknown as DbQueryResult as unknown as DbQueryResult) as InventoryItem[];
+    const inventoryItems = castDbRows<InventoryItem[]>(getRows(result));
 
     // Calculate available quantity for each item
     const inventoryWithAvailable = inventoryItems.map(item => ({

@@ -91,7 +91,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { variat
         // Call service method
         const updatedVariation = await productService.updateVariation(variationIdNum, serviceUpdateData);
 
-        logger.info('Admin: Variation updated successfully', { variationId: String(variationIdNum), adminId: authResult.userId });
+        logger.info('Admin: Variation updated successfully', { variationId: variationIdNum, adminId: authResult.userId });
         return NextResponse.json(updatedVariation);
 
     } catch (error: unknown) {
@@ -132,7 +132,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { varia
              return NextResponse.json({ message: 'Variation not found.' }, { status: 404 });
         }
 
-        logger.info('Admin: Variation deleted successfully', { variationId: String(variationIdNum), adminId: authResult.userId });
+        logger.info('Admin: Variation deleted successfully', { variationId: variationIdNum, adminId: authResult.userId });
         // Return 204 No Content for successful deletions
         return new NextResponse(null, { status: 204 });
 

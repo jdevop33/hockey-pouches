@@ -20,7 +20,9 @@ if (!connectionString) {
   // In production, we'll log the error but not crash the app
   // This allows the app to still function for non-database operations
   if (process.env.NODE_ENV === 'production') {
-    logger.error('Running in production with missing database connection string. Some features will be unavailable.');
+    logger.error(
+      'Running in production with missing database connection string. Some features will be unavailable.'
+    );
   } else {
     throw new Error(errorMessage);
   }
@@ -92,10 +94,18 @@ function createFallbackDb(): NeonHttpDatabase<typeof schema> {
   return new Proxy({} as NeonHttpDatabase<typeof schema>, {
     get: (target, prop) => {
       // Return a function that logs the error and returns a rejected promise
-      if (prop === 'execute' || prop === 'query' || prop === 'insert' ||
-          prop === 'select' || prop === 'update' || prop === 'delete') {
+      if (
+        prop === 'execute' ||
+        prop === 'query' ||
+        prop === 'insert' ||
+        prop === 'select' ||
+        prop === 'update' ||
+        prop === 'delete'
+      ) {
         return (...args: any[]) => {
-          logger.error(`Database operation '${String(prop)}' failed: No database connection`, { args });
+          logger.error(`Database operation '${String(prop)}' failed: No database connection`, {
+            args,
+          });
           return Promise.reject(new Error('Database connection not available'));
         };
       }
@@ -105,7 +115,7 @@ function createFallbackDb(): NeonHttpDatabase<typeof schema> {
         logger.error(`Database operation '${String(prop)}' failed: No database connection`);
         return Promise.reject(new Error('Database connection not available'));
       };
-    }
+    },
   });
 }
 

@@ -359,3 +359,60 @@ The project includes specialized scripts to fix common issues before building:
 - **Cache Tags**: Fixes invalid cache tags in `unstable_cache` calls.
 
 For more details, see the scripts in the `scripts/` directory.
+
+## Fixing TypeScript Errors
+
+The codebase can sometimes develop TypeScript errors, especially related to Drizzle ORM integration.
+We've created dedicated scripts to fix these issues in a systematic way:
+
+### TypeScript Fix Scripts
+
+1. **Fix All TypeScript Issues**:
+
+   ```bash
+   npm run fix:types:all
+   ```
+
+   This runs all TypeScript fixing scripts and then runs the TypeScript checker.
+
+2. **Fix Individual Issues**:
+   - `npm run fix:typescript` - Fixes general TypeScript issues (type casts, SQL handling)
+   - `npm run fix:params` - Fixes missing function parameter types
+
+### Common TypeScript Issues
+
+The TypeScript errors in this codebase typically fall into these categories:
+
+1. **`SQL<unknown>` incompatibility with existing types**:
+
+   - This happens when Drizzle SQL types don't match our expected return types
+   - Solution: Use our utility functions `castDbRows<T>` and `castDbRow<T>` instead of direct type casting
+
+2. **Recursive error message definitions**:
+
+   - Pattern: `const errorMessage = error instanceof Error ? errorMessage : String(error)`
+   - Solution: `const errorMessage = error instanceof Error ? error.message : String(error)`
+
+3. **String/Number type mismatches**:
+
+   - Avoid using `String(number)` when a number type is expected
+   - Example: `userId: String(user.id)` → `userId: user.id`
+
+4. **Missing parameter types**:
+   - Functions with `...args` lack proper type information
+   - Solution: Explicitly define parameter types
+
+### Database Helper Functions
+
+We've created utility functions to handle type conversions safely:
+
+```typescript
+// Safe row extraction from SQL results
+const rows = getRows(sqlResult);
+
+// Type-safe row array conversion
+const typedRows = castDbRows<MyType>(rows);
+
+// Type-safe single row conversion
+const typedItem = castDbRow<MyType>(rows[0]);
+```

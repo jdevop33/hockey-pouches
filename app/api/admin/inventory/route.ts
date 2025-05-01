@@ -89,11 +89,11 @@ export async function GET(request: NextRequest) {
         }
         const inventoryQuery = db.select({
           stockLevelId: String(schema.stockLevels.id),
-          productId: String(schema.stockLevels.productId),
+          productId: schema.stockLevels.productId,
           productVariationId: String(schema.stockLevels.productVariationId),
           productName: schema.products.name,
           variationName: schema.productVariations.name,
-          locationId: String(schema.stockLevels.locationId),
+          locationId: schema.stockLevels.locationId,
           locationName: schema.stockLocations.name,
           quantity: schema.stockLevels.quantity,
           reservedQuantity: schema.stockLevels.reservedQuantity,

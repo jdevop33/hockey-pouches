@@ -39,7 +39,10 @@
     "build:vercel:emergency": "node scripts/vercel-build-fallback.mjs",
     "verify:images": "node scripts/verify-product-images.mjs",
     "check:env": "node scripts/check-env-vars.mjs",
-    "check:db": "node --loader ts-node/esm scripts/check-database.ts"
+    "check:db": "node --loader ts-node/esm scripts/check-database.ts",
+    "fix:typescript": "node scripts/fix-typescript-issues.mjs",
+    "fix:params": "node scripts/fix-missing-parameters.mjs",
+    "fix:types:all": "npm run fix:typescript && npm run fix:params && npm run typecheck"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

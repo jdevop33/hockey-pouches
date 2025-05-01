@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdmin, forbiddenResponse, unauthorizedResponse } from '@/lib/auth';
 import { db, sql } from '@/lib/db';
 import { getRows } from '@/lib/db-types';
+import { castDbRows } from '@/lib/db-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +41,6 @@ export async function GET(request: NextRequest) {
     }
 
     const adminUserId = authResult.userId;
-    
 
     // Query using SQL tagged templates instead of string interpolation
     let commissionsQuery;
@@ -80,11 +80,24 @@ export async function GET(request: NextRequest) {
     }
 
     // Convert query results to arrays
-    const commissions = getRows(commissionsQuery as unknown as DbQueryResult) as AdminCommission[];
-    const totalRows = getRows(countQuery as unknown as DbQueryResult);
+    const commissions = castDbRows<AdminCommission[]>(getRows(commissionsQuery));
+    const totalRows = getRows(countQuery);
 
     // Parse the count (ensuring we have a string count property)
-    const totalPending = parseInt(String(Array.isArray(totalRows) ? Array.isArray(totalRows) ? Array.isArray(totalRows) ? Array.isArray(totalRows) ? totalRows[0] : null : null : null : null?.count || '0'), 10);
+    const totalPending = parseInt(
+      String(
+        Array.isArray(totalRows)
+          ? Array.isArray(totalRows)
+            ? Array.isArray(totalRows)
+              ? Array.isArray(totalRows)
+                ? totalRows[0]
+                : null
+              : null
+            : null
+          : null?.count || '0'
+      ),
+      10
+    );
     const totalPages = Math.ceil(totalPending / limit);
 
     return NextResponse.json({
@@ -93,9 +106,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: unknown) {
     console.error('Admin: Failed to get pending commissions:', error);
-    return NextResponse.json(
-      { message: errorMessage || 'Internal Server Error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: errorMessage || 'Internal Server Error' }, { status: 500 });
   }
 }

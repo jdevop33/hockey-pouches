@@ -67,12 +67,12 @@ export async function POST(request: NextRequest) {
       }
       // 3. Create a Payment Record
       await tx.insert(payments).values({
-          orderId: String(orderId),
+          orderId: orderId,
           amount: amount.toFixed(2),
           method: paymentMethod,
           status: schema.paymentStatusEnum.PendingConfirmation, // Use enum
           transactionId: String(transactionDetails),
-          userId: String(userId),
+          userId: userId,
       });
       logger.info('Manual payment record created', { orderId, userId, paymentMethod });
       // 5. Create Task for Admin to Confirm Payment

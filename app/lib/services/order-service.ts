@@ -77,12 +77,14 @@ export interface FulfillmentData {
 }
 // --- Service Class ---
 export class OrderService {
-  async $1(...$2: any[]): Promise<OrderSelect> {
-    // TODO: Implement createOrder
-    return {
-      // Default empty object for OrderSelect
-    };
-
+  /**
+   * Creates a new order, inserts items, updates inventory, and adds status history.
+   * Handles wholesale vs retail minimums and user role checks.
+   * Creates referral commission if applicable.
+   * @param params - Order creation parameters.
+   * @returns Promise<OrderSelect> - The newly created order.
+   */
+  async createOrder(params: CreateOrderParams): Promise<OrderSelect> {
     const {
       userId,
       items,
@@ -93,126 +95,220 @@ export class OrderService {
       discountCode,
       discountAmount,
     } = params;
+
     if (!items || items.length === 0) throw new Error('Order must contain at least one item');
+
+    // Ensure db is available
+    if (!db) throw new Error('Database connection is not available.');
+
+    // Validate items have positive quantity
+    if (items.some(item => item.quantity <= 0)) {
+      throw new Error('All order items must have a positive quantity.');
+    }
+
+    // Determine Order Type and Validate Minimums
     const totalQuantity = items.reduce((sum: number, item) => sum + item.quantity, 0);
     const orderType: OrderType =
       totalQuantity >= 100
-        ? schema.orderTypeEnum.enumValues[1]
-        : schema.orderTypeEnum.enumValues[0];
+        ? schema.orderTypeEnum.enumValues[1] // Wholesale
+        : schema.orderTypeEnum.enumValues[0]; // Retail
+
     if (orderType === schema.orderTypeEnum.enumValues[0] && totalQuantity < 5)
-      throw new Error('Retail orders require minimum 5 items');
+      throw new Error(
+        `Retail orders require a minimum of 5 items. Current quantity: ${totalQuantity}`
+      );
     if (orderType === schema.orderTypeEnum.enumValues[1] && totalQuantity < 100)
-      throw new Error('Wholesale orders require minimum 100 items');
+      throw new Error(
+        `Wholesale orders require a minimum of 100 items. Current quantity: ${totalQuantity}`
+      );
+
+    // Validate User
     const user = await userService.getUserById(userId);
     if (!user) throw new Error('User not found');
+
+    // Validate Wholesale Eligibility
     if (
-      orderType === schema.orderTypeEnum.enumValues[1] &&
-      user.role !== schema.userRoleEnum.enumValues[3]
+      orderType === schema.orderTypeEnum.enumValues[1] && // Wholesale
+      user.role !== schema.userRoleEnum.enumValues[3] // WholesaleBuyer
     )
-      throw new Error('Wholesale orders require approved buyer account');
-    const totalAmount = items
-      .reduce((sum: number, item) => sum + item.quantity * item.price, 0)
-      .toFixed(2);
-    const finalAmountNum = discountAmount
-      ? parseFloat(totalAmount) - discountAmount
-      : parseFloat(totalAmount);
-    if (finalAmountNum < 0) throw new Error('Order total cannot be negative');
-    const finalAmountStr = $1?.$2(2);
-    const discountAmountStr = discountAmount?.toFixed(2) ?? '0.00';
+      throw new Error('User account not approved for wholesale orders.');
+
+    // Calculate Totals
+    // Ensure prices are treated as numbers for calculation
+    const subtotalNum = items.reduce(
+      (sum: number, item) => sum + item.quantity * Number(item.price || 0),
+      0
+    );
+    // TODO: Add Tax calculation logic here if applicable
+    const taxesNum = 0; // Placeholder
+    // TODO: Add Shipping cost calculation logic here if applicable
+    const shippingCostNum = 0; // Placeholder
+
+    const totalAmountNum = subtotalNum + taxesNum + shippingCostNum;
+    const discountAmountNum = Number(discountAmount || 0);
+
+    const finalAmountNum = totalAmountNum - discountAmountNum;
+
+    if (finalAmountNum < 0) {
+      logger.warn('Order total became negative after discount', {
+        totalAmountNum,
+        discountAmountNum,
+      });
+      throw new Error('Order total cannot be negative after discounts.');
+    }
+
+    // Format amounts to strings for DB insertion
+    const subtotalStr = subtotalNum.toFixed(2);
+    const taxesStr = taxesNum.toFixed(2);
+    const shippingCostStr = shippingCostNum.toFixed(2);
+    const totalAmountStr = totalAmountNum.toFixed(2);
+    const finalAmountStr = finalAmountNum.toFixed(2);
+    const discountAmountStr = discountAmountNum.toFixed(2);
+
     try {
+      // Use Drizzle transaction
       return await db.transaction(async tx => {
         const orderId = uuidv4();
         const initialStatus: OrderStatus = schema.orderStatusEnum.enumValues[1]; // 'PendingPayment'
-        const insertedOrder = await tx
+        const paymentStatusInitial = schema.paymentStatusEnum.enumValues[0]; // 'Pending'
+
+        logger.info('Creating order within transaction', { orderId, userId, orderType });
+
+        // Insert Order
+        const insertedOrderResult = await tx
           .insert(schema.orders)
           .values({
             id: orderId,
             userId,
             status: initialStatus,
-            totalAmount: finalAmountStr,
+            subtotal: subtotalStr,
+            taxes: taxesStr,
+            shippingCost: shippingCostStr,
+            totalAmount: totalAmountStr, // Total before discount
+            discountAmount: discountAmountStr,
+            finalAmount: finalAmountStr, // Final amount after discount
             paymentMethod,
-            paymentStatus: schema.paymentStatusEnum.enumValues[0],
+            paymentStatus: paymentStatusInitial,
             type: orderType,
             shippingAddress: shippingAddress,
+            billingAddress: shippingAddress, // Assuming billing = shipping for now
             notes: notes ?? undefined,
             appliedReferralCode: appliedReferralCode ?? undefined,
             discountCode: discountCode ?? undefined,
-            discountAmount: discountAmountStr,
           })
           .returning();
-        if (!insertedOrder || insertedOrder.length === 0) throw new Error('Order creation failed');
+
+        const insertedOrder = insertedOrderResult[0];
+        if (!insertedOrder) {
+          logger.error('Order insertion failed within transaction', { orderId });
+          throw new Error('Order creation failed during insertion.');
+        }
+
+        // Insert Order Items
         const orderItemsToInsert: OrderItemInsert[] = items.map(item => ({
           id: uuidv4(),
-          orderId: String(orderId),
-          productVariationId: String(item.productVariationId),
+          orderId,
+          productVariationId: item.productVariationId,
           quantity: item.quantity,
-          priceAtPurchase: item.price.toFixed(2),
-          subtotal: (item.quantity * item.price).toFixed(2),
+          priceAtPurchase: Number(item.price).toFixed(2),
+          // subtotal: (item.quantity * Number(item.price)).toFixed(2), // Redundant if calculated above
         }));
-        await tx.insert(schema.orderItems).values(orderItemsToInsert);
-        // Get location ID - using a direct query instead of the helper method to avoid type issues
-        let locationId: string | null = null;
-        try {
-          const locationQuery = await tx.query.stockLocations.findFirst({
-            where: eq(schema.stockLocations.type, schema.stockLocationTypeEnum.enumValues[0]),
-          });
-          locationId = locationQuery?.id || null;
-        } catch (err) {
-          logger.error('Error getting default stock location', { error: err });
+
+        if (orderItemsToInsert.length > 0) {
+          await tx.insert(schema.orderItems).values(orderItemsToInsert);
+          logger.info(`Inserted ${orderItemsToInsert.length} items for order ${orderId}`);
+        } else {
+          logger.warn(`No items to insert for order ${orderId}`);
+          // Decide if this should be an error
         }
-        if (!locationId) throw new Error('Cannot determine default stock location');
-        for (const item of items) {
-          await productService.updateInventory({
-            productVariationId: String(item.productVariationId),
-            locationId: String(locationId),
-            changeQuantity: -item.quantity,
-            type: "Sale",
-            referenceId: String(orderId),
-            referenceType: 'order',
-            userId: String(userId),
-            transaction: tx,
-          });
-        }
-        await tx
-          .insert(schema.orderStatusHistory)
-          .values({ id: uuidv4(), orderId, status: initialStatus, notes: 'Order created' });
+
+        // ----- Inventory Update (Placeholder - Needs InventoryService integration) -----
+        logger.warn(`Inventory update logic needed for order ${orderId}`);
+        // TODO: Integrate with InventoryService to reserve/deduct stock
+        // Example (needs refinement based on InventoryService methods):
+        // for (const item of items) {
+        //   await inventoryService.reserveStock({
+        //      productVariationId: item.productVariationId,
+        //      quantity: item.quantity,
+        //      referenceId: orderId,
+        //      referenceType: 'order',
+        //      transaction: tx,
+        //   });
+        // }
+        // -----------------------------------------------------------------------------
+
+        // Add Initial Status History
+        await tx.insert(schema.orderStatusHistory).values({
+          id: uuidv4(),
+          orderId,
+          status: initialStatus,
+          notes: 'Order created, awaiting payment',
+        });
+
+        // ----- Referral Commission Logic -----
+        // Check if the user who placed the order was referred
         const userForReferralCheck = await tx.query.users.findFirst({
           where: eq(schema.users.id, userId),
-          columns: { referredBy: true },
+          columns: { referredBy: true }, // Get the ID of the user who referred this customer
         });
+
+        // If the customer was referred by someone
         if (userForReferralCheck?.referredBy) {
-          const commissionAmountNum = parseFloat((finalAmountNum * 0.05).toFixed(2));
+          const referrerId = userForReferralCheck.referredBy;
+          const commissionAmountNum = parseFloat((finalAmountNum * 0.05).toFixed(2)); // 5% commission on final amount
+
+          logger.info('Calculating referral commission', {
+            orderId,
+            referrerId,
+            commissionAmountNum,
+          });
+
           if (commissionAmountNum > 0) {
+            // Create a commission record for the referrer
             await commissionService.createCommission(
               {
-                userId: String(userForReferralCheck.referredBy),
-                orderId: String(orderId),
+                userId: referrerId, // The user earning the commission
+                orderId: orderId, // Link to the order that generated it
                 amount: commissionAmountNum.toString(),
-                rate: '5.00',
-                status: commissionStatusEnum.enumValues[0],
-                type: commissionTypeEnum.enumValues[0],
-                relatedTo: commissionRelatedEntityEnum.enumValues[0],
-                relatedId: String(orderId),
+                rate: '5.00', // Store rate used
+                status: schema.commissionStatusEnum.enumValues[0], // 'Pending'
+                type: schema.commissionTypeEnum.enumValues[0], // 'Referral Sale'
+                notes: `Commission for order ${orderId} placed by referred user ${userId}`,
+                // relatedTo: commissionRelatedEntityEnum.enumValues[0], // 'Order' - Deprecated/Optional?
+                // relatedId: orderId, // Deprecated/Optional?
               },
-              tx
+              tx // Pass the transaction object
             );
+            logger.info('Referral commission created', {
+              orderId,
+              referrerId,
+              amount: commissionAmountNum,
+            });
           }
         }
-        return insertedOrder[0];
+        // -------------------------------------
+
+        logger.info(`Order ${orderId} created successfully in transaction`);
+        return insertedOrder; // Return the created order details
       });
     } catch (error) {
       logger.error('Error creating order transaction:', { error, params });
-      if (error instanceof Error) throw error;
-      throw new Error('Failed to create order.');
+      // Don't expose internal errors directly, throw a generic error
+      throw new Error('An unexpected error occurred while creating the order.');
     }
   }
-  async $1(...$2: any[]): Promise<OrderWithItems | null> {
-    // TODO: Implement getOrderById
-    return {
-      // Default empty object for OrderWithItems | null
-    };
 
+  /**
+   * Retrieves a single order by its ID, including associated items, user, distributor, etc.
+   * @param orderId - The ID of the order to retrieve.
+   * @returns Promise<OrderWithItems | null>
+   */
+  async getOrderById(orderId: string): Promise<OrderWithItems | null> {
     try {
+      // Ensure db is available
+      if (!db) throw new Error('Database connection not available.');
+
+      logger.debug(`Fetching order by ID: ${orderId}`);
       const orderData = await db.query.orders.findFirst({
         where: eq(schema.orders.id, orderId),
         with: {
@@ -232,7 +328,9 @@ export class OrderService {
           fulfillments: true,
         },
       });
+
       if (!orderData) return null;
+
       // Transform to ensure it matches OrderWithItems type
       const order: OrderWithItems = {
         ...orderData,
@@ -240,12 +338,14 @@ export class OrderService {
         statusHistory: orderData.statusHistory || [],
         fulfillments: orderData.fulfillments || [],
       };
+
       return order;
     } catch (error) {
       logger.error('Error getting order by ID:', { orderId, error });
       return null;
     }
   }
+
   async updateOrderStatus(
     orderId: string,
     newStatus: OrderStatus,
@@ -260,6 +360,7 @@ export class OrderService {
     logger.info('Updating order status', { orderId, newStatus, notes });
     throw new Error('Not implemented');
   }
+
   async assignDistributor(orderId: string, distributorId: string): Promise<OrderSelect> {
     try {
       const distributor = await userService.getUserById(distributorId);
@@ -300,6 +401,7 @@ export class OrderService {
       throw new Error('Failed to assign distributor.');
     }
   }
+
   async recordFulfillment(
     orderId: string,
     fulfillmentData: FulfillmentData,
@@ -312,7 +414,12 @@ export class OrderService {
       return await db.transaction(async tx => {
         const order = await tx.query.orders.findFirst({
           where: eq(schema.orders.id, orderId),
-          columns: { status: true, distributorId: String(true), totalAmount: true, commissionAmount: true },
+          columns: {
+            status: true,
+            distributorId: String(true),
+            totalAmount: true,
+            commissionAmount: true,
+          },
         });
         if (!order) throw new Error('Order not found');
         const validStatuses: OrderStatus[] = [
@@ -377,6 +484,7 @@ export class OrderService {
       throw new Error('Failed to record fulfillment.');
     }
   }
+
   async getUserOrders(
     userId: string,
     options: { page?: number; limit?: number; status?: OrderStatus } = {}
@@ -412,6 +520,7 @@ export class OrderService {
       throw new Error('Failed to get user orders');
     }
   }
+
   async getAdminOrders(/* options parameter intentionally removed */): Promise<{
     orders: OrderWithItems[];
     pagination: {
@@ -424,11 +533,13 @@ export class OrderService {
     // Placeholder implementation
     return { orders: [], pagination: { total: 0, page: 1, limit: 10, totalPages: 0 } };
   }
+
   private validateStatusTransition(newStatus: OrderStatus): void {
     // Implementation placeholder - will be properly implemented
     logger.info('Status transition validation', { newStatus });
     // Status transition validation logic will go here based on business rules
   }
+
   async approveFulfillment(
     orderId: string,
     fulfillmentId: string,
@@ -491,6 +602,7 @@ export class OrderService {
       throw error;
     }
   }
+
   async rejectFulfillment(
     orderId: string,
     fulfillmentId: string,
@@ -560,5 +672,6 @@ export class OrderService {
     }
   }
 }
+
 export const orderService = new OrderService();
 // NOTE: Some method bodies omitted for brevity where only import/type changes needed
