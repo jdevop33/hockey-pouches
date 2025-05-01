@@ -1,23 +1,12 @@
 import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { Metadata } from 'next';
+import LoginWrapper from './LoginWrapper';
 
 export const metadata: Metadata = {
   title: 'Login | Hockey Pouches',
   description: 'Sign in to your account to manage orders and access your profile.',
 };
-
-// Import the client component dynamically with proper configuration
-const LoginClient = dynamic(() => import('./LoginClient').then(mod => mod.default), {
-  loading: () => (
-    <div className="flex min-h-[300px] w-full flex-col items-center justify-center">
-      <LoadingSpinner size="large" color="gold" />
-      <p className="mt-4 text-gold-500">Loading login page...</p>
-    </div>
-  ),
-  ssr: false, // Disable SSR for this component
-});
 
 export default function LoginPage() {
   return (
@@ -29,7 +18,7 @@ export default function LoginPage() {
         </div>
       }
     >
-      <LoginClient />
+      <LoginWrapper />
     </Suspense>
   );
 }
