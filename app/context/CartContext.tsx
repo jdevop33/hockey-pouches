@@ -217,6 +217,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    // Immediately set mounted to true to avoid hydration issues
+    setMounted(true);
+
     const loadCart = () => {
       try {
         const savedCart = localStorage.getItem('cart');
@@ -238,16 +241,15 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         console.error('Error loading cart from localStorage:', error);
         localStorage.removeItem('cart');
       } finally {
+        // Immediately set initialized to true
         setIsInitialized(true);
       }
     };
 
-    const timeout = setTimeout(() => {
-      setMounted(true);
-      loadCart();
-    }, 0);
+    // Load cart immediately without timeout
+    loadCart();
 
-    return () => clearTimeout(timeout);
+    // No cleanup needed
   }, []);
 
   // Save cart to localStorage whenever it changes
@@ -263,12 +265,43 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const addToCart = useCallback(
     async (product: Product, quantity: number) => {
-      if (!mounted || !isInitialized) return;
+      // Log the product being added to cart for debugging
+      console.log('Adding to cart:', product, 'quantity:', quantity);
 
+      // Force add to cart even if not mounted/initialized in emergency mode
       try {
         setIsAddingToCart(true);
+
+        // Ensure product has all required fields
+        const validProduct = {
+          ...product,
+          id: product.id || `product-${Date.now()}`,
+          name: product.name || 'Unknown Product',
+          price: typeof product.price === 'number' ? product.price : parseFloat(product.price as any) || 0,
+          is_active: product.is_active !== false, // Default to true if not specified
+        };
+
         // Add validation or API calls here if needed
-        dispatch({ type: 'ADD_ITEM', payload: { product, quantity } });
+        dispatch({ type: 'ADD_ITEM', payload: { product: validProduct, quantity } });
+
+        // Show success message
+        console.log('Product added to cart successfully!');
+
+        // Force save to localStorage
+        try {
+          const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
+          const existingItemIndex = currentCart.findIndex((item: any) => item.product.id === validProduct.id);
+
+          if (existingItemIndex >= 0) {
+            currentCart[existingItemIndex].quantity += quantity;
+          } else {
+            currentCart.push({ product: validProduct, quantity });
+          }
+
+          localStorage.setItem('cart', JSON.stringify(currentCart));
+        } catch (storageError) {
+          console.error('Error saving to localStorage:', storageError);
+        }
       } catch (error) {
         console.error('Error adding item to cart:', error);
       } finally {

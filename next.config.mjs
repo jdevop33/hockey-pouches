@@ -11,6 +11,9 @@ const withBundleAnalyzer =
 if (process.env.NODE_ENV === 'production') {
   try {
     console.log('Running prepare-vercel-build script before production build...');
+    // Set EMERGENCY_BUILD to true for this deployment
+    process.env.EMERGENCY_BUILD = 'true';
+    console.log('⚠️ EMERGENCY_BUILD mode enabled for this deployment');
     execSync('node scripts/prepare-vercel-build.mjs', { stdio: 'inherit' });
   } catch (error) {
     console.error('Warning: prepare-vercel-build script failed, continuing with build', error);
@@ -49,6 +52,7 @@ const nextConfig = {
     domains: [
       'localhost',
       'hockey-pouches.vercel.app',
+      'hockey-pouches-ij1tv2c5y-panda3.vercel.app',
       'hockeypouch.com',
       'www.hockeypouch.com',
       'nicotinetins.com',

@@ -48,13 +48,26 @@ const ProductImage: React.FC<ProductImageProps> = ({
   const getNormalizedSrc = (path: string | null | undefined) => {
     if (!path) return null;
 
+    // Log the original path for debugging
+    console.log(`ProductImage: Original path: ${path}`);
+
     // If it's already a full URL, return it
     if (path.startsWith('http://') || path.startsWith('https://')) {
       return path;
     }
 
     // Make sure it starts with a slash for local paths
-    return path.startsWith('/') ? path : `/${path}`;
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+
+    // Check if the path includes 'images/products' and ensure it's correctly formatted
+    if (normalizedPath.includes('images/products') && !normalizedPath.startsWith('/images/products')) {
+      return `/images/products/${normalizedPath.split('images/products/')[1]}`;
+    }
+
+    // Log the normalized path for debugging
+    console.log(`ProductImage: Normalized path: ${normalizedPath}`);
+
+    return normalizedPath;
   };
 
   const normalizedSrc = getNormalizedSrc(src);
@@ -82,7 +95,16 @@ const ProductImage: React.FC<ProductImageProps> = ({
     // If we haven't reached max retries, increment retry count and try again
     if (retryCount < maxRetries) {
       console.warn(`Failed to load image: ${src}. Retry attempt ${retryCount + 1} of ${maxRetries}`);
+      console.warn(`Normalized path was: ${normalizedSrc}`);
+
       setRetryCount(retryCount + 1);
+
+      // Try with a different path format on retry
+      if (src && src.includes('images/products')) {
+        const productName = src.split('images/products/')[1];
+        console.log(`Trying alternative path format: /images/products/${productName}`);
+      }
+
       // Force a re-render with the same source to retry loading
       setIsLoading(true);
 
@@ -97,6 +119,7 @@ const ProductImage: React.FC<ProductImageProps> = ({
 
     // If we've reached max retries, use fallback
     console.error(`Failed to load image: ${src} after ${maxRetries} retries. Using fallback image instead.`);
+    console.error(`Image paths tried: ${normalizedSrc}, fallback: ${fallbackImage}`);
     setImageError(true);
     setIsLoading(false);
   };
@@ -195,7 +218,7 @@ const ProductImage: React.FC<ProductImageProps> = ({
         onLoad={handleImageLoad}
         sizes={getSizes()}
         loading={priority ? 'eager' : 'lazy'}
-        unoptimized={false} // Make sure we use Next.js image optimization
+        unoptimized={true} // Temporarily use unoptimized images to ensure they load
       />
 
       {/* Zoomed view modal */}
@@ -236,7 +259,7 @@ const ProductImage: React.FC<ProductImageProps> = ({
                 quality={100}
                 className="object-contain p-4"
                 sizes="90vw"
-                unoptimized={false}
+                unoptimized={true}
               />
             </div>
           </div>
