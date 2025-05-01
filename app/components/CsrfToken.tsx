@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useCsrfToken, CsrfToken as CsrfTokenType } from '@/lib/csrf-client';
+import { useCsrfToken } from '../lib/csrf-client';
 
 /**
  * CSRF form field component props

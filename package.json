@@ -27,7 +27,11 @@
     "fix:viewport": "node scripts/fix-viewport-metadata.mjs",
     "fix:cache": "node scripts/fix-cache-tags.mjs",
     "fix:cache:specific": "node scripts/fix-specific-cache-issues.mjs",
-    "fix:all": "npm run fix:schema && npm run fix:viewport && npm run fix:cache && npm run fix:cache:specific"
+    "fix:client-imports": "node scripts/fix-import-paths.mjs",
+    "fix:all": "npm run fix:schema && npm run fix:viewport && npm run fix:cache && npm run fix:cache:specific && npm run fix:client-imports",
+    "prepare-vercel": "node scripts/prepare-vercel-build.mjs",
+    "test:deployment": "node scripts/test-deployment.mjs",
+    "build:vercel": "npm run prepare-vercel && next build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -44,6 +48,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "0.43.1",
+    "glob": "11.0.2",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.503.0",
     "next": "^15.3.1",

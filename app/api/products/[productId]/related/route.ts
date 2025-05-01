@@ -3,10 +3,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, sql } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { products } from '@/lib/schema/products';
-import * as schema from '@/lib/schema'; // Keep for schema type references
+import * as schema from '@/lib/schema'; // Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for other schema references
+// Keep for schema type references
 import { eq, and, not, desc } from 'drizzle-orm';
 import { unstable_cache } from 'next/cache';
-
 // Use schema-derived types
 type ProductSelect = typeof schema.products.$inferSelect;
 // Define public-facing product type for lists/cards

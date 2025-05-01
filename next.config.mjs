@@ -1,10 +1,21 @@
 /** @type {import('next').NextConfig} */
 
 // Use ESM import for bundle analyzer
-import bundleAnalyzerPlugin from '@next/bundle-analyzer';
+import bundleAnalyzer from '@next/bundle-analyzer';
+import { execSync } from 'child_process';
 
 const withBundleAnalyzer =
-  process.env.ANALYZE === 'true' ? bundleAnalyzerPlugin({ enabled: true }) : config => config;
+  process.env.ANALYZE === 'true' ? bundleAnalyzer({ enabled: true }) : config => config;
+
+// Run prepare script before build
+if (process.env.NODE_ENV === 'production') {
+  try {
+    console.log('Running prepare-vercel-build script before production build...');
+    execSync('node scripts/prepare-vercel-build.mjs', { stdio: 'inherit' });
+  } catch (error) {
+    console.error('Warning: prepare-vercel-build script failed, continuing with build', error);
+  }
+}
 
 const nextConfig = {
   reactStrictMode: true,
