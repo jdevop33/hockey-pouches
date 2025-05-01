@@ -8,9 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     ...baseMetadata.openGraph,
     title: 'Privacy | PUXX - Premium Nicotine Pouches',
-    description: 'PUXX privacy page - Experience premium nicotine pouches with exceptional quality and flavor.',
-  },
-};
+    description: 'PUXX privacy page - Experience premium nicotine pouches with exceptional quality and flavor.'}};
 
 export const viewport: Viewport = {
   ...baseViewport,

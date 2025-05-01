@@ -9,9 +9,7 @@ export const metadata: Metadata = {
     ...baseMetadata.openGraph,
     title: 'About | PUXX - Premium Nicotine Pouches',
     description:
-      'Learn about PUXX - Our story, mission, and commitment to quality nicotine pouches.',
-  },
-};
+      'Learn about PUXX - Our story, mission, and commitment to quality nicotine pouches.'}};
 
 export const viewport: Viewport = {
   ...baseViewport,

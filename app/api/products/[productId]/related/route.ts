@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger'; // Keep logger import
 import { products } from '@/lib/schema/products';
 import * as schema from '@/lib/schema'; // Keep for other schema references
 // Keep for other schema references
+// Keep for other schema references
 // Keep wildcard for enums/other
 import { eq, and, not, desc } from 'drizzle-orm'; // Combine operators
 import { unstable_cache } from 'next/cache';

@@ -21,7 +21,13 @@
     "db:migrate": "node scripts/run-migrations.js",
     "fix:imports": "node scripts/fix-schema-imports.mjs",
     "preflight": "npm run fix:imports && npm run lint:fix && npm run format && npm run typecheck",
-    "predeploy": "node scripts/pre-deploy.mjs"
+    "predeploy": "node scripts/pre-deploy.mjs",
+    "build:fixed": "node scripts/build-and-deploy.mjs",
+    "fix:schema": "node scripts/fix-schema-imports.mjs",
+    "fix:viewport": "node scripts/fix-viewport-metadata.mjs",
+    "fix:cache": "node scripts/fix-cache-tags.mjs",
+    "fix:cache:specific": "node scripts/fix-specific-cache-issues.mjs",
+    "fix:all": "npm run fix:schema && npm run fix:viewport && npm run fix:cache && npm run fix:cache:specific"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

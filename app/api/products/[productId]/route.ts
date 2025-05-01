@@ -49,7 +49,7 @@ const getProductFromDb = unstable_cache(
   ['product-detail'], // Base cache key
   {
       // Pass productId to the cache function scope for use in tags
-      tags: (productId) => [`product:${productId}`],
+      tags: (productId) => [productId ? `tag-${productId}` : "default-tag"],
       revalidate: 3600, // Revalidate every hour
   }
 );

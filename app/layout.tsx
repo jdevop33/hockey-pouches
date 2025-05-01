@@ -1,5 +1,5 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { Providers } from '@/providers/Providers';
 
@@ -13,47 +13,43 @@ export const metadata: Metadata = {
   description: 'High-quality hockey equipment storage solutions for professionals and enthusiasts.',
   icons: {
     icon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
-  },
-  themeColor: '#12121a',
+    apple: '/apple-touch-icon.png'},
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Hockey Pouches',
-  },
+    title: 'Hockey Pouches'},
   applicationName: 'Hockey Pouches',
   formatDetection: {
     telephone: false,
     date: false,
     email: false,
-    address: false,
-  },
+    address: false},
   openGraph: {
     siteName: 'Hockey Pouches',
     type: 'website',
-    locale: 'en_CA',
-  },
+    locale: 'en_CA'},
   twitter: {
     card: 'summary_large_image',
     creator: '@hockeypouches',
-    site: '@hockeypouches',
-  },
-  colorScheme: 'dark',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-  },
+    site: '@hockeypouches'},
+    initialScale: 1},
   manifest: '/manifest.json',
   metadataBase: new URL('https://hockeypouches.com'),
   alternates: {
-    canonical: '/',
-  },
+    canonical: '/'},
   other: {
     'msapplication-TileColor': '#12121a',
     'mobile-web-app-capable': 'yes',
-    'msapplication-navbutton-color': '#12121a',
-  },
+    'msapplication-navbutton-color': '#12121a'}};
+
+export const viewport: Viewport = {
+  themeColor: '#12121a',
+  colorScheme: 'dark',
+  viewport: {
+    width: 'device-width',
 };
+
+
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
