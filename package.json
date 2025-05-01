@@ -31,7 +31,8 @@
     "fix:all": "npm run fix:schema && npm run fix:viewport && npm run fix:cache && npm run fix:cache:specific && npm run fix:client-imports",
     "prepare-vercel": "node scripts/prepare-vercel-build.mjs",
     "test:deployment": "node scripts/test-deployment.mjs",
-    "build:vercel": "npm run prepare-vercel && next build"
+    "build:vercel": "npm run prepare-vercel && next build",
+    "verify:images": "node scripts/verify-product-images.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

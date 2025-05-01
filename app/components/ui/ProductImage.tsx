@@ -40,10 +40,13 @@ const ProductImage: React.FC<ProductImageProps> = ({
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isZoomed, setIsZoomed] = useState(false);
-  const fallbackImage = '/images/products/fallback.jpg';
+  const fallbackImage = '/images/products/puxxcoolmint22mg.png';
+
+  // Ensure src is properly formatted
+  const normalizedSrc = src ? (src.startsWith('/') ? src : `/${src}`) : null;
 
   // Use fallback if src is null/undefined or if there was an error loading the image
-  const imageSrc = src && !imageError ? src : fallbackImage;
+  const imageSrc = normalizedSrc && !imageError ? normalizedSrc : fallbackImage;
 
   // Configure size dimensions
   const getSizeClasses = () => {
@@ -62,7 +65,7 @@ const ProductImage: React.FC<ProductImageProps> = ({
   };
 
   const handleImageError = () => {
-    console.error(`Failed to load image: ${src}`);
+    console.error(`Failed to load image: ${src}. Using fallback image instead.`);
     setImageError(true);
     setIsLoading(false);
   };

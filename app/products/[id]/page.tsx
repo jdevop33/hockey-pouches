@@ -7,8 +7,7 @@ import { useCart } from '../../context/CartContext';
 import SocialShare from '../../components/SocialShare';
 import ProductSchema from '../../components/ProductSchema';
 import ProductImage from '../../components/ui/ProductImage';
-import { formatCurrency } from '@/lib/utils';
-import * as schema from '@/lib/schema';
+import { cn, formatCurrency } from '@/lib/utils';
 import {
   Star,
   ChevronRight,
@@ -20,7 +19,7 @@ import {
   RefreshCw,
   Award,
 } from 'lucide-react';
-import Image from 'next/image';
+
 // Define proper types for the product
 interface Product {
   id: string;
@@ -97,19 +96,21 @@ const ProductSkeleton = () => (
 const ProductGallery = ({ product }: { product: Product }) => {
   const [activeImage, setActiveImage] = useState(product.image_url);
   const images = [product.image_url, ...(product.gallery_images || [])];
+
   return (
     <div className="space-y-4">
       {/* Main image */}
-      <div className="aspect-square relative overflow-hidden rounded-lg border border-gray-800">
-        <Image
-          src={activeImage || '/images/products/fallback.jpg'}
+      <div className="aspect-square overflow-hidden rounded-lg border border-gray-800">
+        <ProductImage
+          src={activeImage}
           alt={product.name}
-          fill
-          className="object-cover"
-          sizes="(min-width: 1024px) 50vw, 100vw"
-          priority
+          size="square"
+          priority={true}
+          objectFit="contain"
+          enableZoom={true}
         />
       </div>
+
       {/* Thumbnail grid */}
       {images.length > 1 && (
         <div className="grid grid-cols-4 gap-4">
@@ -123,12 +124,11 @@ const ProductGallery = ({ product }: { product: Product }) => {
                 activeImage === image ? 'border-gold-500' : 'border-gray-800'
               )}
             >
-              <Image
-                src={image || '/images/products/fallback.jpg'}
+              <ProductImage
+                src={image}
                 alt={`${product.name} view ${index + 1}`}
-                fill
-                className="object-cover"
-                sizes="(min-width: 1024px) 15vw, 25vw"
+                size="square"
+                objectFit="cover"
               />
             </button>
           ))}
@@ -166,6 +166,18 @@ export default function ProductDetailPage() {
         setRelatedProducts(relatedData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+
+        // FOR DEVELOPMENT: Use mock data when API fails
+        if (process.env.NODE_ENV === 'development') {
+          // Find matching product from our static data
+          const id = params?.id as string;
+          const mockProduct = getMockProduct(id);
+          if (mockProduct) {
+            setProduct(mockProduct);
+            setRelatedProducts(getMockRelatedProducts(id));
+            setError(null);
+          }
+        }
       } finally {
         setIsLoading(false);
       }
@@ -461,4 +473,124 @@ export default function ProductDetailPage() {
       )}
     </Layout>
   );
+}
+
+// Helper function to get mock product data during development
+function getMockProduct(id: string): Product | null {
+  const productMap: Record<string, Product> = {
+    'cool-mint': {
+      id: 'cool-mint',
+      name: 'PUXX Classic Mint',
+      description:
+        'Our flagship flavor with a perfectly balanced cooling sensation that delivers long-lasting freshness with every use.',
+      price: 15.0,
+      image_url: '/images/products/puxxcoolmint22mg.png',
+      gallery_images: [
+        '/images/products/puxxcoolmint22mg-600x600.png',
+        '/images/products/puxxcoolmint22mg-300x300.png',
+      ],
+      sku: 'PX-CM-22MG',
+      stock_quantity: 125,
+      category: 'Mint',
+      brand: 'PUXX',
+      rating: 4.9,
+      review_count: 187,
+    },
+    peppermint: {
+      id: 'peppermint',
+      name: 'PUXX Peppermint',
+      description:
+        'Crisp, intense peppermint for those who appreciate bold refreshment with a clean, satisfying finish.',
+      price: 15.0,
+      image_url: '/images/products/puxxperpermint22mg.png',
+      gallery_images: [
+        '/images/products/puxxperpermint22mg-600x600.png',
+        '/images/products/puxxperpermint22mg-300x300.png',
+      ],
+      sku: 'PX-PM-22MG',
+      stock_quantity: 98,
+      category: 'Mint',
+      brand: 'PUXX',
+      rating: 4.7,
+      review_count: 142,
+    },
+    spearmint: {
+      id: 'spearmint',
+      name: 'PUXX Spearmint',
+      description:
+        'Sophisticated spearmint with a smooth finish and lasting freshness that feels both invigorating and refined.',
+      price: 15.0,
+      image_url: '/images/products/puxxspearmint22mg.png',
+      gallery_images: [
+        '/images/products/puxxspearmint22mg-600x600.png',
+        '/images/products/puxxspearmint22mg-300x300.png',
+      ],
+      sku: 'PX-SM-22MG',
+      stock_quantity: 76,
+      category: 'Mint',
+      brand: 'PUXX',
+      rating: 4.8,
+      review_count: 156,
+    },
+    watermelon: {
+      id: 'watermelon',
+      name: 'PUXX Watermelon',
+      description:
+        'Premium watermelon with the perfect balance of sweetness and satisfaction for a fruity, refreshing experience.',
+      price: 15.0,
+      image_url: '/images/products/puxxwatermelon16mg.png',
+      gallery_images: [
+        '/images/products/puxxwatermelon16mg-600x600.png',
+        '/images/products/puxxwatermelon16mg-300x300.png',
+      ],
+      sku: 'PX-WM-16MG',
+      stock_quantity: 112,
+      category: 'Fruit',
+      brand: 'PUXX',
+      rating: 4.6,
+      review_count: 98,
+    },
+    cola: {
+      id: 'cola',
+      name: 'PUXX Cola',
+      description:
+        'Classic cola flavor with a refreshing twist, providing a familiar and satisfying experience.',
+      price: 15.0,
+      image_url: '/images/products/puxxcola16mg.png',
+      gallery_images: [
+        '/images/products/puxxcola16mg-600x600.png',
+        '/images/products/puxxcola16mg-300x300.png',
+      ],
+      sku: 'PX-CO-16MG',
+      stock_quantity: 84,
+      category: 'Soda',
+      brand: 'PUXX',
+      rating: 4.5,
+      review_count: 76,
+    },
+  };
+
+  return productMap[id] || null;
+}
+
+// Helper function to get mock related products
+function getMockRelatedProducts(currentId: string): RelatedProduct[] {
+  const allProducts = Object.values(
+    getMockProduct('cool-mint')
+      ? {
+          'cool-mint': getMockProduct('cool-mint'),
+          peppermint: getMockProduct('peppermint'),
+          spearmint: getMockProduct('spearmint'),
+          watermelon: getMockProduct('watermelon'),
+          cola: getMockProduct('cola'),
+        }
+      : {}
+  ).filter(p => p && p.id !== currentId) as Product[];
+
+  return allProducts.map(p => ({
+    id: p.id,
+    name: p.name,
+    price: p.price,
+    image_url: p.image_url,
+  }));
 }
