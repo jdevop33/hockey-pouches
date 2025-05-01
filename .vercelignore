@@ -8,7 +8,6 @@ README.md
 *.log
 .vscode
 .idea
-scripts
 build-no-lint.bat
 build-no-lint.js
 deploy-to-vercel.bat
