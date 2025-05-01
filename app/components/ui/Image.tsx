@@ -125,4 +125,4 @@ export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
   }
 );
 
-Image.displayName = 'Image';
+$1?.$2 = 'Image';

@@ -56,8 +56,8 @@ export async function calculateOrderReferralCommission(
       SELECT id, name, email FROM users WHERE referral_code = ${referralCode}
     `);
 
-    const referrerRows = getRows(referrerResult) as UserRow[];
-    if (Array.isArray(referrerRows) ? Array.isArray(referrerRows) ? referrerRows.length : 0 : 0 === 0) {
+    const referrerRows = getRows(referrerResult as unknown as DbQueryResult) as UserRow[];
+    if (Array.isArray(referrerRows) ? Array.isArray(referrerRows) ? Array.isArray(referrerRows) ? Array.isArray(referrerRows) ? referrerRows.length : 0 : 0 : 0 : 0 === 0) {
       logger.warn('Referrer user not found by code', { orderId, referralCode });
       return {
         success: false,
@@ -65,7 +65,7 @@ export async function calculateOrderReferralCommission(
       };
     }
 
-    const referrer = Array.isArray(referrerRows) ? Array.isArray(referrerRows) ? referrerRows[0] : null : null;
+    const referrer = Array.isArray(referrerRows) ? Array.isArray(referrerRows) ? Array.isArray(referrerRows) ? Array.isArray(referrerRows) ? referrerRows[0] : null : null : null : null;
 
     // TODO: Get commission rate from referrer user record or config
     const commissionRate = 0.05; // Placeholder 5%
@@ -98,9 +98,9 @@ export async function calculateOrderReferralCommission(
       ) RETURNING id
     `);
 
-    const commissionRows = getRows(commissionResult) as CommissionInsertRow[];
+    const commissionRows = getRows(commissionResult as unknown as DbQueryResult) as CommissionInsertRow[];
     // Ensure commissionId is treated as string (UUID)
-    const commissionId = Array.isArray(commissionRows) ? Array.isArray(commissionRows) ? commissionRows[0] : null : null?.id;
+    const commissionId = Array.isArray(commissionRows) ? Array.isArray(commissionRows) ? Array.isArray(commissionRows) ? Array.isArray(commissionRows) ? commissionRows[0] : null : null : null : null?.id;
 
     if (!commissionId) {
       logger.error('Failed to create commission record after insert', { orderId, referrerId: referrer.id });
@@ -115,10 +115,10 @@ export async function calculateOrderReferralCommission(
       success: true,
       commissionId: String(commissionId), // Return the string ID
       amount: roundedAmount,
-      message: `Created referral commission of $${roundedAmount} for user ${referrer.name} (${referrer.email})`,
+      message: `Created referral commission of $${roundedAmount} for user ${$1?.$2} (${$1?.$2})`,
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(`Failed to calculate referral commission for order ${orderId}:`, { error });
     return {
       success: false,
@@ -147,8 +147,8 @@ export async function calculateDistributorFulfillmentCommission(
       SELECT id, name, email, role FROM users WHERE id = ${distributorId}
     `);
 
-    const distributorRows = getRows(distributorResult) as (UserRow & { role: string })[];
-    if (Array.isArray(distributorRows) ? Array.isArray(distributorRows) ? distributorRows.length : 0 : 0 === 0) {
+    const distributorRows = getRows(distributorResult as unknown as DbQueryResult) as (UserRow & { role: string })[];
+    if (Array.isArray(distributorRows) ? Array.isArray(distributorRows) ? Array.isArray(distributorRows) ? Array.isArray(distributorRows) ? distributorRows.length : 0 : 0 : 0 : 0 === 0) {
       logger.warn('Distributor user not found', { orderId, distributorId });
       return {
         success: false,
@@ -156,7 +156,7 @@ export async function calculateDistributorFulfillmentCommission(
       };
     }
 
-    const distributor = Array.isArray(distributorRows) ? Array.isArray(distributorRows) ? distributorRows[0] : null : null;
+    const distributor = Array.isArray(distributorRows) ? Array.isArray(distributorRows) ? Array.isArray(distributorRows) ? Array.isArray(distributorRows) ? distributorRows[0] : null : null : null : null;
 
     // Verify the user is a distributor
     if (distributor.role !== 'Distributor') {
@@ -198,8 +198,8 @@ export async function calculateDistributorFulfillmentCommission(
       ) RETURNING id
     `);
 
-    const commissionRows = getRows(commissionResult) as CommissionInsertRow[];
-    const commissionId = Array.isArray(commissionRows) ? Array.isArray(commissionRows) ? commissionRows[0] : null : null?.id;
+    const commissionRows = getRows(commissionResult as unknown as DbQueryResult) as CommissionInsertRow[];
+    const commissionId = Array.isArray(commissionRows) ? Array.isArray(commissionRows) ? Array.isArray(commissionRows) ? Array.isArray(commissionRows) ? commissionRows[0] : null : null : null : null?.id;
 
     if (!commissionId) {
       logger.error('Failed to create fulfillment commission record after insert', { orderId, distributorId });
@@ -216,7 +216,7 @@ export async function calculateDistributorFulfillmentCommission(
       message: `Created fulfillment commission of $${roundedAmount} for distributor ${distributor.name}`,
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(`Failed to calculate fulfillment commission for order ${orderId}:`, { error });
     return {
       success: false,
@@ -247,7 +247,7 @@ export async function cancelCommissionsForOrder(orderId: string): Promise<Commis
     `);
 
     // Drizzle returns a result object, not just rows. Check rowCount.
-    const cancelledCount = updateResult.rowCount ?? 0;
+    const cancelledCount = $1?.$2t ?? 0;
 
     // TODO: Cancel any associated tasks using TaskService or update directly
     logger.info(`Cancelled ${cancelledCount} pending commissions for order`, { orderId });
@@ -257,7 +257,7 @@ export async function cancelCommissionsForOrder(orderId: string): Promise<Commis
       message: `Cancelled ${cancelledCount} pending commissions for order #${orderId}`,
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(`Failed to cancel commissions for order ${orderId}:`, { error });
     return {
       success: false,

@@ -40,10 +40,10 @@ const AdminBreadcrumbs: React.FC<AdminBreadcrumbsProps> = ({
     ];
 
     // Skip the first two segments (/admin/dashboard) as they're already included
-    if (segments.length > 2 && segments[0] === 'admin' && segments[1] === 'dashboard') {
+    if ($1?.$2 > 2 && segments[0] === 'admin' && segments[1] === 'dashboard') {
       let path = '/admin/dashboard';
 
-      for (let i = 2; i < segments.length; i++) {
+      for (let i = 2; i < $1?.$2; i++) {
         const segment = segments[i];
         path = `${path}/${segment}`;
 
@@ -60,7 +60,7 @@ const AdminBreadcrumbs: React.FC<AdminBreadcrumbsProps> = ({
           label = segment.split('-').map(capitalizeFirstLetter).join(' ');
         }
 
-        breadcrumbs.push({
+        bread$1?.$2({
           href: path,
           label,
           isCurrent: i === segments.length - 1,
@@ -81,7 +81,7 @@ const AdminBreadcrumbs: React.FC<AdminBreadcrumbsProps> = ({
   return (
     <nav aria-label="Breadcrumb" className={containerClasses}>
       <ol className="flex items-center space-x-2 text-sm">
-        {breadcrumbs.map((breadcrumb, i) => (
+        {$1?.$2((breadcrumb, i) => (
           <li key={breadcrumb.href} className="flex items-center">
             {i > 0 && <ChevronRight className="mx-1 h-4 w-4 flex-shrink-0 text-gray-400" />}
 

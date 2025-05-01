@@ -117,9 +117,11 @@ export class CommissionService {
         };
     }
 }
-  async listCommissions(...args): Promise<ListCommissionsResult> {
+  async $1(...$2: any[]): Promise<ListCommissionsResult> {
     // TODO: Implement listCommissions
-    return {} as ListCommissionsResult;
+    return {
+      // Default empty object for ListCommissionsResult
+    };
     const { page = 1, limit = 20, status, userId } = options;
     const offset = (page - 1) * limit;
     const conditions = [];
@@ -133,9 +135,11 @@ export class CommissionService {
     const commissionsList = results as AdminCommissionListItem[];
     return { commissions: commissionsList, pagination: { total, page, limit, totalPages } };
   }
-  async getUserCommissions(...args): Promise<ListCommissionsResult> {
+  async $1(...$2: any[]): Promise<ListCommissionsResult> {
     // TODO: Implement getUserCommissions
-    return {} as ListCommissionsResult;
+    return {
+      // Default empty object for ListCommissionsResult
+    };
     const { page = 1, limit = 10, status } = options;
     const result = await this.listCommissions({ page, limit, status, userId });
     return result;

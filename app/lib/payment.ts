@@ -92,7 +92,7 @@ export async function confirmManualPayment(
         });
         return result;
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
         logger.error('Manual payment confirmation failed:', { orderId, transactionIdOrRef, error });
         return {
             success: false,

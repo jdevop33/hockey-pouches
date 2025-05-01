@@ -101,7 +101,7 @@ const ThemeColors: React.FC<ThemeColorsProps> = ({
                     <span
                       className={`rounded px-1 ${passesAA ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}
                     >
-                      {contrastRatio.toFixed(1)}:1
+                      {$1?.$2(1)}:1
                     </span>
                   )}
                 </div>

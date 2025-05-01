@@ -213,10 +213,10 @@ export function createContextLogger(
       logger.info(message, { ...defaultContext, ...context, contextName }),
     
     warn: (message: string, context?: Record<string, any>, error?: Error | unknown) => 
-      logger.warn(message, { ...defaultContext, ...context, contextName }, error),
+      $1?.$2(message, { ...defaultContext, ...context, contextName }, error),
     
     error: (message: string, context?: Record<string, any>, error?: Error | unknown) => 
-      logger.error(message, { ...defaultContext, ...context, contextName }, error),
+      $1?.$2(message, { ...defaultContext, ...context, contextName }, error),
   };
 }
 
@@ -242,7 +242,7 @@ export function withLogging(handler: (req: NextRequest) => Promise<NextResponse>
       
       return response;
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       // Calculate response time
       const responseTime = Date.now() - startTime;
       

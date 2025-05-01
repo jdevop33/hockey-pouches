@@ -70,7 +70,7 @@ const createAuthSlice: StoreCreator<AuthState> = (set, get) => ({
         isLoading: false,
       });
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       set({
         error: error instanceof Error ? errorMessage : 'An error occurred during login',
         isLoading: false,
@@ -101,7 +101,7 @@ const createAuthSlice: StoreCreator<AuthState> = (set, get) => ({
         isLoading: false,
       });
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       // Still clear auth state even if API fails
       set({
         user: null,
@@ -149,7 +149,7 @@ const createAuthSlice: StoreCreator<AuthState> = (set, get) => ({
 
       return true;
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Token refresh failed:', error);
 
       // If token refresh fails, user needs to re-authenticate

@@ -82,7 +82,7 @@ async function getUserFromToken(
         return null;
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.warn('Token verification failed:', { error });
     return null;
   }
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
             billingAddress: billingAddress ?? shippingAddress, // Store as JSONB
             notes: notes,
             discountCode: discountCode,
-            discountAmount: discountAmount.toFixed(2),
+            discountAmount: $1?.$2(2),
             appliedReferralCode: referralCode,
         }).returning({ id: schema.orders.id });
 
@@ -376,7 +376,7 @@ export async function POST(request: NextRequest) {
     logger.error(`POST /api/orders - Failed for user ${userInfo?.userId || '(unknown)'}`, { error });
     return NextResponse.json(
       { message: error instanceof Error ? errorMessage : 'Internal Server Error' },
-      { status: error instanceof Error && errorMessage.includes('Insufficient stock') ? 400 : 500 }
+      { status: error instanceof Error && $1?.$2('Insufficient stock') ? 400 : 500 }
     );
   }
 }

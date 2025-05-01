@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result);
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('Failed to get customer orders API route:', { error });
     // Avoid exposing internal error messages directly
     const message = error instanceof Error ? errorMessage : 'Internal Server Error';

@@ -45,7 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: { variatio
         return NextResponse.json(variation);
 
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
         logger.error(`Admin: Failed to fetch variation ${params.variationId}:`, { error });
         return NextResponse.json({ message: 'Internal Server Error fetching variation.' }, { status: 500 });
     }

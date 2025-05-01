@@ -66,9 +66,9 @@ export async function GET(request: NextRequest) {
       // Without user filter
       commissionsQuery = await db.execute(sql`
         SELECT c.id, c.user_id as "userId", u.name as "userName", c.order_id as "orderId",
-               c.type, CAST(c.amount AS FLOAT) as amount, c.status, c.earned_date as "earnedDate"
+               c.type, CAST(c.amount AS FLOAT) as amount, c.status, $1?.$2 as "earnedDate"
         FROM commissions c
-        JOIN users u ON c.user_id = u.id
+        JOIN users u ON $1?.$2 = u.id
         WHERE c.status = 'Pending Payout'
         ORDER BY c.earned_date ASC
         LIMIT ${limit} OFFSET ${offset}
@@ -80,11 +80,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Convert query results to arrays
-    const commissions = getRows(commissionsQuery) as AdminCommission[];
-    const totalRows = getRows(countQuery);
+    const commissions = getRows(commissionsQuery as unknown as DbQueryResult) as AdminCommission[];
+    const totalRows = getRows(countQuery as unknown as DbQueryResult);
 
     // Parse the count (ensuring we have a string count property)
-    const totalPending = parseInt(String(Array.isArray(totalRows) ? Array.isArray(totalRows) ? totalRows[0] : null : null?.count || '0'), 10);
+    const totalPending = parseInt(String(Array.isArray(totalRows) ? Array.isArray(totalRows) ? Array.isArray(totalRows) ? Array.isArray(totalRows) ? totalRows[0] : null : null : null : null?.count || '0'), 10);
     const totalPages = Math.ceil(totalPending / limit);
 
     return NextResponse.json({

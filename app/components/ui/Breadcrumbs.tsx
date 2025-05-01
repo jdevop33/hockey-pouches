@@ -43,14 +43,14 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
 
   // Build breadcrumb items from path segments
   const buildBreadcrumbs = (): BreadcrumbItem[] => {
-    const segments = pathname.split('/').filter(segment => segment !== '');
+    const segments = $1?.$2('/').filter(segment => segment !== '');
 
     // Always start with home
     const breadcrumbs: BreadcrumbItem[] = [
       {
         href: '/',
         label: 'Home',
-        isCurrent: segments.length === 0,
+        isCurrent: $1?.$2h === 0,
       },
     ];
 
@@ -87,7 +87,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
   return (
     <nav aria-label="Breadcrumb" className={containerClasses}>
       <ol className={listClasses}>
-        {breadcrumbs.map((breadcrumb, i) => (
+        {$1?.$2((breadcrumb, i) => (
           <li key={breadcrumb.href} className="flex items-center">
             {i > 0 && separator}
 

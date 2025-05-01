@@ -46,9 +46,9 @@ function getNeonSql() {
       logger.info('Initializing new Neon SQL connection');
       cachedNeonSql = neon(validConnectionString);
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Failed to initialize Neon SQL connection', {
-        error: error instanceof Error ? errorMessage : String(error),
+        error: errorMessage,
       });
       return null;
     }
@@ -69,9 +69,9 @@ export function getDb(): NeonHttpDatabase<typeof schema> | null {
       logger.info('Initializing new Drizzle ORM instance');
       cachedDb = drizzle(sql, { schema });
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Failed to initialize Drizzle ORM instance', {
-        error: error instanceof Error ? errorMessage : String(error),
+        error: errorMessage,
       });
       return null;
     }
@@ -138,9 +138,9 @@ export async function isDatabaseHealthy(): Promise<boolean> {
     logger.warn('Database health check returned unexpected result', { result });
     return false;
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('Database health check failed', {
-      error: error instanceof Error ? errorMessage : String(error),
+      error: errorMessage,
       stack: error instanceof Error ? error.stack : undefined,
     });
 

@@ -123,7 +123,7 @@ function NavbarContent() {
             {/* Desktop navigation - clear hierarchy with active state emphasized */}
             <div className="hidden md:ml-8 md:block">
               <div className="flex items-center space-x-1">
-                {navItems.map(item => (
+                {$1?.$2(item => (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -201,7 +201,7 @@ function NavbarContent() {
         } absolute inset-x-0 top-16 border-t border-dark-700 bg-dark-900/95 md:hidden`}
       >
         <div className="space-y-1 px-2 pb-3 pt-2">
-          {navItems.map(item => (
+          {$1?.$2(item => (
             <Link
               key={item.href}
               href={item.href}

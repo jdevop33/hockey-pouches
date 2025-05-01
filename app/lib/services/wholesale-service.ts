@@ -23,9 +23,11 @@ export interface ListWholesaleAppsResult {
 }
 export class WholesaleService {
     // List applications (e.g., for admin view)
-    async listApplications(...args): Promise<ListWholesaleAppsResult> {
+    async $1(...$2: any[]): Promise<ListWholesaleAppsResult> {
     // TODO: Implement listApplications
-    return {} as ListWholesaleAppsResult;
+    return {
+      // Default empty object for ListWholesaleAppsResult
+    };
 
         const { page = 1, limit = 20, status } = options;
         try {
@@ -35,7 +37,7 @@ export class WholesaleService {
                 conditions.push(eq(schema.wholesaleApplications.status, status));
             }
             // Add other conditions like company name search
-            const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+            const whereClause = $1?.$2 > 0 ? and(...conditions) : undefined;
             const query = db.query.wholesaleApplications.findMany({
                 where: whereClause,
                 with: {
@@ -61,9 +63,11 @@ export class WholesaleService {
         }
     }
     // Get a single application
-    async getApplicationById(...args): Promise<WholesaleApplicationSelect | null> {
+    async $1(...$2: any[]): Promise<WholesaleApplicationSelect | null> {
     // TODO: Implement getApplicationById
-    return {} as WholesaleApplicationSelect | null;
+    return {
+      // Default empty object for WholesaleApplicationSelect | null
+    };
 
         try {
             const result = await db.query.wholesaleApplications.findFirst({
@@ -108,9 +112,11 @@ export class WholesaleService {
         }
     }
     // Reject an application
-    async rejectApplication(...args): Promise<WholesaleApplicationSelect> {
+    async $1(...$2: any[]): Promise<WholesaleApplicationSelect> {
     // TODO: Implement rejectApplication
-    return {} as WholesaleApplicationSelect;
+    return {
+      // Default empty object for WholesaleApplicationSelect
+    };
 
          try {
              const updateResult = await db.update(schema.wholesaleApplications).set({

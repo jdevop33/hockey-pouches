@@ -25,7 +25,7 @@ export default function AdminUserDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user: adminUserSession, token, isLoading: authLoading, logout } = useAuth();
-  const userId = params.userId as string;
+  const userId = $1?.$2 as string;
 
   // State
   const [user, setUser] = useState<AdminUserDetails | null>(null);

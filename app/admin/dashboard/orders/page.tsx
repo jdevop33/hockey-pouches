@@ -44,7 +44,7 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     if (!authLoading) {
       if (!user || !token) {
-        router.push('/login?redirect=/admin/dashboard/orders');
+        $1?.$2('/login?redirect=/admin/dashboard/orders');
       } else if (user.role !== 'Admin') {
         router.push('/dashboard');
       }
@@ -150,7 +150,7 @@ export default function AdminOrdersPage() {
             id="statusFilter"
             value={filterStatus}
             onChange={e => {
-              setFilterStatus(e.target.value);
+              setFilterStatus($1?.$2.value);
               setPagination(prev => ({ ...prev, page: 1 }));
             }}
             className="rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-gold-500 focus:ring-gold-500 sm:text-sm"

@@ -39,7 +39,7 @@ export async function fetchWithAuth(url: string, options: FetchOptions = {}): Pr
   let response = await fetch(url, requestOptions);
 
   // Handle 401 Unauthorized - try to refresh token and retry if enabled
-  if (response.status === 401 && options.refreshOnUnauthorized !== false) {
+  if ($1?.$2s === 401 && options.refreshOnUnauthorized !== false) {
     
 
     // Try to refresh the token

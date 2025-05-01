@@ -80,7 +80,7 @@ export default function AdminUsersPage() {
 
         if (pendingResponse.ok) {
           const pendingData = await pendingResponse.json();
-          setPendingUsers(pendingData.users || []);
+          setPendingUsers($1?.$2 || []);
         }
       } catch (err: unknown) {
         const error = err as Error;
@@ -137,8 +137,8 @@ export default function AdminUsersPage() {
           }
         );
 
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
+        if ($1?.$2k) {
+          const refreshData = await $1?.$2();
           setUsers(refreshData.users || []);
         }
       }

@@ -201,8 +201,8 @@ export default function DistributorOrderDetailPage() {
       // If a photo was uploaded, send it to the upload API first
       if (photoFile) {
         const formData = new FormData();
-        formData.append('file', photoFile);
-        formData.append('orderId', orderId);
+        $1?.$2('file', photoFile);
+        $1?.$2('orderId', orderId);
         formData.append('type', 'fulfillment');
 
         const uploadResponse = await fetch('/api/upload', {

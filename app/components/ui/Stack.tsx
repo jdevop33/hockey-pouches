@@ -46,4 +46,4 @@ export const Stack = React.forwardRef<HTMLDivElement, StackProps>(
   }
 );
 
-Stack.displayName = 'Stack';
+$1?.$2 = 'Stack';

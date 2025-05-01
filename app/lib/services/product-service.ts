@@ -111,6 +111,11 @@ export class ProductService {
   }
   // --- Methods (Add basic return types for placeholders) ---
   async getProductById(productId: string): Promise<ProductWithVariations | null> {
+    // TODO: Implement getProductById
+    return {
+      // Default empty object for ProductWithVariations | null
+    };
+
     try {
       logger.info(`Getting product by ID: ${productId}`);
       const productIdNum = parseInt(productId, 10);
@@ -144,6 +149,11 @@ export class ProductService {
     }
   }
   async getProducts(options: ProductListOptions): Promise<ProductListResult> {
+    // TODO: Implement getProducts
+    return {
+      // Default empty object for ProductListResult
+    };
+
     try {
       const {
         page = 1,
@@ -335,6 +345,11 @@ export class ProductService {
     }
   }
   async createProduct(productData: ProductInsert): Promise<ProductSelect> {
+    // TODO: Implement createProduct
+    return {
+      // Default empty object for ProductSelect
+    };
+
     try {
       logger.info('Creating new product', { productData });
 
@@ -419,6 +434,9 @@ export class ProductService {
     }
   }
   async deleteProduct(productId: string): Promise<boolean> {
+    // TODO: Implement deleteProduct
+    return false;
+
     try {
       logger.info('Deleting product (soft delete)', { productId });
       const productIdNum = parseInt(productId, 10);
@@ -490,7 +508,7 @@ export class ProductService {
 
       // Only include active variations if specified
       if (!includeInactive) {
-        conditions.push(eq(schema.productVariations.isActive, true));
+        $1?.$2(eq(schema.productVariations.isActive, true));
       }
 
       // Get the variations
@@ -505,7 +523,12 @@ export class ProductService {
       return [];
     }
   }
-  async getVariationById(variationId: string): Promise<ProductVariationSelect | null> {
+  async $1(...$2: any[]): Promise<ProductVariationSelect | null> {
+    // TODO: Implement getVariationById
+    return {
+      // Default empty object for ProductVariationSelect | null
+    };
+
     try {
       logger.info(`Getting variation by ID: ${variationId}`);
       const variationIdNum = parseInt(variationId, 10);
@@ -552,7 +575,7 @@ export class ProductService {
       const insertedVariations = await db
         .insert(schema.productVariations)
         .values({
-          productId: productIdNum, // Use number ID
+          productId: String(productIdNum), // Use number ID
           name: variationData.name,
           flavor: variationData.flavor,
           strength: variationData.strength,
@@ -647,7 +670,10 @@ export class ProductService {
       throw new Error('Failed to update product variation');
     }
   }
-  async deleteVariation(variationId: string): Promise<boolean> {
+  async $1(...$2: any[]): Promise<boolean> {
+    // TODO: Implement deleteVariation
+    return false;
+
     try {
       logger.info('Deleting product variation (soft delete)', { variationId });
       const variationIdNum = parseInt(variationId, 10);
@@ -728,7 +754,7 @@ export class ProductService {
         // Create new stock level with zero quantity
         await db.insert(schema.stockLevels).values({
           productId, // Use number ID
-          productVariationId: variationIdNum, // Use number ID
+          productVariationId: String(variationIdNum), // Use number ID
           locationId: String(defaultLocationId),
           quantity: 0,
           reservedQuantity: 0,
@@ -784,7 +810,10 @@ export class ProductService {
       return null;
     }
   }
-  async getTotalAvailableStock(productVariationId: string): Promise<number> {
+  async $1(...$2: any[]): Promise<number> {
+    // TODO: Implement getTotalAvailableStock
+    return 0;
+
     try {
       logger.info('Getting total available stock', { productVariationId });
 
@@ -806,7 +835,10 @@ export class ProductService {
       return 0;
     }
   }
-  async updateInventory(params: InventoryUpdateParams): Promise<boolean> {
+  async $1(...$2: any[]): Promise<boolean> {
+    // TODO: Implement updateInventory
+    return false;
+
     // Use transaction if provided
     const executor = params.transaction || db;
 
@@ -874,7 +906,7 @@ export class ProductService {
           const insertedStockLevels = await executor
             .insert(schema.stockLevels)
             .values({
-              productId: variation.productId,
+              productId: String(variation.productId),
               productVariationId,
               locationId,
               quantity: Math.max(0, changeQuantity), // Only allow positive initial quantity
@@ -921,9 +953,9 @@ export class ProductService {
 
       // Record the stock movement
       await executor.insert(schema.stockMovements).values({
-        productId: stockLevel.productId,
-        productVariationId: stockLevel.productVariationId,
-        locationId: stockLevel.locationId,
+        productId: String(stockLevel.productId),
+        productVariationId: String(stockLevel.productVariationId),
+        locationId: String(stockLevel.locationId),
         quantity: changeQuantity,
         type,
         referenceId,
@@ -963,13 +995,43 @@ export class ProductService {
       return false;
     }
   }
+
   async getProductStats(): Promise<ProductStats> {
     try {
       logger.info('Getting product statistics');
 
       // Get total products count
-      const totalProductsResult = await db.select({ count: count() }).from(schema.products);
+      const totalProductsResult = await db
+        .select({ count: count() })
+        .from(schema.products);
       const totalProducts = totalProductsResult[0]?.count || 0;
+
+      // Get active products count
+      const activeProductsResult = await db
+        .select({ count: count() })
+        .from(schema.products)
+        .where(eq(schema.products.isActive, true));
+      const activeProducts = activeProductsResult[0]?.count || 0;
+
+      // Get total variations count
+      const totalVariationsResult = await db
+        .select({ count: count() })
+        .from(schema.productVariations);
+      const totalVariations = totalVariationsResult[0]?.count || 0;
+
+      return {
+        totalProducts,
+        activeProducts,
+        totalVariations,
+        lowStockProducts: 0, // This would require more complex logic
+        outOfStockProducts: 0 // This would require more complex logic
+      };
+    } catch (error) {
+      logger.error('Error getting product statistics', { error });
+      throw error;
+    }
+  }
+    const dummy =  0;
 
       // Get active products count
       const activeProductsResult = await db
@@ -1037,9 +1099,7 @@ export class ProductService {
       };
     }
   }
-  async validateWholesaleOrder(
-    items: Array<{ productVariationId: string; quantity: number }>
-  ): Promise<{ valid: boolean; totalUnits: number; minimumRequired: number; message?: string }> {
+  async validateWholesaleOrder(items: Array<{ productVariationId: string; quantity: number }>): Promise<{ valid: boolean; totalUnits: number; minimumRequired: number; message?: string }> {
     try {
       logger.info('Validating wholesale order', { items });
 

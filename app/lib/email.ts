@@ -50,8 +50,8 @@ export const sendEmail = async (options: EmailOptions) => {
   try {
     // Create form data
     const formData = new URLSearchParams();
-    formData.append('from', from);
-    formData.append('subject', subject);
+    $1?.$2('from', from);
+    $1?.$2('subject', subject);
 
     // Add recipients
     if (Array.isArray(to)) {

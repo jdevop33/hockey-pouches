@@ -50,9 +50,11 @@ export class InventoryService {
   /**
    * Get inventory levels for a product across all locations
    */
-  async getProductInventory(...args): Promise<StockLevel[]> {
+  async $1(...$2: any[]): Promise<StockLevel[]> {
     // TODO: Implement getProductInventory
-    return {} as StockLevel[];
+    return {
+      // Default empty object for StockLevel[]
+    };
 
     try {
       const result = await sql`
@@ -73,9 +75,9 @@ export class InventoryService {
         ORDER BY sl.location_id
       `;
 
-      return getRows(result) as StockLevel[];
+      return getRows(result as unknown as DbQueryResult) as StockLevel[];
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(`Error fetching inventory for product ${productId}:`, error);
       throw new Error(
         `Failed to fetch inventory: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -86,9 +88,11 @@ export class InventoryService {
   /**
    * Get inventory levels for a product variation across all locations
    */
-  async getVariationInventory(...args): Promise<StockLevel[]> {
+  async $1(...$2: any[]): Promise<StockLevel[]> {
     // TODO: Implement getVariationInventory
-    return {} as StockLevel[];
+    return {
+      // Default empty object for StockLevel[]
+    };
 
     try {
       const result = await sql`
@@ -109,9 +113,9 @@ export class InventoryService {
         ORDER BY sl.location_id
       `;
 
-      return getRows(result) as StockLevel[];
+      return getRows(result as unknown as DbQueryResult) as StockLevel[];
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(`Error fetching inventory for variation ${variationId}:`, error);
       throw new Error(
         `Failed to fetch inventory: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -122,9 +126,11 @@ export class InventoryService {
   /**
    * Get inventory levels for a specific location
    */
-  async getLocationInventory(...args): Promise<StockLevel[]> {
+  async $1(...$2: any[]): Promise<StockLevel[]> {
     // TODO: Implement getLocationInventory
-    return {} as StockLevel[];
+    return {
+      // Default empty object for StockLevel[]
+    };
 
     try {
       const result = await sql`
@@ -145,9 +151,9 @@ export class InventoryService {
         ORDER BY sl.product_id, sl.product_variation_id
       `;
 
-      return getRows(result) as StockLevel[];
+      return getRows(result as unknown as DbQueryResult) as StockLevel[];
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(`Error fetching inventory for location ${locationId}:`, error);
       throw new Error(
         `Failed to fetch inventory: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -183,10 +189,10 @@ export class InventoryService {
             ${variationId ? sql`AND product_variation_id = ${variationId}` : sql`AND product_variation_id IS NULL`}
         `;
 
-        const existingRows = getRows(existingResult);
+        const existingRows = getRows(existingResult as unknown as DbQueryResult);
         let stockLevel: StockLevel;
 
-        if (Array.isArray(existingRows) ? Array.isArray(existingRows) ? existingRows.length : 0 : 0 === 0) {
+        if (Array.isArray(existingRows) ? Array.isArray(existingRows) ? Array.isArray(existingRows) ? Array.isArray(existingRows) ? existingRows.length : 0 : 0 : 0 : 0 === 0) {
           // Create new stock level record
           const createResult = await sql`
             INSERT INTO stock_levels (
@@ -212,10 +218,10 @@ export class InventoryService {
               created_at, updated_at
           `;
 
-          stockLevel = getRows(createResult)[0] as StockLevel;
+          stockLevel = getRows(createResult as unknown as DbQueryResult)[0] as StockLevel;
         } else {
           // Update existing stock level record
-          const existing = Array.isArray(existingRows) ? Array.isArray(existingRows) ? existingRows[0] : null : null;
+          const existing = Array.isArray(existingRows) ? Array.isArray(existingRows) ? Array.isArray(existingRows) ? Array.isArray(existingRows) ? existingRows[0] : null : null : null : null;
           const newQuantity = existing.quantity + quantity;
 
           const updateResult = await sql`
@@ -230,7 +236,7 @@ export class InventoryService {
               created_at, updated_at
           `;
 
-          stockLevel = getRows(updateResult)[0] as StockLevel;
+          stockLevel = getRows(updateResult as unknown as DbQueryResult)[0] as StockLevel;
         }
 
         // Create stock movement record
@@ -265,13 +271,13 @@ export class InventoryService {
 
         return stockLevel;
       } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
         // Rollback on error
         await sql`ROLLBACK`;
         throw error;
       }
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(
         `Error adjusting inventory for product ${productId} at location ${locationId}:`,
         error
@@ -312,9 +318,9 @@ export class InventoryService {
               ${item.variationId ? sql`AND product_variation_id = ${item.variationId}` : sql`AND product_variation_id IS NULL`}
           `;
 
-          const stockRows = getRows(stockResult);
+          const stockRows = getRows(stockResult as unknown as DbQueryResult);
 
-          if (Array.isArray(stockRows) ? Array.isArray(stockRows) ? stockRows.length : 0 : 0 === 0) {
+          if (Array.isArray(stockRows) ? Array.isArray(stockRows) ? Array.isArray(stockRows) ? Array.isArray(stockRows) ? stockRows.length : 0 : 0 : 0 : 0 === 0) {
             errors.push({
               productId: String(item.productId),
               variationId: String(item.variationId),
@@ -323,7 +329,7 @@ export class InventoryService {
             continue;
           }
 
-          const stockLevel = Array.isArray(stockRows) ? Array.isArray(stockRows) ? stockRows[0] : null : null;
+          const stockLevel = Array.isArray(stockRows) ? Array.isArray(stockRows) ? Array.isArray(stockRows) ? Array.isArray(stockRows) ? stockRows[0] : null : null : null : null;
           const availableQuantity = stockLevel.quantity - stockLevel.reserved_quantity;
 
           if (availableQuantity < item.quantity) {
@@ -376,17 +382,17 @@ export class InventoryService {
         await sql`COMMIT`;
 
         return {
-          success: Array.isArray(errors) ? Array.isArray(errors) ? errors.length : 0 : 0 === 0,
+          success: Array.isArray(errors) ? Array.isArray(errors) ? Array.isArray(errors) ? Array.isArray(errors) ? errors.length : 0 : 0 : 0 : 0 === 0,
           errors,
         };
       } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
         // Rollback on error
         await sql`ROLLBACK`;
         throw error;
       }
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(`Error reserving inventory for order ${orderId}:`, error);
       throw new Error(
         `Failed to reserve inventory: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -424,9 +430,9 @@ export class InventoryService {
               ${item.variationId ? sql`AND product_variation_id = ${item.variationId}` : sql`AND product_variation_id IS NULL`}
           `;
 
-          const stockRows = getRows(stockResult);
+          const stockRows = getRows(stockResult as unknown as DbQueryResult);
 
-          if (Array.isArray(stockRows) ? Array.isArray(stockRows) ? stockRows.length : 0 : 0 === 0) {
+          if (Array.isArray(stockRows) ? Array.isArray(stockRows) ? Array.isArray(stockRows) ? Array.isArray(stockRows) ? stockRows.length : 0 : 0 : 0 : 0 === 0) {
             errors.push({
               productId: String(item.productId),
               variationId: String(item.variationId),
@@ -435,7 +441,7 @@ export class InventoryService {
             continue;
           }
 
-          const stockLevel = Array.isArray(stockRows) ? Array.isArray(stockRows) ? stockRows[0] : null : null;
+          const stockLevel = Array.isArray(stockRows) ? Array.isArray(stockRows) ? Array.isArray(stockRows) ? Array.isArray(stockRows) ? stockRows[0] : null : null : null : null;
 
           if (stockLevel.reserved_quantity < item.quantity) {
             errors.push({
@@ -488,17 +494,17 @@ export class InventoryService {
         await sql`COMMIT`;
 
         return {
-          success: Array.isArray(errors) ? Array.isArray(errors) ? errors.length : 0 : 0 === 0,
+          success: Array.isArray(errors) ? Array.isArray(errors) ? Array.isArray(errors) ? Array.isArray(errors) ? errors.length : 0 : 0 : 0 : 0 === 0,
           errors,
         };
       } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
         // Rollback on error
         await sql`ROLLBACK`;
         throw error;
       }
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(`Error fulfilling inventory for order ${orderId}:`, error);
       throw new Error(
         `Failed to fulfill inventory: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -534,9 +540,9 @@ export class InventoryService {
             ${variationId ? sql`AND product_variation_id = ${variationId}` : sql`AND product_variation_id IS NULL`}
         `;
 
-        const sourceRows = getRows(sourceResult);
+        const sourceRows = getRows(sourceResult as unknown as DbQueryResult);
 
-        if (Array.isArray(sourceRows) ? Array.isArray(sourceRows) ? sourceRows.length : 0 : 0 === 0) {
+        if (Array.isArray(sourceRows) ? Array.isArray(sourceRows) ? Array.isArray(sourceRows) ? Array.isArray(sourceRows) ? sourceRows.length : 0 : 0 : 0 : 0 === 0) {
           await sql`ROLLBACK`;
           return {
             success: false,
@@ -544,7 +550,7 @@ export class InventoryService {
           };
         }
 
-        const sourceStock = Array.isArray(sourceRows) ? Array.isArray(sourceRows) ? sourceRows[0] : null : null;
+        const sourceStock = Array.isArray(sourceRows) ? Array.isArray(sourceRows) ? Array.isArray(sourceRows) ? Array.isArray(sourceRows) ? sourceRows[0] : null : null : null : null;
         const availableQuantity = sourceStock.quantity - sourceStock.reserved_quantity;
 
         if (availableQuantity < quantity) {
@@ -561,7 +567,7 @@ export class InventoryService {
           SET 
             quantity = quantity - ${quantity},
             updated_at = NOW()
-          WHERE id = ${sourceStock.id}
+          WHERE id = ${$1?.$2}
         `;
 
         // Create stock movement record for source
@@ -601,9 +607,9 @@ export class InventoryService {
             ${variationId ? sql`AND product_variation_id = ${variationId}` : sql`AND product_variation_id IS NULL`}
         `;
 
-        const targetRows = getRows(targetResult);
+        const targetRows = getRows(targetResult as unknown as DbQueryResult);
 
-        if (Array.isArray(targetRows) ? Array.isArray(targetRows) ? targetRows.length : 0 : 0 === 0) {
+        if (Array.isArray(targetRows) ? Array.isArray(targetRows) ? Array.isArray(targetRows) ? Array.isArray(targetRows) ? targetRows.length : 0 : 0 : 0 : 0 === 0) {
           // Create new stock record at target
           await sql`
             INSERT INTO stock_levels (
@@ -631,7 +637,7 @@ export class InventoryService {
             SET 
               quantity = quantity + ${quantity},
               updated_at = NOW()
-            WHERE id = ${Array.isArray(targetRows) ? Array.isArray(targetRows) ? targetRows[0] : null : null.id}
+            WHERE id = ${Array.isArray(targetRows) ? Array.isArray(targetRows) ? Array.isArray(targetRows) ? Array.isArray(targetRows) ? targetRows[0] : null : null : null : null.id}
           `;
         }
 
@@ -670,13 +676,13 @@ export class InventoryService {
           message: `Successfully transferred ${quantity} units from ${sourceLocationId} to ${targetLocationId}`,
         };
       } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
         // Rollback on error
         await sql`ROLLBACK`;
         throw error;
       }
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(`Error transferring inventory for product ${productId}:`, error);
       throw new Error(
         `Failed to transfer inventory: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -715,11 +721,11 @@ export class InventoryService {
         ORDER BY (sl.quantity - sl.reserved_quantity) ASC
       `;
 
-      return getRows(result) as Array<
+      return getRows(result as unknown as DbQueryResult) as Array<
         StockLevel & { product_name: string; variation_name?: string }
       >;
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error fetching low stock items:', error);
       throw new Error(
         `Failed to fetch low stock items: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -756,7 +762,7 @@ export class InventoryService {
         ${whereClause}
       `;
 
-      const total = parseInt(getRows(countResult)[0].total);
+      const total = parseInt(getRows(countResult as unknown as DbQueryResult)[0].total);
 
       // Get movements with pagination
       const movementsResult = await sql`
@@ -780,7 +786,7 @@ export class InventoryService {
         LIMIT ${limit} OFFSET ${offset}
       `;
 
-      const movements = getRows(movementsResult) as (StockMovement & {
+      const movements = getRows(movementsResult as unknown as DbQueryResult) as (StockMovement & {
         created_by_name?: string;
       })[];
 
@@ -789,7 +795,7 @@ export class InventoryService {
         total,
       };
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(`Error fetching stock movement history for product ${productId}:`, error);
       throw new Error(
         `Failed to fetch stock movement history: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -800,9 +806,11 @@ export class InventoryService {
   /**
    * Create or update a stock location
    */
-  async saveStockLocation(...args): Promise<StockLocation> {
+  async $1(...$2: any[]): Promise<StockLocation> {
     // TODO: Implement saveStockLocation
-    return {} as StockLocation;
+    return {
+      // Default empty object for StockLocation
+    };
 
     try {
       if (location.id) {
@@ -819,7 +827,7 @@ export class InventoryService {
           RETURNING id, name, address, type, is_active, created_at, updated_at
         `;
 
-        return getRows(updateResult)[0] as StockLocation;
+        return getRows(updateResult as unknown as DbQueryResult)[0] as StockLocation;
       } else {
         // Create new location
         const createResult = await sql`
@@ -841,10 +849,10 @@ export class InventoryService {
           RETURNING id, name, address, type, is_active, created_at, updated_at
         `;
 
-        return getRows(createResult)[0] as StockLocation;
+        return getRows(createResult as unknown as DbQueryResult)[0] as StockLocation;
       }
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error saving stock location:', error);
       throw new Error(
         `Failed to save stock location: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -855,9 +863,11 @@ export class InventoryService {
   /**
    * Get all stock locations
    */
-  async getStockLocations(...args): Promise<StockLocation[]> {
+  async $1(...$2: any[]): Promise<StockLocation[]> {
     // TODO: Implement getStockLocations
-    return {} as StockLocation[];
+    return {
+      // Default empty object for StockLocation[]
+    };
 
     try {
       const result = await sql`
@@ -867,9 +877,9 @@ export class InventoryService {
         ORDER BY name
       `;
 
-      return getRows(result) as StockLocation[];
+      return getRows(result as unknown as DbQueryResult) as StockLocation[];
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error fetching stock locations:', error);
       throw new Error(
         `Failed to fetch stock locations: ${error instanceof Error ? errorMessage : 'Unknown error'}`
@@ -915,7 +925,7 @@ export class InventoryService {
         ORDER BY l.name
       `;
 
-      return getRows(result) as Array<{
+      return getRows(result as unknown as DbQueryResult) as Array<{
         location_id: string;
         location_name: string;
         total_items: number;
@@ -923,7 +933,7 @@ export class InventoryService {
         total_value: number;
       }>;
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error generating inventory report by location:', error);
       throw new Error(
         `Failed to generate inventory report: ${error instanceof Error ? errorMessage : 'Unknown error'}`

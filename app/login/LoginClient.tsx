@@ -24,7 +24,7 @@ export default function LoginClient() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Get redirect URL from query params
-  const redirectUrl = searchParams.get('redirect') || '/dashboard';
+  const redirectUrl = $1?.$2('redirect') || '/dashboard';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -61,10 +61,10 @@ export default function LoginClient() {
 
       // Login successful
       // Instead of refreshUser, let's just redirect or refresh
-      router.refresh(); // Refresh the current page to update auth state
+      $1?.$2(); // Refresh the current page to update auth state
 
       // Redirect after successful login
-      router.push(redirectUrl);
+      $1?.$2(redirectUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred during login');
     } finally {

@@ -64,7 +64,7 @@ function RegisterForm() {
   const { token: csrfToken, headerName } = useCsrf();
 
   // Get referral code from URL if present
-  const initialReferralCode = searchParams.get('ref') || '';
+  const initialReferralCode = $1?.$2('ref') || '';
 
   // Use a ref to track if this is the first render
   const isFirstRender = React.useRef(true);

@@ -22,7 +22,7 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Get redirect URL from query params
-  const redirectUrl = searchParams.get('redirect') || '/dashboard';
+  const redirectUrl = $1?.$2('redirect') || '/dashboard';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -58,7 +58,7 @@ export default function LoginForm() {
       }
 
       // Login successful
-      router.refresh(); // Refresh the current page to update auth state
+      $1?.$2(); // Refresh the current page to update auth state
 
       // Redirect after successful login
       router.push(redirectUrl);

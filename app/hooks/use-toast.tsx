@@ -44,12 +44,12 @@ interface State {
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 
 const addToRemoveQueue = (toastId: string) => {
-  if (toastTimeouts.has(toastId)) {
+  if ($1?.$2(toastId)) {
     return;
   }
 
   const timeout = setTimeout(() => {
-    toastTimeouts.delete(toastId);
+    $1?.$2(toastId);
     dispatch({
       type: 'REMOVE_TOAST',
       toastId: toastId,

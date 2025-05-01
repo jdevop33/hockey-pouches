@@ -20,9 +20,9 @@ export async function query(text: string, params?: unknown[]): Promise<any[]> {
         logger.debug('Executing raw query:', { text, params });
         const result = await db.execute(sql.raw(text, ...(params || [])));
         const duration = Date.now() - start;
-        logger.debug('Query executed successfully', { text, duration, rowCount: result.rowCount });
+        logger.debug('Query executed successfully', { text, duration, rowCount: $1?.$2 });
         // Return the rows array directly
-        return result.rows;
+        return $1?.$2;
     } catch (error) {
         const duration = Date.now() - start;
         logger.error('Error executing raw query:', { text, params, duration, error });

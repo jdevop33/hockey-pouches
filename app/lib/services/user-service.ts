@@ -128,6 +128,7 @@ export class UserService {
       throw new Error('Database error retrieving user.');
     }
   }
+
   async getUserByEmail(email: string): Promise<UserPublicSelect | null> {
     try {
       logger.debug('Fetching user by email', { email });
@@ -168,6 +169,7 @@ export class UserService {
       throw new Error('Database error retrieving user data.');
     }
   }
+
   private async getUserPasswordHashById(userId: string): Promise<string | null> {
     try {
       logger.debug('Fetching user password hash by ID', { userId });
@@ -395,9 +397,7 @@ export class UserService {
       return { success: false, message: errorMessage || 'Authentication failed.' };
     }
   }
-  async changePassword(
-    params: ChangePasswordParams
-  ): Promise<{ success: boolean; message: string }> {
+  async changePassword(params: ChangePasswordParams): Promise<{ success: boolean; message: string }> {
     try {
       logger.info('Changing user password', { userId: params.userId });
 
@@ -448,7 +448,7 @@ export class UserService {
       return { success: false, message: errorMessage || 'Failed to change password.' };
     }
   }
-  async listUsers(options: ListUsersOptions = {}): Promise<ListUsersResult> {
+  async listUsers(options: ListUsersOptions): Promise<ListUsersResult> {
     try {
       logger.info('Listing users with options', { options });
 
@@ -534,10 +534,7 @@ export class UserService {
       };
     }
   }
-  async applyForWholesale(
-    userId: string,
-    params: ApplyWholesaleParams
-  ): Promise<ApplyWholesaleResult> {
+  async applyForWholesale(userId: string, params: ApplyWholesaleParams): Promise<ApplyWholesaleResult> {
     try {
       logger.info('Processing wholesale application', { userId, params });
 
@@ -657,10 +654,7 @@ export class UserService {
       return null;
     }
   }
-  async getReferrals(
-    userId: string,
-    options: ListReferralsOptions = {}
-  ): Promise<ReferralListResult> {
+  async getReferrals(userId: string, options: ListReferralsOptions): Promise<ReferralListResult> {
     try {
       logger.info('Getting referrals for user', { userId, options });
       const { page = 1, limit = 10 } = options;
@@ -730,9 +724,7 @@ export class UserService {
       };
     }
   }
-  async getUserFromRefreshToken(
-    refreshToken: string
-  ): Promise<{ id: string; email: string; role: string } | null> {
+  async getUserFromRefreshToken(refreshToken: string): Promise<{ id: string; email: string; role: string } | null> {
     try {
       const jwtSecret = process.env.JWT_REFRESH_SECRET;
       if (!jwtSecret) {

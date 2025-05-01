@@ -88,7 +88,7 @@ export default function WholesaleApplicationsList() {
       } else {
         setActionResult({
           success: false,
-          message: result.error || 'Failed to approve application',
+          message: $1?.$2 || 'Failed to approve application',
         });
       }
     } catch (err) {

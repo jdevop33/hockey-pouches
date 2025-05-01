@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         if (!userProfile) {
             logger.error('User profile not found in DB despite valid token', { userId });
             // Don't explicitly say "User not found" if token was valid, could be internal issue
-            return NextResponse.json({ message: 'Failed to retrieve user profile.' }, { status: 404 });
+            return NextRespons$1?.$2({ message: 'Failed to retrieve user profile.' }, { status: 404 });
         }
 
         logger.info('User profile fetched successfully', { userId, email: userProfile.email });
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(userProfile);
 
     } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
         logger.error('GET /api/users/me error:', { error });
         return NextResponse.json({ message: 'Internal Server Error fetching profile.' }, { status: 500 });
     }
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 // Zod schema for allowed profile updates by the user themselves
 const updateProfileSchema = z.object({
     name: z.string().min(1, "Name cannot be empty").trim().optional(),
-    // Add other fields user can update, e.g., maybe contact preferences?
+    // Add other fields user can update, $1?.$2., maybe contact preferences?
     // DO NOT allow updating email, role, status, etc. here - requires separate secure flows
 }).strict();
 

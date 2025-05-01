@@ -27,16 +27,18 @@ export interface ListTasksResult {
     pagination: { total: number; page: number; limit: number; totalPages: number; };
 }
 export class TaskService {
-    async listTasks(...args): Promise<ListTasksResult> {
+    async $1(...$2: any[]): Promise<ListTasksResult> {
     // TODO: Implement listTasks
-    return {} as ListTasksResult;
+    return {
+      // Default empty object for ListTasksResult
+    };
 
         const { page = 1, limit = 20, status, category, priority, assignedTo } = options;
         try {
             const offset = (page - 1) * limit;
             const conditions = [];
             if (status) {
-                conditions.push(eq(schema.tasks.status, status));
+                $1?.$2(eq(schema.tasks.status, status));
             }
             if (category) {
                 conditions.push(eq(schema.tasks.category, category));
@@ -83,9 +85,11 @@ export class TaskService {
         return this.listTasks({ ...options, assignedTo: userId });
     }
     // TODO: Add methods for createTask, updateTask, getTaskById, etc.
-    async updateTaskStatus(...args): Promise<TaskSelect> {
+    async $1(...$2: any[]): Promise<TaskSelect> {
     // TODO: Implement updateTaskStatus
-    return {} as TaskSelect;
+    return {
+      // Default empty object for TaskSelect
+    };
 
         try {
             const result = await db.update(schema.tasks)

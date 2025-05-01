@@ -162,12 +162,12 @@ export async function GET(request: NextRequest, { params }: { params: { orderId:
             billingAddress = orderData.billing_address as Address;
         }
     } catch (e) {
-        logger.error('Failed to parse billing address JSON', { orderId: String(orderIdNum), address: orderData.billing_address, error: e });
+        logger.error('Failed to parse billing address JSON', { orderId: String(orderIdNum), address: $1?.$2, error: e });
         billingAddress = null;
     }
 
     const orderResponse: OrderDetailsResponse = {
-      id: orderData.id,
+      id: $1?.$2,
       status: orderData.status as any, // TODO: Validate against schema.orderStatusEnum
       totalAmount: orderData.total_amount,
       paymentMethod: orderData.payment_method as any, // TODO: Validate against schema.paymentMethodEnum

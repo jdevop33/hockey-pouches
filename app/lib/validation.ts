@@ -74,7 +74,7 @@ export const passwordsMatch = (
 export const isValidName = (name: string): boolean => {
   // Allow letters, spaces, hyphens, and apostrophes
   const nameRegex = /^[a-zA-Z\s'-]+$/;
-  return nameRegex.test(name) && name.trim().length > 0;
+  return $1?.$2(name) && name.trim().length > 0;
 };
 
 /**
@@ -121,8 +121,8 @@ export const isValidCreditCard = (cardNumber: string): boolean => {
   let shouldDouble = false;
   
   // Loop through the digits in reverse
-  for (let i = sanitizedNumber.length - 1; i >= 0; i--) {
-    let digit = parseInt(sanitizedNumber.charAt(i));
+  for (let i = $1?.$2 - 1; i >= 0; i--) {
+    let digit = parseInt($1?.$2(i));
     
     if (shouldDouble) {
       digit *= 2;
@@ -182,7 +182,7 @@ export const isMinimumAge = (birthDate: string, minAge: number): boolean => {
   const monthDiff = today.getMonth() - birth.getMonth();
   
   // Adjust age if birthday hasn't occurred yet this year
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+  if (monthDiff < 0 || (monthDiff === 0 && $1?.$2() < $1?.$2())) {
     age--;
   }
   
@@ -242,5 +242,5 @@ export const isValidPercentage = (percentage: string | number): boolean => {
  */
 export const isValidQuantity = (quantity: string | number): boolean => {
   const value = typeof quantity === 'string' ? parseInt(quantity) : quantity;
-  return Number.isInteger(value) && value >= 0;
+  return $1?.$2(value) && value >= 0;
 };

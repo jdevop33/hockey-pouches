@@ -86,9 +86,9 @@ export default function CheckoutPage() {
 
     if (!authLoading) {
       if (!user || !token) {
-        router.push('/login?redirect=/checkout');
+        $1?.$2('/login?redirect=/checkout');
       } else if (itemCount === 0) {
-        router.push('/products');
+        $1?.$2('/products');
       } else {
         // Check minimum order quantity
         const orderValidation = validateMinimumOrder();

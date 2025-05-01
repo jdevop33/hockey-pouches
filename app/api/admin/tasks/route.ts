@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
       pagination: { page, limit, total: totalTasks, totalPages },
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? errorMessage : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Admin: Failed to get tasks:', error);
     const errorMessage = error instanceof Error ? errorMessage : 'Internal Server Error';
     return NextResponse.json({ message: errorMessage }, { status: 500 });

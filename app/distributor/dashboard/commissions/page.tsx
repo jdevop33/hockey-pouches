@@ -32,7 +32,7 @@ export default function DistributorCommissionsPage() {
     if (authLoading) return;
 
     if (!isAuthenticated || !isDistributor) {
-      router.push('/login?from=distributor/dashboard/commissions');
+      $1?.$2('/login?from=distributor/dashboard/commissions');
       return;
     }
 

@@ -37,11 +37,11 @@ export default function DistributionDashboard() {
       try {
         // Fetch distributors data
         const distributorsResponse = await fetch('/api/admin/users?role=Distributor');
-        const distributorsData = await distributorsResponse.json();
+        const distributorsData = await $1?.$2();
 
         // Fetch pending distribution orders
         const ordersResponse = await fetch('/api/admin/orders?status=pending-distribution');
-        const ordersData = await ordersResponse.json();
+        const ordersData = await $1?.$2();
 
         setDistributors(distributorsData.users || []);
         setPendingOrders(ordersData.orders || []);

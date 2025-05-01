@@ -56,8 +56,8 @@ export default function ImageUploader({
 
       // Prepare form data for upload
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', folder);
+      $1?.$2('file', file);
+      $1?.$2('folder', folder);
 
       // Upload the image
       const response = await fetch('/api/upload', {
@@ -93,8 +93,8 @@ export default function ImageUploader({
     } finally {
       setIsUploading(false);
       // Reset the file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      if ($1?.$2t) {
+        $1?.$2.value = '';
       }
     }
   };

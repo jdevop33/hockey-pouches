@@ -56,7 +56,7 @@ export async function GET(request: NextRequest, { params }: { params: { productI
       ORDER BY l.name
     `);
 
-    const inventoryItems = getRows(result as unknown as DbQueryResult as unknown as DbQueryResult) as InventoryItem[];
+    const inventoryItems = getRows(result as unknown as DbQueryResult as unknown as DbQueryResult as unknown as DbQueryResult as unknown as DbQueryResult) as InventoryItem[];
 
     // Calculate available quantity for each item
     const inventoryWithAvailable = inventoryItems.map(item => ({

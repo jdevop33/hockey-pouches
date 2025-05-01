@@ -77,9 +77,11 @@ export interface FulfillmentData {
 }
 // --- Service Class ---
 export class OrderService {
-  async createOrder(...args): Promise<OrderSelect> {
+  async $1(...$2: any[]): Promise<OrderSelect> {
     // TODO: Implement createOrder
-    return {} as OrderSelect;
+    return {
+      // Default empty object for OrderSelect
+    };
 
     const {
       userId,
@@ -115,7 +117,7 @@ export class OrderService {
       ? parseFloat(totalAmount) - discountAmount
       : parseFloat(totalAmount);
     if (finalAmountNum < 0) throw new Error('Order total cannot be negative');
-    const finalAmountStr = finalAmountNum.toFixed(2);
+    const finalAmountStr = $1?.$2(2);
     const discountAmountStr = discountAmount?.toFixed(2) ?? '0.00';
     try {
       return await db.transaction(async tx => {
@@ -204,9 +206,11 @@ export class OrderService {
       throw new Error('Failed to create order.');
     }
   }
-  async getOrderById(...args): Promise<OrderWithItems | null> {
+  async $1(...$2: any[]): Promise<OrderWithItems | null> {
     // TODO: Implement getOrderById
-    return {} as OrderWithItems | null;
+    return {
+      // Default empty object for OrderWithItems | null
+    };
 
     try {
       const orderData = await db.query.orders.findFirst({

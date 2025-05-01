@@ -39,10 +39,10 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
     // Fetch order to check status and potentially get existing tracking
     const orderCheck =
       await sql`SELECT status, user_id, tracking_number FROM orders WHERE id = ${orderId}`;
-    if (getRowCount(orderCheck) === 0)
+    if (getRowCount(orderCheck as unknown as DbQueryResult) === 0)
       return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
 
-    const orderCheckData = getFirstRow(orderCheck);
+    const orderCheckData = getFirstRow(orderCheck as unknown as DbQueryResult);
     const currentStatus = orderCheckData.status;
     const customerUserId = orderCheckData.user_id;
     const existingTracking = orderCheckData.tracking_number;
@@ -128,8 +128,8 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
         LIMIT 1
       `;
 
-      if (getRowCount(customer) > 0) {
-        const customerData = getFirstRow(customer);
+      if (getRowCount(customer as unknown as DbQueryResult) > 0) {
+        const customerData = getFirstRow(customer as unknown as DbQueryResult);
         await sendShippingConfirmationEmail({
           customerEmail: customerData.email,
           customerName: `${customerData.firstName} ${customerData.lastName}`,
@@ -153,8 +153,8 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
       WHERE o.id = ${orderId}
     `;
 
-    if (getRowCount(orderDetails) > 0) {
-      const order = getFirstRow(orderDetails);
+    if (getRowCount(orderDetails as unknown as DbQueryResult) > 0) {
+      const order = getFirstRow(orderDetails as unknown as DbQueryResult);
       const referralCode = order.referral_code;
       const referrerId = order.referrer_id;
       const orderTotal = parseFloat(order.total_amount);
@@ -174,8 +174,8 @@ export async function POST(request: NextRequest, { params }: { params: { orderId
             SELECT id FROM users WHERE referral_code = ${referralCode}
           `;
 
-          if (getRowCount(referrerResult) > 0) {
-            referrerUserId = getFirstRow(referrerResult).id;
+          if (getRowCount(referrerResult as unknown as DbQueryResult) > 0) {
+            referrerUserId = getFirstRow(referrerResult as unknown as DbQueryResult).id;
           }
         }
 

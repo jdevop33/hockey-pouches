@@ -39,10 +39,10 @@ export async function POST(request: Request) {
 
       // Check if the user exists and is active
       const result = await sql`
-        SELECT id, status FROM users WHERE id = ${decoded.userId}
+        SELECT id, status FROM users WHERE id = ${$1?.$2}
       `;
 
-      if (result.length === 0) {
+      if ($1?.$2h === 0) {
         return NextResponse.json({ verified: false, message: 'User not found' }, { status: 404 });
       }
 
